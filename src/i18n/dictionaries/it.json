@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "contact": "Contattaci",
+    "tagline": "CONNETTIVITÀ SENZA FINE"
+  },
+  "home": {
+    "hero_title_1": "Scaliamo il tuo marchio su ",
+    "hero_title_2": "Amazon",
+    "hero_subtitle": "Viasglobal è il tuo distributore B2B di fiducia. Massimizziamo il potenziale dei tuoi prodotti nel più grande marketplace del mondo.",
+    "hero_cta": "Inizia Oggi",
+    "badge_title": "Distribuzione Ufficiale",
+    "badge_desc": "Solide alleanze con marchi leader."
+  },
+  "services": {
+    "title": "I Nostri Servizi",
+    "s1_title": "Acquisto all'Ingrosso",
+    "s1_desc": "Acquistiamo il tuo inventario all'ingrosso. Flusso di cassa garantito e operazioni semplificate per la tua attività.",
+    "s2_title": "Ottimizzazione delle Inserzioni",
+    "s2_desc": "Miglioriamo le tue inserzioni Amazon per garantire che i tuoi prodotti si distinguano, aumentando la conversione e il posizionamento.",
+    "s3_title": "Protezione del Marchio",
+    "s3_desc": "Proteggiamo il valore del tuo marchio. Garantiamo la conformità MAP e preveniamo venditori non autorizzati."
+  },
+  "cta": {
+    "title": "Pronto a far crescere il tuo marchio?",
+    "desc": "Collabora con Viasglobal e lascia la complessità di Amazon agli esperti.",
+    "button": "Contattaci"
+  },
+  "footer": {
+    "desc": "Il tuo partner strategico in Amazon Wholesale. Collegare marchi di qualità con clienti in tutta Europa.",
+    "legal": "Legale",
+    "rights": "Tutti i diritti riservati."
+  },
+  "cookie": {
+    "text": "Utilizziamo i cookie per migliorare la tua esperienza e analizzare il traffico del nostro sito web. Cliccando su 'Accetta', acconsenti al nostro utilizzo dei cookie in conformità con la nostra",
+    "policy": "Politica sui Cookie",
+    "accept": "Accetta"
+  },
+  "legal": {
+    "aviso": "Avviso Legale",
+    "privacidad": "Informativa sulla Privacy",
+    "cookies": "Politica sui Cookie"
+  }
+}

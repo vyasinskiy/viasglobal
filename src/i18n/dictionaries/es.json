@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "contact": "Contactar",
+    "tagline": "CONECTIVIDAD SIN FIN"
+  },
+  "home": {
+    "hero_title_1": "Escalamos su marca en ",
+    "hero_title_2": "Amazon",
+    "hero_subtitle": "Viasglobal es su distribuidor B2B de confianza. Maximizamos el potencial de sus productos en el marketplace más grande del mundo.",
+    "hero_cta": "Comience Hoy",
+    "badge_title": "Distribución Oficial",
+    "badge_desc": "Alianzas sólidas con marcas líderes."
+  },
+  "services": {
+    "title": "Nuestros Servicios",
+    "s1_title": "Compra Mayorista",
+    "s1_desc": "Compramos su inventario al por mayor. Flujo de caja garantizado y operaciones simplificadas para su negocio.",
+    "s2_title": "Optimización de Listados",
+    "s2_desc": "Mejoramos sus listados en Amazon para asegurar que sus productos destaquen, aumentando la conversión y el posicionamiento.",
+    "s3_title": "Protección de Marca",
+    "s3_desc": "Protegemos su valor de marca. Aseguramos el cumplimiento de MAP y evitamos vendedores no autorizados."
+  },
+  "cta": {
+    "title": "¿Listo para hacer crecer su marca?",
+    "desc": "Asóciese con Viasglobal y deje la complejidad de Amazon en manos de expertos.",
+    "button": "Contáctenos"
+  },
+  "footer": {
+    "desc": "Su socio estratégico en Amazon Wholesale. Conectamos marcas de calidad con clientes en toda Europa.",
+    "legal": "Legal",
+    "rights": "Todos los derechos reservados."
+  },
+  "cookie": {
+    "text": "Utilizamos cookies para mejorar su experiencia y analizar el tráfico de nuestro sitio web. Al hacer clic en 'Aceptar', acepta nuestro uso de cookies de acuerdo con nuestra",
+    "policy": "Política de Cookies",
+    "accept": "Aceptar"
+  },
+  "legal": {
+    "aviso": "Aviso Legal",
+    "privacidad": "Política de Privacidad",
+    "cookies": "Política de Cookies"
+  }
+}

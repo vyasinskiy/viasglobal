@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "contact": "Contact",
+    "tagline": "CONNECTIVITÉ SANS FIN"
+  },
+  "home": {
+    "hero_title_1": "Nous développons votre marque sur ",
+    "hero_title_2": "Amazon",
+    "hero_subtitle": "Viasglobal est votre distributeur B2B de confiance. Nous maximisons le potentiel de vos produits sur la plus grande place de marché du monde.",
+    "hero_cta": "Commencez Aujourd'hui",
+    "badge_title": "Distribution Officielle",
+    "badge_desc": "Des alliances solides avec des marques de premier plan."
+  },
+  "services": {
+    "title": "Nos Services",
+    "s1_title": "Achat en Gros",
+    "s1_desc": "Nous achetons votre stock en gros. Flux de trésorerie garanti et opérations simplifiées pour votre entreprise.",
+    "s2_title": "Optimisation des Annonces",
+    "s2_desc": "Nous améliorons vos annonces Amazon pour nous assurer que vos produits se démarquent, augmentant la conversion et le classement.",
+    "s3_title": "Protection de la Marque",
+    "s3_desc": "Nous protégeons la valeur de votre marque. Nous veillons au respect des prix minimums annoncés (MAP) et empêchons les vendeurs non autorisés."
+  },
+  "cta": {
+    "title": "Prêt à faire croître votre marque ?",
+    "desc": "Associez-vous à Viasglobal et laissez la complexité d'Amazon aux experts.",
+    "button": "Contactez-nous"
+  },
+  "footer": {
+    "desc": "Votre partenaire stratégique dans la vente en gros sur Amazon. Connecter des marques de qualité avec des clients à travers l'Europe.",
+    "legal": "Mentions Légales",
+    "rights": "Tous droits réservés."
+  },
+  "cookie": {
+    "text": "Nous utilisons des cookies pour améliorer votre expérience et analyser le trafic de notre site Web. En cliquant sur 'Accepter', vous acceptez notre utilisation des cookies conformément à notre",
+    "policy": "Politique relative aux cookies",
+    "accept": "Accepter"
+  },
+  "legal": {
+    "aviso": "Mentions Légales",
+    "privacidad": "Politique de Confidentialité",
+    "cookies": "Politique relative aux cookies"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "contact": "Kontakt",
+    "tagline": "ENDLOSE KONNEKTIVITÄT"
+  },
+  "home": {
+    "hero_title_1": "Wir skalieren Ihre Marke auf ",
+    "hero_title_2": "Amazon",
+    "hero_subtitle": "Viasglobal ist Ihr vertrauenswürdiger B2B-Distributor. Wir maximieren das Potenzial Ihrer Produkte auf dem größten Marktplatz der Welt.",
+    "hero_cta": "Heute Starten",
+    "badge_title": "Offizieller Vertrieb",
+    "badge_desc": "Starke Allianzen mit führenden Marken."
+  },
+  "services": {
+    "title": "Unsere Dienstleistungen",
+    "s1_title": "Großhandelseinkauf",
+    "s1_desc": "Wir kaufen Ihr Inventar im Großhandel. Garantierter Cashflow und optimierte Abläufe für Ihr Unternehmen.",
+    "s2_title": "Listing-Optimierung",
+    "s2_desc": "Wir verbessern Ihre Amazon-Listings, um sicherzustellen, dass Ihre Produkte auffallen und die Konversion und das Ranking steigen.",
+    "s3_title": "Markenschutz",
+    "s3_desc": "Wir schützen Ihren Markenwert. Wir stellen die Einhaltung von MAP sicher und verhindern nicht autorisierte Verkäufer."
+  },
+  "cta": {
+    "title": "Bereit, Ihre Marke auszubauen?",
+    "desc": "Arbeiten Sie mit Viasglobal zusammen und überlassen Sie die Komplexität von Amazon den Experten.",
+    "button": "Kontaktiere uns"
+  },
+  "footer": {
+    "desc": "Ihr strategischer Partner im Amazon-Großhandel. Verbindung von Qualitätsmarken mit Kunden in ganz Europa.",
+    "legal": "Rechtliches",
+    "rights": "Alle Rechte vorbehalten."
+  },
+  "cookie": {
+    "text": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern und den Verkehr auf unserer Website zu analysieren. Wenn Sie auf 'Akzeptieren' klicken, stimmen Sie unserer Verwendung von Cookies gemäß unserer",
+    "policy": "Cookie-Richtlinie",
+    "accept": "Akzeptieren"
+  },
+  "legal": {
+    "aviso": "Impressum",
+    "privacidad": "Datenschutzrichtlinie",
+    "cookies": "Cookie-Richtlinie"
+  }
+}

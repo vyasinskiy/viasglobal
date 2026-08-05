@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "contact": "Contact Us",
+    "tagline": "ENDLESS CONNECTIVITY"
+  },
+  "home": {
+    "hero_title_1": "We scale your brand on ",
+    "hero_title_2": "Amazon",
+    "hero_subtitle": "Viasglobal is your trusted B2B distributor. We maximize the potential of your products on the world's largest marketplace.",
+    "hero_cta": "Start Today",
+    "badge_title": "Official Distribution",
+    "badge_desc": "Strong alliances with leading brands."
+  },
+  "services": {
+    "title": "Our Services",
+    "s1_title": "Wholesale Purchasing",
+    "s1_desc": "We buy your inventory wholesale. Guaranteed cash flow and streamlined operations for your business.",
+    "s2_title": "Listing Optimization",
+    "s2_desc": "We improve your Amazon listings to ensure your products stand out, increasing conversion and ranking.",
+    "s3_title": "Brand Protection",
+    "s3_desc": "We protect your brand value. We ensure MAP compliance and prevent unauthorized sellers."
+  },
+  "cta": {
+    "title": "Ready to grow your brand?",
+    "desc": "Partner with Viasglobal and leave the complexity of Amazon to the experts.",
+    "button": "Contact Us"
+  },
+  "footer": {
+    "desc": "Your strategic partner in Amazon Wholesale. Connecting quality brands with customers across Europe.",
+    "legal": "Legal",
+    "rights": "All rights reserved."
+  },
+  "cookie": {
+    "text": "We use cookies to improve your experience and analyze our website traffic. By clicking 'Accept', you agree to our use of cookies in accordance with our",
+    "policy": "Cookie Policy",
+    "accept": "Accept"
+  },
+  "legal": {
+    "aviso": "Legal Notice",
+    "privacidad": "Privacy Policy",
+    "cookies": "Cookie Policy"
+  }
+}
