@@ -10,8 +10,6 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: `${COMPANY_NAME} | Оптовая торговля на Amazon`,
-  description: `Официальный сайт ${COMPANY_NAME}. Мы являемся надежным партнером por оптовой торговле и дистрибуции на платформе Amazon.`,
   metadataBase: new URL(`https://${COMPANY_DOMAIN}`),
 };
 

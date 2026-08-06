@@ -20,10 +20,22 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: Locale }> }): Promise<Metadata> {
   const resolvedParams = await params;
+  const lang = resolvedParams.lang;
+  const dict = await getDictionary(lang);
+
+  const languages: Record<string, string> = {};
+  i18n.locales.forEach((locale) => {
+    languages[locale] = `/${locale}`;
+  });
+
   return {
-    title: `${COMPANY_NAME} | Wholesale on Amazon`,
-    description: `Official site for ${COMPANY_NAME}. We are your reliable B2B wholesale and distribution partner on Amazon.`,
+    title: dict.seo.title,
+    description: dict.seo.description,
     metadataBase: new URL(`https://${COMPANY_DOMAIN}`),
+    alternates: {
+      canonical: `/${lang}`,
+      languages: languages,
+    },
   };
 }
 
