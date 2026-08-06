@@ -16,7 +16,7 @@ export default function Footer({ dict, legalDict, lang }: { dict: any, legalDict
           <Grid size={{ xs: 12, md: 6 }}>
             <Box 
               component="img"
-              src="/viasglobal_logo_2.svg"
+              src="/logo.svg"
               alt={`${COMPANY_NAME} Logo`}
               sx={{ height: 40, width: "auto", mb: 2, filter: "brightness(0) invert(1)" }}
             />

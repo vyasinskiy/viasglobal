@@ -15,7 +15,7 @@ export default function Navbar({ dict, lang }: { dict: any, lang: Locale }) {
           <Box component={Link} href={`/${lang}`} sx={{ display: "flex", alignItems: "center" }}>
             <Box 
               component="img"
-              src="/viasglobal_logo_2.svg"
+              src="/logo.svg"
               alt={`${COMPANY_NAME} Logo`}
               sx={{ height: 40, width: "auto" }}
             />
