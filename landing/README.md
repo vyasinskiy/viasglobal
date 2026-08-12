@@ -27,12 +27,15 @@ bun dev
 
 Откройте [http://localhost:3000](http://localhost:3000) в вашем браузере.
 
-## Деплой
+## Деплой (Vercel)
 
-Проект настроен на статический экспорт. При выполнении:
+Так как код лендинга находится в подпапке `landing`, процесс деплоя на Vercel требует настройки:
 
-```bash
-npm run build
-```
+1. Зайдите в проект на Vercel: [https://vercel.com/viasglobal](https://vercel.com/viasglobal).
+2. Откройте **Settings** -> **General**.
+3. В разделе **Root Directory** впишите `landing` и сохраните.
 
-Будет сгенерирована папка `out`, которую можно бесплатно разместить на статических хостингах, таких как Cloudflare Pages.
+### Пропуск деплоя при изменениях вне папки landing
+Если в настройках включен параметр **"Skip deployments when there are no changes to the root directory or its dependencies"** (включен по умолчанию), Vercel будет собирать проект **только** при изменениях внутри папки `landing`. 
+Изменения в других папках репозитория будут проигнорированы.
+Проверить статус пропущенных билдов (`Canceled`) можно на вкладке [Deployments](https://vercel.com/viasglobal/viasglobal/deployments).
