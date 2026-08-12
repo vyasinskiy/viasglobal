@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import * as xlsx from 'xlsx';
 
-export function extractBrands(filePath: string): string[] {
+export function extractAsins(filePath: string, targetBrand: string): string[] {
   if (!fs.existsSync(filePath)) {
     console.error(`Ошибка: Файл ${filePath} не найден.`);
     process.exit(1);
@@ -13,8 +13,6 @@ export function extractBrands(filePath: string): string[] {
     if (!sheetName) throw new Error("Excel файл не содержит листов.");
     
     const sheet = workbook.Sheets[sheetName];
-    
-    // В xlsx.utils.sheet_to_json можно передать тип, но проще использовать Record<string, unknown>
     const data = xlsx.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
     
     if (data.length === 0) {
@@ -27,28 +25,33 @@ export function extractBrands(filePath: string): string[] {
     
     const brandCol = getRealKey('brand');
     const manufacturerCol = getRealKey('manufacturer');
-
-    if (!brandCol && !manufacturerCol) {
-      console.warn("Предупреждение: Колонки 'brand' и 'manufacturer' не найдены по имени.");
-    }
+    const asinCol = getRealKey('asin');
     
-    const brands = new Set<string>();
+    if (!asinCol) {
+      console.error("Ошибка: Колонка 'asin' не найдена в файле.");
+      process.exit(1);
+    }
+
+    const asins = new Set<string>();
     
     data.forEach(row => {
+      let b = '';
       if (brandCol && row[brandCol]) {
-        brands.add(String(row[brandCol]).trim());
+        b = String(row[brandCol]).trim();
+      } else if (manufacturerCol && row[manufacturerCol]) {
+        b = String(row[manufacturerCol]).trim();
       }
-      if (manufacturerCol && row[manufacturerCol]) {
-        brands.add(String(row[manufacturerCol]).trim());
+      
+      if (!b) return;
+      
+      if (b.toLowerCase() === targetBrand.toLowerCase()) {
+         if (row[asinCol]) {
+             asins.add(String(row[asinCol]).trim());
+         }
       }
     });
     
-    const ignoreList = ['nan', 'none', 'unknown', '-', ''];
-    const cleanedBrands = Array.from(brands)
-      .filter(b => b && !ignoreList.includes(b.toLowerCase()))
-      .sort();
-      
-    return cleanedBrands;
+    return Array.from(asins);
     
   } catch (e: unknown) {
     const errorMsg = e instanceof Error ? e.message : String(e);
@@ -57,21 +60,22 @@ export function extractBrands(filePath: string): string[] {
   }
 }
 
-// Проверяем, запущен ли скрипт напрямую
 const isMainModule = process.argv[1] && fs.realpathSync(__filename) === fs.realpathSync(process.argv[1]);
 
 if (isMainModule) {
   const filePath = process.argv[2];
-  if (!filePath) {
-    console.error("Пожалуйста, укажите путь к Excel файлу. Например: npx tsx extract.ts keepa/data.xlsx");
+  const brandName = process.argv[3];
+  
+  if (!filePath || !brandName) {
+    console.error("Пожалуйста, укажите путь к Excel файлу и название бренда.\nНапример: npx tsx extract-asins.ts data.xlsx \"Bialetti\"");
     process.exit(1);
   }
   
-  console.log(`Чтение файла ${filePath}...`);
-  const brands = extractBrands(filePath);
+  const asins = extractAsins(filePath, brandName);
   
-  console.log(`\n✅ Найдено уникальных брендов/производителей: ${brands.length}`);
-  console.log("-".repeat(40));
-  brands.forEach(b => console.log(b));
-  console.log("-".repeat(40));
+  if (asins.length === 0) {
+    console.log(`Для бренда '${brandName}' ASIN не найдены.`);
+  } else {
+    asins.forEach(a => console.log(a));
+  }
 }

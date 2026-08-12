@@ -1,0 +1,9 @@
+# Отчет о поиске B2B дистрибьюторов (Эталонный пример)
+
+Этот файл служит эталоном (Few-Shot Prompt) для ИИ-агента. Именно так должен выглядеть финальный артефакт после работы скилла `find-distributor`.
+
+| Бренд | Сайт бренда | Ссылка на страницу со списком дистрибьюторов | Контакты дистрибьютера | Ссылка на форму регистрации | Обоснование | Описание | Список ASIN |
+|---|---|---|---|---|---|---|---|
+| **Bialetti** | [bialetti.com](https://www.bialetti.com) | [Bialetti B2B Portal](https://b2b.bialetti.com) | Email: `wholesale@bialetti.com`<br>Тел: +39 030 999 1234 | [Регистрация B2B](https://b2b.bialetti.com/register) | Найден в разделе B2B на официальном сайте bialetti.com | Официальный портал. Требуется подтверждение VAT-номера. Минимальный заказ (MOQ) от 500€ ([источник](https://b2b.bialetti.com/faq)). | B000FDL588 |
+| **Casio** | [casio-europe.com](https://www.casio-europe.com) | [Casio España B2B](https://www.casio-europe.com/es/b2b/) | Email: `info@casio.es`<br>Адрес: Barcelona, Spain | [Become a dealer](https://www.casio-europe.com/es/b2b/apply) | Страница контактов B2B расположена на официальном домене casio-europe.com | Работают только с авторизованными дилерами. Обязательное условие: наличие физического розничного магазина ([условия работы](https://www.casio-europe.com/es/b2b/terms)). | B000GB1R7S<br>B000J34HN4 |
+| **Bolsius** | [bolsius.com](https://www.bolsius.com) | [EdaGross B2B (Distributor)](https://edagross.com/bolsius) | Email: `sales@edagross.com`<br>Тел: +49 511 123456 | Нет (по запросу на email) | EdaGross указан как официальный партнер на сайте бренда в разделе "Где купить" | **EdaGross** — крупный независимый европейский оптовик (Германия). Продают свечи паллетами ([доставка](https://edagross.com/shipping)), быстрая отгрузка по ЕС без долгих проверок. | B01NCJSZ54 |
