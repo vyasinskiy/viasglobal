@@ -51,3 +51,41 @@ test('E2E Filter Logic on Keepa Export', () => {
   // Если в файле действительно есть такие строки, тест пройдет. Если их нет, мы просто пропускаем
   // Это делает тест универсальным, но проверяет реальные данные, если они существуют.
 });
+
+test('Unit Tests for isBrandOrAmazonSelling', () => {
+  // Тестируем Amazon
+  assert.strictEqual(
+    isBrandOrAmazonSelling('Amazon EU S.a.r.L.', 'SomeBrand', 'SomeManufacturer'), 
+    true, 
+    'Amazon должен отсеиваться'
+  );
+
+  // Тестируем пересечение токенов (Manufacturer vs Seller) - случай BMS España vs BMS International
+  assert.strictEqual(
+    isBrandOrAmazonSelling('BMS España (100%) / A1AVW3UZ3G9ZH', 'Dreamzie', 'BMS International'), 
+    true, 
+    'BMS España и BMS International должны совпадать по корню bms'
+  );
+
+  // Тестируем пересечение токенов (Brand vs Seller) - случай Pandoo GmbH
+  assert.strictEqual(
+    isBrandOrAmazonSelling('Pandoo GmbH', 'Pandoo', 'Pandoo GmbH'), 
+    true, 
+    'Pandoo GmbH должен отсеиваться по бренду/производителю'
+  );
+
+  // Тестируем нормальный сторонний магазин
+  assert.strictEqual(
+    isBrandOrAmazonSelling('Random Shop Ltd', 'Dreamzie', 'BMS International'), 
+    false, 
+    'Сторонний магазин не должен отсеиваться'
+  );
+
+  // Тестируем совпадение, когда есть общие популярные стоп-слова, но корни разные (не должны отсеиваться)
+  // Например, "Tech International" и "BMS International"
+  assert.strictEqual(
+    isBrandOrAmazonSelling('Tech International LLC', 'Dreamzie', 'BMS International'), 
+    false, 
+    'Слово international должно игнорироваться, и они не должны совпасть'
+  );
+});

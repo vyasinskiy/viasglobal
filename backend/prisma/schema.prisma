@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Brand {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  isAnalyzed Boolean  @default(false)
+  asins      ASIN[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Manufacturer {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  isAnalyzed Boolean  @default(false)
+  asins      ASIN[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Distributor {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  website   String?
+  asins     ASIN[]   // implicit m-to-m
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ASIN {
+  id             Int           @id @default(autoincrement())
+  code           String        @unique
+  brandId        Int?
+  manufacturerId Int?
+  
+  brand          Brand?        @relation(fields: [brandId], references: [id])
+  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  distributors   Distributor[] // implicit m-to-m
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
