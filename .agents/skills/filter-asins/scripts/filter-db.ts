@@ -8,14 +8,14 @@ if (!inputFile) {
   process.exit(1);
 }
 
-async function checkBrand(brandName: string) {
+async function checkPrivateLabel(brandName: string, manufacturerName: string) {
   try {
-    const res = await fetch(`http://localhost:3001/brands/check?name=${encodeURIComponent(brandName)}`);
+    const res = await fetch(`http://localhost:3001/private-labels/check?brandName=${encodeURIComponent(brandName)}&manufacturerName=${encodeURIComponent(manufacturerName)}`);
     if (res.ok) {
       return await res.json();
     }
   } catch (e) {
-    // console.error(`Error checking brand ${brandName}`, e);
+    // console.error(`Error checking private label ${brandName} - ${manufacturerName}`, e);
   }
   return null;
 }
@@ -26,54 +26,45 @@ async function main() {
   const sheet = workbook.Sheets[sheetName];
   const rows = xlsx.utils.sheet_to_json(sheet) as any[];
 
-  // Сначала соберем уникальные бренды
-  const uniqueBrands = Array.from(new Set(rows.map(r => r['Brand'] || r['Manufacturer'] || '').filter(b => b.length > 0)));
+  console.log(`Найдено товаров: ${rows.length}. Проверяем по базе данных на наличие приватных лейблов (Производитель + Бренд)...`);
   
-  console.log(`Найдено уникальных брендов: ${uniqueBrands.length}. Проверяем по базе данных...`);
-  
-  const brandStatus = new Map<string, any>();
-  for (const brand of uniqueBrands) {
-    const status = await checkBrand(brand);
-    brandStatus.set(brand, status);
-  }
+  const combinationStatus = new Map<string, any>();
+  const droppedCombinations = new Map<string, string>(); // 'Manufacturer - Brand' -> reason
 
-  const safeBrands = new Set<string>();
-  const droppedBrands = new Map<string, string>(); // brand -> reason
-
-  for (const brand of uniqueBrands) {
-    const status = brandStatus.get(brand);
-    if (status && status.isPrivateLabel) {
-      droppedBrands.set(brand, 'Приватный лейбл');
-    } else {
-      safeBrands.add(brand);
-    }
-  }
-  
-  console.log('\n--- ОТФИЛЬТРОВАННЫЕ БРЕНДЫ (Не подходят) ---');
-  for (const [brand, reason] of droppedBrands.entries()) {
-    console.log(`- ${brand}: ${reason}`);
-  }
-  
-  console.log('\n--- ПРИГОДНЫЕ БРЕНДЫ (Для поиска дистрибьюторов) ---');
-  let count = 0;
-  for (const brand of safeBrands) {
-    if (count < 20) console.log(`- ${brand}`);
-    count++;
-  }
-  if (count > 20) console.log(`... и еще ${count - 20} брендов.`);
-  
   // Сохраним отфильтрованные данные
   const finalSafeRows = [];
   const droppedByDbRows = [];
   
   for (const r of rows) {
-    const brand = r['Brand'] || r['Manufacturer'] || '';
-    if (safeBrands.has(brand)) {
+    const brand = r['Brand'] || '';
+    const manufacturer = r['Manufacturer'] || '';
+    
+    // Если оба пустые, просто пропускаем как safe (или как хотите по логике)
+    if (!brand && !manufacturer) {
       finalSafeRows.push(r);
-    } else {
-      const droppedReason = droppedBrands.get(brand) || 'Отфильтровано по БД';
-      droppedByDbRows.push({ ...r, Reason: droppedReason });
+      continue;
     }
+
+    const key = `${manufacturer}|${brand}`;
+    
+    if (!combinationStatus.has(key)) {
+      const status = await checkPrivateLabel(brand, manufacturer);
+      combinationStatus.set(key, status);
+    }
+
+    const status = combinationStatus.get(key);
+    
+    if (status && status.isPrivateLabel) {
+      droppedCombinations.set(`${manufacturer} - ${brand}`, 'Приватный лейбл (Связка найдена в БД)');
+      droppedByDbRows.push({ ...r, Reason: 'Приватный лейбл (Производитель + Бренд)' });
+    } else {
+      finalSafeRows.push(r);
+    }
+  }
+  
+  console.log('\n--- ОТФИЛЬТРОВАННЫЕ СВЯЗКИ (Приватные лейблы) ---');
+  for (const [combo, reason] of droppedCombinations.entries()) {
+    console.log(`- ${combo}: ${reason}`);
   }
   
   console.log(`\nИз ${rows.length} товаров осталось ${finalSafeRows.length} после проверки по БД.`);
@@ -112,8 +103,6 @@ async function main() {
   const ext = path.extname(inputFile);
   const baseName = path.basename(inputFile, ext);
   
-  // inputFile is like /Users/usuario/code/viasglobal/keepa/results/...
-  // Let's just place the output file in the same directory as inputFile
   const resultsDir = path.dirname(inputFile);
   
   if (!fs.existsSync(resultsDir)) {

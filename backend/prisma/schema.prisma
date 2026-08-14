@@ -10,8 +10,8 @@ model Brand {
   id             Int      @id @default(autoincrement())
   name           String   @unique
   isAnalyzed     Boolean  @default(false)
-  isPrivateLabel Boolean  @default(false)
   asins          ASIN[]
+  privateLabels  PrivateLabel[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -20,10 +20,25 @@ model Manufacturer {
   id             Int      @id @default(autoincrement())
   name           String   @unique
   isAnalyzed     Boolean  @default(false)
-  isPrivateLabel Boolean  @default(false)
-  asins      ASIN[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  asins          ASIN[]
+  privateLabels  PrivateLabel[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PrivateLabel {
+  id               Int          @id @default(autoincrement())
+  brandId          Int
+  manufacturerId   Int
+  brandName        String?      // Избыточные данные для удобства чтения
+  manufacturerName String?      // Избыточные данные для удобства чтения
+  
+  brand          Brand        @relation(fields: [brandId], references: [id])
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id])
+
+  @@unique([brandId, manufacturerId])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Distributor {

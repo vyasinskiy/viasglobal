@@ -7,7 +7,7 @@ export class BrandsController {
 
   @Get('check')
   async check(@Query('name') name: string) {
-    if (!name) return { isAnalyzed: false, isPrivateLabel: false };
+    if (!name) return { isAnalyzed: false };
     const status = await this.brandsService.checkBrandAnalyzed(name);
     return { name, ...status };
   }
