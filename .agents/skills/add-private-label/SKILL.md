@@ -14,7 +14,20 @@ description: Генерирует скрипт миграции данных д�
 ## Алгоритм работы (Пошаговый опрос)
 1. Если пользователь не указал производителя, спроси **только один вопрос**: "Укажите название производителя (manufacturerName):". Дождись ответа.
 2. После получения производителя, задай **следующий вопрос**: "Укажите название бренда (brandName):". Дождись ответа.
-3. Если оба значения уже получены, сгенерируй код скрипта. Файл должен использовать `PrismaClient` для `upsert` Manufacturer, `upsert` Brand и `upsert` PrivateLabel. 
+3. Если оба значения уже получены, сгенерируй код скрипта. 
+    **ВАЖНО**: Для корректной работы Prisma необходимо инициализировать её с использованием `pg` адаптера.
+    Обязательно используй следующий шаблон для подключения:
+    ```typescript
+    import { PrismaClient } from '@prisma/client';
+    import { Pool } from 'pg';
+    import { PrismaPg } from '@prisma/adapter-pg';
+
+    const connectionString = process.env.DATABASE_URL || 'postgresql://viasuser:viaspassword@localhost:5432/viasglobal_db?schema=public';
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+    const prisma = new PrismaClient({ adapter });
+    ```
+    Файл должен использовать этот инстанс `prisma` для `upsert` Manufacturer, `upsert` Brand и `upsert` PrivateLabel.
 4. Имя файла должно содержать человекочитаемый текст, а затем временной штамп: `backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
 5. Сразу используй инструмент `write_to_file` для создания скрипта в `backend/prisma/data-migrations/` (Используй абсолютный путь к проекту пользователя). Не выводи весь код в чат, так как он будет сохранен в файл.
 6. Сообщи пользователю, что файл миграции создан, предоставь ссылку на него для просмотра и спроси: **выполнить этот скрипт миграции сейчас?**
