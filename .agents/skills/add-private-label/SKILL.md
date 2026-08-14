@@ -27,7 +27,7 @@ description: Генерирует скрипт миграции данных д�
     const adapter = new PrismaPg(pool);
     const prisma = new PrismaClient({ adapter });
     ```
-    Файл должен использовать этот инстанс `prisma` для `upsert` Manufacturer, `upsert` Brand и `upsert` PrivateLabel.
+    Файл должен использовать этот инстанс `prisma` для `upsert` Manufacturer, `upsert` Brand и `upsert` PrivateLabel. **ВНИМАНИЕ**: При `upsert` PrivateLabel в поле `where` обязательно используй составной ключ `brandId_manufacturerId` (а не `manufacturerId_brandId`), так как именно в таком порядке он определен в Prisma-схеме.
 4. Имя файла должно содержать человекочитаемый текст, а затем временной штамп: `backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
 5. Сразу используй инструмент `write_to_file` для создания скрипта в `backend/prisma/data-migrations/` (Используй абсолютный путь к проекту пользователя). Не выводи весь код в чат, так как он будет сохранен в файл.
 6. Сообщи пользователю, что файл миграции создан, предоставь ссылку на него для просмотра и спроси: **выполнить этот скрипт миграции сейчас?**
