@@ -12,5 +12,15 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  backend:
+    build: .
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: "postgresql://viasuser:viaspassword@db:5432/viasglobal_db?schema=public"
+    depends_on:
+      - db
+
 volumes:
   pgdata:

@@ -4,15 +4,17 @@ export declare class BrandsController {
     constructor(brandsService: BrandsService);
     check(name: string): Promise<{
         isAnalyzed: boolean;
-        name?: undefined;
+        isPrivateLabel: boolean;
     } | {
-        name: string;
         isAnalyzed: boolean;
+        isPrivateLabel: boolean;
+        name: string;
     }>;
     markAnalyzed(name: string): Promise<{
         id: number;
         name: string;
         isAnalyzed: boolean;
+        isPrivateLabel: boolean;
         createdAt: Date;
         updatedAt: Date;
     } | {

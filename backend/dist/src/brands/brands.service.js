@@ -22,7 +22,7 @@ let BrandsService = class BrandsService {
         if (!brand) {
             brand = await this.prisma.brand.create({ data: { name, isAnalyzed: false } });
         }
-        return brand.isAnalyzed;
+        return { isAnalyzed: brand.isAnalyzed, isPrivateLabel: brand.isPrivateLabel };
     }
     async markAsAnalyzed(name) {
         return this.prisma.brand.upsert({

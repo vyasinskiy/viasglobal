@@ -6,6 +6,7 @@ export declare class DistributorsService {
         name: string;
         website?: string;
         brandName?: string;
+        isPrivateLabel?: boolean;
     }): Promise<{
         id: number;
         name: string;

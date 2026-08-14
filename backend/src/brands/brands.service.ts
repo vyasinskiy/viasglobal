@@ -5,12 +5,12 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BrandsService {
   constructor(private prisma: PrismaService) {}
 
-  async checkBrandAnalyzed(name: string): Promise<boolean> {
+  async checkBrandAnalyzed(name: string) {
     let brand = await this.prisma.brand.findUnique({ where: { name } });
     if (!brand) {
       brand = await this.prisma.brand.create({ data: { name, isAnalyzed: false } });
     }
-    return brand.isAnalyzed;
+    return { isAnalyzed: brand.isAnalyzed, isPrivateLabel: brand.isPrivateLabel };
   }
   
   async markAsAnalyzed(name: string) {

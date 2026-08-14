@@ -22,9 +22,9 @@ let BrandsController = class BrandsController {
     }
     async check(name) {
         if (!name)
-            return { isAnalyzed: false };
-        const isAnalyzed = await this.brandsService.checkBrandAnalyzed(name);
-        return { name, isAnalyzed };
+            return { isAnalyzed: false, isPrivateLabel: false };
+        const status = await this.brandsService.checkBrandAnalyzed(name);
+        return { name, ...status };
     }
     async markAnalyzed(name) {
         if (!name)
