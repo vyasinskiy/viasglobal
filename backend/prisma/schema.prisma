@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -30,8 +31,6 @@ model PrivateLabel {
   id               Int          @id @default(autoincrement())
   brandId          Int
   manufacturerId   Int
-  brandName        String?      // Избыточные данные для удобства чтения
-  manufacturerName String?      // Избыточные данные для удобства чтения
   
   brand          Brand        @relation(fields: [brandId], references: [id])
   manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id])
@@ -62,4 +61,14 @@ model ASIN {
 
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+}
+
+view PrivateLabelView {
+  id               Int      @unique
+  brandId          Int
+  manufacturerId   Int
+  brandName        String
+  manufacturerName String
+  createdAt        DateTime
+  updatedAt        DateTime
 }

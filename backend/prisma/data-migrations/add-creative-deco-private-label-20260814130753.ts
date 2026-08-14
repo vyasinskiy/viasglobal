@@ -36,15 +36,10 @@ async function main() {
           manufacturerId: manufacturer.id,
         },
       },
-      update: {
-        brandName: brand.name,
-        manufacturerName: manufacturer.name,
-      },
+      update: {},
       create: {
         brandId: brand.id,
         manufacturerId: manufacturer.id,
-        brandName: brand.name,
-        manufacturerName: manufacturer.name,
       },
     });
     console.log(`PrivateLabel upserted successfully for ${manufacturer.name} - ${brand.name}`);
