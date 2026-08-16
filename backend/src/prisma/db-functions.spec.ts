@@ -134,7 +134,7 @@ describe('DB Function: get_asin_filter_reason', () => {
     }
   });
 
-  it('should return OK if seller does not match brand or manufacturer', async () => {
+  it('should return null if seller does not match brand or manufacturer', async () => {
     try {
       await prisma.$transaction(async (tx) => {
         const brand = await tx.brand.create({ data: { name: `${PREFIX}RandomBrand` } });
@@ -155,7 +155,7 @@ describe('DB Function: get_asin_filter_reason', () => {
         });
 
         const reason = await getFilterReason(asin.id, tx);
-        expect(reason).toBe('OK');
+        expect(reason).toBeNull();
 
         throw new Error('ROLLBACK_TEST');
       });
@@ -211,7 +211,7 @@ describe('DB Function: get_asin_filter_reason', () => {
     }
   });
 
-  it('should return OK for real data (DUJUIKE / Pulchlla) existing in the database', async () => {
+  it('should return null for real data (DUJUIKE / Pulchlla) existing in the database', async () => {
     // Find the real ASIN for Pulchlla in DUJUIKE
     const asin = await prisma.aSIN.findFirst({
       where: {
@@ -231,6 +231,6 @@ describe('DB Function: get_asin_filter_reason', () => {
 
     // Call the function directly on the real database without a transaction
     const reason = await getFilterReason(asin.id, prisma);
-    expect(reason).toBe('OK');
+    expect(reason).toBeNull();
   });
 });
