@@ -114,11 +114,63 @@ async function main() {
         newAsinsCount++;
       }
 
+      let sellerId: string | null = null;
+      let sellerPercentage: number | null = null;
+      let sellerName: string | null = null;
+
+      if (buyBoxSeller) {
+        // e.g. "Pulchlla (100%) / API5SQCLMSM0Q"
+        const match = buyBoxSeller.match(/^(.*?)\s*\((\d+)%\)\s*\/\s*(.+)$/);
+        if (match) {
+          sellerName = match[1].trim();
+          sellerPercentage = parseInt(match[2], 10);
+          sellerId = match[3].trim();
+        } else {
+          // Fallback if no percentage
+          const parts = buyBoxSeller.split(' / ');
+          if (parts.length === 2) {
+            sellerName = parts[0].replace(/\s*\(\d+%\)\s*/, '').trim();
+            sellerId = parts[1].trim();
+          }
+        }
+
+        if (sellerId && sellerName) {
+          const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
+          if (!existingSeller) {
+            await prisma.seller.create({
+              data: {
+                id: sellerId,
+                name: sellerName
+              }
+            });
+            await prisma.sellerSnapshot.create({
+              data: {
+                sellerId: sellerId,
+                name: sellerName
+              }
+            });
+          } else if (existingSeller.name !== sellerName) {
+            await prisma.seller.update({
+              where: { id: sellerId },
+              data: { name: sellerName }
+            });
+            await prisma.sellerSnapshot.create({
+              data: {
+                sellerId: sellerId,
+                name: sellerName
+              }
+            });
+          }
+        }
+      }
+
       // Создаем снапшот
       await prisma.asinSnapshot.create({
         data: {
           asinId: currentAsin.id,
-          buyBoxSeller: buyBoxSeller
+          buyBoxSeller: buyBoxSeller,
+          sellerId: sellerId,
+          sellerPercentage: sellerPercentage
         }
       });
       newSnapshotsCount++;

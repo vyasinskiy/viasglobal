@@ -32,20 +32,29 @@ describe('DB Function: get_asin_filter_reason', () => {
     try {
       await prisma.$transaction(async (tx) => {
         const brand = await tx.brand.create({ data: { name: `${PREFIX}BRAND_PL` } });
-        const manufacturer = await tx.manufacturer.create({ data: { name: `${PREFIX}MANUF_PL` } });
+        const seller = await tx.seller.create({ data: { id: `${PREFIX}SELLER_PL`, name: 'Test Seller' } });
         
         await tx.privateLabel.create({
           data: {
             brandId: brand.id,
-            manufacturerId: manufacturer.id
+            sellerId: seller.id
           }
         });
 
         const asin = await tx.aSIN.create({
           data: {
             code: `${PREFIX}ASIN_PL`,
-            brandId: brand.id,
-            manufacturerId: manufacturer.id
+            brandId: brand.id
+          }
+        });
+
+        // Function relies on snapshot for the current seller
+        await tx.asinSnapshot.create({
+          data: {
+            asinId: asin.id,
+            buyBoxSeller: `Test Seller (100%) / ${PREFIX}SELLER_PL`,
+            sellerId: seller.id,
+            sellerPercentage: 100
           }
         });
 
@@ -170,6 +179,9 @@ describe('DB Function: get_asin_filter_reason', () => {
         const brand = await tx.brand.create({ data: { name: `${PREFIX}DomBrand` } });
         const manufacturer = await tx.manufacturer.create({ data: { name: `${PREFIX}DomManuf` } });
         
+        const domSeller = await tx.seller.create({ data: { id: `${PREFIX}DOM123`, name: 'DominantStore' } });
+        const otherSeller = await tx.seller.create({ data: { id: `${PREFIX}OTHER123`, name: 'OtherStore' } });
+
         // Create 10 ASINs for this Brand+Manuf combo
         const asins = [];
         for (let i = 0; i < 10; i++) {
@@ -187,7 +199,9 @@ describe('DB Function: get_asin_filter_reason', () => {
           await tx.asinSnapshot.create({
             data: {
               asinId: asins[i].id,
-              buyBoxSeller: `DominantStore (100%) / DOM123`
+              buyBoxSeller: `DominantStore (100%) / ${PREFIX}DOM123`,
+              sellerId: domSeller.id,
+              sellerPercentage: 100
             }
           });
         }
@@ -196,7 +210,9 @@ describe('DB Function: get_asin_filter_reason', () => {
         await tx.asinSnapshot.create({
           data: {
             asinId: asins[9].id,
-            buyBoxSeller: `OtherStore (100%) / OTHER123`
+            buyBoxSeller: `OtherStore (100%) / ${PREFIX}OTHER123`,
+            sellerId: otherSeller.id,
+            sellerPercentage: 100
           }
         });
 

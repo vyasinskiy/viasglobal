@@ -22,7 +22,6 @@ model Manufacturer {
   name           String   @unique
   isAnalyzed     Boolean  @default(false)
   asins          ASIN[]
-  privateLabels  PrivateLabel[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -30,14 +29,33 @@ model Manufacturer {
 model PrivateLabel {
   id               Int          @id @default(autoincrement())
   brandId          Int
-  manufacturerId   Int
+  sellerId         String
   
   brand          Brand        @relation(fields: [brandId], references: [id])
-  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id])
+  seller         Seller       @relation(fields: [sellerId], references: [id])
 
-  @@unique([brandId, manufacturerId])
+  @@unique([brandId, sellerId])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+}
+
+model Seller {
+  id             String           @id
+  name           String
+  privateLabels  PrivateLabel[]
+  snapshots      SellerSnapshot[]
+  asinSnapshots  AsinSnapshot[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model SellerSnapshot {
+  id             Int      @id @default(autoincrement())
+  sellerId       String
+  name           String
+  createdAt      DateTime @default(now())
+
+  seller         Seller   @relation(fields: [sellerId], references: [id])
 }
 
 model Distributor {
@@ -65,20 +83,23 @@ model ASIN {
 }
 
 model AsinSnapshot {
-  id             Int      @id @default(autoincrement())
-  asinId         Int
-  buyBoxSeller   String?
-  createdAt      DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  asinId           Int
+  buyBoxSeller     String?
+  sellerId         String?
+  sellerPercentage Int?
+  createdAt        DateTime @default(now())
 
-  asin           ASIN     @relation(fields: [asinId], references: [id])
+  asin             ASIN     @relation(fields: [asinId], references: [id])
+  seller           Seller?  @relation(fields: [sellerId], references: [id])
 }
 
 view PrivateLabelView {
   id               Int      @unique
   brandId          Int
-  manufacturerId   Int
+  sellerId         String
   brandName        String
-  manufacturerName String
+  sellerName       String
   createdAt        DateTime
   updatedAt        DateTime
 }
