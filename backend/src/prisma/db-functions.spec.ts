@@ -163,4 +163,74 @@ describe('DB Function: get_asin_filter_reason', () => {
       if (e.message !== 'ROLLBACK_TEST') throw e;
     }
   });
+
+  it('should return DOMINANT_SELLER if seller has 100% on ASIN and dominates >80% of brand ASINs', async () => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const brand = await tx.brand.create({ data: { name: `${PREFIX}DomBrand` } });
+        const manufacturer = await tx.manufacturer.create({ data: { name: `${PREFIX}DomManuf` } });
+        
+        // Create 10 ASINs for this Brand+Manuf combo
+        const asins = [];
+        for (let i = 0; i < 10; i++) {
+          asins.push(await tx.aSIN.create({
+            data: {
+              code: `${PREFIX}ASIN_DOM_${i}`,
+              brandId: brand.id,
+              manufacturerId: manufacturer.id
+            }
+          }));
+        }
+
+        // Give the first 9 ASINs to the dominant seller (90% dominance)
+        for (let i = 0; i < 9; i++) {
+          await tx.asinSnapshot.create({
+            data: {
+              asinId: asins[i].id,
+              buyBoxSeller: `DominantStore (100%) / DOM123`
+            }
+          });
+        }
+
+        // Give the last ASIN to someone else
+        await tx.asinSnapshot.create({
+          data: {
+            asinId: asins[9].id,
+            buyBoxSeller: `OtherStore (100%) / OTHER123`
+          }
+        });
+
+        // Test an ASIN held by the dominant seller
+        const reason = await getFilterReason(asins[0].id, tx);
+        expect(reason).toBe('DOMINANT_SELLER');
+
+        throw new Error('ROLLBACK_TEST');
+      });
+    } catch (e: any) {
+      if (e.message !== 'ROLLBACK_TEST') throw e;
+    }
+  });
+
+  it('should return OK for real data (DUJUIKE / Pulchlla) existing in the database', async () => {
+    // Find the real ASIN for Pulchlla in DUJUIKE
+    const asin = await prisma.aSIN.findFirst({
+      where: {
+        brand: { name: 'DUJUIKE' },
+        snapshots: {
+          some: {
+            buyBoxSeller: { contains: 'Pulchlla' }
+          }
+        }
+      }
+    });
+
+    if (!asin) {
+      console.warn('Real DUJUIKE data not found in DB. Skipping test.');
+      return;
+    }
+
+    // Call the function directly on the real database without a transaction
+    const reason = await getFilterReason(asin.id, prisma);
+    expect(reason).toBe('OK');
+  });
 });
