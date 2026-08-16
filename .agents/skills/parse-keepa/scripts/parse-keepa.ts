@@ -4,6 +4,9 @@ import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const inputFile = process.argv[2];
 if (!inputFile) {
@@ -82,7 +85,7 @@ async function main() {
 
       const brandName = row['Brand']?.toString().trim();
       const manufacturerName = row['Manufacturer']?.toString().trim();
-      const buyBoxSeller = row['Buy Box Seller']?.toString().trim() || null;
+      const buyBoxSeller = row['Buy Box: Buy Box Seller']?.toString().trim() || null;
 
       let currentAsin = await prisma.aSIN.findUnique({ where: { code: asinCode } });
       
