@@ -77,3 +77,23 @@ ALTER TABLE "_ASINToDistributor" ADD CONSTRAINT "_ASINToDistributor_A_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "_ASINToDistributor" ADD CONSTRAINT "_ASINToDistributor_B_fkey" FOREIGN KEY ("B") REFERENCES "Distributor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- CreateTable
+CREATE TABLE "PrivateLabel" (
+    "id" SERIAL NOT NULL,
+    "brandId" INTEGER NOT NULL,
+    "manufacturerId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PrivateLabel_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PrivateLabel_brandId_manufacturerId_key" ON "PrivateLabel"("brandId", "manufacturerId");
+
+-- AddForeignKey
+ALTER TABLE "PrivateLabel" ADD CONSTRAINT "PrivateLabel_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PrivateLabel" ADD CONSTRAINT "PrivateLabel_manufacturerId_fkey" FOREIGN KEY ("manufacturerId") REFERENCES "Manufacturer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

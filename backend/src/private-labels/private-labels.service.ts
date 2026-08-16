@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PrivateLabelsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async checkPrivateLabel(brandName: string, manufacturerName: string) {
     if (!brandName || !manufacturerName) {
@@ -41,16 +41,10 @@ export class PrivateLabelsService {
           manufacturerId: manufacturer.id
         }
       },
-      update: {
-        // Обновляем избыточные поля, если их не было
-        brandName: brandName,
-        manufacturerName: manufacturerName
-      },
+      update: {},
       create: {
         brandId: brand.id,
-        manufacturerId: manufacturer.id,
-        brandName: brandName,
-        manufacturerName: manufacturerName
+        manufacturerId: manufacturer.id
       }
     });
 

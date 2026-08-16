@@ -1,6 +1,6 @@
 -- AlterTable
-ALTER TABLE "PrivateLabel" DROP COLUMN "brandName",
-DROP COLUMN "manufacturerName";
+-- ALTER TABLE "PrivateLabel" DROP COLUMN "brandName",
+-- DROP COLUMN "manufacturerName";
 
 -- CreateView
 CREATE VIEW public."PrivateLabelView" AS

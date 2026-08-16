@@ -61,6 +61,16 @@ model ASIN {
 
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  snapshots      AsinSnapshot[]
+}
+
+model AsinSnapshot {
+  id             Int      @id @default(autoincrement())
+  asinId         Int
+  buyBoxSeller   String?
+  createdAt      DateTime @default(now())
+
+  asin           ASIN     @relation(fields: [asinId], references: [id])
 }
 
 view PrivateLabelView {

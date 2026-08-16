@@ -75,16 +75,18 @@ async function main() {
 
     // 3. Добавляем ASIN-ы и связываем их с брендом и производителем
     let newAsinsCount = 0;
+    let newSnapshotsCount = 0;
     for (const row of rows) {
       const asinCode = row['ASIN']?.toString().trim();
       if (!asinCode) continue;
 
       const brandName = row['Brand']?.toString().trim();
       const manufacturerName = row['Manufacturer']?.toString().trim();
+      const buyBoxSeller = row['Buy Box Seller']?.toString().trim() || null;
 
-      const existingAsin = await prisma.aSIN.findUnique({ where: { code: asinCode } });
+      let currentAsin = await prisma.aSIN.findUnique({ where: { code: asinCode } });
       
-      if (!existingAsin) {
+      if (!currentAsin) {
         // Находим id бренда и производителя
         let brandId = null;
         let manufacturerId = null;
@@ -99,7 +101,7 @@ async function main() {
           if (m) manufacturerId = m.id;
         }
 
-        await prisma.aSIN.create({
+        currentAsin = await prisma.aSIN.create({
           data: {
             code: asinCode,
             brandId: brandId,
@@ -108,12 +110,22 @@ async function main() {
         });
         newAsinsCount++;
       }
+
+      // Создаем снапшот
+      await prisma.asinSnapshot.create({
+        data: {
+          asinId: currentAsin.id,
+          buyBoxSeller: buyBoxSeller
+        }
+      });
+      newSnapshotsCount++;
     }
 
     console.log('\n--- ИТОГИ ---');
     console.log(`Новых Брендов добавлено: ${newBrandsCount}`);
     console.log(`Новых Производителей добавлено: ${newManufacturersCount}`);
     console.log(`Новых ASIN добавлено: ${newAsinsCount}`);
+    console.log(`Создано снапшотов ASIN: ${newSnapshotsCount}`);
 
   } catch (error: any) {
     console.error(`Произошла ошибка: ${error.message}`);
