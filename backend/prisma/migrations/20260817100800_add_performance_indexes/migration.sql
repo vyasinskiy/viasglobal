@@ -36,7 +36,7 @@ BEGIN
 
     -- If sellerId is NULL, we fallback to parsing (for old snapshots)
     IF v_seller_id IS NULL THEN
-        v_seller_percentage := substring(v_buybox_seller from '\((\d+)%\)')::INT;
+        v_seller_percentage := substring(v_buybox_seller from '\((d+)%)')::INT;
         v_seller_id := trim(split_part(v_buybox_seller, ' / ', 2));
     END IF;
 

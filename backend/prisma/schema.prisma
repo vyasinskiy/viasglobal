@@ -249,11 +249,11 @@ model ProductFinder {
   videosMainVideos                          String?
   videosAdditionalVideos                    String?
   aContentHasAContent                       String?
-  packageDimensionCm                        Int?
-  packageWeightG                            Int?
+  packageDimensionCm                        Float?
+  packageWeightG                            Float?
   packageQuantity                           String?
-  itemDimensionCm                           Int?
-  itemWeightG                               Int?
+  itemDimensionCm                           Float?
+  itemWeightG                               Float?
   includedComponents                        String?
   ingredients                               String?
   activeIngredients                         String?

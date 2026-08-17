@@ -18,11 +18,11 @@ description: Парсинг выгрузки Keepa, добавление нов�
 1. **Запуск скрипта парсинга**:
    - Выполни следующую команду, находясь в директории `backend` (это важно для доступа к клиенту Prisma), передав абсолютный или относительный путь к файлу:
      ```bash
-     cd backend && npx tsx ../.agents/skills/parse-keepa/scripts/parse-keepa.ts <путь_к_исходному_файлу_от_корня>
+     cd backend && npx tsx scripts/parse-keepa.ts <путь_к_исходному_файлу_от_корня>
      ```
    - Пример использования, если файл находится в `keepa/exports/file.xlsx`:
      ```bash
-     cd backend && npx tsx ../.agents/skills/parse-keepa/scripts/parse-keepa.ts ../keepa/exports/file.xlsx
+     cd backend && npx tsx scripts/parse-keepa.ts ../keepa/exports/file.xlsx
      ```
 
 2. **Результат**:

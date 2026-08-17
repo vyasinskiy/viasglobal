@@ -25,6 +25,12 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+// Убираем невидимые символы (Zero-width space, Left-to-Right mark, и т.д.)
+function cleanString(str: string | undefined | null): string | null {
+  if (!str) return null;
+  return str.toString().replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim();
+}
+
 async function main() {
   try {
     console.log(`Читаем файл: ${resolvedPath}...`);
@@ -83,9 +89,9 @@ async function main() {
       const asinCode = row['ASIN']?.toString().trim();
       if (!asinCode) continue;
 
-      const brandName = row['Brand']?.toString().trim();
-      const manufacturerName = row['Manufacturer']?.toString().trim();
-      const buyBoxSeller = row['Buy Box: Buy Box Seller']?.toString().trim() || null;
+      const brandName = cleanString(row['Brand']);
+      const manufacturerName = cleanString(row['Manufacturer']);
+      const buyBoxSeller = cleanString(row['Buy Box: Buy Box Seller']);
 
       let currentAsin = await prisma.aSIN.findUnique({ where: { code: asinCode } });
       
@@ -673,22 +679,22 @@ async function main() {
     if (row['A+ Content: Has A+ Content'] !== undefined && row['A+ Content: Has A+ Content'] !== null) snapshotData.aContentHasAContent = String(row['A+ Content: Has A+ Content']);
 
     // Package: Dimension (cm³)
-    const val_packageDimensionCm = parseInt(row['Package: Dimension (cm³)']);
+    const val_packageDimensionCm = parseFloat(row['Package: Dimension (cm³)']);
     if (!isNaN(val_packageDimensionCm)) snapshotData.packageDimensionCm = val_packageDimensionCm;
 
     // Package: Weight (g)
-    const val_packageWeightG = parseInt(row['Package: Weight (g)']);
+    const val_packageWeightG = parseFloat(row['Package: Weight (g)']);
     if (!isNaN(val_packageWeightG)) snapshotData.packageWeightG = val_packageWeightG;
 
     // Package: Quantity
     if (row['Package: Quantity'] !== undefined && row['Package: Quantity'] !== null) snapshotData.packageQuantity = String(row['Package: Quantity']);
 
     // Item: Dimension (cm³)
-    const val_itemDimensionCm = parseInt(row['Item: Dimension (cm³)']);
+    const val_itemDimensionCm = parseFloat(row['Item: Dimension (cm³)']);
     if (!isNaN(val_itemDimensionCm)) snapshotData.itemDimensionCm = val_itemDimensionCm;
 
     // Item: Weight (g)
-    const val_itemWeightG = parseInt(row['Item: Weight (g)']);
+    const val_itemWeightG = parseFloat(row['Item: Weight (g)']);
     if (!isNaN(val_itemWeightG)) snapshotData.itemWeightG = val_itemWeightG;
 
     // Included Components
