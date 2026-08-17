@@ -31,12 +31,12 @@
 
 ## Логика фильтрации ASIN (`get_asin_filter_reason`)
 
-Функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 3)` возвращает причину отсева товара или `NULL`, если товар подходит:
+Функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 4)` возвращает причину отсева товара или `NULL`, если товар подходит:
 1. `NO_BUYBOX_DATA` — отсутствуют снапшоты данных BuyBox по товару.
 2. `BUYBOX_MATCH_BRAND` — имя продавца в BuyBox содержит название бренда.
 3. `BUYBOX_MATCH_MANUFACTURER` — имя продавца в BuyBox содержит название производителя.
 4. `PRIVATE_LABEL` — связка Бренд + Продавец подтверждена в таблице `PrivateLabel`.
-5. `FEW_BUYBOX_WINNERS` — количество победителей BuyBox за 90 дней (`buyBoxWinnerCount90Days`) строго меньше порога (по умолчанию `< 3`, критерий от 3 продавцов).
+5. `FEW_BUYBOX_WINNERS` — количество победителей BuyBox за 90 дней (`buyBoxWinnerCount90Days`) строго меньше порога (по умолчанию `< 4` или `<= 3`, т.е. 1, 2 и 3 продавца отсеиваются; проходят товары только от 4 продавцов).
 6. `DOMINANT_BUY_BOX_SELLER` — процент владения BuyBox у топового продавца за 90 дней (`buyBoxTopSeller90Days`) `>= 90%` (листинг монополизирован).
 7. `NULL` — товар проходит фильтрацию.
 
