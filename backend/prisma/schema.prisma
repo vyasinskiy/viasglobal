@@ -80,6 +80,8 @@ model ASIN {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   productFinders ProductFinder[]
+
+  @@index([brandId, manufacturerId])
 }
 
 model ProductFinder {
@@ -272,7 +274,7 @@ model ProductFinder {
   oneTimeCouponSubscribeSave                String?
   businessDiscountPercentage                String?
 
-  
+  @@index([asinId, createdAt(sort: Desc)])
 }
 
 view PrivateLabelView {

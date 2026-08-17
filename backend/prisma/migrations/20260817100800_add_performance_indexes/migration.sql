@@ -1,3 +1,11 @@
+-- CreateIndex
+CREATE INDEX "ASIN_brandId_manufacturerId_idx" ON "ASIN"("brandId", "manufacturerId");
+
+-- CreateIndex
+CREATE INDEX "ProductFinder_asinId_createdAt_idx" ON "ProductFinder"("asinId", "createdAt" DESC);
+
+
+-- Update function to use STABLE and correct regex
 CREATE OR REPLACE FUNCTION public.get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 80)
 RETURNS TEXT AS $$
 DECLARE
@@ -28,7 +36,7 @@ BEGIN
 
     -- If sellerId is NULL, we fallback to parsing (for old snapshots)
     IF v_seller_id IS NULL THEN
-        v_seller_percentage := substring(v_buybox_seller from '\((d+)%)')::INT;
+        v_seller_percentage := substring(v_buybox_seller from '\((\d+)%\)')::INT;
         v_seller_id := trim(split_part(v_buybox_seller, ' / ', 2));
     END IF;
 
@@ -56,17 +64,14 @@ BEGIN
     END IF;
 
     -- 3. DOMINANT SELLER CHECK
-    -- If the seller holds >= p_dominant_threshold on this ASIN and we successfully extracted an ID
     IF v_seller_percentage IS NOT NULL AND v_seller_percentage >= p_dominant_threshold AND v_seller_id <> '' THEN
         
-        -- Count total ASINs for this Brand+Manufacturer
         SELECT count(*)
         INTO v_total_asins
         FROM "ASIN"
         WHERE "brandId" = v_brand_id AND "manufacturerId" = v_manufacturer_id;
 
         IF v_total_asins > 0 THEN
-            -- Count how many of those ASINs are dominated by the SAME seller ID
             SELECT count(*)
             INTO v_seller_asins
             FROM "ASIN" a2
@@ -100,5 +105,4 @@ BEGIN
 
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql;
-
+$$ LANGUAGE plpgsql STABLE;
