@@ -50,12 +50,12 @@ const asins = await prisma.asinView.findMany();
 
 ## Фильтрация ASIN (`get_asin_filter_reason`)
 
-SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 3)` проверяет товар на критерии монополии и приватного лейбла:
+SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 4)` проверяет товар на критерии монополии и приватного лейбла:
 - **`NO_BUYBOX_DATA`**: нет данных о BuyBox для ASIN.
 - **`BUYBOX_MATCH_BRAND`**: продавец BuyBox содержит имя бренда.
 - **`BUYBOX_MATCH_MANUFACTURER`**: продавец BuyBox содержит имя производителя.
 - **`PRIVATE_LABEL`**: подтвержденный приватный лейбл (связка Бренд + Продавец).
-- **`FEW_BUYBOX_WINNERS`**: за последние 90 дней в BuyBox побеждало менее 3 продавцов (`buyBoxWinnerCount90Days < 3`).
+- **`FEW_BUYBOX_WINNERS`**: за последние 90 дней в BuyBox побеждало менее 4 продавцов (`buyBoxWinnerCount90Days < 4` или `<= 3`).
 - **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 90`).
 - **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
 

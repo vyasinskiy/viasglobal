@@ -3,11 +3,11 @@
 Этот файл содержит краткие правила и бизнес-логику для подпроекта фильтрации ASIN-ов. **Обязательно учитывай эту логику при написании кода или тестов.**
 
 ## Логика фильтрации (`get_asin_filter_reason`)
-При проверке ASIN в базе данных функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 3)` использует следующие метрики из выгрузки Keepa (`ProductFinder`):
+При проверке ASIN в базе данных функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 4)` использует следующие метрики из выгрузки Keepa (`ProductFinder`):
 
 1. **Критерий количества продавцов (`FEW_BUYBOX_WINNERS`):**
    - Используется поле `buyBoxWinnerCount90Days` (число победителей BuyBox за 90 дней).
-   - Если `buyBoxWinnerCount90Days < 3` -> товар отсеивается как `FEW_BUYBOX_WINNERS` (критерий оптовой закупки — от 3 продавцов).
+   - Если `buyBoxWinnerCount90Days < 4` (т.е. `<= 3`) -> товар отсеивается как `FEW_BUYBOX_WINNERS` (критерий выборки: строго от 4 продавцов).
 
 2. **Критерий доминирования топового продавца (`DOMINANT_BUY_BOX_SELLER`):**
    - Используется поле `buyBoxTopSeller90Days` (процент удержания BuyBox топовым продавцом за 90 дней).
