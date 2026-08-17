@@ -31,6 +31,49 @@ function cleanString(str: string | undefined | null): string | null {
   return str.toString().replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim();
 }
 
+/**
+ * Парсит строку продавца из Keepa (например: "paramount city (80%) / A2125XITGCFM0Q" или "Seller Name / A1234567").
+ * Извлекает только чистое название продавца (без рейтинга в процентах) и его Seller ID.
+ *
+ * @param rawSeller Исходная строка продавца из выгрузки Keepa
+ * @returns Объект с полями sellerName (чистое название) и sellerId (уникальный ID продавца)
+ */
+function parseSellerInfo(rawSeller: string | null | undefined): {
+  sellerName: string | null;
+  sellerId: string | null;
+} {
+  if (!rawSeller) {
+    return { sellerName: null, sellerId: null };
+  }
+
+  const clean = cleanString(rawSeller);
+  if (!clean) {
+    return { sellerName: null, sellerId: null };
+  }
+
+  // Если есть разделитель " / " между именем продавца и его ID
+  if (clean.includes(' / ')) {
+    const parts = clean.split(' / ');
+    const rawName = parts[0] || '';
+    const id = parts.slice(1).join(' / ').trim() || null;
+
+    // Удаляем из имени продавца скобки с процентами рейтинга, например " (80%)"
+    const name = rawName.replace(/\s*\(\d+%\)\s*$/, '').trim() || null;
+
+    return {
+      sellerName: name,
+      sellerId: id,
+    };
+  }
+
+  // Если разделителя " / " нет (например, "Amazon" или "Store Name (100%)")
+  const name = clean.replace(/\s*\(\d+%\)\s*$/, '').trim() || null;
+  return {
+    sellerName: name,
+    sellerId: null,
+  };
+}
+
 async function main() {
   try {
     console.log(`Читаем файл: ${resolvedPath}...`);
@@ -120,62 +163,47 @@ async function main() {
         newAsinsCount++;
       }
 
-      let sellerId: string | null = null;
-      let sellerPercentage: number | null = null;
-      let sellerName: string | null = null;
+      // Парсим продавца: извлекаем чистое имя и ID (игнорируя процент рейтинга)
+      const { sellerName, sellerId } = parseSellerInfo(buyBoxSeller);
 
-      if (buyBoxSeller) {
-        // e.g. "Pulchlla (100%) / API5SQCLMSM0Q"
-        const match = buyBoxSeller.match(/^(.*?)\s*\((\d+)%\)\s*\/\s*(.+)$/);
-        if (match) {
-          sellerName = match[1].trim();
-          sellerPercentage = parseInt(match[2], 10);
-          sellerId = match[3].trim();
-        } else {
-          // Fallback if no percentage
-          const parts = buyBoxSeller.split(' / ');
-          if (parts.length === 2) {
-            sellerName = parts[0].replace(/\s*\(\d+%\)\s*/, '').trim();
-            sellerId = parts[1].trim();
-          }
-        }
-
-        if (sellerId && sellerName) {
-          const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
-          if (!existingSeller) {
-            await prisma.seller.create({
-              data: {
-                id: sellerId,
-                name: sellerName
-              }
-            });
-            await prisma.sellerSnapshot.create({
-              data: {
-                sellerId: sellerId,
-                name: sellerName
-              }
-            });
-          } else if (existingSeller.name !== sellerName) {
-            await prisma.seller.update({
-              where: { id: sellerId },
-              data: { name: sellerName }
-            });
-            await prisma.sellerSnapshot.create({
-              data: {
-                sellerId: sellerId,
-                name: sellerName
-              }
-            });
-          }
+      if (sellerId && sellerName) {
+        const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
+        if (!existingSeller) {
+          // Создаем нового продавца
+          await prisma.seller.create({
+            data: {
+              id: sellerId,
+              name: sellerName
+            }
+          });
+          // Создаем снапшот продавца
+          await prisma.sellerSnapshot.create({
+            data: {
+              sellerId: sellerId,
+              name: sellerName
+            }
+          });
+        } else if (existingSeller.name !== sellerName) {
+          // Обновляем имя продавца, если оно изменилось
+          await prisma.seller.update({
+            where: { id: sellerId },
+            data: { name: sellerName }
+          });
+          await prisma.sellerSnapshot.create({
+            data: {
+              sellerId: sellerId,
+              name: sellerName
+            }
+          });
         }
       }
 
-      // Создаем снапшот
-            const snapshotData: any = {
+      // Создаем снапшот ASIN
+      const snapshotData: any = {
         asinId: currentAsin.id,
         buyBoxSeller: buyBoxSeller,
         sellerId: sellerId,
-        sellerPercentage: sellerPercentage
+        sellerPercentage: null
       };
 
     // Locale

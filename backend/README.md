@@ -41,6 +41,13 @@ SELECT * FROM "AsinView";
 const asins = await prisma.asinView.findMany();
 ```
 
+## Парсинг продавцов Keepa
+
+При импорте выгрузок Keepa строка продавца Buy Box (например, `paramount city (80%) / A2125XITGCFM0Q`) обрабатывается функцией `parseSellerInfo`:
+- `(80%)` — рейтинг положительных отзывов продавца (Positive Feedback Rating) на Amazon, отсекается при сохранении названия продавца.
+- `sellerName` — чистое название магазина (например, `paramount city`).
+- `sellerId` — уникальный Amazon Seller ID (например, `A2125XITGCFM0Q`).
+
 ## Project setup
 
 
