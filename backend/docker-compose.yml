@@ -1,7 +1,9 @@
 version: '3.8'
 services:
   db:
-    image: postgres:15-alpine
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
     restart: always
     environment:
       POSTGRES_USER: viasuser
