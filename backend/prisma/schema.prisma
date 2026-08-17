@@ -286,3 +286,14 @@ view PrivateLabelView {
   createdAt  DateTime
   updatedAt  DateTime
 }
+
+view AsinView {
+  id           Int     @unique
+  asin         String
+  brand        String?
+  seller       String?
+  buyBoxSeller String?
+  price        Float?
+}
+
+

@@ -21,11 +21,28 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+## База данных и представления (Views)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+В схеме Prisma и базе данных PostgreSQL создано представление **`AsinView`** для удобной выборки ASIN с ключевыми полями:
+- `id` — идентификатор ASIN
+- `asin` — код ASIN
+- `brand` — название бренда
+- `seller` — имя продавца
+- `buyBoxSeller` — BuyBox продавец
+- `price` — текущая цена BuyBox
+
+Использование в SQL:
+```sql
+SELECT * FROM "AsinView";
+```
+
+Использование через Prisma Client:
+```typescript
+const asins = await prisma.asinView.findMany();
+```
 
 ## Project setup
+
 
 ```bash
 $ npm install
