@@ -49,7 +49,7 @@ describe('DB Function: get_asin_filter_reason', () => {
         });
 
         // Function relies on snapshot for the current seller
-        await tx.asinSnapshot.create({
+        await tx.productFinder.create({
           data: {
             asinId: asin.id,
             buyBoxSeller: `Test Seller (100%) / ${PREFIX}SELLER_PL`,
@@ -98,7 +98,7 @@ describe('DB Function: get_asin_filter_reason', () => {
           }
         });
 
-        await tx.asinSnapshot.create({
+        await tx.productFinder.create({
           data: {
             asinId: asin.id,
             buyBoxSeller: `Store of ${PREFIX}MySuperBrand LLC`
@@ -126,7 +126,7 @@ describe('DB Function: get_asin_filter_reason', () => {
           }
         });
 
-        await tx.asinSnapshot.create({
+        await tx.productFinder.create({
           data: {
             asinId: asin.id,
             buyBoxSeller: `Official ${PREFIX}CoolManuf Dealer`
@@ -156,7 +156,7 @@ describe('DB Function: get_asin_filter_reason', () => {
           }
         });
 
-        await tx.asinSnapshot.create({
+        await tx.productFinder.create({
           data: {
             asinId: asin.id,
             buyBoxSeller: 'Completely Unrelated Seller'
@@ -196,7 +196,7 @@ describe('DB Function: get_asin_filter_reason', () => {
 
         // Give the first 9 ASINs to the dominant seller (90% dominance)
         for (let i = 0; i < 9; i++) {
-          await tx.asinSnapshot.create({
+          await tx.productFinder.create({
             data: {
               asinId: asins[i].id,
               buyBoxSeller: `DominantStore (100%) / ${PREFIX}DOM123`,
@@ -207,7 +207,7 @@ describe('DB Function: get_asin_filter_reason', () => {
         }
 
         // Give the last ASIN to someone else
-        await tx.asinSnapshot.create({
+        await tx.productFinder.create({
           data: {
             asinId: asins[9].id,
             buyBoxSeller: `OtherStore (100%) / ${PREFIX}OTHER123`,

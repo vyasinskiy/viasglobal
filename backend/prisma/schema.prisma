@@ -8,35 +8,35 @@ datasource db {
 }
 
 model Brand {
-  id             Int      @id @default(autoincrement())
-  name           String   @unique
-  isAnalyzed     Boolean  @default(false)
-  asins          ASIN[]
-  privateLabels  PrivateLabel[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  isAnalyzed    Boolean        @default(false)
+  asins         ASIN[]
+  privateLabels PrivateLabel[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Manufacturer {
-  id             Int      @id @default(autoincrement())
-  name           String   @unique
-  isAnalyzed     Boolean  @default(false)
-  asins          ASIN[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  isAnalyzed Boolean  @default(false)
+  asins      ASIN[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model PrivateLabel {
-  id               Int          @id @default(autoincrement())
-  brandId          Int
-  sellerId         String
-  
-  brand          Brand        @relation(fields: [brandId], references: [id])
-  seller         Seller       @relation(fields: [sellerId], references: [id])
+  id       Int    @id @default(autoincrement())
+  brandId  Int
+  sellerId String
+
+  brand     Brand    @relation(fields: [brandId], references: [id])
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([brandId, sellerId])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
 }
 
 model Seller {
@@ -44,45 +44,45 @@ model Seller {
   name           String
   privateLabels  PrivateLabel[]
   snapshots      SellerSnapshot[]
-  asinSnapshots  AsinSnapshot[]
+  productFinders ProductFinder[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
 
 model SellerSnapshot {
-  id             Int      @id @default(autoincrement())
-  sellerId       String
-  name           String
-  createdAt      DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  sellerId  String
+  name      String
+  createdAt DateTime @default(now())
 
-  seller         Seller   @relation(fields: [sellerId], references: [id])
+  seller Seller @relation(fields: [sellerId], references: [id])
 }
 
 model Distributor {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   website   String?
-  asins     ASIN[]   // implicit m-to-m
+  asins     ASIN[] // implicit m-to-m
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model ASIN {
-  id             Int           @id @default(autoincrement())
-  code           String        @unique
+  id             Int    @id @default(autoincrement())
+  code           String @unique
   brandId        Int?
   manufacturerId Int?
-  
-  brand          Brand?        @relation(fields: [brandId], references: [id])
-  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
-  distributors   Distributor[] // implicit m-to-m
 
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  snapshots      AsinSnapshot[]
+  brand        Brand?        @relation(fields: [brandId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  distributors Distributor[] // implicit m-to-m
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  productFinders ProductFinder[]
 }
 
-model AsinSnapshot {
+model ProductFinder {
   id               Int      @id @default(autoincrement())
   asinId           Int
   buyBoxSeller     String?
@@ -90,16 +90,197 @@ model AsinSnapshot {
   sellerPercentage Int?
   createdAt        DateTime @default(now())
 
-  asin             ASIN     @relation(fields: [asinId], references: [id])
-  seller           Seller?  @relation(fields: [sellerId], references: [id])
+  asin   ASIN    @relation(fields: [asinId], references: [id])
+  seller Seller? @relation(fields: [sellerId], references: [id])
+
+  locale                                    String?
+  image                                     String?
+  title                                     String?
+  itemHighlights                            String?
+  salesRankCurrent                          Int?
+  salesRank90DaysAvg                        Int?
+  salesRank90DaysDrop                       Float?
+  salesRankDropsLast90Days                  Int?
+  salesRankReference                        String?
+  salesRankDisplayGroup                     String?
+  salesRankSubcategorySalesRanks            String?
+  monthlySalesTrendsBoughtInPastMonth       String?
+  monthlySalesTrends90DaysChangeMonthlySold String?
+  returnRate                                String?
+  reviewsRating                             Float?
+  reviewsRatingCount                        Int?
+  reviewsRatingCount90DaysDrop              String?
+  reviewsReviewCountFormatSpecific          Int?
+  lastPriceChange                           Float?
+  buyBoxCurrent                             Float?
+  buyBox90DaysAvg                           Float?
+  buyBox90DaysDrop                          String?
+  buyBoxStock                               Int?
+  buyBox90DaysOOS                           Float?
+  buyBoxSellerName                          String?
+  buyBoxShippingCountry                     String?
+  buyBoxStrikethroughPrice                  String?
+  buyBoxAmazon90Days                        String?
+  buyBoxTopSeller90Days                     Float?
+  buyBoxWinnerCount90Days                   Int?
+  buyBoxStandardDeviation90Days             String?
+  buyBoxFlipability90Days                   Int?
+  buyBoxIsFBA                               String?
+  buyBoxUnqualified                         String?
+  buyBoxPrimeEligible                       String?
+  buyBoxSubscribeSave                       String?
+  amazonCurrent                             String?
+  amazon90DaysAvg                           String?
+  amazon90DaysDrop                          String?
+  amazonStock                               String?
+  amazon90DaysOOS                           Int?
+  newCurrent                                Float?
+  new90DaysAvg                              Float?
+  new90DaysDrop                             String?
+  new90DaysOOS                              String?
+  new3rdPartyFBACurrent                     String?
+  new3rdPartyFBA90DaysAvg                   Float?
+  new3rdPartyFBA90DaysDrop                  String?
+  new3rdPartyFBAStock                       Int?
+  fBAPickPackFee                            Float?
+  referralFee                               Float?
+  referralFeeBasedOnCurrentBuyBoxPrice      Float?
+  new3rdPartyFBMCurrent                     String?
+  new3rdPartyFBM90DaysAvg                   Float?
+  new3rdPartyFBM90DaysDrop                  String?
+  new3rdPartyFBMStock                       String?
+  newPrimeExclusiveCurrent                  String?
+  newPrimeExclusive90DaysAvg                String?
+  newPrimeExclusive90DaysDrop               String?
+  lightningDealsCurrent                     String?
+  buyBoxUsedCurrent                         String?
+  buyBoxUsed90DaysAvg                       String?
+  buyBoxUsed90DaysDrop                      String?
+  buyBoxUsedBuyBoxUsedSeller                String?
+  buyBoxUsedIsFBA                           String?
+  buyBoxUsedCondition                       String?
+  usedCurrent                               String?
+  used90DaysAvg                             String?
+  used90DaysDrop                            String?
+  used90DaysOOS                             Int?
+  usedLikeNewCurrent                        String?
+  usedLikeNew90DaysAvg                      String?
+  usedLikeNew90DaysDrop                     String?
+  usedVeryGoodCurrent                       String?
+  usedVeryGood90DaysAvg                     String?
+  usedVeryGood90DaysDrop                    String?
+  usedGoodCurrent                           String?
+  usedGood90DaysAvg                         String?
+  usedGood90DaysDrop                        String?
+  usedAcceptableCurrent                     String?
+  usedAcceptable90DaysAvg                   String?
+  usedAcceptable90DaysDrop                  String?
+  warehouseDealsCurrent                     String?
+  warehouseDeals90DaysAvg                   String?
+  warehouseDeals90DaysDrop                  String?
+  listPriceCurrent                          Float?
+  listPrice90DaysAvg                        Float?
+  listPrice90DaysDrop                       String?
+  eBayNewCurrent                            String?
+  eBayNew90DaysAvg                          String?
+  eBayNew90DaysDrop                         String?
+  eBayUsedCurrent                           String?
+  eBayUsed90DaysAvg                         String?
+  eBayUsed90DaysDrop                        String?
+  totalOfferCount                           Int?
+  newOfferCountCurrent                      Int?
+  newOfferCount90DaysAvg                    Int?
+  newFBAOfferCountCurrent                   Int?
+  newFBAOfferCount90DaysAvg                 Int?
+  newFBMOfferCountCurrent                   Int?
+  newFBMOfferCount90DaysAvg                 Int?
+  usedOfferCountCurrent                     String?
+  usedOfferCount90DaysAvg                   String?
+  trackingSince                             Float?
+  listedSince                               Float?
+  uRLURLSlug                                String?
+  categoriesRoot                            String?
+  categoriesSub                             String?
+  categoriesTree                            String?
+  websiteDisplayGroupName                   String?
+  productCodesUPC                           String?
+  productCodesEAN                           String?
+  productCodesGTIN                          String?
+  productCodesPartNumber                    String?
+  parentASIN                                String?
+  variationASINs                            String?
+  bundleItems                               String?
+  freqBoughtTogether                        String?
+  type                                      String?
+  manufacturer                              String?
+  brand                                     String?
+  brandStoreName                            String?
+  brandStoreURLName                         String?
+  model                                     String?
+  variationAttributes                       String?
+  color                                     String?
+  size                                      String?
+  unitDetailsUnitValue                      String?
+  unitDetailsUnitType                       String?
+  scent                                     String?
+  itemForm                                  String?
+  pattern                                   String?
+  style                                     String?
+  material                                  String?
+  itemType                                  String?
+  targetAudience                            String?
+  recommendedUses                           String?
+  specificUses                              String?
+  productBenefit                            String?
+  edition                                   String?
+  format                                    String?
+  author                                    String?
+  contributors                              String?
+  binding                                   String?
+  numberOfItems                             Int?
+  numberOfPages                             String?
+  publicationDate                           String?
+  releaseDate                               String?
+  languages                                 String?
+  videosVideoCount                          Int?
+  videosHasMainVideo                        String?
+  videosMainVideos                          String?
+  videosAdditionalVideos                    String?
+  aContentHasAContent                       String?
+  packageDimensionCm                        Int?
+  packageWeightG                            Int?
+  packageQuantity                           String?
+  itemDimensionCm                           Int?
+  itemWeightG                               Int?
+  includedComponents                        String?
+  ingredients                               String?
+  activeIngredients                         String?
+  specialIngredients                        String?
+  safetyWarning                             String?
+  batteriesRequired                         String?
+  batteriesIncluded                         String?
+  hazardousMaterials                        String?
+  isHazMat                                  String?
+  isHeatSensitive                           String?
+  adultProduct                              String?
+  isMerchOnDemand                           String?
+  tradeInEligible                           String?
+  dealsDealType                             String?
+  dealsBadge                                String?
+  oneTimeCouponAbsolute                     String?
+  oneTimeCouponPercentage                   String?
+  oneTimeCouponSubscribeSave                String?
+  businessDiscountPercentage                String?
+
+  
 }
 
 view PrivateLabelView {
-  id               Int      @unique
-  brandId          Int
-  sellerId         String
-  brandName        String
-  sellerName       String
-  createdAt        DateTime
-  updatedAt        DateTime
+  id         Int      @unique
+  brandId    Int
+  sellerId   String
+  brandName  String
+  sellerName String
+  createdAt  DateTime
+  updatedAt  DateTime
 }
