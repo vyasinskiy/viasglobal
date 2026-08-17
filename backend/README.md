@@ -48,6 +48,17 @@ const asins = await prisma.asinView.findMany();
 - `sellerName` — чистое название магазина (например, `paramount city`).
 - `sellerId` — уникальный Amazon Seller ID (например, `A2125XITGCFM0Q`).
 
+## Фильтрация ASIN (`get_asin_filter_reason`)
+
+SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold INT DEFAULT 90, p_min_winner_count INT DEFAULT 3)` проверяет товар на критерии монополии и приватного лейбла:
+- **`NO_BUYBOX_DATA`**: нет данных о BuyBox для ASIN.
+- **`BUYBOX_MATCH_BRAND`**: продавец BuyBox содержит имя бренда.
+- **`BUYBOX_MATCH_MANUFACTURER`**: продавец BuyBox содержит имя производителя.
+- **`PRIVATE_LABEL`**: подтвержденный приватный лейбл (связка Бренд + Продавец).
+- **`FEW_BUYBOX_WINNERS`**: за последние 90 дней в BuyBox побеждало менее 3 продавцов (`buyBoxWinnerCount90Days < 3`).
+- **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 90`).
+- **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
+
 ## Project setup
 
 
