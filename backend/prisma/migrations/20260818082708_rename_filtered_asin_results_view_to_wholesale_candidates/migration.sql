@@ -1,18 +1,22 @@
 -- ==============================================================================
--- Представление: FilteredAsinResultsView
--- Назначение: Сводный анализ и группировка ASIN по Производителю, Бренду, Продавцу
---             и результату фильтрации (filterReason).
+-- Миграция: rename_filtered_asin_results_view_to_wholesale_candidates
+-- Назначение: Удаление устаревшего представления FilteredAsinResultsView и создание
+--             нового представления WholesaleCandidatesView для сводного анализа кандидатов.
 -- ==============================================================================
 
-CREATE OR REPLACE VIEW public."FilteredAsinResultsView" AS
+-- Удаляем старое представление, если оно существует
+DROP VIEW IF EXISTS public."FilteredAsinResultsView";
+
+-- Создаем новое представление WholesaleCandidatesView
+CREATE OR REPLACE VIEW public."WholesaleCandidatesView" AS
 SELECT
-  -- Название производителя
+  -- Название производителя товара
   m.name AS "manufacturer",
-  -- Название бренда
+  -- Название бренда товара
   b.name AS "brand",
-  -- Имя продавца (из таблицы Seller)
+  -- Имя продавца (из связанной таблицы Seller)
   s.name AS "sellerName",
-  -- Причина фильтрации (NULL если товар чистый / проходит критерии)
+  -- Причина фильтрации (NULL, если товар чистый и подходит для оптовой закупки)
   public.get_asin_filter_reason(a.id) AS "filterReason",
   -- Общее количество ASIN в данной группе
   COUNT(a.id)::INT AS "asinCount",

@@ -18,8 +18,8 @@
 2. **`PrivateLabelView`**:
    - Назначение: просмотр связок брендов и продавцов (приватные лейблы).
 
-3. **`FilteredAsinResultsView`**:
-   - Назначение: агрегированный анализ ASIN по производителям, брендам и причинам фильтрации.
+3. **`WholesaleCandidatesView`**:
+   - Назначение: сводный анализ и группировка товаров ASIN по производителям, брендам, продавцам и причинам фильтрации для отбора кандидатов под оптовую торговлю (Wholesale).
 
 ## Правила парсинга продавцов Keepa
 
@@ -45,7 +45,7 @@
 Для каждого объекта базы данных (представления, хранимые функции) в проекте ведется эталонный SQL-файл:
 - **Представления (Views)**: `backend/prisma/sql/views/`
   - `AsinView.sql`
-  - `FilteredAsinResultsView.sql`
+  - `WholesaleCandidatesView.sql`
   - `PrivateLabelView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `get_asin_filter_reason.sql`

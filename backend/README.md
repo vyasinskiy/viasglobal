@@ -23,17 +23,15 @@
 
 ## База данных и представления (Views)
 
-В схеме Prisma и базе данных PostgreSQL создано представление **`AsinView`** для удобной выборки ASIN с ключевыми полями:
-- `id` — идентификатор ASIN
-- `asin` — код ASIN
-- `brand` — название бренда
-- `seller` — имя продавца
-- `buyBoxSeller` — BuyBox продавец
-- `price` — текущая цена BuyBox
+В схеме Prisma и базе данных PostgreSQL созданы представления:
+1. **`AsinView`** — для удобной выборки ASIN с ключевыми полями (`asin`, `brand`, `seller`, `buyBoxSeller`, `price`).
+2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец.
+3. **`WholesaleCandidatesView`** — для сводной группировки товаров по производителям, брендам, продавцам и отбора кандидатов под оптовую закупку (Wholesale).
 
 Использование в SQL:
 ```sql
 SELECT * FROM "AsinView";
+SELECT * FROM "WholesaleCandidatesView";
 ```
 
 Использование через Prisma Client:
@@ -64,7 +62,7 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 Для прозрачного отслеживания изменений (diff в Git) исходный код представлений и функций хранится в эталонных SQL-файлах:
 - **Представления (Views)**: `backend/prisma/sql/views/`
   - `AsinView.sql`
-  - `FilteredAsinResultsView.sql`
+  - `WholesaleCandidatesView.sql`
   - `PrivateLabelView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `get_asin_filter_reason.sql`
