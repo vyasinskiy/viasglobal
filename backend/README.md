@@ -24,7 +24,7 @@
 ## База данных и представления (Views)
 
 В схеме Prisma и базе данных PostgreSQL созданы представления:
-1. **`AsinView`** — для удобной выборки ASIN с ключевыми полями (`asin`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
+1. **`AsinView`** — для удобной выборки ASIN со штрихкодом производителя EAN (`asin`, `ean`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
 2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец.
 3. **`WholesaleCandidatesView`** — для сводной группировки товаров по производителям, брендам, продавцам и отбора кандидатов под оптовую закупку (Wholesale).
 
