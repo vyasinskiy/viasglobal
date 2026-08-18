@@ -59,6 +59,23 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 90`).
 - **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
 
+## Эталонные файлы SQL-объектов (`prisma/sql/`)
+
+Для прозрачного отслеживания изменений (diff в Git) исходный код представлений и функций хранится в эталонных SQL-файлах:
+- **Представления (Views)**: `backend/prisma/sql/views/`
+  - `AsinView.sql`
+  - `FilteredAsinResultsView.sql`
+  - `PrivateLabelView.sql`
+- **Функции (Functions)**: `backend/prisma/sql/functions/`
+  - `get_asin_filter_reason.sql`
+  - `check_probable_private_label.sql`
+
+**Рабочий процесс внесения изменений:**
+1. Правки вносятся напрямую в эталонный файл в `backend/prisma/sql/`.
+2. Создается новая миграция Prisma: `npx prisma migrate dev --create-only --name <name>`.
+3. Содержимое эталонного файла копируется в `migration.sql`.
+4. Миграция применяется: `npx prisma migrate dev`.
+
 ## Project setup
 
 
