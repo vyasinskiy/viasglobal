@@ -1,10 +1,7 @@
 -- ==============================================================================
--- Представление: AsinView
--- Назначение: Удобная выборка товаров ASIN с базовыми полями, актуальной ценой
---             Buy Box (buyBoxPrice) и расчетной максимальной ценой закупки (maxBuyPrice).
+-- Миграция: add_dimensions_to_asin_view
+-- Назначение: Добавление weightKg, packageDimensionCm3 и packageWeightG в AsinView
 -- ==============================================================================
-
-DROP VIEW IF EXISTS public."AsinView";
 
 CREATE OR REPLACE VIEW public."AsinView" AS
 SELECT
@@ -16,10 +13,16 @@ SELECT
   b.name AS "brand",
   -- Имя продавца (из связанной таблицы Seller)
   sel.name AS "seller",
+  -- Текстовая строка BuyBox продавца из последнего снапшота Keepa (ProductFinder)
+  latest."buyBoxSeller" AS "buyBoxSeller",
   -- Текущая цена BuyBox из последнего снапшота Keepa
-  latest."buyBoxCurrent" AS "buyBoxPrice",
-  -- Расчетная максимальная цена оптовой закупки под 10% маржи
-  public.calculate_max_buy_price(a.id) AS "maxBuyPrice"
+  latest."buyBoxCurrent" AS "price",
+  -- Вес упаковки в килограммах (для быстрого ввода в поле Weight калькулятора)
+  ROUND((latest."packageWeightG" / 1000.0)::numeric, 3)::FLOAT AS "weightKg",
+  -- Объем упаковки в см³ (Package Dimension cm³)
+  latest."packageDimensionCm" AS "packageDimensionCm3",
+  -- Вес упаковки в граммах
+  latest."packageWeightG" AS "packageWeightG"
 FROM "ASIN" a
 -- Присоединяем бренд для получения его названия
 LEFT JOIN "Brand" b ON a."brandId" = b.id
@@ -27,7 +30,10 @@ LEFT JOIN "Brand" b ON a."brandId" = b.id
 LEFT JOIN LATERAL (
   SELECT 
     pf."sellerId",
-    pf."buyBoxCurrent"
+    pf."buyBoxSeller",
+    pf."buyBoxCurrent",
+    pf."packageWeightG",
+    pf."packageDimensionCm"
   FROM "ProductFinder" pf
   WHERE pf."asinId" = a.id
   ORDER BY pf."createdAt" DESC

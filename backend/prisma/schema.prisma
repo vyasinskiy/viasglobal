@@ -288,12 +288,12 @@ view PrivateLabelView {
 }
 
 view AsinView {
-  id           Int     @unique
-  asin         String
-  brand        String?
-  seller       String?
-  buyBoxSeller String?
-  price        Float?
+  id          Int     @unique
+  asin        String
+  brand       String?
+  seller      String?
+  buyBoxPrice Float?
+  maxBuyPrice Float?
 }
 
 

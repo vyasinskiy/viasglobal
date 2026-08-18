@@ -24,7 +24,7 @@
 ## База данных и представления (Views)
 
 В схеме Prisma и базе данных PostgreSQL созданы представления:
-1. **`AsinView`** — для удобной выборки ASIN с ключевыми полями (`asin`, `brand`, `seller`, `buyBoxSeller`, `price`).
+1. **`AsinView`** — для удобной выборки ASIN с ключевыми полями (`asin`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
 2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец.
 3. **`WholesaleCandidatesView`** — для сводной группировки товаров по производителям, брендам, продавцам и отбора кандидатов под оптовую закупку (Wholesale).
 
@@ -57,6 +57,11 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 90`).
 - **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
 
+## Расчет максимальной цены закупки (`calculate_max_buy_price`)
+
+SQL-функция `calculate_max_buy_price(p_asin_id INT, p_target_margin_pct FLOAT DEFAULT 10.0, p_inbound_shipping FLOAT DEFAULT 0.40, p_vat_rate FLOAT DEFAULT 21.0)`:
+- Вычисляет предельную цену оптовой закупки товара у поставщика (Netto, без НДС) с учетом удержаний Amazon (FBA, Referral Fee 15%), налога IVA 21%, входящей логистики (0.40 €) и целевой маржи (10% по умолчанию).
+
 ## Эталонные файлы SQL-объектов (`prisma/sql/`)
 
 Для прозрачного отслеживания изменений (diff в Git) исходный код представлений и функций хранится в эталонных SQL-файлах:
@@ -65,6 +70,7 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
   - `WholesaleCandidatesView.sql`
   - `PrivateLabelView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
+  - `calculate_max_buy_price.sql`
   - `get_asin_filter_reason.sql`
   - `check_probable_private_label.sql`
 
