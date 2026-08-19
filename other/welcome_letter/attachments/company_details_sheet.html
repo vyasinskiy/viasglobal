@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Details Sheet — Viasglobal</title>
+  <style>
+    :root {
+      --primary: #232F3E;
+      --primary-light: #37475A;
+      --accent: #FF9900;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --bg-card: #f8fafc;
+      --border: #e2e8f0;
+      --badge-bg: #ecfdf5;
+      --badge-text: #065f46;
+      --badge-border: #a7f3d0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+      background-color: #f1f5f9;
+      line-height: 1.5;
+      padding: 30px 15px;
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px 48px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .header-logo img {
+      width: 190px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .header-title {
+      text-align: right;
+    }
+
+    .header-title h1 {
+      font-size: 20px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Badges */
+    .vies-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: 1px solid var(--badge-border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* Grid Sections */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 13px;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .info-row:first-child {
+      padding-top: 0;
+    }
+
+    .label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .value {
+      font-weight: 600;
+      color: var(--primary);
+      text-align: right;
+    }
+
+    .value a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .value a:hover {
+      text-decoration: underline;
+      color: var(--accent);
+    }
+
+    /* Bank Box */
+    .bank-card {
+      background: #fafaf9;
+      border: 1px solid #e7e5e4;
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+
+    /* Profile / Scope */
+    .scope-box {
+      font-size: 13px;
+      color: var(--text-main);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+
+    .scope-box p {
+      margin-bottom: 6px;
+    }
+
+    .scope-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .print-btn-wrap {
+      max-width: 800px;
+      margin: 0 auto 15px auto;
+      text-align: right;
+    }
+
+    .print-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .print-btn:hover {
+      background: var(--primary-light);
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+
+      .print-btn-wrap {
+        display: none;
+      }
+
+      .page {
+        border: none;
+        box-shadow: none;
+        padding: 20px 25px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-btn-wrap">
+    <button class="print-btn" onclick="window.print()">
+      🖨️ Print / Save as PDF
+    </button>
+  </div>
+
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-logo">
+        <a href="https://viasglobal.es/">
+          <img src="https://viasglobal.es/logo.png" alt="Viasglobal Logo" />
+        </a>
+      </div>
+      <div class="header-title">
+        <h1>Company Details Sheet</h1>
+        <p>B2B Vendor & Commercial Profile</p>
+        <div class="vies-badge">
+          ✓ VIES Active (0% Intra-EU VAT)
+        </div>
+      </div>
+    </div>
+
+    <!-- Company & Fiscal Info -->
+    <div class="section-title">1. Legal & Fiscal Information</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="info-row">
+          <span class="label">Trade Name</span>
+          <span class="value">Viasglobal</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Legal Representative</span>
+          <span class="value">Vitalii Iasinskii</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Legal Form</span>
+          <span class="value">Individual Entrepreneur</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Country of Origin</span>
+          <span class="value">Spain (EU)</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="info-row">
+          <span class="label">Tax ID Number</span>
+          <span class="value">ESZ1154366R</span>
+        </div>
+        <div class="info-row">
+          <span class="label">EU VAT ID</span>
+          <span class="value">ESZ1154366R</span>
+        </div>
+        <div class="info-row">
+          <span class="label">VIES Status</span>
+          <span class="value" style="color: #059669;">Verified & Active</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Applicable VAT Rate</span>
+          <span class="value">0% (Intra-Community)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact & Logistics -->
+    <div class="section-title">2. Contact & Addresses</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="info-row">
+          <span class="label">Managing Director</span>
+          <span class="value">Vitalii Iasinskii</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Primary Email</span>
+          <span class="value"><a href="mailto:info@viasglobal.es">info@viasglobal.es</a></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Official Website</span>
+          <span class="value"><a href="https://viasglobal.es/">viasglobal.es</a></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="info-row">
+          <span class="label">Invoicing Address</span>
+          <span class="value">Spain</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Delivery Address</span>
+          <span class="value">Spain (Warehouse)</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Delivery Terms</span>
+          <span class="value">DAP / DDP preferred</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Warehouse Reception</span>
+          <span class="value">Mon – Fri (09:00 – 18:00)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banking Information -->
+    <div class="section-title">3. Payment & Settlement Terms</div>
+    <div class="bank-card">
+      <div class="info-row">
+        <span class="label">Preferred Payment Method</span>
+        <span class="value">SEPA Bank Transfer / Wire Transfer</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Payment Currency</span>
+        <span class="value">EUR (€)</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Bank Details (IBAN / BIC)</span>
+        <span class="value">Provided upon B2B account opening / Proforma Invoice</span>
+      </div>
+    </div>
+
+    <!-- Commercial Profile -->
+    <div class="section-title">4. Commercial Scope & Business Activities</div>
+    <div class="scope-box">
+      <p><strong>Core Focus:</strong> Wholesale purchasing, distribution, and multi-channel e-commerce retail of branded consumer goods.</p>
+      <p><strong>Key Product Categories:</strong></p>
+      <ul style="margin: 6px 0 8px 20px; color: var(--text-main); font-size: 12.5px;">
+        <li><strong>Home & Kitchen & Textiles:</strong> Bedding, blankets, towels, home decor, kitchenware.</li>
+        <li><strong>Toys, Games & Licensed Goods:</strong> Branded merchandise (Disney, Marvel, Star Wars, etc.), board games, gifts.</li>
+        <li><strong>Sports, Outdoors & Travel:</strong> Camping, fitness accessories, sports gear, backpacks & luggage.</li>
+        <li><strong>Tools & Home Improvement / DIY:</strong> Hand tools, home hardware, lighting & accessories.</li>
+        <li><strong>Pet Supplies:</strong> Pet accessories, bedding, feeding & care products.</li>
+        <li><strong>Office Products & Stationery:</strong> School & office supplies, organizers, writing instruments.</li>
+      </ul>
+      <p><strong>Target Markets:</strong> European Union (Spain, Germany, France, Italy, Poland).</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div>Viasglobal • All rights reserved</div>
+      <div>Official Document • <a href="https://viasglobal.es/" style="color: inherit; text-decoration: none;">https://viasglobal.es</a></div>
+    </div>
+  </div>
+
+</body>
+</html>
