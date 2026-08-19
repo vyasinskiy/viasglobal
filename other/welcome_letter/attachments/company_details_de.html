@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Company Details Sheet — Viasglobal</title>
+  <title>Unternehmensdatenblatt — Viasglobal (DE)</title>
   <style>
     :root {
-      --primary: #232F3E;
-      --primary-light: #37475A;
+      --primary: #0f172a;
       --accent: #FF9900;
       --text-main: #1e293b;
       --text-muted: #64748b;
@@ -28,34 +27,29 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       color: var(--text-main);
-      background-color: #f1f5f9;
+      background-color: #ffffff;
       line-height: 1.4;
-      padding: 20px 10px;
+      padding: 0;
     }
 
     .page {
       max-width: 800px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 28px 36px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      border: 1px solid var(--border);
+      padding: 24px 32px;
     }
 
-    /* Header */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid var(--accent);
-      padding-bottom: 14px;
-      margin-bottom: 18px;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .header-logo img {
-      width: 165px;
-      max-width: 100%;
+      width: 160px;
       height: auto;
       display: block;
     }
@@ -65,20 +59,20 @@
     }
 
     .header-title h1 {
-      font-size: 18px;
+      font-size: 17px;
       color: var(--primary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 2px;
+      font-weight: 800;
     }
 
     .header-title p {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
     }
 
-    /* Badges */
     .vies-badge {
       display: inline-flex;
       align-items: center;
@@ -86,21 +80,20 @@
       background: var(--badge-bg);
       color: var(--badge-text);
       border: 1px solid var(--badge-border);
-      padding: 3px 8px;
-      border-radius: 5px;
+      padding: 2px 8px;
+      border-radius: 4px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       margin-top: 4px;
     }
 
-    /* Grid Sections */
     .section-title {
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.75px;
       color: var(--primary);
-      margin-bottom: 8px;
+      margin-bottom: 7px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -116,23 +109,23 @@
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 10px 14px;
+      padding: 9px 12px;
     }
 
     .info-row {
       display: flex;
       justify-content: space-between;
-      padding: 3.5px 0;
+      padding: 3px 0;
       border-bottom: 1px dashed #e2e8f0;
-      font-size: 12px;
+      font-size: 11.5px;
     }
 
     .info-row:last-child {
@@ -160,33 +153,34 @@
       text-decoration: none;
     }
 
-    .value a:hover {
-      text-decoration: underline;
-      color: var(--accent);
-    }
-
-    /* Bank Box */
     .bank-card {
       background: #fafaf9;
       border: 1px solid #e7e5e4;
       border-left: 4px solid var(--accent);
       border-radius: 6px;
-      padding: 10px 14px;
-      margin-bottom: 16px;
+      padding: 9px 12px;
+      margin-bottom: 14px;
     }
 
-    /* Footer */
     .footer {
       border-top: 1px solid var(--border);
-      padding-top: 10px;
+      padding-top: 8px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 10px;
+      font-size: 9.5px;
       color: var(--text-muted);
     }
 
-    /* Print styles */
+    .legal-disclaimer {
+      font-size: 9px;
+      color: #64748b;
+      line-height: 1.35;
+      margin-top: 6px;
+      text-align: center;
+    }
+
     @page {
       size: A4 portrait;
       margin: 8mm 8mm;
@@ -198,7 +192,6 @@
         padding: 0;
         margin: 0;
       }
-
       .page {
         border: none;
         box-shadow: none;
@@ -212,7 +205,6 @@
 <body>
 
   <div class="page">
-    <!-- Header -->
     <div class="header">
       <div class="header-logo">
         <a href="https://viasglobal.es/">
@@ -220,166 +212,162 @@
         </a>
       </div>
       <div class="header-title">
-        <h1>Company Details Sheet</h1>
-        <p>B2B Vendor & Commercial Profile</p>
+        <h1>Unternehmensprofil</h1>
+        <p>B2B-Händler- & Firmenprofil</p>
         <div class="vies-badge">
-          ✓ VIES Active (0% Intra-EU VAT)
+          ✓ VIES Aktiv (0% Innerfam. MwSt.)
         </div>
       </div>
     </div>
 
-    <!-- Company & Fiscal Info -->
-    <div class="section-title">1. Legal & Fiscal Information</div>
+    <div class="section-title">1. Rechtliche & Steuerliche Angaben</div>
     <div class="grid-2">
       <div class="card">
         <div class="info-row">
-          <span class="label">Trade Name</span>
+          <span class="label">Handelsname</span>
           <span class="value">Viasglobal</span>
         </div>
         <div class="info-row">
-          <span class="label">Legal Representative</span>
+          <span class="label">Vertretungsberechtigt</span>
           <span class="value">Vitalii Iasinskii</span>
         </div>
         <div class="info-row">
-          <span class="label">Legal Form</span>
-          <span class="value">Autónomo (Spain)</span>
+          <span class="label">Rechtsform</span>
+          <span class="value">Autónomo (Spanien)</span>
         </div>
         <div class="info-row">
-          <span class="label">Country of Origin</span>
-          <span class="value">Spain (EU)</span>
+          <span class="label">Herkunftsland</span>
+          <span class="value">Spanien (EU)</span>
         </div>
       </div>
 
       <div class="card">
         <div class="info-row">
-          <span class="label">Tax ID / EU VAT ID</span>
+          <span class="label">USt-IdNr. / EU-VAT</span>
           <span class="value">ESZ1154366R</span>
         </div>
         <div class="info-row">
-          <span class="label">EORI Number</span>
+          <span class="label">EORI-Nummer</span>
           <span class="value">ESZ1154366R</span>
         </div>
         <div class="info-row">
-          <span class="label">VIES Status</span>
-          <span class="value" style="color: #059669;">Verified & Active</span>
+          <span class="label">VIES-Status</span>
+          <span class="value" style="color: #059669;">Verifiziert & Aktiv</span>
         </div>
         <div class="info-row">
-          <span class="label">Applicable VAT Rate</span>
-          <span class="value">0% (Intra-Community)</span>
+          <span class="label">Anwendbarer Steuersatz</span>
+          <span class="value">0% (Innergemeinschaftlich)</span>
         </div>
       </div>
     </div>
 
-    <!-- Contact & Logistics -->
-    <div class="section-title">2. Contact & Addresses</div>
+    <div class="section-title">2. Kontakt & Anschriften</div>
     <div class="grid-2">
       <div class="card">
         <div class="info-row">
-          <span class="label">Managing Director</span>
+          <span class="label">Geschäftsführung</span>
           <span class="value">Vitalii Iasinskii</span>
         </div>
         <div class="info-row">
-          <span class="label">Primary Email</span>
+          <span class="label">Haupt-E-Mail</span>
           <span class="value"><a href="mailto:info@viasglobal.es">info@viasglobal.es</a></span>
         </div>
         <div class="info-row">
-          <span class="label">Phone / WhatsApp</span>
+          <span class="label">Telefon / WhatsApp</span>
           <span class="value"><a href="tel:+34641064851">+34 641 064 851</a></span>
         </div>
         <div class="info-row">
-          <span class="label">Official Website</span>
+          <span class="label">Offizielle Website</span>
           <span class="value"><a href="https://viasglobal.es/">viasglobal.es</a></span>
         </div>
       </div>
 
       <div class="card">
         <div class="info-row">
-          <span class="label">Invoicing Address</span>
-          <span class="value" style="font-size: 12px;">Ronda Albocasser, 11, 12166 Els Ibarsos, Valencia, Spain</span>
+          <span class="label">Rechnungsadresse</span>
+          <span class="value" style="font-size: 11px;">Ronda Albocasser, 11, 12166 Els Ibarsos, Valencia, Spanien</span>
         </div>
         <div class="info-row">
-          <span class="label">Delivery Address</span>
-          <span class="value" style="font-size: 12px;">Same as Invoicing Address (or specified per order)</span>
+          <span class="label">Lieferadresse</span>
+          <span class="value" style="font-size: 11px;">Wie Rechnungsadresse (oder je Auftrag spezifiziert)</span>
         </div>
         <div class="info-row">
-          <span class="label">Delivery Terms</span>
-          <span class="value">DAP / DDP preferred</span>
+          <span class="label">Lieferbedingungen</span>
+          <span class="value">DAP / DDP bevorzugt</span>
         </div>
         <div class="info-row">
-          <span class="label">Goods Reception</span>
-          <span class="value">Mon – Fri (09:00 – 18:00)</span>
+          <span class="label">Warenannahme</span>
+          <span class="value">Mo – Fr (09:00 – 18:00)</span>
         </div>
       </div>
     </div>
 
-    <!-- Banking Information -->
-    <div class="section-title">3. Payment & Settlement Terms</div>
+    <div class="section-title">3. Zahlungs- & Abrechnungskonditionen</div>
     <div class="bank-card">
       <div class="info-row">
-        <span class="label">Banking Institution</span>
-        <span class="value">Banco Santander (Spain)</span>
+        <span class="label">Bankinstitut</span>
+        <span class="value">Banco Santander (Spanien)</span>
       </div>
       <div class="info-row">
-        <span class="label">Preferred Payment Method</span>
-        <span class="value">SEPA Bank Transfer / Wire Transfer</span>
+        <span class="label">Bevorzugte Zahlungsart</span>
+        <span class="value">SEPA-Banküberweisung</span>
       </div>
       <div class="info-row">
-        <span class="label">Payment Currency</span>
+        <span class="label">Zahlungswährung</span>
         <span class="value">EUR (€)</span>
       </div>
       <div class="info-row">
-        <span class="label">Bank Details (IBAN / BIC)</span>
-        <span class="value">Provided upon B2B account opening / Proforma Invoice</span>
+        <span class="label">Bankverbindung (IBAN / BIC)</span>
+        <span class="value">Wird bei B2B-Kontoeröffnung / Proforma-Rechnung bereitgestellt</span>
       </div>
     </div>
 
-    <!-- Commercial Standards & Operations -->
-    <div class="section-title">4. Commercial Standards & Operational Framework</div>
+    <div class="section-title">4. Kommerzielle Standards & Betriebsrahmen</div>
     <div class="grid-2">
       <div class="card">
-        <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 3px;">
-          🏷️ MAP Compliance & Price Integrity
+        <div style="font-size: 11.5px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">
+          🏷️ MAP-Compliance & Preisdisziplin
         </div>
-        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35;">
-          Strict adherence to manufacturer Recommended Retail Prices (RRP / MAP) to protect brand equity and avoid
-          market price erosion across channels.
+        <p style="font-size: 10.5px; color: var(--text-muted); line-height: 1.35;">
+          Strikte Einhaltung der unverbindlichen Preisempfehlungen (UVP / MAP) des Herstellers zum Schutz des Markenwerts.
         </p>
       </div>
 
       <div class="card">
-        <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 3px;">
-          🚚 Inbound Logistics & Delivery
+        <div style="font-size: 11.5px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">
+          🚚 Inbound-Logistik & Warenannahme
         </div>
-        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35;">
-          Direct door-to-door delivery reception for courier parcels and palletized orders (DAP / DDP terms).
+        <p style="font-size: 10.5px; color: var(--text-muted); line-height: 1.35;">
+          Direkte Anlieferung von Paketsendungen und Palettenware (DAP / DDP-Konditionen).
         </p>
       </div>
 
       <div class="card">
-        <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 3px;">
-          🇪🇺 Cross-Border EU Compliance
+        <div style="font-size: 11.5px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">
+          🇪🇺 Innergemeinschaftliche EU-Steuerkonformität
         </div>
-        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35;">
-          Fully verified for intra-community zero-rate VAT supplies (VIES). Seamless B2B accounting and compliant trade
-          across EU member states.
+        <p style="font-size: 10.5px; color: var(--text-muted); line-height: 1.35;">
+          Vollständig verifiziert für innergemeinschaftliche steuerfreie Lieferungen (VIES, 0% MwSt.). Reibungslose Buchhaltung.
         </p>
       </div>
 
       <div class="card">
-        <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 3px;">
-          🤝 Long-Term B2B Partnership & Growth
+        <div style="font-size: 11.5px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">
+          🤝 Langfristige B2B-Partnerschaft & Wachstum
         </div>
-        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35;">
-          Commitment to sustainable commercial cooperation, brand integrity, and steady, recurring purchase orders based on planned demand.
+        <p style="font-size: 10.5px; color: var(--text-muted); line-height: 1.35;">
+          Bekenntnis zu dauerhafter Kooperation, Markenschutz und wiederkehrenden Bestellungen auf Basis fundierter Nachfrageprognosen.
         </p>
       </div>
     </div>
 
-    <!-- Footer -->
+    <div class="legal-disclaimer">
+      Viasglobal ist ein eingetragener Handelsname von Vitalii Iasinskii (ESZ1154366R). Alle B2B-Transaktionen unterliegen den EU-Vorschriften für innergemeinschaftliche Lieferungen.
+    </div>
+
     <div class="footer">
-      <div>Viasglobal • All rights reserved</div>
-      <div>Official Document • <a href="https://viasglobal.es/"
-          style="color: inherit; text-decoration: none;">https://viasglobal.es</a></div>
+      <div>Viasglobal • Alle Rechte vorbehalten</div>
+      <div>Offizielles Dokument • <a href="https://viasglobal.es/" style="color: inherit; text-decoration: none;">https://viasglobal.es</a></div>
     </div>
   </div>
 

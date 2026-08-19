@@ -6,7 +6,7 @@
 
 ### General Information
 - **Trade Name:** Viasglobal
-- **Legal Form:** Individual Entrepreneur
+- **Legal Form:** Autónomo
 - **Legal Representative / Managing Director:** Vitalii Iasinskii
 - **Tax ID / EU VAT ID:** `ESZ1154366R`
 - **EORI Number:** `ESZ1154366R`

@@ -42,3 +42,6 @@ next-env.d.ts
 
 # keepa output
 keepa/results/
+
+# auto-synced landing pdfs (single source of truth is in other/welcome_letter/attachments/)
+landing/public/viasglobal-company-details*.pdf

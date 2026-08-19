@@ -1,41 +1,48 @@
-# Viasglobal Landing Page
+# Viasglobal B2B Commercial Portal
 
-Лендинг для компании Viasglobal, специализирующейся на оптовой торговле (wholesale) на Amazon.
+Официальный коммерческий лендинг компании **Viasglobal** — европейского оптового дистрибьютора и партнера по мультиканальной электронной коммерции (**European B2B Wholesale & Omnichannel Distribution Partner**).
 
-## Технологии
-- **Фреймворк**: [Next.js](https://nextjs.org/)
-- **Стилизация**: [Material-UI (MUI)](https://mui.com/) + Vanilla CSS
-- **Хостинг**: Cloudflare Pages / Vercel (Статический экспорт - SSG)
+## Основные разделы портала
+- **Hero & Trust Framework**: Верификация в реестре VIES (0% Intra-EU VAT), профиль поставщика в ЕС.
+- **Product Categories & Focus Areas**: 6 ключевых потребительских категорий (Home & Kitchen, Sports & Outdoor, Consumer Electronics, Personal Care, DIY & Tools, Office Goods).
+- **Core Capabilities**: Оптовый выкуп, соблюдение политики цен MAP/RRP, оптимизация каталога, логистика DAP/DDP в Испании.
+- **Commercial Standards**: Операционные стандарты компании (синхронизированы с официальным Company Details Sheet).
+- **How We Work**: 4 простых шага партнерства для европейских брендов и производителей.
+- **B2B Partner Onboarding Modal**: Интерактивная форма квалификации брендов с явным GDPR-согласием и антиспам защитой **Cloudflare Turnstile**.
+- **Legal Compliance**: Мультиязычные страницы Aviso Legal (LSSICE ст. 10), Política de Privacidad (RGPD 2016/679 / LOPDGDD), Política de Cookies (AEPD) на 5 языках.
+- **Company Profile PDF**: Скачивание официального листа реквизитов на выбранном языке (`viasglobal-company-details-${lang}.pdf` для EN, ES, DE, FR, IT).
 
-## Особенности проекта
-- Полное соответствие требованиям GDPR Евросоюза и Испании.
-- Адаптивный, современный дизайн в цветовой гамме, близкой к Amazon.
+## Технологический стек
+- **Фреймворк**: Next.js (App Router, SSG — Static Site Generation).
+- **UI & Стилизация**: Material-UI (MUI v6) + Vanilla CSS.
+- **Безопасность**: Cloudflare Turnstile (GDPR-friendly anti-spam).
+- **Локализация (i18n)**: 5 европейских языков (`es`, `en`, `de`, `fr`, `it`).
+- **SEO & Social Sharing**: OpenGraph, Twitter Cards, Schema.org и мета-теги для всех локалей.
 
-## Запуск проекта локально
-
-Для запуска сервера разработки:
+## Локальный запуск
 
 ```bash
+cd landing
 npm run dev
-# или
-yarn dev
-# или
-pnpm dev
-# или
-bun dev
 ```
 
-Откройте [http://localhost:3000](http://localhost:3000) в вашем браузере.
+Открыть в браузере: [http://localhost:3000](http://localhost:3000)
+
+## Переменные окружения (Опционально)
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: Публичный ключ сайта Cloudflare Turnstile (по умолчанию используется официальный тестовый ключ).
+
+## Сборка и экспорт
+
+При запуске `npm run dev` или `npm run build` автоматически отрабатывает скрипт `scripts/sync-pdf.mjs` (`predev` / `prebuild`), копирующий актуальные PDF-карточки из первоисточника `other/welcome_letter/attachments/` в `public/`.
+
+```bash
+cd landing
+npm run build
+```
 
 ## Деплой (Vercel)
 
-Так как код лендинга находится в подпапке `landing`, процесс деплоя на Vercel требует настройки:
-
-1. Зайдите в проект на Vercel: [https://vercel.com/viasglobal](https://vercel.com/viasglobal).
-2. Откройте **Settings** -> **General**.
-3. В разделе **Root Directory** впишите `landing` и сохраните.
-
-### Пропуск деплоя при изменениях вне папки landing
-Если в настройках включен параметр **"Skip deployments when there are no changes to the root directory or its dependencies"** (включен по умолчанию), Vercel будет собирать проект **только** при изменениях внутри папки `landing`. 
-Изменения в других папках репозитория будут проигнорированы.
-Проверить статус пропущенных билдов (`Canceled`) можно на вкладке [Deployments](https://vercel.com/viasglobal/viasglobal/deployments).
+Проект деплоится на Vercel из подпапки `landing`:
+1. Дашборд: [https://vercel.com/viasglobal](https://vercel.com/viasglobal).
+2. Настройки: **Settings** -> **General** -> **Root Directory**: `landing`.
+3. История сборок: [Deployments](https://vercel.com/viasglobal/viasglobal/deployments).

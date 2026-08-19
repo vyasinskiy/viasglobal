@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync:pdf": "node scripts/sync-pdf.mjs",
+    "predev": "node scripts/sync-pdf.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/sync-pdf.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

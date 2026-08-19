@@ -5,27 +5,29 @@ const theme = createTheme({
   palette: {
     primary: {
       main: COLORS.primary, // #FF9900
+      dark: COLORS.primaryDark,
       contrastText: '#fff',
     },
     secondary: {
-      main: COLORS.secondary, // #232F3E
+      main: COLORS.secondary, // #1E293B
+      dark: COLORS.secondaryDark,
     },
     background: {
       default: COLORS.background,
-      paper: COLORS.lightGray,
+      paper: COLORS.paper,
     },
     text: {
       primary: COLORS.text,
-      secondary: '#555555',
+      secondary: COLORS.textSecondary,
     },
   },
   typography: {
     fontFamily: 'var(--font-inter), sans-serif',
     h1: {
-      fontWeight: 700,
+      fontWeight: 800,
     },
     h2: {
-      fontWeight: 700,
+      fontWeight: 800,
     },
     button: {
       textTransform: 'none',

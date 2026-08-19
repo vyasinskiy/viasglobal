@@ -1,7 +1,7 @@
-import { Container, Typography, Box } from "@mui/material";
-import { COMPANY_NAME, OWNER_NAME } from "../../../config/constants";
-import { getDictionary } from "../../../i18n/getDictionary";
+import { Container, Typography, Box, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Link as MuiLink } from "@mui/material";
+import { COMPANY_NAME, COMPANY_EMAIL } from "../../../config/constants";
 import { Locale, i18n } from "../../../i18n/config";
+import { COOKIE_POLICIES } from "../../../i18n/legalContent";
 
 export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ lang: locale }));
@@ -9,48 +9,114 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang as Locale);
+  const lang = resolvedParams.lang as Locale;
+  const content = COOKIE_POLICIES[lang] || COOKIE_POLICIES.es;
+
   return {
-    title: `${dict.legal.cookies} | ${COMPANY_NAME}`,
+    title: `${content.title} | ${COMPANY_NAME}`,
+    description: content.metaDescription,
   };
 }
 
 export default async function PoliticaCookies({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang as Locale);
+  const lang = resolvedParams.lang as Locale;
+  const content = COOKIE_POLICIES[lang] || COOKIE_POLICIES.es;
 
   return (
     <Container maxWidth="md" sx={{ py: 8 }}>
-      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-        {dict.legal.cookies}
+      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 800, color: "secondary.main" }}>
+        {content.title}
       </Typography>
-      
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          En {COMPANY_NAME} (operado por {OWNER_NAME}) utilizamos cookies propias y de terceros para mejorar nuestros servicios, personalizar nuestro sitio web y analizar el tráfico de usuarios.
-        </Typography>
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
+        {content.subtitle}
+      </Typography>
 
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mt: 4 }}>
-          ¿Qué son las cookies?
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Las cookies son pequeños archivos de texto que los sitios web almacenan en su dispositivo cuando los visita. Se utilizan ampliamente para que los sitios web funcionen, o funcionen de manera más eficiente, así como para proporcionar información a los propietarios del sitio.
-        </Typography>
+      <Divider sx={{ mb: 4 }} />
 
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mt: 4 }}>
-          ¿Qué tipos de cookies utilizamos?
-        </Typography>
-        <Typography variant="body1" component="ul" sx={{ pl: 4, mb: 3 }}>
-          <li><strong>Cookies Técnicas:</strong> Son necesarias para el funcionamiento del sitio web y no pueden ser desactivadas en nuestros sistemas.</li>
-          <li><strong>Cookies Analíticas:</strong> Nos permiten contar las visitas y las fuentes de tráfico para poder evaluar y mejorar el rendimiento de nuestro sitio. Toda la información que recogen estas cookies es agregada y, por lo tanto, anónima.</li>
-        </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {/* 1. ¿Qué son las cookies? */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s1_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s1_text}
+          </Typography>
+        </Box>
 
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mt: 4 }}>
-          Gestión de Cookies
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Usted puede configurar su navegador para bloquear o alertar sobre estas cookies, pero algunas partes del sitio no funcionarán si lo hace. Puede encontrar información sobre cómo gestionar las cookies en los ajustes de su navegador web.
-        </Typography>
+        {/* 2. Tipos de Cookies Utilizadas */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s2_title}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s2_intro}
+          </Typography>
+
+          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: "#f8fafc" }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700 }}>{content.table_header_type}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{content.table_header_purpose}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{content.table_header_duration}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{content.table_header_management}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>{content.cookie_tech_type}</TableCell>
+                  <TableCell>{content.cookie_tech_purpose}</TableCell>
+                  <TableCell>{content.cookie_tech_duration}</TableCell>
+                  <TableCell>{content.cookie_tech_mgmt}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>{content.cookie_anal_type}</TableCell>
+                  <TableCell>{content.cookie_anal_purpose}</TableCell>
+                  <TableCell>{content.cookie_anal_duration}</TableCell>
+                  <TableCell>{content.cookie_anal_mgmt}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        {/* 3. Base Jurídica */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s3_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s3_text}
+          </Typography>
+        </Box>
+
+        {/* 4. Desactivación */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s4_title}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s4_intro}
+          </Typography>
+          <Typography variant="body1" component="ul" sx={{ pl: 4, display: "flex", flexDirection: "column", gap: 1, color: "text.secondary" }}>
+            <li><strong>Google Chrome:</strong> <MuiLink href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer">Chrome Cookie Settings</MuiLink></li>
+            <li><strong>Mozilla Firefox:</strong> <MuiLink href="https://support.mozilla.org/kb/enhanced-tracking-protection-firefox-desktop" target="_blank" rel="noopener noreferrer">Firefox Cookie Settings</MuiLink></li>
+            <li><strong>Apple Safari:</strong> <MuiLink href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac" target="_blank" rel="noopener noreferrer">Safari Cookie Settings</MuiLink></li>
+            <li><strong>Microsoft Edge:</strong> <MuiLink href="https://support.microsoft.com/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer">Edge Cookie Settings</MuiLink></li>
+          </Typography>
+        </Box>
+
+        {/* 5. Contacto */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s5_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s5_text}
+          </Typography>
+        </Box>
       </Box>
     </Container>
   );

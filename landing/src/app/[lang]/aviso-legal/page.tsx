@@ -1,7 +1,7 @@
-import { Container, Typography, Box } from "@mui/material";
-import { COMPANY_NAME, COMPANY_DOMAIN, COMPANY_EMAIL, COMPANY_ADDRESS, COMPANY_REGISTRATION, OWNER_NAME } from "../../../config/constants";
-import { getDictionary } from "../../../i18n/getDictionary";
+import { Container, Typography, Box, Divider, Paper } from "@mui/material";
+import { COMPANY_NAME } from "../../../config/constants";
 import { Locale, i18n } from "../../../i18n/config";
+import { LEGAL_NOTICES } from "../../../i18n/legalContent";
 
 export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ lang: locale }));
@@ -9,44 +9,96 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang as Locale);
+  const lang = resolvedParams.lang as Locale;
+  const content = LEGAL_NOTICES[lang] || LEGAL_NOTICES.es;
+
   return {
-    title: `${dict.legal.aviso} | ${COMPANY_NAME}`,
+    title: `${content.title} | ${COMPANY_NAME}`,
+    description: content.metaDescription,
   };
 }
 
 export default async function AvisoLegal({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang as Locale);
+  const lang = resolvedParams.lang as Locale;
+  const content = LEGAL_NOTICES[lang] || LEGAL_NOTICES.es;
 
   return (
     <Container maxWidth="md" sx={{ py: 8 }}>
-      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-        {dict.legal.aviso}
+      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 800, color: "secondary.main" }}>
+        {content.title}
       </Typography>
-      
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-          1. Información Legal y Aceptación
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSICE), a continuación se exponen los datos identificativos de la empresa:
-        </Typography>
-        <Typography variant="body1" component="ul" sx={{ pl: 4, mb: 3 }}>
-          <li><strong>Titular (Autónomo):</strong> {OWNER_NAME}</li>
-          <li><strong>Nombre Comercial:</strong> {COMPANY_NAME}</li>
-          <li><strong>NIF/NIE:</strong> {COMPANY_REGISTRATION}</li>
-          <li><strong>Domicilio:</strong> {COMPANY_ADDRESS}</li>
-          <li><strong>Email de contacto:</strong> {COMPANY_EMAIL}</li>
-          <li><strong>Dominio:</strong> {COMPANY_DOMAIN}</li>
-        </Typography>
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
+        {content.subtitle}
+      </Typography>
 
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mt: 4 }}>
-          2. Propiedad Intelectual e Industrial
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          El diseño del portal y sus códigos fuente, así como los logos, marcas y demás signos distintivos que aparecen en el mismo pertenecen a {OWNER_NAME} (operando bajo el nombre comercial {COMPANY_NAME}) y están protegidos por los correspondientes derechos de propiedad intelectual e industrial.
-        </Typography>
+      <Divider sx={{ mb: 4 }} />
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {/* 1. Datos Identificativos */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s1_title}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.7 }}>
+            {content.s1_intro}
+          </Typography>
+
+          <Paper variant="outlined" sx={{ p: 3, bgcolor: "#f8fafc", borderRadius: 2 }}>
+            <Typography variant="body2" component="div" sx={{ display: "flex", flexDirection: "column", gap: 1.2 }}>
+              <div><strong>{content.fields.owner}</strong></div>
+              <div><strong>{content.fields.form}</strong></div>
+              <div><strong>{content.fields.tradeName}</strong></div>
+              <div><strong>{content.fields.taxId}</strong></div>
+              <div><strong>{content.fields.eori}</strong></div>
+              <div><strong>{content.fields.address}</strong></div>
+              <div><strong>{content.fields.email}</strong></div>
+              <div><strong>{content.fields.phone}</strong></div>
+              <div><strong>{content.fields.website}</strong></div>
+              <div><strong>{content.fields.activity}</strong></div>
+            </Typography>
+          </Paper>
+        </Box>
+
+        {/* 2. Objeto y Ámbito */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s2_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s2_text}
+          </Typography>
+        </Box>
+
+        {/* 3. Propiedad Intelectual */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s3_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s3_text}
+          </Typography>
+        </Box>
+
+        {/* 4. Responsabilidad */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s4_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s4_text}
+          </Typography>
+        </Box>
+
+        {/* 5. Legislación y Fuero */}
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: "secondary.main" }}>
+            {content.s5_title}
+          </Typography>
+          <Typography variant="body1" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+            {content.s5_text}
+          </Typography>
+        </Box>
       </Box>
     </Container>
   );

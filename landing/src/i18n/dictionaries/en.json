@@ -1,47 +1,140 @@
 {
   "nav": {
+    "capabilities": "Capabilities",
+    "categories": "Product Focus",
+    "standards": "Standards",
+    "how_we_work": "How We Work",
+    "download_pdf": "Company Profile (PDF)",
+    "become_partner": "Become a Partner",
     "contact": "Contact Us",
-    "tagline": "ENDLESS CONNECTIVITY"
+    "tagline": "COMMERCIAL DISTRIBUTION & BRAND ACCELERATION"
   },
   "home": {
-    "hero_title_1": "We scale your brand on ",
-    "hero_title_2": "Amazon",
-    "hero_subtitle": "Viasglobal is your trusted B2B distributor. We maximize the potential of your products on the world's largest marketplace.",
-    "hero_cta": "Start Today",
-    "badge_title": "Official Distribution",
-    "badge_desc": "Strong alliances with leading brands."
+    "hero_title_1": "European B2B Wholesale & ",
+    "hero_title_accent": "Omnichannel Distribution",
+    "hero_subtitle": "We partner with premier European manufacturers and brand owners to expand market reach, optimize digital sales channels, and protect brand equity with full commercial and price compliance.",
+    "hero_cta_partner": "Become a Partner",
+    "hero_cta_pdf": "Download Company Profile",
+    "vies_badge": "VIES Active (0% Intra-EU VAT)",
+    "vies_tooltip": "Officially registered for Intra-Community VAT transactions across the EU.",
+    "vies_verify": "Verify on European Commission Registry",
+    "highlights": {
+      "eu_operator": "Verified EU Commercial Operator",
+      "map_strict": "Strict MAP & Price Integrity",
+      "fast_sepa": "Direct SEPA Settlements",
+      "inbound_logistics": "Palletized & Parcel Inbound (DAP/DDP)"
+    }
   },
-  "services": {
-    "title": "Our Services",
-    "s1_title": "Wholesale Purchasing",
-    "s1_desc": "We buy your inventory wholesale. Guaranteed cash flow and streamlined operations for your business.",
-    "s2_title": "Listing Optimization",
-    "s2_desc": "We improve your Amazon listings to ensure your products stand out, increasing conversion and ranking.",
-    "s3_title": "Brand Protection",
-    "s3_desc": "We protect your brand value. We ensure MAP compliance and prevent unauthorized sellers."
+  "categories": {
+    "title": "Product Categories & Focus Areas",
+    "subtitle": "We manage structured inventory and sustained wholesale procurement across key European consumer categories.",
+    "c1_title": "Home & Kitchen",
+    "c1_desc": "Cookware, home accessories, kitchen appliances, and lifestyle living essentials.",
+    "c2_title": "Sports & Outdoor",
+    "c2_desc": "Fitness gear, outdoor equipment, active lifestyle, and sports accessories.",
+    "c3_title": "Consumer Electronics",
+    "c3_desc": "Audio accessories, smart peripherals, home gadgets, and tech utilities.",
+    "c4_title": "Personal Care & Beauty",
+    "c4_desc": "Wellness, skincare, grooming instruments, and self-care products.",
+    "c5_title": "DIY & Home Improvement",
+    "c5_desc": "Hardware tools, home improvement goods, and precision accessories.",
+    "c6_title": "Office & Daily Goods",
+    "c6_desc": "Ergonomics, office essentials, stationery, and organizational supplies."
+  },
+  "capabilities": {
+    "title": "Core Business Capabilities",
+    "subtitle": "End-to-end commercial infrastructure designed to scale brand reach while preserving market reputation.",
+    "s1_title": "Omnichannel Wholesale Distribution",
+    "s1_desc": "Direct volume purchasing with guaranteed payment terms. We maintain steady, recurring purchase orders to optimize your supply chain cash flow.",
+    "s2_title": "Brand Equity & Price Integrity",
+    "s2_desc": "Strict adherence to manufacturer Recommended Retail Prices (RRP / MAP) across all channels to avoid price erosion and channel conflict.",
+    "s3_title": "Catalog & Digital Merchandising",
+    "s3_desc": "Professional content structuring, asset optimization, and digital catalog management to elevate brand visibility and conversion.",
+    "s4_title": "EU Inbound Logistics & Warehousing",
+    "s4_desc": "Direct warehouse intake in Spain for courier parcels and palletized shipments under DAP / DDP commercial terms."
+  },
+  "standards": {
+    "title": "Commercial Standards & Operational Framework",
+    "subtitle": "Our commitment to ethical, compliant, and transparent B2B collaboration across the European Union.",
+    "std1_title": "MAP Compliance & Price Integrity",
+    "std1_desc": "Strict adherence to manufacturer Recommended Retail Prices (RRP / MAP) to protect brand equity and avoid market price erosion across channels.",
+    "std2_title": "Inbound Logistics & Delivery",
+    "std2_desc": "Direct door-to-door delivery reception for courier parcels and palletized orders (DAP / DDP terms) with rapid stock processing.",
+    "std3_title": "Cross-Border EU Compliance",
+    "std3_desc": "Fully verified for intra-community zero-rate VAT supplies (VIES). Seamless B2B accounting and compliant trade across EU member states.",
+    "std4_title": "Long-Term B2B Partnership & Growth",
+    "std4_desc": "Commitment to sustainable commercial cooperation, brand integrity, and steady, recurring purchase orders based on planned demand."
+  },
+  "how_we_work": {
+    "title": "How We Work With Brands",
+    "subtitle": "A transparent four-step commercial onboarding process designed for swift, compliant partnership.",
+    "step1_num": "01",
+    "step1_title": "Commercial Agreement & MAP Alignment",
+    "step1_desc": "We review your catalog, establish wholesale terms, agree on MAP/RRP policies, and open our B2B dealer account.",
+    "step2_num": "02",
+    "step2_title": "Purchase Order & Prompt Settlement",
+    "step2_desc": "We place planned purchase orders with 100% upfront or agreed terms via secure SEPA bank transfer (EUR).",
+    "step3_num": "03",
+    "step3_title": "Inbound Logistics & Quality Intake",
+    "step3_desc": "Goods are shipped under DAP / DDP terms to our Spanish warehouse hub with rigorous intake inspection.",
+    "step4_num": "04",
+    "step4_title": "Omnichannel Sales & Demand Growth",
+    "step4_desc": "We actively optimize catalog representation and build recurring order forecasts to support long-term volume scaling."
+  },
+  "intake_modal": {
+    "title": "B2B Partner Onboarding",
+    "subtitle": "Submit your company & catalog details to initiate commercial partnership and B2B account opening.",
+    "full_name": "Contact Name",
+    "full_name_placeholder": "e.g. Alexander Schmidt",
+    "company_name": "Company / Brand Name",
+    "company_name_placeholder": "e.g. European Brands GmbH",
+    "email": "Official Business Email",
+    "email_placeholder": "sales@company.com",
+    "phone": "Phone / WhatsApp (Optional)",
+    "phone_placeholder": "+49 ... / +34 ...",
+    "category_label": "Primary Product Category",
+    "category_placeholder": "Select category",
+    "order_volume_label": "Catalog Scope / Minimum Order Value (MOV)",
+    "order_volume_placeholder": "e.g. Catalog of 200 SKUs, MOV €1,000",
+    "map_policy_label": "Do you enforce an RRP / MAP Policy?",
+    "map_policy_yes": "Yes, strict MAP / RRP policy in place",
+    "map_policy_no": "No official MAP, but price stability preferred",
+    "map_policy_na": "Not applicable",
+    "message_label": "Message / Catalog Link",
+    "message_placeholder": "Include catalog links, wholesale terms, or specific notes for our purchasing team...",
+    "gdpr_agreement": "I have read and agree to the",
+    "privacy_link_text": "Privacy Policy",
+    "submit_button": "Submit B2B Inquiry",
+    "submitting": "Processing...",
+    "success_title": "Inquiry Received Successfully",
+    "success_desc": "Thank you for contacting Viasglobal. Our commercial procurement team will review your details and reach out shortly.",
+    "close_button": "Close"
   },
   "cta": {
-    "title": "Ready to grow your brand?",
-    "desc": "Partner with Viasglobal and leave the complexity of Amazon to the experts.",
-    "button": "Contact Us"
+    "title": "Ready to Expand Your B2B Distribution in Europe?",
+    "desc": "Partner with Viasglobal for predictable volume procurement, strict price compliance, and seamless cross-border supply chain operations.",
+    "button_partner": "Become a Partner",
+    "button_pdf": "Download Company Profile"
   },
   "footer": {
-    "desc": "Your strategic partner in Amazon Wholesale. Connecting quality brands with customers across Europe.",
-    "legal": "Legal",
+    "desc": "European B2B Wholesale & Omnichannel Distribution Partner. Connecting premier manufacturers and brand owners with expanding digital channels.",
+    "legal_info": "Viasglobal is a registered trade name of Vitalii Iasinskii (Autónomo). Reg. Tax ID / EU VAT: ESZ1154366R. All B2B transactions comply with EU Intra-Community regulations.",
+    "legal": "Legal & Compliance",
     "rights": "All rights reserved."
   },
   "cookie": {
-    "text": "We use cookies to improve your experience and analyze our website traffic. By clicking 'Accept', you agree to our use of cookies in accordance with our",
+    "text": "We use technical and analytical cookies to ensure proper website functionality and improve your browsing experience. By clicking 'Accept All', you consent to our cookie usage in accordance with our",
     "policy": "Cookie Policy",
-    "accept": "Accept"
+    "accept_all": "Accept All",
+    "reject_non_essential": "Reject Non-Essential"
   },
   "legal": {
-    "aviso": "Legal Notice",
-    "privacidad": "Privacy Policy",
+    "aviso": "Legal Notice (Aviso Legal)",
+    "privacidad": "Privacy Policy (RGPD)",
     "cookies": "Cookie Policy"
   },
   "seo": {
-    "title": "Viasglobal | Wholesale on Amazon",
-    "description": "Official site for Viasglobal. We are your reliable B2B wholesale and distribution partner on Amazon."
+    "title": "Viasglobal | European B2B Wholesale & Omnichannel Distribution Partner",
+    "description": "Official B2B commercial portal of Viasglobal (Spain, EU). Wholesale procurement, multi-channel brand growth, MAP price integrity, and intra-community EU logistics."
   }
 }

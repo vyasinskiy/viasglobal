@@ -1,47 +1,140 @@
 {
   "nav": {
+    "capabilities": "Kompetenzen",
+    "categories": "Sortiment",
+    "standards": "Standards",
+    "how_we_work": "Zusammenarbeit",
+    "download_pdf": "Unternehmensprofil (PDF)",
+    "become_partner": "B2B-Partner werden",
     "contact": "Kontakt",
-    "tagline": "ENDLOSE KONNEKTIVITÄT"
+    "tagline": "KOMMERZIELLE DISTRIBUTION & MARKENWACHSTUM"
   },
   "home": {
-    "hero_title_1": "Wir skalieren Ihre Marke auf ",
-    "hero_title_2": "Amazon",
-    "hero_subtitle": "Viasglobal ist Ihr vertrauenswürdiger B2B-Distributor. Wir maximieren das Potenzial Ihrer Produkte auf dem größten Marktplatz der Welt.",
-    "hero_cta": "Heute Starten",
-    "badge_title": "Offizieller Vertrieb",
-    "badge_desc": "Starke Allianzen mit führenden Marken."
+    "hero_title_1": "Europäischer B2B-Großhandel & ",
+    "hero_title_accent": "Omnichannel-Vertrieb",
+    "hero_subtitle": "Wir arbeiten mit führenden europäischen Herstellern und Markeninhabern zusammen, um die Marktreichweite zu vergrößern, digitale Vertriebskanäle zu optimieren und den Markenwert mit vollständiger Preisdisziplin zu schützen.",
+    "hero_cta_partner": "B2B-Partner werden",
+    "hero_cta_pdf": "Unternehmensprofil herunterladen",
+    "vies_badge": "VIES Aktiv (0% Innerfam. MwSt.)",
+    "vies_tooltip": "Offiziell registriert für steuerfreie innergemeinschaftliche Lieferungen (0% USt.) in der EU.",
+    "vies_verify": "Im offiziellen EU-VIES-Register überprüfen",
+    "highlights": {
+      "eu_operator": "Verifizierter EU-Wirtschaftsakteuer",
+      "map_strict": "Strikte MAP- & Preisdisziplin",
+      "fast_sepa": "Direkte SEPA-Abwicklung",
+      "inbound_logistics": "Paletten- & Paketannahme (DAP/DDP)"
+    }
   },
-  "services": {
-    "title": "Unsere Dienstleistungen",
-    "s1_title": "Großhandelseinkauf",
-    "s1_desc": "Wir kaufen Ihr Inventar im Großhandel. Garantierter Cashflow und optimierte Abläufe für Ihr Unternehmen.",
-    "s2_title": "Listing-Optimierung",
-    "s2_desc": "Wir verbessern Ihre Amazon-Listings, um sicherzustellen, dass Ihre Produkte auffallen und die Konversion und das Ranking steigen.",
-    "s3_title": "Markenschutz",
-    "s3_desc": "Wir schützen Ihren Markenwert. Wir stellen die Einhaltung von MAP sicher und verhindern nicht autorisierte Verkäufer."
+  "categories": {
+    "title": "Sortimentsschwerpunkte & Produktkategorien",
+    "subtitle": "Wir managen strukturierte Bestände und kontinuierliche Großhandelseinkäufe in führenden europäischen Konsumgütersegmenten.",
+    "c1_title": "Haushalt & Küche",
+    "c1_desc": "Kochgeschirr, Wohnaccessoires, Küchengeräte und Lifestyle-Bedarf.",
+    "c2_title": "Sport & Outdoor",
+    "c2_desc": "Fitnessausstattung, Outdoor-Equipment und Sportzubehör.",
+    "c3_title": "Unterhaltungselektronik",
+    "c3_desc": "Audiozubehör, Smart Peripherals, Gadgets und Heimtechnologie.",
+    "c4_title": "Körperpflege & Beauty",
+    "c4_desc": "Wellness, Hautpflege, Pflegeinstrumente und Gesundheitsprodukte.",
+    "c5_title": "Heimwerken & Werkzeuge",
+    "c5_desc": "Handwerkzeuge, Heimwerkerbedarf und Qualitätszubehör.",
+    "c6_title": "Büro & Alltagsbedarf",
+    "c6_desc": "Ergonomie, Bürobedarf, Schreibwaren und Organisationslösungen."
+  },
+  "capabilities": {
+    "title": "Geschäftsbereiche & Kernkompetenzen",
+    "subtitle": "Ganzheitliche B2B-Infrastruktur zur nachhaltigen Steigerung des Absatzvolumens bei gleichzeitigem Schutz Ihrer Markenreputation.",
+    "s1_title": "Omnichannel-Großhandelsvertrieb",
+    "s1_desc": "Direkter Volumeneinkauf mit garantierten Zahlungszielen. Regelmäßige Nachbestellungen optimieren Ihren unternehmerischen Cashflow.",
+    "s2_title": "Markenwert & Preisdisziplin (MAP)",
+    "s2_desc": "Strikte Einhaltung der empfohlenen Verkaufspreise (UVP / MAP) zur Vermeidung von Preiserosion und Kanalkonflikten.",
+    "s3_title": "Katalog- & Digitales Merchandising",
+    "s3_desc": "Professionelle Optimierung von Produktdaten, Content und Conversion-Raten zur Steigerung der Markenpräsenz.",
+    "s4_title": "EU-Inbound-Logistik & Warehousing",
+    "s4_desc": "Direkte Warenannahme in unserem Logistikzentrum in Spanien für Pakete und palettierte Sendungen (DAP / DDP)."
+  },
+  "standards": {
+    "title": "Kommerzielle Standards & Betriebsrahmen",
+    "subtitle": "Unser Bekenntnis zu transparenter, gesetzeskonformer und langfristiger B2B-Zusammenarbeit in der Europäischen Union.",
+    "std1_title": "MAP-Compliance & Preisintegrität",
+    "std1_desc": "Strikte Einhaltung der unverbindlichen Preisempfehlungen (UVP / MAP) des Herstellers zum Schutz des Markenwerts.",
+    "std2_title": "Inbound-Logistik & Warenannahme",
+    "std2_desc": "Direkte Anlieferung von Paketsendungen und Palettenware (DAP / DDP-Konditionen) mit zügiger Einlagerung.",
+    "std3_title": "Innergemeinschaftliche EU-Steuerkonformität (VIES)",
+    "std3_desc": "Vollständig verifiziert für innergemeinschaftliche steuerfreie Lieferungen (VIES, 0% MwSt.). Reibungslose Buchhaltung.",
+    "std4_title": "Langfristige B2B-Partnerschaft & Wachstum",
+    "std4_desc": "Bekenntnis zu dauerhafter Kooperation, Markenschutz und wiederkehrenden Bestellungen auf Basis fundierter Nachfrageprognosen."
+  },
+  "how_we_work": {
+    "title": "Ablauf der B2B-Zusammenarbeit",
+    "subtitle": "Ein strukturierter 4-Stufen-Onboarding-Prozess für eine schnelle und reibungslose Partnerschaft.",
+    "step1_num": "01",
+    "step1_title": "Kaufmännische Vereinbarung & UVP-Abstimmung",
+    "step1_desc": "Katalogprüfung, Festlegung der Konditionen, Abstimmung der MAP/UVP-Richtlinien und Eröffnung des Händlerkontos.",
+    "step2_num": "02",
+    "step2_title": "Bestellung & Zuverlässige Bezahlung",
+    "step2_desc": "Erteilung von Einkaufsaufträgen mit 100% fristgerechter Abwicklung per SEPA-Banküberweisung (EUR).",
+    "step3_num": "03",
+    "step3_title": "Inbound-Logistik & Qualitätskontrolle",
+    "step3_desc": "Anlieferung zu DAP / DDP Konditionen an unserem spanischen Lagerstandort mit professioneller Wareneingangskontrolle.",
+    "step4_num": "04",
+    "step4_title": "Vertrieb & Kontinuierliche Skalierung",
+    "step4_desc": "Gezielte Steigerung der Nachfrage und Bedarfsplanung für wachsende, wiederkehrende Abnahmemengen."
+  },
+  "intake_modal": {
+    "title": "B2B-Partner-Onboarding",
+    "subtitle": "Übermitteln Sie Ihre Unternehmens- und Katalogdaten zur Eröffnung unseres Händlerkontos.",
+    "full_name": "Ansprechpartner",
+    "full_name_placeholder": "z.B. Markus Weber",
+    "company_name": "Unternehmen / Marke",
+    "company_name_placeholder": "z.B. Nordics Trading GmbH",
+    "email": "Geschäftliche E-Mail",
+    "email_placeholder": "vertrieb@unternehmen.de",
+    "phone": "Telefon / WhatsApp (Optional)",
+    "phone_placeholder": "+49 ... / +43 ...",
+    "category_label": "Hauptproduktkategorie",
+    "category_placeholder": "Kategorie auswählen",
+    "order_volume_label": "Katalogumfang / Mindestbestellwert (MOV)",
+    "order_volume_placeholder": "z.B. 250 Artikel, Mindestbestellwert 1.500 €",
+    "map_policy_label": "Führen Sie eine MAP- / UVP-Richtlinie?",
+    "map_policy_yes": "Ja, verbindliche UVP- / MAP-Vorgaben vorhanden",
+    "map_policy_no": "Keine formelle Richtlinie, Preisstabilität erwünscht",
+    "map_policy_na": "Nicht zutreffend",
+    "message_label": "Nachricht / Kataloglink",
+    "message_placeholder": "Kataloglinks, Händlerkonditionen oder Anmerkungen für unseren Einkauf...",
+    "gdpr_agreement": "Ich habe die Datenschutzbestimmungen zur Kenntnis genommen und stimme der",
+    "privacy_link_text": "Datenschutzerklärung",
+    "submit_button": "B2B-Anfrage Absenden",
+    "submitting": "Wird gesendet...",
+    "success_title": "Anfrage Erfolgreich Erhalten",
+    "success_desc": "Vielen Dank für Ihre Kontaktaufnahme mit Viasglobal. Unser Einkaufsteam wird Ihre Angaben prüfen und sich zeitnah melden.",
+    "close_button": "Schließen"
   },
   "cta": {
-    "title": "Bereit, Ihre Marke auszubauen?",
-    "desc": "Arbeiten Sie mit Viasglobal zusammen und überlassen Sie die Komplexität von Amazon den Experten.",
-    "button": "Kontaktiere uns"
+    "title": "Bereit für die B2B-Vertriebsexpansion in Europa?",
+    "desc": "Arbeiten Sie mit Viasglobal zusammen für planbare Volumeneinkäufe, verlässlichen Markenschutz und reibungslose EU-Logistik.",
+    "button_partner": "B2B-Partner werden",
+    "button_pdf": "Unternehmensprofil herunterladen"
   },
   "footer": {
-    "desc": "Ihr strategischer Partner im Amazon-Großhandel. Verbindung von Qualitätsmarken mit Kunden in ganz Europa.",
-    "legal": "Rechtliches",
+    "desc": "Europäischer B2B-Großhandels- und Omnichannel-Vertriebspartner. Verbindung erstklassiger Hersteller mit dynamischen europäischen Vertriebskanälen.",
+    "legal_info": "Viasglobal ist ein eingetragener Handelsname von Vitalii Iasinskii (Autónomo). USt-IdNr. / EU-VAT: ESZ1154366R. Alle Transaktionen unterliegen den EU-Vorschriften für innergemeinschaftliche Lieferungen.",
+    "legal": "Rechtliches & Compliance",
     "rights": "Alle Rechte vorbehalten."
   },
   "cookie": {
-    "text": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern und den Verkehr auf unserer Website zu analysieren. Wenn Sie auf 'Akzeptieren' klicken, stimmen Sie unserer Verwendung von Cookies gemäß unserer",
+    "text": "Wir verwenden technisch notwendige sowie analytische Cookies, um den sicheren Betrieb der Website zu gewährleisten. Durch Klicken auf 'Alle akzeptieren' stimmen Sie der Nutzung gemäß unserer",
     "policy": "Cookie-Richtlinie",
-    "accept": "Akzeptieren"
+    "accept_all": "Alle akzeptieren",
+    "reject_non_essential": "Nicht notwendige ablehnen"
   },
   "legal": {
-    "aviso": "Impressum",
-    "privacidad": "Datenschutzrichtlinie",
+    "aviso": "Impressum (Aviso Legal)",
+    "privacidad": "Datenschutzerklärung (DSGVO)",
     "cookies": "Cookie-Richtlinie"
   },
   "seo": {
-    "title": "Viasglobal | Großhandel auf Amazon",
-    "description": "Offizielle Website von Viasglobal. Wir sind Ihr zuverlässiger B2B-Großhandels- und Vertriebspartner bei Amazon."
+    "title": "Viasglobal | Europäischer B2B-Großhandel & Omnichannel-Distribution",
+    "description": "Offizielles B2B-Portal von Viasglobal (Spanien, EU). Großhandelseinkauf, Markenwachstum, Einhaltung von UVP-Preisen und EU-weite innergemeinschaftliche Logistik."
   }
 }

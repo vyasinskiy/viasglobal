@@ -1,47 +1,140 @@
 {
   "nav": {
-    "contact": "Contactar",
-    "tagline": "CONECTIVIDAD SIN FIN"
+    "capabilities": "Capacidades",
+    "categories": "Especialización",
+    "standards": "Estándares",
+    "how_we_work": "Cómo Trabajamos",
+    "download_pdf": "Perfil de Empresa (PDF)",
+    "become_partner": "Ser Partner B2B",
+    "contact": "Contacto",
+    "tagline": "DISTRIBUCIÓN COMERCIAL Y ESCALADO DE MARCAS"
   },
   "home": {
-    "hero_title_1": "Escalamos su marca en ",
-    "hero_title_2": "Amazon",
-    "hero_subtitle": "Viasglobal es su distribuidor B2B de confianza. Maximizamos el potencial de sus productos en el marketplace más grande del mundo.",
-    "hero_cta": "Comience Hoy",
-    "badge_title": "Distribución Oficial",
-    "badge_desc": "Alianzas sólidas con marcas líderes."
+    "hero_title_1": "Distribución Mayorista B2B y ",
+    "hero_title_accent": "Comercio Multicanal en Europa",
+    "hero_subtitle": "Nos asociamos con fabricantes y propietarios de marcas europeos para expandir su alcance de mercado, optimizar canales digitales y proteger el valor de marca con estricto cumplimiento comercial.",
+    "hero_cta_partner": "Ser Partner B2B",
+    "hero_cta_pdf": "Descargar Ficha de Empresa",
+    "vies_badge": "VIES Activo (0% IVA Intracomunitario)",
+    "vies_tooltip": "Registrado oficialmente para operaciones con 0% IVA intracomunitario en la Unión Europea.",
+    "vies_verify": "Verificar en el Registro Oficial de la Comisión Europea",
+    "highlights": {
+      "eu_operator": "Operador Comercial Verificado en la UE",
+      "map_strict": "Cumplimiento Estricto de PVP / MAP",
+      "fast_sepa": "Liquidaciones Rápidas por SEPA",
+      "inbound_logistics": "Recepción de Palés y Paquetería (DAP/DDP)"
+    }
   },
-  "services": {
-    "title": "Nuestros Servicios",
-    "s1_title": "Compra Mayorista",
-    "s1_desc": "Compramos su inventario al por mayor. Flujo de caja garantizado y operaciones simplificadas para su negocio.",
-    "s2_title": "Optimización de Listados",
-    "s2_desc": "Mejoramos sus listados en Amazon para asegurar que sus productos destaquen, aumentando la conversión y el posicionamiento.",
-    "s3_title": "Protección de Marca",
-    "s3_desc": "Protegemos su valor de marca. Aseguramos el cumplimiento de MAP y evitamos vendedores no autorizados."
+  "categories": {
+    "title": "Categorías y Áreas de Especialización",
+    "subtitle": "Gestionamos inventario estructurado y compras mayoristas recurrentes en sectores clave de consumo europeo.",
+    "c1_title": "Hogar y Cocina",
+    "c1_desc": "Menaje, accesorios para el hogar, electrodomésticos de cocina y artículos de confort.",
+    "c2_title": "Deportes y Aire Libre",
+    "c2_desc": "Equipamiento fitness, artículos para actividades al aire libre y accesorios deportivos.",
+    "c3_title": "Electrónica de Consumo",
+    "c3_desc": "Accesorios de audio, periféricos inteligentes, gadgets y tecnología para el hogar.",
+    "c4_title": "Cuidado Personal y Belleza",
+    "c4_desc": "Bienestar, cuidado de la piel, instrumentos de aseo personal y autocuidado.",
+    "c5_title": "Bricolaje y Mejoras del Hogar",
+    "c5_desc": "Herramientas de ferretería, artículos de reparación y mantenimiento para el hogar.",
+    "c6_title": "Oficina y Artículos Diarios",
+    "c6_desc": "Ergonomía, suministros de oficina, papelería y soluciones organizativas."
+  },
+  "capabilities": {
+    "title": "Nuestras Capacidades Comerciales",
+    "subtitle": "Infraestructura B2B integral diseñada para escalar el volumen de ventas preservando la reputación de su marca.",
+    "s1_title": "Distribución Mayorista Multicanal",
+    "s1_desc": "Compra directa de volumen con condiciones de pago garantizadas. Mantenemos pedidos recurrentes para optimizar su flujo de caja.",
+    "s2_title": "Protección de Marca e Integridad de Precios",
+    "s2_desc": "Estricto cumplimiento de los Precios de Venta Recomendados (PVP / MAP) para evitar la erosión de precios y el conflicto de canales.",
+    "s3_title": "Optimización de Catálogo y Merchandising",
+    "s3_desc": "Estructuración profesional de fichas de producto, mejora de contenidos y optimización de conversión para maximizar la visibilidad.",
+    "s4_title": "Logística y Cadena de Suministro en la UE",
+    "s4_desc": "Recepción directa en almacén en España para envíos de paquetería y paletizados bajo términos comerciales DAP / DDP."
+  },
+  "standards": {
+    "title": "Estándares Comerciales y Marco Operativo",
+    "subtitle": "Nuestro compromiso con una cooperación B2B transparente, ética y plenamente conforme con la normativa europea.",
+    "std1_title": "Cumplimiento MAP y Disciplina de Precios",
+    "std1_desc": "Adhesión estricta a los Precios Recomendados (PVP / MAP) del fabricante para proteger el valor de marca y evitar el deterioro de precios en el mercado.",
+    "std2_title": "Logística de Entrada y Recepción",
+    "std2_desc": "Recepción directa de paquetería y pedidos paletizados (términos DAP / DDP) con ágil procesamiento de inventario.",
+    "std3_title": "Cumplimiento Fiscal Intracomunitario (VIES)",
+    "std3_desc": "Completamente verificados para suministros con tipo cero de IVA intracomunitario (VIES). Contabilidad transparente en toda la UE.",
+    "std4_title": "Asociación B2B Sostenible a Largo Plazo",
+    "std4_desc": "Compromiso con la cooperación comercial duradera, integridad de marca y pedidos de compra estables y recurrentes basados en previsión de demanda."
+  },
+  "how_we_work": {
+    "title": "Cómo Trabajamos con las Marcas",
+    "subtitle": "Un proceso de integración comercial ágil y transparente en cuatro sencillos pasos.",
+    "step1_num": "01",
+    "step1_title": "Acuerdo Comercial y Alineación de PVP",
+    "step1_desc": "Analizamos su catálogo, definimos condiciones mayoristas, alineamos políticas de PVP/MAP y abrimos la cuenta de distribuidor.",
+    "step2_num": "02",
+    "step2_title": "Pedido de Compra y Liquidación Puntual",
+    "step2_desc": "Emitimos órdenes de compra planificadas con liquidación 100% puntual mediante transferencia bancaria SEPA (EUR).",
+    "step3_num": "03",
+    "step3_title": "Logística de Entrada y Control de Calidad",
+    "step3_desc": "Recepción de mercancía en nuestro hub logístico en España bajo condiciones DAP / DDP con rigurosa verificación.",
+    "step4_num": "04",
+    "step4_title": "Venta Multicanal y Crecimiento Continuo",
+    "step4_desc": "Optimizamos la presencia del catálogo y planificamos pronósticos de reposición para escalar el volumen a largo plazo."
+  },
+  "intake_modal": {
+    "title": "Formulario de Integración B2B",
+    "subtitle": "Envíe los datos de su empresa y catálogo para iniciar la colaboración comercial y apertura de cuenta B2B.",
+    "full_name": "Nombre de Contacto",
+    "full_name_placeholder": "Ej. Carlos Gómez",
+    "company_name": "Nombre de la Empresa / Marca",
+    "company_name_placeholder": "Ej. Distribuciones Ibéricas S.L.",
+    "email": "Email Corporativo",
+    "email_placeholder": "ventas@empresa.com",
+    "phone": "Teléfono / WhatsApp (Opcional)",
+    "phone_placeholder": "+34 600 000 000",
+    "category_label": "Categoría Principal de Producto",
+    "category_placeholder": "Seleccione una categoría",
+    "order_volume_label": "Alcance del Catálogo / Pedido Mínimo (MOV)",
+    "order_volume_placeholder": "Ej. Catálogo de 150 referencias, MOV 1.000€",
+    "map_policy_label": "¿Dispone de política de PVP / MAP?",
+    "map_policy_yes": "Sí, disponemos de política estricta de PVP / MAP",
+    "map_policy_no": "Sin política formal, pero priorizamos estabilidad de precios",
+    "map_policy_na": "No aplica",
+    "message_label": "Mensaje / Enlace al Catálogo",
+    "message_placeholder": "Indique enlaces al catálogo, condiciones mayoristas o detalles para nuestro equipo de compras...",
+    "gdpr_agreement": "He leído y acepto la",
+    "privacy_link_text": "Política de Privacidad",
+    "submit_button": "Enviar Solicitud B2B",
+    "submitting": "Procesando...",
+    "success_title": "Solicitud Recibida Correctamente",
+    "success_desc": "Gracias por contactar con Viasglobal. Nuestro equipo comercial revisará la información y le responderá a la mayor brevedad.",
+    "close_button": "Cerrar"
   },
   "cta": {
-    "title": "¿Listo para hacer crecer su marca?",
-    "desc": "Asóciese con Viasglobal y deje la complejidad de Amazon en manos de expertos.",
-    "button": "Contáctenos"
+    "title": "¿Preparado para expandir su distribución B2B en Europa?",
+    "desc": "Asóciese con Viasglobal para compras de volumen predecibles, estricto respeto a sus precios y una cadena logística ágil y transparente.",
+    "button_partner": "Ser Partner B2B",
+    "button_pdf": "Descargar Ficha de Empresa"
   },
   "footer": {
-    "desc": "Su socio estratégico en Amazon Wholesale. Conectamos marcas de calidad con clientes en toda Europa.",
-    "legal": "Legal",
+    "desc": "Distribuidor Mayorista B2B y Partner de Comercio Digital en Europa. Conectando fabricantes y marcas de referencia con canales de venta en expansión.",
+    "legal_info": "Viasglobal es un nombre comercial registrado de Vitalii Iasinskii (Autónomo). NIF / IVA UE: ESZ1154366R. Todas las operaciones B2B cumplen con la normativa de IVA intracomunitario de la UE.",
+    "legal": "Legal y Cumplimiento",
     "rights": "Todos los derechos reservados."
   },
   "cookie": {
-    "text": "Utilizamos cookies para mejorar su experiencia y analizar el tráfico de nuestro sitio web. Al hacer clic en 'Aceptar', acepta nuestro uso de cookies de acuerdo con nuestra",
+    "text": "Utilizamos cookies técnicas y analíticas para garantizar el correcto funcionamiento del sitio web y mejorar su experiencia. Al hacer clic en 'Aceptar todas', consiente el uso de cookies según nuestra",
     "policy": "Política de Cookies",
-    "accept": "Aceptar"
+    "accept_all": "Aceptar todas",
+    "reject_non_essential": "Rechazar no esenciales"
   },
   "legal": {
     "aviso": "Aviso Legal",
-    "privacidad": "Política de Privacidad",
+    "privacidad": "Política de Privacidad (RGPD)",
     "cookies": "Política de Cookies"
   },
   "seo": {
-    "title": "Viasglobal | Venta al por mayor en Amazon",
-    "description": "Sitio oficial de Viasglobal. Somos su socio B2B de confianza para la distribución y venta al por mayor en la plataforma Amazon."
+    "title": "Viasglobal | Distribución Mayorista B2B y Comercio Multicanal en Europa",
+    "description": "Portal comercial oficial de Viasglobal (España, UE). Compras al por mayor, crecimiento de marcas, respeto a la política de precios MAP y logística intracomunitaria."
   }
 }
