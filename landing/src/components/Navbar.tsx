@@ -54,10 +54,10 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
           backdropFilter: "blur(8px)",
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ justifyContent: "space-between", py: 0.5 }}>
             {/* Logo */}
-            <Box component={Link} href={`/${lang}`} sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            <Box component={Link} href={`/${lang}`} sx={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
               <Box
                 component="img"
                 src="/logo.svg"
@@ -67,7 +67,7 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
             </Box>
 
             {/* Desktop Navigation Links */}
-            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 3 }}>
+            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: { md: 2, lg: 3 }, flexShrink: 0 }}>
               {navLinks.map((link) => (
                 <Box
                   key={link.href}
@@ -76,7 +76,9 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
                   sx={{
                     color: "text.primary",
                     fontWeight: 600,
-                    fontSize: "0.9rem",
+                    fontSize: { md: "0.84rem", lg: "0.88rem" },
+                    whiteSpace: "nowrap",
+                    textDecoration: "none",
                     transition: "color 0.2s",
                     "&:hover": { color: "primary.main" },
                   }}
@@ -87,7 +89,7 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
             </Box>
 
             {/* Actions: PDF Download + Language Switcher + Become Partner CTA */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 1.5 }, flexShrink: 0 }}>
               {/* PDF Download link */}
               <Button
                 component="a"
@@ -102,6 +104,7 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
                   display: { xs: "none", lg: "inline-flex" },
                   borderRadius: "20px",
                   textTransform: "none",
+                  whiteSpace: "nowrap",
                   borderColor: "#cbd5e1",
                   color: "text.secondary",
                   fontSize: "0.82rem",
@@ -123,6 +126,7 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
                   px: 2.5,
                   fontWeight: 700,
                   fontSize: "0.88rem",
+                  whiteSpace: "nowrap",
                   display: { xs: "none", sm: "inline-flex" },
                   boxShadow: "0 4px 12px rgba(255, 153, 0, 0.25)",
                 }}

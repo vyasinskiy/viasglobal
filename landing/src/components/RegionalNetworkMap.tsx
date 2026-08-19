@@ -5,33 +5,46 @@ import { Box, Typography, Chip, Paper, Grid } from "@mui/material";
 import HubIcon from "@mui/icons-material/Hub";
 import "leaflet/dist/leaflet.css";
 
-// 15 realistic, uncluttered coordinates across the Valencian Community
+// 25 realistic partner coordinates across the Valencian Community
 const ANONYMOUS_PARTNER_COORDINATES = [
   // Headquarters
   { lat: 40.2312, lng: -0.0658, isHQ: true, label: "Viasglobal Operations Hub" },
 
-  // Castellón Province
-  { lat: 39.9864, lng: -0.0513 }, // Castellón de la Plana
+  // Castellón Province & North
+  { lat: 39.9864, lng: -0.0513 }, // Castellón de la Plana (Centro)
+  { lat: 39.9765, lng: 0.0152 },  // Castellón (Grao)
   { lat: 39.9378, lng: -0.1008 }, // Vila-real
+  { lat: 39.9515, lng: -0.0612 }, // Almassora
+  { lat: 39.8895, lng: -0.0841 }, // Burriana
+  { lat: 39.9628, lng: -0.2584 }, // Onda
+  { lat: 40.0541, lng: 0.0652 },  // Benicàssim
+  { lat: 39.8152, lng: -0.1874 }, // La Vall d'Uixó
 
-  // Sagunto Corridor
+  // Sagunto & Camp de Morvedre Corridor
+  { lat: 39.6803, lng: -0.2789 }, // Sagunto (Centro)
   { lat: 39.6582, lng: -0.2184 }, // Port de Sagunt
+  { lat: 39.6154, lng: -0.3012 }, // Puçol
 
   // Valencia Metropolitan Hubs
   { lat: 39.4699, lng: -0.3763 }, // Valencia Centro
+  { lat: 39.4582, lng: -0.3541 }, // Valencia Ciudad de las Artes
   { lat: 39.4612, lng: -0.3315 }, // Valencia Port
   { lat: 39.5021, lng: -0.4412 }, // Paterna (Parque Tecnológico)
-  { lat: 39.4325, lng: -0.4684 }, // Torrent
+  { lat: 39.4912, lng: -0.4125 }, // Burjassot
   { lat: 39.4925, lng: -0.4612 }, // Manises
+  { lat: 39.4325, lng: -0.4684 }, // Torrent
+  { lat: 39.4412, lng: -0.4351 }, // Aldaia
 
   // South & Inland Valencian Hubs
+  { lat: 39.2784, lng: -0.3125 }, // Cullera
+  { lat: 39.2025, lng: -0.3612 }, // Sueca
   { lat: 39.1512, lng: -0.4345 }, // Alzira
   { lat: 38.9678, lng: -0.1812 }, // Gandia
   { lat: 38.9912, lng: -0.5215 }, // Xàtiva
   { lat: 38.7054, lng: -0.4745 }, // Alcoi
 
   // Alicante Hubs
-  { lat: 38.3452, lng: -0.4815 }, // Alicante
+  { lat: 38.3452, lng: -0.4815 }, // Alicante Centro
   { lat: 38.2678, lng: -0.6984 }, // Elche
 ];
 
