@@ -3,6 +3,8 @@ import { getDictionary } from "../../i18n/getDictionary";
 import { Locale, i18n } from "../../i18n/config";
 import ViesBadge from "../../components/ViesBadge";
 import PartnerCtaButtons from "../../components/PartnerCtaButtons";
+import RegionalNetworkMap from "../../components/RegionalNetworkMap";
+import MarketplacesSection from "../../components/MarketplacesSection";
 
 // Icons
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -287,74 +289,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </Container>
       </Box>
 
-      {/* 2. Core Capabilities Section */}
-      <Box id="capabilities" sx={{ py: { xs: 8, md: 12 }, bgcolor: "#f8fafc" }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 7, maxWidth: 760, mx: "auto" }}>
-            <Chip
-              label="B2B Capabilities"
-              color="primary"
-              size="small"
-              sx={{ fontWeight: 700, mb: 1.5, borderRadius: "6px" }}
-            />
-            <Typography variant="h3" component="h2" sx={{ fontWeight: 800, color: "#0f172a", mb: 2, fontSize: { xs: "2rem", md: "2.6rem" } }}>
-              {dict.capabilities.title}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ fontSize: "1.1rem" }}>
-              {dict.capabilities.subtitle}
-            </Typography>
-          </Box>
-
-          <Grid container spacing={4}>
-            {capabilities.map((item, idx) => {
-              const IconComp = item.icon;
-              return (
-                <Grid key={idx} size={{ xs: 12, sm: 6, md: 6 }}>
-                  <Card
-                    sx={{
-                      height: "100%",
-                      borderRadius: 3.5,
-                      border: "1px solid #e2e8f0",
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
-                      transition: "transform 0.25s, box-shadow 0.25s",
-                      "&:hover": {
-                        transform: "translateY(-4px)",
-                        boxShadow: "0 12px 30px rgba(0,0,0,0.08)",
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ p: 4 }}>
-                      <Box
-                        sx={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: 2.5,
-                          bgcolor: "rgba(255, 153, 0, 0.12)",
-                          color: "primary.main",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mb: 2.5,
-                        }}
-                      >
-                        <IconComp sx={{ fontSize: 32 }} />
-                      </Box>
-                      <Typography variant="h5" component="h3" sx={{ fontWeight: 700, mb: 1.5, color: "#0f172a" }}>
-                        {item.title}
-                      </Typography>
-                      <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.65 }}>
-                        {item.desc}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* 3. Product Categories & Focus Areas */}
+      {/* 2. Product Categories & Focus Areas (Белый фон) */}
       <Box id="categories" sx={{ py: { xs: 8, md: 12 }, bgcolor: "#ffffff" }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: "center", mb: 7, maxWidth: 760, mx: "auto" }}>
@@ -422,7 +357,118 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </Container>
       </Box>
 
-      {/* 4. Commercial Standards & Operational Framework (Synchronized with PDF) */}
+      {/* 3. Regional Distribution Network & Local Partner Hub (Comunidad Valenciana) */}
+      <Box id="network">
+        <RegionalNetworkMap
+          badge={dict.regional_network.badge}
+          title={dict.regional_network.title}
+          subtitle={dict.regional_network.subtitle}
+          stats={{
+            points_num: dict.regional_network.stats_points_num,
+            points_label: dict.regional_network.stats_points_label,
+            coverage_num: dict.regional_network.stats_coverage_num,
+            coverage_label: dict.regional_network.stats_coverage_label,
+            transit_num: dict.regional_network.stats_transit_num,
+            transit_label: dict.regional_network.stats_transit_label,
+          }}
+          filterLabels={{
+            all: dict.regional_network.filter_all,
+            retail: dict.regional_network.filter_retail,
+            logistics: dict.regional_network.filter_logistics,
+            omnichannel: dict.regional_network.filter_omnichannel,
+          }}
+        />
+      </Box>
+
+      {/* 4. Pan-European Marketplaces & Digital Scaling (Pilot Program 2026) */}
+      <Box id="marketplaces">
+        <MarketplacesSection
+          lang={lang}
+          badge={dict.marketplaces_section.badge}
+          title={dict.marketplaces_section.title}
+          subtitle={dict.marketplaces_section.subtitle}
+          launchNotice={dict.marketplaces_section.launch_notice}
+          dropdownLabel={dict.marketplaces_section.dropdown_label}
+          servicesTitle={dict.marketplaces_section.services_title}
+          servicesSubtitle={dict.marketplaces_section.services_subtitle}
+          ctaTitle={dict.marketplaces_section.cta_title}
+          ctaDesc={dict.marketplaces_section.cta_desc}
+          ctaButton={dict.marketplaces_section.cta_button}
+          marketplaces={dict.marketplaces_section.marketplaces}
+          services={dict.marketplaces_section.services}
+          intakeDict={dict.intake_modal}
+        />
+      </Box>
+
+      {/* 5. Core Business Capabilities Section (Серый фон) */}
+      <Box id="capabilities" sx={{ py: { xs: 8, md: 12 }, bgcolor: "#f8fafc" }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", mb: 7, maxWidth: 760, mx: "auto" }}>
+            <Chip
+              label="B2B Capabilities"
+              color="primary"
+              size="small"
+              sx={{ fontWeight: 700, mb: 1.5, borderRadius: "6px" }}
+            />
+            <Typography variant="h3" component="h2" sx={{ fontWeight: 800, color: "#0f172a", mb: 2, fontSize: { xs: "2rem", md: "2.6rem" } }}>
+              {dict.capabilities.title}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ fontSize: "1.1rem" }}>
+              {dict.capabilities.subtitle}
+            </Typography>
+          </Box>
+
+          <Grid container spacing={4}>
+            {capabilities.map((item, idx) => {
+              const IconComp = item.icon;
+              return (
+                <Grid key={idx} size={{ xs: 12, sm: 6, md: 6 }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      borderRadius: 3.5,
+                      border: "1px solid #e2e8f0",
+                      bgcolor: "#ffffff",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
+                      transition: "transform 0.25s, box-shadow 0.25s",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 12px 30px rgba(0,0,0,0.08)",
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ p: 4 }}>
+                      <Box
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: 2.5,
+                          bgcolor: "rgba(255, 153, 0, 0.12)",
+                          color: "primary.main",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mb: 2.5,
+                        }}
+                      >
+                        <IconComp sx={{ fontSize: 32 }} />
+                      </Box>
+                      <Typography variant="h5" component="h3" sx={{ fontWeight: 700, mb: 1.5, color: "#0f172a" }}>
+                        {item.title}
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.65 }}>
+                        {item.desc}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* 5. Commercial Standards & Operational Framework (Synchronized with PDF) */}
       <Box id="standards" sx={{ py: { xs: 8, md: 12 }, bgcolor: "#0f172a", color: "#ffffff" }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: "center", mb: 7, maxWidth: 800, mx: "auto" }}>

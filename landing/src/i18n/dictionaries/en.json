@@ -1,7 +1,9 @@
 {
   "nav": {
     "capabilities": "Capabilities",
-    "categories": "Product Focus",
+    "network": "Regional Hub",
+    "marketplaces": "Marketplaces",
+    "categories": "Focus Areas",
     "standards": "Standards",
     "how_we_work": "How We Work",
     "download_pdf": "Company Profile (PDF)",
@@ -80,6 +82,129 @@
     "step4_num": "04",
     "step4_title": "Omnichannel Sales & Demand Growth",
     "step4_desc": "We actively optimize catalog representation and build recurring order forecasts to support long-term volume scaling."
+  },
+  "regional_network": {
+    "badge": "Regional Distribution Network • Valencian Community",
+    "title": "Commercial Footprint & Distribution Hubs",
+    "subtitle": "Network of commercial partners, distribution warehouses, and retail storefronts across the Valencian Community and East Spain corridor.",
+    "stats_points_num": "15+",
+    "stats_points_label": "Retail & Distribution Points",
+    "stats_coverage_num": "100%",
+    "stats_coverage_label": "Valencian Community Coverage",
+    "stats_transit_num": "24-48h",
+    "stats_transit_label": "Transit & Intake SLA",
+    "filter_all": "All Partner Points",
+    "filter_retail": "Retail & Storefronts",
+    "filter_logistics": "Logistics & Warehouses",
+    "filter_omnichannel": "Omnichannel Hubs"
+  },
+  "marketplaces_section": {
+    "badge": "Pan-European Marketplace Expansion",
+    "launch_notice": "Pilot Program • Launch Phase 2026",
+    "title": "Digital Channels & Online Marketplace Scaling",
+    "subtitle": "We are deploying a managed multi-channel digital representation and distribution program for European brands across leading EU marketplaces with strict MAP price protection.",
+    "dropdown_label": "Managed Platforms & Channels",
+    "services_title": "Comprehensive Managed Services for Partner Brands",
+    "services_subtitle": "End-to-end management from direct wholesale purchase to brand defense and multi-territory fulfillment.",
+    "cta_title": "Want to expand your brand on European marketplaces without price erosion risk?",
+    "cta_desc": "We are selecting quality European brand manufacturers for our managed digital expansion pilot, combining strict MAP policy enforcement with reliable wholesale purchase orders.",
+    "cta_button": "Apply for the Pilot Program",
+    "marketplaces": [
+      {
+        "id": "amazon",
+        "name": "Amazon Europe",
+        "badge": "Pan-EU FBA / FBM (8 Countries)",
+        "countries": "Spain, Germany, France, Italy, Netherlands, Poland, Sweden, Belgium",
+        "categories": "Home & Kitchen, Sports, Consumer Electronics, DIY, Personal Care",
+        "features": [
+          "BuyBox stabilization and defense against rogue unauthorized sellers",
+          "Brand Registry, A+ Content & official storefront optimization",
+          "100% adherence to agreed MAP / RRP pricing guidelines"
+        ]
+      },
+      {
+        "id": "miravia",
+        "name": "Miravia (Alibaba Group)",
+        "badge": "Spain & Portugal Flagship",
+        "countries": "Spain & Portugal",
+        "categories": "Beauty, Home & Living, Fashion, Tech & Lifestyle",
+        "features": [
+          "Official brand store and exclusive high-conversion campaigns",
+          "Fast fulfillment and local customer service for the Iberian peninsula",
+          "Brand equity elevation with modern urban demographics"
+        ]
+      },
+      {
+        "id": "manomano",
+        "name": "ManoMano",
+        "badge": "DIY & Home Specialist",
+        "countries": "France, Spain, Italy, Germany, United Kingdom",
+        "categories": "Tools, Hardware, Home Improvement, Garden & Plumbing",
+        "features": [
+          "Highly qualified audience of DIY enthusiasts and professional B2B tradesmen",
+          "Technical catalog integration with rich domain-specific specifications",
+          "Oversized and heavy freight logistics coordination"
+        ]
+      },
+      {
+        "id": "leroymerlin",
+        "name": "Leroy Merlin Marketplace",
+        "badge": "Home Improvement Leader",
+        "countries": "Spain, France, Italy, Portugal",
+        "categories": "Construction, Lighting, Bath & Sanitary, Kitchen, Garden",
+        "features": [
+          "Association with Europe's most trusted home retail brand",
+          "Omnichannel catalog visibility and customer reach",
+          "Strict European safety and quality warranty compliance"
+        ]
+      },
+      {
+        "id": "kaufland",
+        "name": "Kaufland Global Marketplace",
+        "badge": "Central European Scale (DACH & CEE)",
+        "countries": "Germany, Czechia, Slovakia, Poland, Austria",
+        "categories": "General Merchandise, Tech, Home & Kitchen, Sports",
+        "features": [
+          "Direct access to over 32 million monthly active shoppers in Germany & CEE",
+          "German and CEE product localization and native customer support",
+          "High-volume consumer category scaling"
+        ]
+      },
+      {
+        "id": "cdiscount",
+        "name": "Cdiscount",
+        "badge": "French E-Commerce Heavyweight",
+        "countries": "France, Belgium",
+        "categories": "Technology, Appliances, Home Goods & Leisure",
+        "features": [
+          "Strategic gateway to the second largest e-commerce market in the EU",
+          "Cdiscount Fulfilment integration",
+          "Continuous price monitoring and counterfeit deterrence"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "title": "Official Brand Representation",
+        "desc": "We establish and manage dedicated official storefronts, protecting brand integrity and customer perception."
+      },
+      {
+        "title": "Multilingual Digitization & SEO",
+        "desc": "Professional translation, localization, and keyword optimization across 5 major European languages."
+      },
+      {
+        "title": "Strict MAP & Pricing Governance",
+        "desc": "Active price monitoring and MAP adherence to prevent marketplace price erosion and offline channel friction."
+      },
+      {
+        "title": "DAP/DDP Inbound & Fulfillment",
+        "desc": "Stock reception in Spain, preparation, barcode labeling, and compliance with platform-specific delivery SLAs."
+      },
+      {
+        "title": "Direct Wholesale Purchasing",
+        "desc": "We purchase inventory outright via scheduled purchase orders, eliminating cash-flow risks for manufacturers."
+      }
+    ]
   },
   "intake_modal": {
     "title": "B2B Partner Onboarding",

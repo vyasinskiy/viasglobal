@@ -34,8 +34,10 @@ export default function Navbar({ dict, intakeDict, lang }: { dict: any; intakeDi
   };
 
   const navLinks = [
-    { label: dict.capabilities, href: `/${lang}#capabilities` },
     { label: dict.categories, href: `/${lang}#categories` },
+    { label: dict.network, href: `/${lang}#network` },
+    { label: dict.marketplaces, href: `/${lang}#marketplaces` },
+    { label: dict.capabilities, href: `/${lang}#capabilities` },
     { label: dict.standards, href: `/${lang}#standards` },
     { label: dict.how_we_work, href: `/${lang}#how-it-works` },
   ];

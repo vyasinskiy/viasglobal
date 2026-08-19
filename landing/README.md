@@ -4,8 +4,9 @@
 
 ## Основные разделы портала
 - **Hero & Trust Framework**: Верификация в реестре VIES (0% Intra-EU VAT), профиль поставщика в ЕС.
+- **Regional Distribution Network**: Интерактивная карта распределительной сети в Валенсии и Средиземноморском коридоре (Castellón, Valencia, Alicante) с анонимными точками и ключевыми SLA.
+- **Pan-European Marketplaces & Digital Scaling (Pilot 2026)**: Запуск направления экспансии брендов на европейские маркетплейсы (Amazon EU, Miravia, ManoMano, Leroy Merlin, Kaufland, Cdiscount) с выпадающим селектором каналов, 5 ключевыми услугами и приглашением к пилотному сотрудничеству.
 - **Product Categories & Focus Areas**: 6 ключевых потребительских категорий (Home & Kitchen, Sports & Outdoor, Consumer Electronics, Personal Care, DIY & Tools, Office Goods).
-- **Core Capabilities**: Оптовый выкуп, соблюдение политики цен MAP/RRP, оптимизация каталога, логистика DAP/DDP в Испании.
 - **Commercial Standards**: Операционные стандарты компании (синхронизированы с официальным Company Details Sheet).
 - **How We Work**: 4 простых шага партнерства для европейских брендов и производителей.
 - **B2B Partner Onboarding Modal**: Интерактивная форма квалификации брендов с явным GDPR-согласием и антиспам защитой **Cloudflare Turnstile**.

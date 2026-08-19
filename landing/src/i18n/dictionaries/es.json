@@ -1,6 +1,8 @@
 {
   "nav": {
     "capabilities": "Capacidades",
+    "network": "Red Regional",
+    "marketplaces": "Marketplaces",
     "categories": "Especialización",
     "standards": "Estándares",
     "how_we_work": "Cómo Trabajamos",
@@ -80,6 +82,129 @@
     "step4_num": "04",
     "step4_title": "Venta Multicanal y Crecimiento Continuo",
     "step4_desc": "Optimizamos la presencia del catálogo y planificamos pronósticos de reposición para escalar el volumen a largo plazo."
+  },
+  "regional_network": {
+    "badge": "Red de Distribución Regional • Comunidad Valenciana",
+    "title": "Presencia Comercial y Puntos de Distribución",
+    "subtitle": "Ecosistema de socios comerciales, almacenes logísticos y puntos de venta minorista en la Comunidad Valenciana y el eje este de España.",
+    "stats_points_num": "15+",
+    "stats_points_label": "Puntos de Distribución y Retail",
+    "stats_coverage_num": "100%",
+    "stats_coverage_label": "Cobertura en la Comunidad Valenciana",
+    "stats_transit_num": "24-48h",
+    "stats_transit_label": "SLA de Tránsito y Recepción",
+    "filter_all": "Todos los Puntos",
+    "filter_retail": "Puntos de Venta y Retail",
+    "filter_logistics": "Almacenes y Logística",
+    "filter_omnichannel": "Puntos Multicanal"
+  },
+  "marketplaces_section": {
+    "badge": "Expansión en Marketplaces Europeos",
+    "launch_notice": "Fase de Lanzamiento • Programa Piloto 2026",
+    "title": "Escalado Digital y Canales de Venta Online",
+    "subtitle": "Estamos desplegando un programa de representación y distribución digital multicanal para marcas europeas en los principales marketplaces de la UE con control estricto de PVP.",
+    "dropdown_label": "Plataformas y Canales Gestionados",
+    "services_title": "Servicios Integrales para Marcas Asociadas",
+    "services_subtitle": "Gestión 360° desde la compra mayorista hasta la representación oficial de marca y logística de última milla.",
+    "cta_title": "¿Desea expandir su marca en los marketplaces europeos sin riesgo de conflicto de precios?",
+    "cta_desc": "Seleccionamos fabricantes y marcas europeas para nuestro programa piloto de distribución digital con protección absoluta de política MAP y compra en firme.",
+    "cta_button": "Solicitar Participación en el Piloto",
+    "marketplaces": [
+      {
+        "id": "amazon",
+        "name": "Amazon Europe",
+        "badge": "Pan-EU FBA / FBM (8 Países)",
+        "countries": "España, Alemania, Francia, Italia, Países Bajos, Polonia, Suecia, Bélgica",
+        "categories": "Hogar, Cocina, Deportes, Electrónica, Bricolaje, Cuidado Personal",
+        "features": [
+          "Defensa y estabilidad de la BuyBox contra revendedores no autorizados",
+          "Gestión de Brand Registry, contenido A+ y tienda oficial de marca",
+          "Cumplimiento 100% de la política de precios mínimos recomendados (MAP/PVP)"
+        ]
+      },
+      {
+        "id": "miravia",
+        "name": "Miravia (Alibaba Group)",
+        "badge": "Flagship España & Portugal",
+        "countries": "España y Portugal",
+        "categories": "Belleza, Hogar, Moda, Electrónica de Consumo y Lifestyle",
+        "features": [
+          "Tienda oficial de marca y campañas promocionales exclusivas",
+          "Logística ágil y entrega rápida para clientes de la península ibérica",
+          "Posicionamiento de marca con audiencias jóvenes y urbanas"
+        ]
+      },
+      {
+        "id": "manomano",
+        "name": "ManoMano",
+        "badge": "Especialista en Bricolaje & Hogar",
+        "countries": "Francia, España, Italia, Alemania, Reino Unido",
+        "categories": "Herramientas, Bricolaje, Jardín, Fontanería y Equipamiento del Hogar",
+        "features": [
+          "Audiencia altamente cualificada de particulares y profesionales B2B",
+          "Integración técnica de catálogos técnicos con atributos específicos",
+          "Gestión de pedidos voluminosos y mercancía pesada"
+        ]
+      },
+      {
+        "id": "leroymerlin",
+        "name": "Leroy Merlin Marketplace",
+        "badge": "Líder en Mejoras del Hogar",
+        "countries": "España, Francia, Italia, Portugal",
+        "categories": "Construcción, Iluminación, Baño, Cocina y Jardinería",
+        "features": [
+          "Asociación con una de las marcas de retail de mayor prestigio en Europa",
+          "Sincronización omnicanal y visibilidad en catálogo oficial",
+          "Control riguroso de garantías y estándares de calidad europeos"
+        ]
+      },
+      {
+        "id": "kaufland",
+        "name": "Kaufland Global Marketplace",
+        "badge": "Expansión en Centroeuropa (DACH & CEE)",
+        "countries": "Alemania, Chequia, Eslovaquia, Polonia, Austria",
+        "categories": "Gran consumo, Electrónica, Hogar y Artículos Deportivos",
+        "features": [
+          "Acceso directo a más de 32 millones de clientes mensuales en Alemania y Europa Central",
+          "Traducción y localización de fichas de producto al alemán y lenguas CEE",
+          "Venta multicanal con soporte al cliente en idioma local"
+        ]
+      },
+      {
+        "id": "cdiscount",
+        "name": "Cdiscount",
+        "badge": "Gigante del E-Commerce Francés",
+        "countries": "Francia, Bélgica",
+        "categories": "Tecnología, Electrodomésticos, Menaje del Hogar y Juguetes",
+        "features": [
+          "Presencia clave en el segundo mayor mercado de e-commerce de la UE",
+          "Logística integrada Cdiscount Fulfilment",
+          "Protección de precios y supervisión contra falsificaciones"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "title": "Representación Oficial de Marca",
+        "desc": "Operamos tiendas y canales oficiales protegiendo la identidad y reputación del fabricante en cada plataforma."
+      },
+      {
+        "title": "Digitalización y SEO Multilingüe",
+        "desc": "Traducción y optimización de fichas de producto (títulos, viñetas, atributos y fotos) en los 5 idiomas principales de la UE."
+      },
+      {
+        "title": "Control Estricto de PVP / MAP",
+        "desc": "Monitorización continua y cumplimiento de la política de precios para erradicar el dumping y conflictos con canales tradicionales."
+      },
+      {
+        "title": "Logística y Almacenamiento DAP/DDP",
+        "desc": "Recepción de stock en España, preparación de envíos, etiquetado y cumplimiento de los exigentes SLAs de cada marketplace."
+      },
+      {
+        "title": "Compra Mayorista en Firme",
+        "desc": "Adquirimos la mercancía mediante pedidos de compra regulares con liquidación puntual, eliminando el riesgo financiero para el fabricante."
+      }
+    ]
   },
   "intake_modal": {
     "title": "Formulario de Integración B2B",

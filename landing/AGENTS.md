@@ -7,7 +7,8 @@
   1. *Omnichannel Wholesale Distribution* (Оптовая закупка партий, мультиканальные продажи в ЕС).
   2. *Brand Protection & MAP Compliance* (Строгое соблюдение рекомендованных розничных цен RRP/MAP, защита от демпинга).
   3. *Catalog & Retail Optimization* (Оптимизация товарных каталогов и мерчандайзинг).
-  4. *Logistics & Cross-Border Supply Chain* (Приемка паллет и посылок DAP/DDP, быстрый складской оборот).
+  5. *Regional Partner & Retail Network* (Дистрибьюторская сеть и розничные партнеры в Валенсии и Средиземноморском коридоре).
+  6. *Pan-European Marketplaces Expansion Pilot* (Программа пилотного запуска и мультиканальной дистрибьюции на маркетплейсах ЕС с соблюдением MAP).
 
 ## Юридический комплаенс и защита данных (Испания и ЕС)
 - **LSSICE (ст. 10)**: Полная идентификация в `Aviso Legal` и футере (Vitalii Iasinskii, Autónomo, NIF/EU VAT: `ESZ1154366R`, адрес в Испании).

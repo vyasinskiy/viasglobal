@@ -1,6 +1,8 @@
 {
   "nav": {
-    "capabilities": "Kompetenzen",
+    "capabilities": "Leistungen",
+    "network": "Vertriebsnetz",
+    "marketplaces": "Marktplätze",
     "categories": "Sortiment",
     "standards": "Standards",
     "how_we_work": "Zusammenarbeit",
@@ -80,6 +82,129 @@
     "step4_num": "04",
     "step4_title": "Vertrieb & Kontinuierliche Skalierung",
     "step4_desc": "Gezielte Steigerung der Nachfrage und Bedarfsplanung für wachsende, wiederkehrende Abnahmemengen."
+  },
+  "regional_network": {
+    "badge": "Regionales Vertriebsnetz • Region Valencia",
+    "title": "Kommerzielle Präsenz & Distributionsstandorte",
+    "subtitle": "Netzwerk aus Handelspartnern, Distributionslagern und Einzelhandelsstandorten in der Region Valencia und dem spanischen Mittelmeerkorridor.",
+    "stats_points_num": "15+",
+    "stats_points_label": "Einzelhandels- & Distributionspunkte",
+    "stats_coverage_num": "100%",
+    "stats_coverage_label": "Abdeckung Region Valencia",
+    "stats_transit_num": "24-48h",
+    "stats_transit_label": "Transit- & Wareneingangs-SLA",
+    "filter_all": "Alle Standorte",
+    "filter_retail": "Einzelhandel & Filialen",
+    "filter_logistics": "Logistik & Lager",
+    "filter_omnichannel": "Omnichannel-Knotenpunkte"
+  },
+  "marketplaces_section": {
+    "badge": "Pan-Europäische Marktplatz-Expansion",
+    "launch_notice": "Pilotprogramm • Startphase 2026",
+    "title": "Digitale Vertriebskanäle & Marktplatz-Skalierung",
+    "subtitle": "Wir starten ein strukturiertes Programm für europäische Marken zur Multichannel-Präsenz auf führenden EU-Marktplätzen mit strikter Preiskontrolle (MAP).",
+    "dropdown_label": "Verwaltete Marktplätze & Vertriebskanäle",
+    "services_title": "Umfassende Betreuung für Partnermarken",
+    "services_subtitle": "Vollständige Abwicklung vom Direkteinkauf über Markenschutz bis zur europaweiten Logistik.",
+    "cta_title": "Möchten Sie Ihre Marke auf europäischen Marktplätzen ohne Preiskonflikte skalieren?",
+    "cta_desc": "Wir wählen europäische Markenhersteller für unser digitales Pilotprogramm aus – mit festem Wareneinkauf und kompromissloser Durchsetzung der UVP/MAP-Preise.",
+    "cta_button": "Für das Pilotprogramm bewerben",
+    "marketplaces": [
+      {
+        "id": "amazon",
+        "name": "Amazon Europe",
+        "badge": "Pan-EU FBA / FBM (8 Länder)",
+        "countries": "Spanien, Deutschland, Frankreich, Italien, Niederlande, Polen, Schweden, Belgien",
+        "categories": "Küche & Haushalt, Sport, Elektronik, Heimwerken, Körperpflege",
+        "features": [
+          "BuyBox-Verteidigung und Schutz vor nicht autorisierten Resellern",
+          "Brand Registry, A+ Content & Optimierung des offiziellen Markenshops",
+          "100%ige Einhaltung vereinbarter UVP / MAP-Preise"
+        ]
+      },
+      {
+        "id": "miravia",
+        "name": "Miravia (Alibaba Group)",
+        "badge": "Flaggschiff Spanien & Portugal",
+        "countries": "Spanien & Portugal",
+        "categories": "Beauty, Wohnen, Mode, Unterhaltungselektronik & Lifestyle",
+        "features": [
+          "Offizieller Markenshop und exklusive Verkaufskampagnen",
+          "Schnelle Zustellung und lokaler Kundenservice auf der iberischen Halbinsel",
+          "Markenstärkung bei modernen urbanen Zielgruppen"
+        ]
+      },
+      {
+        "id": "manomano",
+        "name": "ManoMano",
+        "badge": "Spezialist für Heimwerken & Garten",
+        "countries": "Frankreich, Spanien, Italien, Deutschland, Großbritannien",
+        "categories": "Werkzeuge, Baubedarf, Garten, Sanitär & Haustechnik",
+        "features": [
+          "Qualifizierte Zielgruppe aus passionierten Heimwerkern und B2B-Profis",
+          "Technische Katalogintegration mit branchenspezifischen Attributen",
+          "Abwicklung von Sperrgut- und Speditionslieferungen"
+        ]
+      },
+      {
+        "id": "leroymerlin",
+        "name": "Leroy Merlin Marketplace",
+        "badge": "Führender Baumarkt-Marktplatz",
+        "countries": "Spanien, Frankreich, Italien, Portugal",
+        "categories": "Bau, Beleuchtung, Bad, Küche & Garten",
+        "features": [
+          "Partnerschaft mit einer der renommiertesten europäischen Einzelhandelsmarken",
+          "Omnichannel-Katalogsynchronisation und hohe Reichweite",
+          "Strenge europäische Qualitäts- und Garantiesicherheit"
+        ]
+      },
+      {
+        "id": "kaufland",
+        "name": "Kaufland Global Marketplace",
+        "badge": "Skalierung in Zentraleuropa (DACH & CEE)",
+        "countries": "Deutschland, Tschechien, Slowakei, Polen, Österreich",
+        "categories": "Vollsortiment, Technik, Wohnen & Sportartikel",
+        "features": [
+          "Direkter Zugang zu über 32 Millionen monatlichen Besuchern in Deutschland & CEE",
+          "Kataloglokalisierung ins Deutsche und CEE-Sprachen",
+          "Skalierung von Konsumgütern mit hoher Umschlaggeschwindigkeit"
+        ]
+      },
+      {
+        "id": "cdiscount",
+        "name": "Cdiscount",
+        "badge": "Schwergewicht im französischen E-Commerce",
+        "countries": "Frankreich, Belgien",
+        "categories": "Technologie, Haushaltsgeräte, Wohnen & Freizeit",
+        "features": [
+          "Zugang zum zweitgrößten E-Commerce-Markt der Europäischen Union",
+          "Anbindung an Cdiscount Fulfilment",
+          "Kontinuierliche Preisüberwachung und Fälschungsschutz"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "title": "Offizielle Markenvertretung",
+        "desc": "Aufbau und Betreuung offizieller Markenshops unter Wahrung von Markenidentität und Renommee."
+      },
+      {
+        "title": "Mehrsprachige Digitalisierung & SEO",
+        "desc": "Übersetzung, Lokalisierung und Suchbegriffsoptimierung in den 5 wichtigsten EU-Sprachen."
+      },
+      {
+        "title": "Strikte UVP / MAP-Preispolitik",
+        "desc": "Kontinuierliches Monitoring zur Vermeidung von Preisdumping und Kanalkonflikten mit dem Fachhandel."
+      },
+      {
+        "title": "DAP/DDP Wareneingang & Fulfillment",
+        "desc": "Warenannahme in Spanien, Umverpackung, Barcode-Etikettierung und SLA-konforme Auslieferung."
+      },
+      {
+        "title": "Verlässlicher Großhandelseinkauf",
+        "desc": "Fester Ankauf von Warenkontingenten mit fristgerechter Bezahlung, ganz ohne Liquiditätsrisiko für Hersteller."
+      }
+    ]
   },
   "intake_modal": {
     "title": "B2B-Partner-Onboarding",
