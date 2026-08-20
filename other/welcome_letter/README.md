@@ -8,6 +8,7 @@
 - [`attachments/`](file:///Users/usuario/code/viasglobal/other/welcome_letter/attachments) — официальные документы компании (Autónomo Испания), карточка предприятия и выписки для отправки поставщикам.
 
 ## Плейсхолдеры для подстановки
+- `{recipient_email}` — адрес электронной почты поставщика/дистрибьютора для отправки (например: `info@jfabrics.cz`).
 - `{Manufacturer_name_or_distributor_name}` — наименование производителя, бренда или дистрибьютора (например: Jerry Fabrics s.r.o.).
 - `- EAN {number}` — список штрихкодов EAN интересующих позиций (1 и более).
 - Реквизиты Viasglobal (VAT ID: ESZ1154366R, сайт, страна) уже предзаполнены в шаблоне.

@@ -47,8 +47,9 @@ description: Формирует приветственное B2B письмо п
 ## Формирование письма
 
 1. Прочитай актуальный шаблон из [`other/welcome_letter/template.md`](file:///Users/usuario/code/viasglobal/other/welcome_letter/template.md).
-2. Замени плейсхолдер `{Manufacturer_name_or_distributor_name}` на название компании поставщика.
-3. Замени блок `- EAN {number}` на реальный список полученных EAN (каждый с новой строки):
+2. Заполни адрес получателя `To: {recipient_email}` (например, `To: info@jfabrics.cz`).
+3. Замени плейсхолдер `{Manufacturer_name_or_distributor_name}` на название компании поставщика.
+4. Замени блок `- EAN {number}` на реальный список полученных EAN (каждый с новой строки):
    ```text
    For reference, we are currently looking for the following items:
    - EAN 8592753035344

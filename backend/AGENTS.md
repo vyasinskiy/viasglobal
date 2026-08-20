@@ -21,7 +21,7 @@
 
 3. **`WholesaleCandidatesView`**:
    - Назначение: сводный анализ и группировка товаров ASIN по производителям, брендам, продавцам, дистрибьюторам и причинам фильтрации для отбора кандидатов под оптовую торговлю (Wholesale).
-   - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `distributors`, `brandId`, `sellerId`.
+   - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `eans`, `distributors`, `brandId`, `sellerId`.
 
 ## Правила парсинга продавцов Keepa
 
