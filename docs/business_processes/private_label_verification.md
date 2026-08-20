@@ -2,84 +2,106 @@
 
 Данный бизнес-процесс описывает шаги для программного подтверждения гипотезы о том, что конкретный продавец торгует определенным брендом по модели Private Label (является владельцем или эксклюзивным дистрибьютором).
 
-## Шаг 1: Быстрая проверка по совпадению названий
-Если название Бренда и имя Продавца (Seller) полностью или очевидным образом совпадают (например, бренд `Paramount City` и продавец `Paramount City` или `ParaCity`), то связка **автоматически подтверждается** как Private Label.
-*В этом случае загрузка и анализ выгрузки товаров продавца не требуется.*
+---
 
-## Шаг 2: Подготовка выгрузки товаров (Keepa)
-Если названия не совпадают (например, бренд `TOPCHANCES`, а продавец `Paramount City`), необходимо доказать эксклюзивность продаж. Для этого нужно сделать экспорт всех товаров данного продавца через Keepa в формате Excel (`.xlsx`).
+## Шаг 1: Автоматическая проверка через функцию `get_asin_filter_reason`
+В нашей базе данных настроена функция `get_asin_filter_reason`, которая уже встроена в представление `WholesaleCandidatesView` и автоматически проверяет базовые признаки Private Label для каждого товара:
 
-## Шаги 3 и 4: Программный анализ эксклюзивности и BuyBox
-Анализ выполняется скриптом (см. ниже). Скрипт ищет товары нужного бренда в выгрузке продавца и проверяет две ключевые метрики:
-1. **Эксклюзивные продажи:** Подсчет количества товаров в рамках бренда, где продавец является **единственным** на листинге (используется колонка `New Offer Count: Current` со значением `1`).
-2. **Доминирование в BuyBox:** Подсчет количества товаров, где целевой продавец удерживает BuyBox (колонка `Buy Box: Buy Box Seller`).
+* **`BUYBOX_MATCH_BRAND`**: Имя продавца в BuyBox содержит название бренда (например, бренд `Paramount City` и продавец `Paramount City`).
+* **`BUYBOX_MATCH_MANUFACTURER`**: Имя продавца в BuyBox содержит название производителя.
+* **`PRIVATE_LABEL`**: Связка Бренд + Продавец уже подтверждена и внесена в таблицу `PrivateLabel`.
 
-Если продавец доминирует в BuyBox (близко к 100%) и/или является единственным продавцом на подавляющем большинстве листингов бренда, связка Бренд + Продавец подтверждается как Private Label.
+> **Результат шага 1**: Если для товаров бренда функция `get_asin_filter_reason` возвращает статус `BUYBOX_MATCH_BRAND` или `BUYBOX_MATCH_MANUFACTURER`, связка **автоматически подтверждается** как Private Label. Дополнительный статистический анализ не требуется.
 
 ---
 
-### Скрипт для автоматической проверки (Node.js)
-Скрипт использует библиотеку `xlsx` для парсинга выгрузки.
+## Шаг 2: Анализ эксклюзивности и BuyBox в БД (для нетривиальных случаев)
+Если названия бренда и продавца не совпадают (например, бренд `TOPCHANCES`, а продавец `Paramount City`), требуется подтвердить эксклюзивность продаж продавца по товарам данного бренда в базе данных.
 
-```typescript
-// Скрипт для проверки Private Label по выгрузке Keepa
-import xlsx from 'xlsx';
+*(Если товары продавца еще не загружены в БД, предварительно выполняется парсинг выгрузки Keepa командой: `cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>`)*.
 
-// Настройки
-const EXCEL_FILE_PATH = './keepa/exports/paramaunt_products.xlsx';
-const TARGET_BRAND = 'TOPCHANCES'; // Бренд, который мы проверяем
-const TARGET_SELLER_ID = 'A2125XITGCFMVZ'; // Опционально: ID или часть имени продавца из колонки Buy Box Seller
+В БД проверяются две ключевые метрики для товаров целевого бренда:
+1. **Эксклюзивные продажи:** Подсчет количества товаров бренда, где продавец является **единственным** на листинге (колонка `newOfferCountCurrent = 1` в таблице `ProductFinder`).
+2. **Доминирование в BuyBox:** Подсчет количества товаров бренда, где целевой продавец удерживает BuyBox (колонка `buyBoxSeller` содержит имя продавца или `sellerId` совпадает с ID целевого продавца).
 
-function verifyPrivateLabel() {
-    const wb = xlsx.readFile(EXCEL_FILE_PATH);
-    const sheetName = wb.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(wb.Sheets[sheetName]);
+### Критерии подтверждения Private Label:
+* Если продавец является единственным на листинге более чем для **50%** товаров бренда (`singleSellerItems / totalBrandItems > 0.5`), **ИЛИ**
+* Если продавец удерживает BuyBox более чем на **90%** товаров бренда (`buyBoxWins / totalBrandItems > 0.9`):
+  
+  $$\Rightarrow \text{Связка Бренд + Продавец подтверждается как } \mathbf{Private\ Label}.$$
 
-    let totalBrandItems = 0;
-    let singleSellerItems = 0;
-    let buyBoxWins = 0;
-    const bbSellers: Record<string, number> = {};
+---
 
-    data.forEach((row: any) => {
-        const brand = row['Brand'] || row['brand'] || row['BRAND'];
-        
-        // Фильтруем только по нужному бренду
-        if (!brand || brand.toUpperCase() !== TARGET_BRAND.toUpperCase()) return;
+## Шаг 3: Анализ недоминантных продавцов и оценка для Wholesale
+Если связка подтверждена как Private Label (доминирование целевого продавца > 90%), но на 1–10% листингов присутствуют сторонние продавцы:
+1. **Сравнение цен конкретных товаров**: Текущая цена BuyBox (`buyBoxCurrent`) сопоставляется **с собственной средней ценой за 90 дней (`buyBox90DaysAvg`)** и рекомендованной ценой (`listPriceCurrent`) для каждого конкретного товара (без некорректного усреднения цен разнородных товаров по всему каталогу).
+2. **Оценка стабильности**: Анализируются метрики удержания листинга топовым продавцом за 90 дней (`buyBoxTopSeller90Days`) и количество продавцов (`buyBoxWinnerCount90Days`).
+3. **Бизнес-вывод для нашей стратегии**:
+   * Возможно, для сторонних продавцов продажа этих единичных товаров выгодна в рамках их штучной/специфической модели (остатки, штучный арбитраж).
+   * **Но для нас бренд не подходит для оптовой торговли (Wholesale)**, так как 90–99% каталога монопольно контролируется одним продавцом, а открытая дистрибьюторская сеть отсутствует.
 
-        totalBrandItems++;
-        
-        // Проверка 1: Продавец только один
-        const offerCount = parseInt(row['New Offer Count: Current']);
-        if (!isNaN(offerCount) && offerCount === 1) {
-            singleSellerItems++;
-        }
-        
-        // Проверка 2: Кто владеет BuyBox
-        const bbSeller = row['Buy Box: Buy Box Seller'];
-        if (bbSeller) {
-            bbSellers[bbSeller] = (bbSellers[bbSeller] || 0) + 1;
-            // Считаем победы целевого продавца (по совпадению строки)
-            if (bbSeller.includes(TARGET_SELLER_ID) || bbSeller.toLowerCase().includes('paramount')) {
-                 buyBoxWins++;
-            }
-        }
-    });
+---
 
-    console.log(`\n=== Результаты проверки Private Label для бренда: ${TARGET_BRAND} ===`);
-    console.log(`Всего товаров бренда у продавца: ${totalBrandItems}`);
-    console.log(`Товаров с единственным продавцом: ${singleSellerItems} (${((singleSellerItems/totalBrandItems)*100).toFixed(1)}%)`);
-    console.log(`Удержаний BuyBox целевым продавцом: ${buyBoxWins} (${((buyBoxWins/totalBrandItems)*100).toFixed(1)}%)`);
-    
-    console.log('\nТоп владельцев BuyBox на этих листингах:');
-    const sortedBb = Object.entries(bbSellers).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    sortedBb.forEach(([seller, count]) => console.log(`  ${seller} : ${count}`));
+## Шаг 4: SQL-запрос для проверки метрик связки в БД
 
-    if ((singleSellerItems / totalBrandItems) > 0.5 || (buyBoxWins / totalBrandItems) > 0.9) {
-        console.log('\n[РЕЗУЛЬТАТ] ВЫВОД ПОДТВЕРЖДЕН: Это Private Label связка.');
-    } else {
-         console.log('\n[РЕЗУЛЬТАТ] НЕТ ПОДТВЕРЖДЕНИЯ: Это похоже на оптовые продажи (Wholesale).');
-    }
-}
+Выполните следующий SQL-запрос в PostgreSQL, подставив название проверяемого бренда и идентификатор/имя продавца:
 
-verifyPrivateLabel();
+```sql
+-- SQL-запрос для проверки метрик Private Label по данным в БД
+WITH brand_products AS (
+    SELECT 
+        a.id AS "asinId",
+        a.code AS "asin",
+        b.name AS "brandName",
+        pf."newOfferCountCurrent",
+        pf."buyBoxSeller",
+        pf."sellerId",
+        pf."buyBoxCurrent",
+        pf."buyBox90DaysAvg",
+        pf."listPriceCurrent"
+    FROM "ASIN" a
+    JOIN "Brand" b ON a."brandId" = b.id
+    JOIN LATERAL (
+        -- Берем самый актуальный снимок параметров товара
+        SELECT *
+        FROM "ProductFinder"
+        WHERE "asinId" = a.id
+        ORDER BY "createdAt" DESC
+        LIMIT 1
+    ) pf ON true
+    WHERE UPPER(b.name) = UPPER('TOPCHANCES') -- Укажите название бренда
+)
+SELECT 
+    -- Общее количество товаров бренда в базе данных
+    COUNT(*) AS "totalBrandItems",
+    -- Количество товаров с единственным продавцом на листинге
+    COUNT(*) FILTER (WHERE "newOfferCountCurrent" = 1) AS "singleSellerItems",
+    -- Процент товаров с единственным продавцом
+    ROUND(COUNT(*) FILTER (WHERE "newOfferCountCurrent" = 1)::numeric / NULLIF(COUNT(*), 0) * 100, 1) AS "singleSellerPercent",
+    -- Количество товаров, где целевой продавец удерживает BuyBox
+    COUNT(*) FILTER (
+        WHERE "sellerId" = 'A2125XITGCFMVZ' 
+           OR "buyBoxSeller" ILIKE '%Paramount City%'
+    ) AS "buyBoxWins",
+    -- Процент удержания BuyBox целевым продавцом
+    ROUND(COUNT(*) FILTER (
+        WHERE "sellerId" = 'A2125XITGCFMVZ' 
+           OR "buyBoxSeller" ILIKE '%Paramount City%'
+    )::numeric / NULLIF(COUNT(*), 0) * 100, 1) AS "buyBoxWinPercent",
+    -- Итоговый вывод на основе критериев
+    CASE 
+        WHEN (COUNT(*) FILTER (WHERE "newOfferCountCurrent" = 1)::float / NULLIF(COUNT(*), 0)) > 0.5 
+          OR (COUNT(*) FILTER (WHERE "sellerId" = 'A2125XITGCFMVZ' OR "buyBoxSeller" ILIKE '%Paramount City%')::float / NULLIF(COUNT(*), 0)) > 0.9 
+        THEN 'ПОДТВЕРЖДЕНО: Private Label'
+        ELSE 'НЕТ ПОДТВЕРЖДЕНИЯ: Wholesale'
+    END AS "result"
+FROM brand_products;
 ```
+
+---
+
+## Шаг 5: Фиксация подтвержденной связки в БД
+Если связка подтверждена, активируйте навык добавления приватного лейбла:
+* Произнесите: `добавь приватный лейбл` или `добавь связку`.
+* ИИ запросит продавца и бренд (по имени или ID), после чего создаст и выполнит миграцию данных в таблицу `PrivateLabel`.
+* После этого функция `get_asin_filter_reason` будет автоматически помечать все товары этого бренда от данного продавца статусом `PRIVATE_LABEL`.
