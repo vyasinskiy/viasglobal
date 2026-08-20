@@ -1,18 +1,21 @@
-Subject: Wholesale Inquiry / B2B Cooperation Request — Viasglobal (Spain)
+Subject: Wholesale Inquiry / B2B Cooperation Request [Ticket: DB-116420] — Viasglobal (Spain)
 
-Dear {Manufacturer_name_or_distributor_name},
+Dear De Bondt B.V. Team,
 
 My name is Vitaliy, representing Viasglobal, a European B2B wholesale and omnichannel distribution company based in Spain.
 
 We specialize in direct volume procurement and distribution across key European consumer sectors (Home & Living, Kitchenware, DIY, Sports & Leisure, and Daily Goods). We partner with established European brand manufacturers and official distributors, guaranteeing strict adherence to Recommended Retail Prices (MAP/RRP), reliable SEPA settlements, and direct inbound logistics (DAP/DDP) to our warehouse in Spain.
 
-We are highly interested in establishing a long-term B2B partnership with {Manufacturer_name_or_distributor_name} to purchase your products at wholesale terms.
+We are highly interested in establishing a long-term B2B partnership with De Bondt B.V. to purchase your products at wholesale terms.
 
 For reference, we are currently looking for the following items:
-- EAN {number}
-- EAN {number}
-- EAN {number}
-- EAN {number}
+- EAN 8717738957798
+- EAN 8717738977543
+- EAN 8717738957699
+- EAN 8717738977598
+- EAN 8717738977581
+- EAN 8717738977567
+- EAN 8717738957712
 
 Could you please provide us with:
 1. Your current wholesale catalog and B2B price list, including shipping terms and delivery costs to Spain (as well as any free shipping thresholds).

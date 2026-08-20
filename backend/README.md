@@ -39,6 +39,14 @@ SELECT * FROM "WholesaleCandidatesView";
 const asins = await prisma.asinView.findMany();
 ```
 
+## Миграции данных (Data Migrations)
+
+Скрипты разового наполнения и связывания сущностей в БД размещаются в папке `backend/prisma/data-migrations/`:
+- **Приватные лейблы**: добавление связок `Brand` + `Seller` в `PrivateLabel`.
+- **Дистрибьюторы**: добавление дистрибьютора (`Distributor`) и привязка к нему товаров (`ASIN`).
+  - Поиск товаров по EAN ведется напрямую в таблице `ProductFinder` (связь с `ASIN.productFinders`).
+  - **100% валидация**: скрипт строго проверяет, чтобы все переданные EAN были найдены в БД (`foundAsins.length === targetEans.length`). Если хотя бы одного товара нет в базе, выбрасывается `Error` и транзакция не сохраняется, предотвращая потерю товаров.
+
 ## Парсинг продавцов Keepa
 
 При импорте выгрузок Keepa строка продавца Buy Box (например, `paramount city (80%) / A2125XITGCFM0Q`) обрабатывается функцией `parseSellerInfo`:
