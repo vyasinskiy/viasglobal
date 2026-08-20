@@ -1,0 +1,5 @@
+# Отчет о поиске B2B дистрибьюторов: Jerry Fabrics
+
+| Бренд | Сайт бренда | Ссылка на страницу со списком дистрибьюторов | Контакты дистрибьютера | Ссылка на форму регистрации | Обоснование | Описание | Список ASIN |
+|---|---|---|---|---|---|---|---|
+| **Jerry Fabrics** | [jfabrics.cz](https://www.jfabrics.cz) | [Jerry Fabrics About / B2B](https://www.jfabrics.cz/o-spolecnosti) | Email: `info@jfabrics.cz`<br>Тел: `+420 605 063 812`<br>Адрес: Komárkova 2299/16, 148 00 Praha 4, Czech Republic | [Форма обратной связи / B2B запрос](https://www.jfabrics.cz/kontakty) | **Jerry Fabrics s.r.o.** является правообладателем бренда, прямым производителем и генеральным B2B-дистрибьютором собственных лицензионных текстильных линеек в Европе | Официальный чешский производитель и B2B поставщик лицензионного домашнего текстиля (Disney, Marvel, Paw Patrol, Harry Potter и др.). Отгрузка осуществляется напрямую с собственного оптового склада в городе Dvůr Králové nad Labem ([источник](https://www.jfabrics.cz)). Заказы принимаются по картонным коробкам (картонам) ([условия](https://www.jfabrics.cz)). | B08H14P6VG<br>B0CFH95MC2<br>B0CW6FMW5M<br>B0DPVRQLV3 |
