@@ -57,14 +57,30 @@ model SellerSnapshot {
   seller Seller @relation(fields: [sellerId], references: [id])
 }
 
-model Distributor {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  website   String?
-  asins     ASIN[] // implicit m-to-m
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum DistributorStatus {
+  NEW
+  FORM_SUBMITTED
+  EMAIL_SENT
+  CALLED
+  ACCOUNT_OPENED
+  REJECTED
 }
+
+model Distributor {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  website         String?
+  email           String?
+  phone           String?
+  status          DistributorStatus @default(NEW)
+  rejectionReason String?
+  notes           String?
+  lastContactAt   DateTime?
+  asins           ASIN[] // implicit m-to-m
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
 
 model ASIN {
   id             Int    @id @default(autoincrement())

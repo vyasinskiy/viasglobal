@@ -47,6 +47,12 @@ const asins = await prisma.asinView.findMany();
   - Поиск товаров по EAN ведется напрямую в таблице `ProductFinder` (связь с `ASIN.productFinders`).
   - **100% валидация**: скрипт строго проверяет, чтобы все переданные EAN были найдены в БД (`foundAsins.length === targetEans.length`). Если хотя бы одного товара нет в базе, выбрасывается `Error` и транзакция не сохраняется, предотвращая потерю товаров.
 
+## Воронка коммуникаций с дистрибьюторами (DistributorStatus)
+
+В модели `Distributor` поддерживаются поля для фиксации этапов диалога:
+- `status`: `NEW` -> `FORM_SUBMITTED` -> `EMAIL_SENT` -> `CALLED` -> `ACCOUNT_OPENED` / `REJECTED`.
+- `email`, `phone`, `notes`, `rejectionReason`, `lastContactAt`.
+
 ## Парсинг продавцов Keepa
 
 При импорте выгрузок Keepa строка продавца Buy Box (например, `paramount city (80%) / A2125XITGCFM0Q`) обрабатывается функцией `parseSellerInfo`:
