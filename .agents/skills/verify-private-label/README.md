@@ -15,25 +15,21 @@
    - Считается доля листингов с 1 продавцом (`newOfferCountCurrent = 1`). Порог подтверждения: **> 50%**.
    - Считается процент удержания BuyBox целевым продавцом. Порог подтверждения: **> 90%**.
 
-4. **Анализ цен за 90 дней и недоминантных продавцов**:
-   - Текущая цена каждого товара сопоставляется с **его собственной средней ценой за 90 дней** (`buyBox90DaysAvg`) и рекомендованной ценой (`listPriceCurrent`).
-   - Оценивается стабильность цен и доля владения листингами за 90 дней.
-   - Формируется вывод для оптовой стратегии (Wholesale): сторонним продавцам эти единичные позиции могут быть выгодны в рамках их штучной модели, но для нашей оптовой стратегии бренд **не подходит** из-за монополизации 90–99% каталога и отсутствия дистрибуции.
-
-5. **Предложение сохранения**:
-   - Если Private Label подтвержден, навык предлагает добавить связку в БД через `add-private-label`.
+4. **Дальнейшие сценарии**:
+   * **При подтверждении Private Label**: предлагает зафиксировать связку в БД через навык `add-private-label`.
+   * **При подтверждении Wholesale**: сообщает, что бренд открыт для оптовой закупки, и предлагает найти официальных европейских B2B дистрибьюторов через навык `find-distributor`.
 
 ## Использование
 
 ### Через ИИ в чате
-- *"Проверь связку TOPCHANCES и Paramount City"*
-- *"Является ли продавец A2125XITGCFMVZ приватным лейблом для бренда TOPCHANCES?"*
+- *"Проверь связку Jerry Fabrics и Theonoi"*
+- *"Проверь приватный лейбл Poligino SUNRICE MERCANTILE"*
 
 ### Вручную из терминала
 ```bash
-cd backend && npx tsx scripts/verify-private-label.ts "TOPCHANCES" "Paramount City"
+cd backend && npx tsx scripts/verify-private-label.ts "Jerry Fabrics" "Theonoi"
 ```
 или по Seller ID:
 ```bash
-cd backend && npx tsx scripts/verify-private-label.ts "TOPCHANCES" "A2125XITGCFMVZ"
+cd backend && npx tsx scripts/verify-private-label.ts "Jerry Fabrics" "A1V55SZ7ZUXV26"
 ```
