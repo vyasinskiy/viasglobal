@@ -15,8 +15,8 @@ export class DistributorsService {
     if (data.brandName) {
       await this.prisma.brand.upsert({
         where: { name: data.brandName },
-        update: { isAnalyzed: true },
-        create: { name: data.brandName, isAnalyzed: true }
+        update: {},
+        create: { name: data.brandName }
       });
     }
 

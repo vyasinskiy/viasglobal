@@ -10,7 +10,6 @@ datasource db {
 model Brand {
   id            Int            @id @default(autoincrement())
   name          String         @unique
-  isAnalyzed    Boolean        @default(false)
   asins         ASIN[]
   privateLabels PrivateLabel[]
   createdAt     DateTime       @default(now())

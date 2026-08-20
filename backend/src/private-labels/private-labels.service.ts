@@ -3,51 +3,58 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PrivateLabelsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async checkPrivateLabel(brandName: string, manufacturerName: string) {
-    if (!brandName || !manufacturerName) {
+  /**
+   * Проверяет, является ли связка Бренд + Продавец приватным лейблом
+   */
+  async checkPrivateLabel(brandName: string, sellerId: string) {
+    if (!brandName || !sellerId) {
       return { isPrivateLabel: false };
     }
     const record = await this.prisma.privateLabel.findFirst({
       where: {
         brand: { name: { equals: brandName, mode: 'insensitive' } },
-        manufacturer: { name: { equals: manufacturerName, mode: 'insensitive' } }
-      }
+        sellerId: sellerId,
+      },
     });
     return { isPrivateLabel: !!record };
   }
 
-  async addPrivateLabel(brandName: string, manufacturerName: string) {
-    // 1. Upsert Manufacturer
-    const manufacturer = await this.prisma.manufacturer.upsert({
-      where: { name: manufacturerName },
-      update: { isAnalyzed: true },
-      create: { name: manufacturerName, isAnalyzed: true }
+  /**
+   * Добавляет связку Бренд + Продавец (Private Label)
+   */
+  async addPrivateLabel(brandName: string, sellerId: string, sellerName?: string) {
+    // 1. Добавляем или обновляем Продавца (Seller)
+    const seller = await this.prisma.seller.upsert({
+      where: { id: sellerId },
+      update: { name: sellerName || sellerId },
+      create: { id: sellerId, name: sellerName || sellerId },
     });
 
-    // 2. Upsert Brand
+    // 2. Добавляем или находим бренд (Brand)
     const brand = await this.prisma.brand.upsert({
       where: { name: brandName },
-      update: { isAnalyzed: true },
-      create: { name: brandName, isAnalyzed: true }
+      update: {},
+      create: { name: brandName },
     });
 
-    // 3. Upsert PrivateLabel relation
+    // 3. Создаем или обновляем запись PrivateLabel
     const privateLabel = await this.prisma.privateLabel.upsert({
       where: {
-        brandId_manufacturerId: {
+        brandId_sellerId: {
           brandId: brand.id,
-          manufacturerId: manufacturer.id
-        }
+          sellerId: seller.id,
+        },
       },
       update: {},
       create: {
         brandId: brand.id,
-        manufacturerId: manufacturer.id
-      }
+        sellerId: seller.id,
+      },
     });
 
     return privateLabel;
   }
 }
+

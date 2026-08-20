@@ -1,20 +1,17 @@
-import { Controller, Get, Query, Post, Body } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { BrandsService } from './brands.service';
 
 @Controller('brands')
 export class BrandsController {
   constructor(private readonly brandsService: BrandsService) {}
 
+  /**
+   * Проверяет существование бренда в базе данных
+   */
   @Get('check')
   async check(@Query('name') name: string) {
-    if (!name) return { isAnalyzed: false };
-    const status = await this.brandsService.checkBrandAnalyzed(name);
-    return { name, ...status };
-  }
-  
-  @Post('mark-analyzed')
-  async markAnalyzed(@Body('name') name: string) {
-    if (!name) return { error: 'name is required' };
-    return this.brandsService.markAsAnalyzed(name);
+    if (!name) return { exists: false };
+    const brand = await this.brandsService.findByName(name);
+    return { name, exists: !!brand };
   }
 }

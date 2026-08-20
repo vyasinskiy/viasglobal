@@ -5,19 +5,23 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BrandsService {
   constructor(private prisma: PrismaService) {}
 
-  async checkBrandAnalyzed(name: string) {
+  /**
+   * Проверяет наличие бренда в базе данных или создает его при отсутствии
+   */
+  async findOrCreate(name: string) {
     let brand = await this.prisma.brand.findUnique({ where: { name } });
     if (!brand) {
-      brand = await this.prisma.brand.create({ data: { name, isAnalyzed: false } });
+      brand = await this.prisma.brand.create({ data: { name } });
     }
-    return { isAnalyzed: brand.isAnalyzed };
+    return brand;
   }
   
-  async markAsAnalyzed(name: string) {
-    return this.prisma.brand.upsert({
+  /**
+   * Находит бренд по имени
+   */
+  async findByName(name: string) {
+    return this.prisma.brand.findUnique({
       where: { name },
-      update: { isAnalyzed: true },
-      create: { name, isAnalyzed: true },
     });
   }
 }
