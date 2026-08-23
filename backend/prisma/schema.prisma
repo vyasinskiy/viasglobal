@@ -44,6 +44,7 @@ model Seller {
   privateLabels  PrivateLabel[]
   snapshots      SellerSnapshot[]
   productFinders ProductFinder[]
+  keepaExports   KeepaExport[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
@@ -95,6 +96,7 @@ model ASIN {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   productFinders ProductFinder[]
+  keepaExports   KeepaExport[]
 
   @@index([brandId, manufacturerId])
 }
@@ -312,4 +314,12 @@ view AsinView {
   maxBuyPrice Float?
 }
 
+model KeepaExport {
+  id        Int      @id @default(autoincrement())
+  sellerId  String?
+  seller    Seller?  @relation(fields: [sellerId], references: [id])
+  createdAt DateTime @default(now())
+
+  asins     ASIN[]
+}
 

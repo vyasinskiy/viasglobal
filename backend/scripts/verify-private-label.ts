@@ -48,6 +48,37 @@ async function verifyPrivateLabel() {
     console.log(`======================================================\n`);
 
     // --------------------------------------------------------------------------
+    // Шаг 0: Проверка наличия загрузки Keepa для данного продавца
+    // --------------------------------------------------------------------------
+    const targetSeller = await prisma.seller.findFirst({
+      where: {
+        OR: [
+          { id: { equals: sellerParam, mode: 'insensitive' } },
+          { name: { equals: sellerParam, mode: 'insensitive' } },
+        ],
+      },
+    });
+
+    if (targetSeller) {
+      const exportCheck = await prisma.keepaExport.findFirst({
+        where: { sellerId: targetSeller.id },
+      });
+      if (!exportCheck) {
+        console.log(`⚠️ Отдельная загрузка ASIN-ов для продавца "${targetSeller.name}" не найдена.`);
+        console.log(`   Чтобы корректно проанализировать продавца, необходимо загрузить его ассортимент.`);
+        console.log(`   Пожалуйста, загрузите файл через parse-keepa:`);
+        console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>\n`);
+        return;
+      }
+    } else {
+      console.log(`⚠️ Продавец "${sellerParam}" не найден в базе данных или для него не было загрузок.`);
+      console.log(`   Чтобы корректно проанализировать продавца, необходимо загрузить его ассортимент.`);
+      console.log(`   Пожалуйста, загрузите файл через parse-keepa:`);
+      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>\n`);
+      return;
+    }
+
+    // --------------------------------------------------------------------------
     // Шаг 1.1: Проверка наличия связки в таблице PrivateLabel
     // --------------------------------------------------------------------------
     const existingPl = await prisma.privateLabel.findFirst({

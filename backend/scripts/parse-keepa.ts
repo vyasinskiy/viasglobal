@@ -10,7 +10,7 @@ dotenv.config();
 
 const inputFile = process.argv[2];
 if (!inputFile) {
-  console.error('Использование: cd backend && npx tsx ../.agents/skills/parse-keepa/scripts/parse-keepa.ts <путь_к_файлу.xlsx>');
+  console.error('Использование: cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>');
   process.exit(1);
 }
 
@@ -128,6 +128,9 @@ async function main() {
     // 3. Добавляем ASIN-ы и связываем их с брендом и производителем
     let newAsinsCount = 0;
     let newSnapshotsCount = 0;
+    const parsedAsinIds = new Set<number>();
+    const uniqueFileSellerIds = new Set<string>();
+    
     for (const row of rows) {
       const asinCode = row['ASIN']?.toString().trim();
       if (!asinCode) continue;
@@ -162,9 +165,15 @@ async function main() {
         });
         newAsinsCount++;
       }
+      
+      parsedAsinIds.add(currentAsin.id);
 
       // Парсим продавца: извлекаем чистое имя и ID (игнорируя процент рейтинга)
       const { sellerName, sellerId } = parseSellerInfo(buyBoxSeller);
+      
+      if (sellerId) {
+        uniqueFileSellerIds.add(sellerId);
+      }
 
       if (sellerId && sellerName) {
         const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
@@ -789,11 +798,33 @@ async function main() {
       newSnapshotsCount++;
     }
 
+    // 4. Создаем KeepaExport (связываем с продавцом и ASIN-ами)
+    let finalSellerId = null;
+    
+    if (uniqueFileSellerIds.size === 1) {
+      finalSellerId = Array.from(uniqueFileSellerIds)[0];
+      console.log(`\n🔍 Авто-определение продавца: В файле обнаружен только 1 продавец в Buy Box (ID: ${finalSellerId}). Выгрузка привязывается к нему.`);
+    } else if (uniqueFileSellerIds.size > 1) {
+      console.log(`\n🔍 Авто-определение продавца: В файле обнаружено несколько продавцов в Buy Box (${uniqueFileSellerIds.size} шт.). Выгрузка считается общей и не привязывается к конкретному продавцу.`);
+    } else {
+      console.log(`\n🔍 Авто-определение продавца: В файле не обнаружено ни одного продавца в Buy Box. Выгрузка не привязывается к конкретному продавцу.`);
+    }
+
+    const newExport = await prisma.keepaExport.create({
+      data: {
+        sellerId: finalSellerId,
+        asins: {
+          connect: Array.from(parsedAsinIds).map(id => ({ id }))
+        }
+      }
+    });
+
     console.log('\n--- ИТОГИ ---');
     console.log(`Новых Брендов добавлено: ${newBrandsCount}`);
     console.log(`Новых Производителей добавлено: ${newManufacturersCount}`);
     console.log(`Новых ASIN добавлено: ${newAsinsCount}`);
     console.log(`Создано снапшотов ASIN: ${newSnapshotsCount}`);
+    console.log(`Создана запись загрузки KeepaExport (ID: ${newExport.id}), привязано ASIN-ов: ${parsedAsinIds.size}`);
 
   } catch (error: any) {
     console.error(`Произошла ошибка: ${error.message}`);
