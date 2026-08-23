@@ -1,5 +1,5 @@
 To: info@jfabrics.cz
-Subject: Wholesale Inquiry / B2B Cooperation Request — Viasglobal (Spain)
+Subject: Wholesale Inquiry / B2B Cooperation Request - Viasglobal (Spain)
 
 Dear Jerry Fabrics Team,
 
@@ -23,7 +23,7 @@ Could you please provide us with:
 Our company details:
 - Company Name: Viasglobal
 - Legal Form / Representative: Vitalii Iasinskii (Autónomo)
-- EU VAT / Tax ID: ESZ1154366R (Active in VIES / ROI — 0% Intra-EU VAT)
+- EU VAT / Tax ID: ESZ1154366R (Active in VIES / ROI - 0% Intra-EU VAT)
 - Website: https://viasglobal.es
 
 Please find attached our official Company Details Sheet (PDF).

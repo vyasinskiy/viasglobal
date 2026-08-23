@@ -6,3 +6,5 @@
 
 - [`signature/`](file:///Users/usuario/code/viasglobal/other/signature) — HTML-подпись для электронных писем компании (совместимая со старыми почтовыми клиентами Outlook).
 - [`welcome_letter/`](file:///Users/usuario/code/viasglobal/other/welcome_letter) — Шаблон приветственного B2B письма-запроса поставщикам и дистрибьюторам.
+- [`first_call/`](file:///Users/usuario/code/viasglobal/other/first_call) — Скрипты звонков, чек-листы для не-носителей английского и шаблоны ответов на проверочные опросники дистрибьюторов.
+
