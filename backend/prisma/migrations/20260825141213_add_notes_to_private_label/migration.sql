@@ -1,6 +1,8 @@
+-- AlterTable
+ALTER TABLE "PrivateLabel" ADD COLUMN     "notes" TEXT;
+
 -- ==============================================================================
--- Представление: PrivateLabelView
--- Назначение: Просмотр подтвержденных связок Бренд + Продавец (Private Label).
+-- Представление: PrivateLabelView (Обновлено с полем notes)
 -- ==============================================================================
 
 CREATE OR REPLACE VIEW public."PrivateLabelView" AS

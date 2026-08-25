@@ -231,6 +231,85 @@ describe('Функция БД: get_asin_filter_reason', () => {
     }
   });
 
+  it('должен возвращать DOMINANT_BRAND_SELLER, если продавец удерживает >=80% каталога бренда при наличии 2 выгрузок', async () => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const brand = await tx.brand.create({ data: { name: `${PREFIX}MacroBrand` } });
+        const seller = await tx.seller.create({ data: { id: `${PREFIX}MacroSeller`, name: 'Macro Store' } });
+        const otherSeller = await tx.seller.create({ data: { id: `${PREFIX}OtherSeller`, name: 'Other Store' } });
+
+        // Создаем выгрузки для бренда и продавца
+        await tx.keepaExport.create({ data: { brandId: brand.id } });
+        await tx.keepaExport.create({ data: { sellerId: seller.id } });
+
+        // Создаем 10 ASIN для бренда
+        const asins = [];
+        for (let i = 0; i < 10; i++) {
+          asins.push(await tx.aSIN.create({
+            data: {
+              code: `${PREFIX}ASIN_MACRO_${i}`,
+              brandId: brand.id
+            }
+          }));
+        }
+
+        // Первые 9 ASIN принадлежат продавцу в Buy Box
+        // Даже если на конкретном ASIN 4 победителя и доля топа всего 50% (локально листинг конкурентный)
+        for (let i = 0; i < 9; i++) {
+          await tx.productFinder.create({
+            data: {
+              asinId: asins[i].id,
+              buyBoxSeller: `Macro Store (100%) / ${PREFIX}MacroSeller`,
+              sellerId: seller.id,
+              sellerPercentage: 100,
+              buyBoxTopSeller90Days: 0.50,
+              buyBoxWinnerCount90Days: 4
+            }
+          });
+        }
+
+        // 10-й ASIN у другого продавца
+        await tx.productFinder.create({
+          data: {
+            asinId: asins[9].id,
+            buyBoxSeller: `Other Store / ${PREFIX}OtherSeller`,
+            sellerId: `${PREFIX}OtherSeller`,
+            buyBoxTopSeller90Days: 0.50,
+            buyBoxWinnerCount90Days: 4
+          }
+        });
+
+        // ASIN продавца MacroStore должен отсеяться как DOMINANT_BRAND_SELLER (9 из 10 = 90% >= 80%)
+        const reason = await getFilterReason(asins[0].id, tx);
+        expect(reason).toBe('DOMINANT_BRAND_SELLER');
+
+        throw new Error('ROLLBACK_TEST');
+      });
+    } catch (e: any) {
+      if (e.message !== 'ROLLBACK_TEST') throw e;
+    }
+  });
+
+  it('должен возвращать false в check_brand_seller_dominance и не выбрасывать ошибку, если нет выгрузок Keepa (безопасный режим для сырых данных)', async () => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const brand = await tx.brand.create({ data: { name: `${PREFIX}SafeBrand` } });
+        const seller = await tx.seller.create({ data: { id: `${PREFIX}SafeSeller`, name: 'Safe Store' } });
+
+        // Вызов без выгрузок Keepa должен безопасно возвращать false (не падать с ошибкой)
+        const result: any = await tx.$queryRaw`
+          SELECT public.check_brand_seller_dominance(${brand.id}::INT, ${seller.id}::TEXT, 80::FLOAT) AS is_dominant
+        `;
+
+        expect(result[0].is_dominant).toBe(false);
+
+        throw new Error('ROLLBACK_TEST');
+      });
+    } catch (e: any) {
+      if (e.message !== 'ROLLBACK_TEST') throw e;
+    }
+  });
+
   it('должен возвращать null для реальных данных (DUJUIKE / Pulchlla), существующих в базе', async () => {
     // Find the real ASIN for Pulchlla in DUJUIKE
     const asin = await prisma.aSIN.findFirst({

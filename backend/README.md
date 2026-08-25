@@ -25,7 +25,7 @@
 
 В схеме Prisma и базе данных PostgreSQL созданы представления:
 1. **`AsinView`** — для удобной выборки ASIN со штрихкодом производителя EAN (`asin`, `ean`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
-2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец.
+2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец с подробными заметками анализа (`notes`).
 3. **`WholesaleCandidatesView`** — для сводной группировки товаров по производителям, брендам, продавцам, кодам EAN (`eans`), дистрибьюторам (`distributors`) и отбора кандидатов под оптовую закупку (Wholesale).
 
 Использование в SQL:
@@ -67,6 +67,7 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`BUYBOX_MATCH_BRAND`**: продавец BuyBox содержит имя бренда.
 - **`BUYBOX_MATCH_MANUFACTURER`**: продавец BuyBox содержит имя производителя.
 - **`PRIVATE_LABEL`**: подтвержденный приватный лейбл (связка Бренд + Продавец).
+- **`DOMINANT_BRAND_SELLER`**: целевой продавец удерживает Buy Box на >= 80% всех товаров каталога бренда в БД (проверка через хранимую функцию `check_brand_seller_dominance` при наличии обеих выгрузок Keepa).
 - **`FEW_BUYBOX_WINNERS`**: за последние 90 дней в BuyBox побеждало менее 4 продавцов (`buyBoxWinnerCount90Days < 4` или `<= 3`).
 - **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 0.90`; в БД хранится как `0.0..1.0`, функция автоматически конвертирует параметр `90` в `0.90`).
 - **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
@@ -75,6 +76,14 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 
 SQL-функция `calculate_max_buy_price(p_asin_id INT, p_target_margin_pct FLOAT DEFAULT 10.0, p_inbound_shipping FLOAT DEFAULT 0.40, p_vat_rate FLOAT DEFAULT 21.0)`:
 - Вычисляет предельную цену оптовой закупки товара у поставщика (Netto, без НДС) с учетом удержаний Amazon (FBA, Referral Fee 15%), налога IVA 21%, входящей логистики (0.40 €) и целевой маржи (10% по умолчанию).
+
+## Анализ доминирования продавца над брендом (`check_brand_seller_dominance`)
+
+SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEXT, p_dominant_threshold FLOAT DEFAULT 80)`:
+- Проверяет наличие обязательных выгрузок Keepa по бренду и по продавцу в таблице `KeepaExport`.
+- Если хотя бы одна выгрузка отсутствует в базе, функция безопасно возвращает `false` (без выбрасывания ошибок), чтобы не блокировать первичный отбор товаров ASIN на сырых данных.
+- Вычисляет долю листингов бренда, контролируемых целевым продавцом (порог >= 80%).
+- Проверка наличия обеих выгрузок и требование загрузки файлов производятся на этапе детального ручного анализа связки через навык `verify-private-label`.
 
 ## Эталонные файлы SQL-объектов (`prisma/sql/`)
 
@@ -86,6 +95,7 @@ SQL-функция `calculate_max_buy_price(p_asin_id INT, p_target_margin_pct F
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `calculate_max_buy_price.sql`
   - `get_asin_filter_reason.sql`
+  - `check_brand_seller_dominance.sql`
   - `check_probable_private_label.sql`
 
 **Рабочий процесс внесения изменений:**

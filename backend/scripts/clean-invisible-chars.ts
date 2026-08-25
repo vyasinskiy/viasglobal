@@ -35,13 +35,25 @@ async function cleanModel(
       const existingClean = await (prisma[modelName] as any).findUnique({ where: { name: cleanName } });
       
       if (existingClean) {
-        // Merge: Update ASINs to point to the existing clean item
+        // Перепривязываем ASIN к эталонной чистой записи
         await prisma.aSIN.updateMany({
           where: { [relationField]: item.id },
           data: { [relationField]: existingClean.id }
         });
         
-        // Delete the dirty item (unless it's used in PrivateLabel, but let's hope it's not)
+        // Если это бренд, перепривязываем связанные KeepaExport и PrivateLabel
+        if (modelName === 'brand') {
+          await prisma.keepaExport.updateMany({
+            where: { brandId: item.id },
+            data: { brandId: existingClean.id }
+          });
+          await prisma.privateLabel.updateMany({
+            where: { brandId: item.id },
+            data: { brandId: existingClean.id }
+          });
+        }
+
+        // Удаляем дублирующуюся запись
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (prisma[modelName] as any).delete({ where: { id: item.id } });

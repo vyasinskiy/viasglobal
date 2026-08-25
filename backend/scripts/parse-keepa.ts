@@ -89,13 +89,14 @@ async function main() {
     const uniqueManufacturers = new Set<string>();
 
     for (const row of rows) {
-      const asin = row['ASIN'];
-      const brand = row['Brand'];
-      const manufacturer = row['Manufacturer'];
+      // Очищаем строки от невидимых спецсимволов и пробелов
+      const asin = cleanString(row['ASIN']);
+      const brand = cleanString(row['Brand']);
+      const manufacturer = cleanString(row['Manufacturer']);
 
-      if (asin && typeof asin === 'string') uniqueAsins.add(asin.trim());
-      if (brand && typeof brand === 'string') uniqueBrands.add(brand.trim());
-      if (manufacturer && typeof manufacturer === 'string') uniqueManufacturers.add(manufacturer.trim());
+      if (asin) uniqueAsins.add(asin);
+      if (brand) uniqueBrands.add(brand);
+      if (manufacturer) uniqueManufacturers.add(manufacturer);
     }
 
     console.log(`\nУникальных ASIN: ${uniqueAsins.size}`);
@@ -130,6 +131,8 @@ async function main() {
     let newSnapshotsCount = 0;
     const parsedAsinIds = new Set<number>();
     const uniqueFileSellerIds = new Set<string>();
+    const sellerFrequency = new Map<string, number>();
+    const brandFrequency = new Map<string, number>();
     
     for (const row of rows) {
       const asinCode = row['ASIN']?.toString().trim();
@@ -173,6 +176,10 @@ async function main() {
       
       if (sellerId) {
         uniqueFileSellerIds.add(sellerId);
+        sellerFrequency.set(sellerId, (sellerFrequency.get(sellerId) || 0) + 1);
+      }
+      if (brandName) {
+        brandFrequency.set(brandName, (brandFrequency.get(brandName) || 0) + 1);
       }
 
       if (sellerId && sellerName) {
@@ -798,21 +805,49 @@ async function main() {
       newSnapshotsCount++;
     }
 
-    // 4. Создаем KeepaExport (связываем с продавцом и ASIN-ами)
-    let finalSellerId = null;
+    // 4. Создаем KeepaExport (связываем с продавцом, брендом и ASIN-ами)
+    let finalSellerId: string | null = null;
+    let finalBrandId: number | null = null;
+    const totalRowsCount = rows.length;
     
-    if (uniqueFileSellerIds.size === 1) {
-      finalSellerId = Array.from(uniqueFileSellerIds)[0];
-      console.log(`\n🔍 Авто-определение продавца: В файле обнаружен только 1 продавец в Buy Box (ID: ${finalSellerId}). Выгрузка привязывается к нему.`);
-    } else if (uniqueFileSellerIds.size > 1) {
-      console.log(`\n🔍 Авто-определение продавца: В файле обнаружено несколько продавцов в Buy Box (${uniqueFileSellerIds.size} шт.). Выгрузка считается общей и не привязывается к конкретному продавцу.`);
+    // Авто-определение продавца (если продавец удерживает >= 80% товаров в файле или единственный)
+    if (sellerFrequency.size > 0 && totalRowsCount > 0) {
+      const sortedSellers = Array.from(sellerFrequency.entries()).sort((a, b) => b[1] - a[1]);
+      const [topSellerId, topSellerCount] = sortedSellers[0];
+      const sellerPct = ((topSellerCount / totalRowsCount) * 100).toFixed(1);
+      
+      if (topSellerCount / totalRowsCount >= 0.80 || uniqueFileSellerIds.size === 1) {
+        finalSellerId = topSellerId;
+        const sellerObj = await prisma.seller.findUnique({ where: { id: topSellerId } });
+        console.log(`\n🔍 Авто-определение продавца: Продавец "${sellerObj?.name || topSellerId}" удерживает ${sellerPct}% позиций (${topSellerCount} из ${totalRowsCount}). Выгрузка привязана к продавцу.`);
+      } else {
+        console.log(`\n🔍 Авто-определение продавца: В файле обнаружено несколько продавцов в Buy Box (${uniqueFileSellerIds.size} шт.), ни один не превышает 80%. Выгрузка не привязана к продавцу.`);
+      }
     } else {
-      console.log(`\n🔍 Авто-определение продавца: В файле не обнаружено ни одного продавца в Buy Box. Выгрузка не привязывается к конкретному продавцу.`);
+      console.log(`\n🔍 Авто-определение продавца: В файле не обнаружено продавцов в Buy Box.`);
+    }
+
+    // Авто-определение бренда (если бренд составляет >= 80% товаров в файле)
+    if (brandFrequency.size > 0 && totalRowsCount > 0) {
+      const sortedBrands = Array.from(brandFrequency.entries()).sort((a, b) => b[1] - a[1]);
+      const [topBrandName, topBrandCount] = sortedBrands[0];
+      const brandPct = ((topBrandCount / totalRowsCount) * 100).toFixed(1);
+      
+      if (topBrandCount / totalRowsCount >= 0.80) {
+        const brandObj = await prisma.brand.findUnique({ where: { name: topBrandName } });
+        if (brandObj) {
+          finalBrandId = brandObj.id;
+          console.log(`🔍 Авто-определение бренда: Бренд "${topBrandName}" составляет ${brandPct}% позиций (${topBrandCount} из ${totalRowsCount}). Выгрузка привязана к бренду.`);
+        }
+      } else {
+        console.log(`🔍 Авто-определение бренда: В файле содержится множество брендов (${brandFrequency.size} шт.), ни один не превышает 80%. Выгрузка не привязана к бренду.`);
+      }
     }
 
     const newExport = await prisma.keepaExport.create({
       data: {
         sellerId: finalSellerId,
+        brandId: finalBrandId,
         asins: {
           connect: Array.from(parsedAsinIds).map(id => ({ id }))
         }

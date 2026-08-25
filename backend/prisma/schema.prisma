@@ -12,6 +12,7 @@ model Brand {
   name          String         @unique
   asins         ASIN[]
   privateLabels PrivateLabel[]
+  keepaExports  KeepaExport[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -26,9 +27,10 @@ model Manufacturer {
 }
 
 model PrivateLabel {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   brandId  Int
   sellerId String
+  notes    String?
 
   brand     Brand    @relation(fields: [brandId], references: [id])
   seller    Seller   @relation(fields: [sellerId], references: [id])
@@ -300,6 +302,7 @@ view PrivateLabelView {
   sellerId   String
   brandName  String
   sellerName String
+  notes      String?
   createdAt  DateTime
   updatedAt  DateTime
 }
@@ -317,7 +320,9 @@ view AsinView {
 model KeepaExport {
   id        Int      @id @default(autoincrement())
   sellerId  String?
+  brandId   Int?
   seller    Seller?  @relation(fields: [sellerId], references: [id])
+  brand     Brand?   @relation(fields: [brandId], references: [id])
   createdAt DateTime @default(now())
 
   asins     ASIN[]

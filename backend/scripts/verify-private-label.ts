@@ -48,7 +48,39 @@ async function verifyPrivateLabel() {
     console.log(`======================================================\n`);
 
     // --------------------------------------------------------------------------
-    // Шаг 0: Проверка наличия загрузки Keepa для данного продавца
+    // Шаг 0.1: Поиск бренда и проверка наличия отдельной выгрузки по бренду
+    // --------------------------------------------------------------------------
+    const targetBrand = await prisma.brand.findFirst({
+      where: { name: { equals: brandName, mode: 'insensitive' } },
+    });
+
+    if (!targetBrand) {
+      console.log(`⚠️ Бренд "${brandName}" не найден в базе данных.`);
+      console.log(`   Чтобы корректно проанализировать бренд, необходимо загрузить его каталог из Keepa:`);
+      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
+      return;
+    }
+
+    let brandExportCheck = null;
+    try {
+      brandExportCheck = await prisma.keepaExport.findFirst({
+        where: { brandId: targetBrand.id },
+      });
+    } catch {
+      // Если колонка brandId еще не создана в БД, считаем, что выгрузка по бренду отсутствует
+      brandExportCheck = null;
+    }
+
+    if (!brandExportCheck) {
+      console.log(`⚠️ Отдельная выгрузка каталога для бренда "${targetBrand.name}" не найдена в таблице KeepaExport.`);
+      console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина).`);
+      console.log(`   Пожалуйста, выгрузите полный каталог бренда из Keepa (Product Finder -> Brand: "${targetBrand.name}") и загрузите:`);
+      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
+      return;
+    }
+
+    // --------------------------------------------------------------------------
+    // Шаг 0.2: Поиск продавца и проверка наличия отдельной выгрузки по продавцу
     // --------------------------------------------------------------------------
     const targetSeller = await prisma.seller.findFirst({
       where: {
@@ -59,22 +91,27 @@ async function verifyPrivateLabel() {
       },
     });
 
-    if (targetSeller) {
-      const exportCheck = await prisma.keepaExport.findFirst({
+    if (!targetSeller) {
+      console.log(`⚠️ Продавец "${sellerParam}" не найден в базе данных.`);
+      console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa и загрузите её:`);
+      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
+      return;
+    }
+
+    let sellerExportCheck = null;
+    try {
+      sellerExportCheck = await prisma.keepaExport.findFirst({
         where: { sellerId: targetSeller.id },
       });
-      if (!exportCheck) {
-        console.log(`⚠️ Отдельная загрузка ASIN-ов для продавца "${targetSeller.name}" не найдена.`);
-        console.log(`   Чтобы корректно проанализировать продавца, необходимо загрузить его ассортимент.`);
-        console.log(`   Пожалуйста, загрузите файл через parse-keepa:`);
-        console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>\n`);
-        return;
-      }
-    } else {
-      console.log(`⚠️ Продавец "${sellerParam}" не найден в базе данных или для него не было загрузок.`);
-      console.log(`   Чтобы корректно проанализировать продавца, необходимо загрузить его ассортимент.`);
-      console.log(`   Пожалуйста, загрузите файл через parse-keepa:`);
-      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>\n`);
+    } catch {
+      sellerExportCheck = null;
+    }
+
+    if (!sellerExportCheck) {
+      console.log(`⚠️ Отдельная выгрузка витрины для продавца "${targetSeller.name}" не найдена в таблице KeepaExport.`);
+      console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина).`);
+      console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa (Product Finder -> Seller: "${targetSeller.name}") и загрузите:`);
+      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
       return;
     }
 
@@ -83,11 +120,8 @@ async function verifyPrivateLabel() {
     // --------------------------------------------------------------------------
     const existingPl = await prisma.privateLabel.findFirst({
       where: {
-        brand: { name: { equals: brandName, mode: 'insensitive' } },
-        OR: [
-          { sellerId: { equals: sellerParam, mode: 'insensitive' } },
-          { seller: { name: { equals: sellerParam, mode: 'insensitive' } } },
-        ],
+        brandId: targetBrand.id,
+        sellerId: targetSeller.id,
       },
       include: {
         brand: true,
@@ -106,31 +140,19 @@ async function verifyPrivateLabel() {
     // Шаг 1.2: Текстовая проверка по совпадению имен (Brand / Manufacturer vs Seller)
     // --------------------------------------------------------------------------
     const cleanBrand = brandName.toLowerCase().replace(/[^a-z0-9а-яё]/gi, '');
-    const cleanSeller = sellerParam.toLowerCase().replace(/[^a-z0-9а-яё]/gi, '');
+    const cleanSeller = targetSeller.name.toLowerCase().replace(/[^a-z0-9а-яё]/gi, '');
 
     if (cleanBrand.length > 2 && (cleanSeller.includes(cleanBrand) || cleanBrand.includes(cleanSeller))) {
       console.log(`✅ [РЕЗУЛЬТАТ] ПОДТВЕРЖДЕНО КАК PRIVATE LABEL (по совпадению названий):`);
-      console.log(`   Имя продавца "${sellerParam}" содержит название бренда "${brandName}".`);
+      console.log(`   Имя продавца "${targetSeller.name}" содержит название бренда "${brandName}".`);
       console.log(`   Рекомендуется зафиксировать связку в БД через навык add-private-label.\n`);
     }
 
     // --------------------------------------------------------------------------
-    // Шаг 2: Поиск бренда и товаров в базе данных
+    // Шаг 2: Поиск товаров бренда и их последних снапшотов ProductFinder
     // --------------------------------------------------------------------------
-    const brand = await prisma.brand.findFirst({
-      where: { name: { equals: brandName, mode: 'insensitive' } },
-    });
-
-    if (!brand) {
-      console.log(`⚠️ Бренд "${brandName}" не найден в базе данных.`);
-      console.log(`   Если у вас есть выгрузка Keepa для этого продавца, предварительно загрузите её:`);
-      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>\n`);
-      return;
-    }
-
-    // Ищем товары бренда и их последние снапшоты ProductFinder
     const asins = await prisma.aSIN.findMany({
-      where: { brandId: brand.id },
+      where: { brandId: targetBrand.id },
       include: {
         productFinders: {
           orderBy: { createdAt: 'desc' },
@@ -141,7 +163,7 @@ async function verifyPrivateLabel() {
 
     if (asins.length === 0) {
       console.log(`⚠️ В базе данных нет товаров (ASIN) для бренда "${brandName}".`);
-      console.log(`   Загрузите выгрузку продавца через parse-keepa для проведения анализа.\n`);
+      console.log(`   Загрузите выгрузку бренда через parse-keepa для проведения анализа.\n`);
       return;
     }
 
@@ -223,7 +245,7 @@ async function verifyPrivateLabel() {
     const singleSellerPct = (singleSellerItems / totalBrandItems) * 100;
     const buyBoxWinPct = (buyBoxWins / totalBrandItems) * 100;
 
-    console.log(`📊 Статистика по каталогу бренда "${brand.name}" в БД:`);
+    console.log(`📊 Статистика по каталогу бренда "${targetBrand.name}" в БД:`);
     console.log(`   • Всего листингов бренда: ${totalBrandItems}`);
     console.log(`   • Листингов с единственным продавцом: ${singleSellerItems} (${singleSellerPct.toFixed(1)}%) [порог > 50%]`);
     console.log(`   • Листингов с удержанием BuyBox целевым продавцом: ${buyBoxWins} (${buyBoxWinPct.toFixed(1)}%) [порог > 90%]`);
