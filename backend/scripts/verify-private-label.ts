@@ -110,7 +110,7 @@ async function verifyPrivateLabel() {
     if (!sellerExportCheck) {
       console.log(`⚠️ Отдельная выгрузка витрины для продавца "${targetSeller.name}" не найдена в таблице KeepaExport.`);
       console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина).`);
-      console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa (Product Finder -> Seller: "${targetSeller.name}") и загрузите:`);
+      console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa (Product Finder -> Seller: "${targetSeller.name}" / Seller ID: "${targetSeller.id}") и загрузите:`);
       console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
       return;
     }
@@ -344,8 +344,8 @@ async function verifyPrivateLabel() {
     } else {
       console.log(`❌ [РЕЗУЛЬТАТ] НЕТ ПОДТВЕРЖДЕНИЯ Private Label: Это подтвержденный WHOLESALE (оптовая модель).`);
       console.log(`   Листинги бренда распределены между несколькими независимыми продавцами и имеют здоровую конкуренцию.`);
-      console.log(`\n💡 Рекомендация: Бренд "${brand.name}" подходит для оптовых закупок.`);
-      console.log(`👉 Вы можете найти официальных B2B дистрибьюторов в Европе (произнесите: "найди дистрибьютора для бренда ${brand.name}").`);
+      console.log(`\n💡 Рекомендация: Бренд "${targetBrand.name}" подходит для оптовых закупок.`);
+      console.log(`👉 Вы можете найти официальных B2B дистрибьюторов в Европе (произнесите: "найди дистрибьютора для бренда ${targetBrand.name}").`);
     }
     console.log(`------------------------------------------------------\n`);
 
