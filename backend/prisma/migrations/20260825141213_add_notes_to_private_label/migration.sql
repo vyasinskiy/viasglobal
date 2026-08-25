@@ -5,7 +5,9 @@ ALTER TABLE "PrivateLabel" ADD COLUMN     "notes" TEXT;
 -- Представление: PrivateLabelView (Обновлено с полем notes)
 -- ==============================================================================
 
-CREATE OR REPLACE VIEW public."PrivateLabelView" AS
+DROP VIEW IF EXISTS public."PrivateLabelView";
+
+CREATE VIEW public."PrivateLabelView" AS
 SELECT
   -- Идентификатор связки
   pl.id,

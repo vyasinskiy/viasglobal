@@ -3,7 +3,9 @@
 -- Назначение: Просмотр подтвержденных связок Бренд + Продавец (Private Label).
 -- ==============================================================================
 
-CREATE OR REPLACE VIEW public."PrivateLabelView" AS
+DROP VIEW IF EXISTS public."PrivateLabelView";
+
+CREATE VIEW public."PrivateLabelView" AS
 SELECT
   -- Идентификатор связки
   pl.id,
