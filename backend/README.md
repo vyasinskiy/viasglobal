@@ -68,7 +68,7 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`BUYBOX_MATCH_MANUFACTURER`**: продавец BuyBox содержит имя производителя.
 - **`PRIVATE_LABEL`**: подтвержденный приватный лейбл (связка Бренд + Продавец).
 - **`FEW_BUYBOX_WINNERS`**: за последние 90 дней в BuyBox побеждало менее 4 продавцов (`buyBoxWinnerCount90Days < 4` или `<= 3`).
-- **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 90`).
+- **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 0.90`; в БД хранится как `0.0..1.0`, функция автоматически конвертирует параметр `90` в `0.90`).
 - **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
 
 ## Расчет максимальной цены закупки (`calculate_max_buy_price`)

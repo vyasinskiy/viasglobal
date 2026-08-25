@@ -194,7 +194,7 @@ describe('Функция БД: get_asin_filter_reason', () => {
           }));
         }
 
-        // Give the first 9 ASINs to the dominant seller (90% dominance)
+        // Give the first 9 ASINs to the dominant seller (95% dominance)
         for (let i = 0; i < 9; i++) {
           await tx.productFinder.create({
             data: {
@@ -202,7 +202,7 @@ describe('Функция БД: get_asin_filter_reason', () => {
               buyBoxSeller: `DominantStore (100%) / ${PREFIX}DOM123`,
               sellerId: domSeller.id,
               sellerPercentage: 100,
-              buyBoxTopSeller90Days: 100,
+              buyBoxTopSeller90Days: 0.95,
               buyBoxWinnerCount90Days: 5
             }
           });
@@ -215,7 +215,7 @@ describe('Функция БД: get_asin_filter_reason', () => {
             buyBoxSeller: `OtherStore (100%) / ${PREFIX}OTHER123`,
             sellerId: otherSeller.id,
             sellerPercentage: 100,
-            buyBoxTopSeller90Days: 100,
+            buyBoxTopSeller90Days: 0.95,
             buyBoxWinnerCount90Days: 5
           }
         });
