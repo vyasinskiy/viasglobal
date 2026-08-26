@@ -83,7 +83,11 @@ export class KeepaService {
 
     try {
       const domain = 4; // Испания по умолчанию
-      const url = `https://api.keepa.com/product?key=${apiKey}&domain=${domain}&asin=${asinToFetch}&offers=20`;
+      let url = `https://api.keepa.com/product?key=${apiKey}&domain=${domain}&asin=${asinToFetch}`;
+      
+      if (process.env.KEEPA_FETCH_OFFERS === 'true') {
+        url += '&offers=20';
+      }
       
       const response = await fetch(url);
       const data = await response.json();

@@ -9,6 +9,12 @@ export class KeepaController {
     private readonly prisma: PrismaService
   ) {}
 
+  @Post('populate-queue')
+  async triggerPopulateQueue() {
+    await this.keepaService.populateQueue();
+    return { message: 'Queue populated successfully from WholesaleCandidatesView' };
+  }
+
   @Post('enqueue/:asin')
   async enqueueAndFetch(@Param('asin') asin: string) {
     if (!asin) {
