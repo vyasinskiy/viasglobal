@@ -328,3 +328,93 @@ model KeepaExport {
   asins     ASIN[]
 }
 
+
+// ==========================================
+// KEEPA API DATA PROCESSING
+// ==========================================
+
+model WholesaleAsinQueue {
+  id          Int      @id @default(autoincrement())
+  asin        String   @unique
+  priority    Int      @default(0)
+  addedAt     DateTime @default(now())
+}
+
+model KeepaApiRawResponse {
+  asin        String   @id
+  rawPayload  Json?
+  fetchedAt   DateTime?
+  expiresAt   DateTime?
+  isProcessed Boolean  @default(false)
+  error       String?
+}
+
+model KeepaApiProcessedData {
+  asin               String   @id
+  
+  // Идентификация
+  title              String?
+  brand              String?
+  manufacturer       String?
+  
+  // Дополнительная Идентификация (как в ProductFinder)
+  model              String?
+  color              String?
+  size               String?
+  style              String?
+  pattern            String?
+  material           String?
+  itemType           String?
+
+  // Бренд-Стор
+  brandStoreName     String?
+  brandStoreUrlName  String?
+
+  // Характеристики
+  isAdultProduct     Boolean?
+  isHeatSensitive    Boolean?
+  isEligibleForTradeIn Boolean?
+  hasReviews         Boolean?
+
+  // Габариты упаковки (мм, граммы)
+  packageLength      Float?
+  packageWidth       Float?
+  packageHeight      Float?
+  packageWeight      Float?
+  sizeTier           String?
+  
+  // Габариты самого товара (мм, граммы)
+  itemLength         Float?
+  itemWidth          Float?
+  itemHeight         Float?
+  itemWeight         Float?
+  
+  // Финансы и комиссии
+  fbaFee             Float?
+  pickAndPackFee     Float?
+  referralFeePercent Float?
+  
+  // Статистика (если запрашивалась)
+  currentSalesRank   Int?
+  avg90SalesRank     Int?
+  monthlySold        Int? // Bought in last month estimate
+  
+  // Категории
+  rootCategory       String?
+  categoryTree       Json?
+  
+  // Списки и нескалярные данные
+  eanList            String[]
+  upcList            String[]
+  gtinList           String[]
+  images             Json?
+  features           String[]
+  offers             Json?
+  buyBoxSellerIdHistory Json?
+  buyBoxEligibleOfferCounts Json?
+  
+  // Вариации
+  variationCSV       String?
+  
+  lastProcessedAt    DateTime @default(now())
+}

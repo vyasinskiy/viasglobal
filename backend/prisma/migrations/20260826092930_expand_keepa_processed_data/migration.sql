@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE "KeepaApiProcessedData" ADD COLUMN     "avg90SalesRank" INTEGER,
+ADD COLUMN     "brand" TEXT,
+ADD COLUMN     "categoryTree" JSONB,
+ADD COLUMN     "currentSalesRank" INTEGER,
+ADD COLUMN     "itemHeight" DOUBLE PRECISION,
+ADD COLUMN     "itemLength" DOUBLE PRECISION,
+ADD COLUMN     "itemWeight" DOUBLE PRECISION,
+ADD COLUMN     "itemWidth" DOUBLE PRECISION,
+ADD COLUMN     "manufacturer" TEXT,
+ADD COLUMN     "monthlySold" INTEGER,
+ADD COLUMN     "pickAndPackFee" DOUBLE PRECISION,
+ADD COLUMN     "rootCategory" INTEGER,
+ADD COLUMN     "title" TEXT,
+ADD COLUMN     "variationCSV" TEXT;

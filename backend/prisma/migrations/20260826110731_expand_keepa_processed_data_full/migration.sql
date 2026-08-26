@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE "KeepaApiProcessedData" ADD COLUMN     "brandStoreName" TEXT,
+ADD COLUMN     "brandStoreUrlName" TEXT,
+ADD COLUMN     "color" TEXT,
+ADD COLUMN     "hasReviews" BOOLEAN,
+ADD COLUMN     "isAdultProduct" BOOLEAN,
+ADD COLUMN     "isEligibleForTradeIn" BOOLEAN,
+ADD COLUMN     "isHeatSensitive" BOOLEAN,
+ADD COLUMN     "itemType" TEXT,
+ADD COLUMN     "material" TEXT,
+ADD COLUMN     "model" TEXT,
+ADD COLUMN     "pattern" TEXT,
+ADD COLUMN     "referralFeePercent" DOUBLE PRECISION,
+ADD COLUMN     "size" TEXT,
+ADD COLUMN     "style" TEXT;
