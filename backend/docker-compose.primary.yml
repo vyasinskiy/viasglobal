@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  db:
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
+    restart: always
+    environment:
+      POSTGRES_USER: viasuser
+      POSTGRES_PASSWORD: viaspassword
+      POSTGRES_DB: viasglobal_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init-primary.sh:/docker-entrypoint-initdb.d/init-primary.sh
+    command: 
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=plugin_debugger"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "max_wal_senders=3"
+      - "-c"
+      - "max_replication_slots=3"
+      - "-c"
+      - "max_slot_wal_keep_size=5GB"
+
+  backend:
+    build: .
+    restart: always
+    ports:
+      - "3001:3000"
+    env_file: .env
+    environment:
+      DATABASE_URL: "postgresql://viasuser:viaspassword@db:5432/viasglobal_db?schema=public"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

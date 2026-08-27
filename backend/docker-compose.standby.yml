@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  db:
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
+    restart: always
+    environment:
+      POSTGRES_USER: viasuser
+      POSTGRES_PASSWORD: viaspassword
+      POSTGRES_DB: viasglobal_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/entrypoint-standby.sh:/usr/local/bin/entrypoint-standby.sh
+    entrypoint: ["bash", "/usr/local/bin/entrypoint-standby.sh"]
+    command: 
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=plugin_debugger"
+
+  backend:
+    build: .
+    restart: always
+    ports:
+      - "3001:3000"
+    env_file: .env
+    environment:
+      # Важно: Парсер на Маке должен писать данные в БД на ПК, так как реплика работает только на чтение.
+      DATABASE_URL: "postgresql://viasuser:viaspassword@100.92.50.18:5432/viasglobal_db?schema=public"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
