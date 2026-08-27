@@ -1,8 +1,8 @@
 .PHONY: backup test db-reset redeploy-back deploy-huawei
 
 backup:
-	@echo "Запуск бэкапа базы данных..."
-	@cd backend && npm run backup
+	@echo "Запуск бэкапа базы данных на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && bash scripts/backup.sh"
 
 test:
 	@echo "Запуск всех тестов..."
