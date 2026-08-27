@@ -9,9 +9,10 @@ export class BrandsService {
    * Проверяет наличие бренда в базе данных или создает его при отсутствии
    */
   async findOrCreate(name: string) {
-    let brand = await this.prisma.brand.findUnique({ where: { name } });
+    const normalized = name.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim().toUpperCase();
+    let brand = await this.prisma.brand.findUnique({ where: { name: normalized } });
     if (!brand) {
-      brand = await this.prisma.brand.create({ data: { name } });
+      brand = await this.prisma.brand.create({ data: { name: normalized } });
     }
     return brand;
   }
@@ -20,8 +21,9 @@ export class BrandsService {
    * Находит бренд по имени
    */
   async findByName(name: string) {
+    const normalized = name.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim().toUpperCase();
     return this.prisma.brand.findUnique({
-      where: { name },
+      where: { name: normalized },
     });
   }
 }

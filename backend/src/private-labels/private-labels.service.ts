@@ -12,9 +12,10 @@ export class PrivateLabelsService {
     if (!brandName || !sellerId) {
       return { isPrivateLabel: false };
     }
+    const normalizedBrand = brandName.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim().toUpperCase();
     const record = await this.prisma.privateLabel.findFirst({
       where: {
-        brand: { name: { equals: brandName, mode: 'insensitive' } },
+        brand: { name: normalizedBrand },
         sellerId: sellerId,
       },
     });
@@ -32,11 +33,13 @@ export class PrivateLabelsService {
       create: { id: sellerId, name: sellerName || sellerId },
     });
 
+    const normalizedBrand = brandName.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim().toUpperCase();
+
     // 2. Добавляем или находим бренд (Brand)
     const brand = await this.prisma.brand.upsert({
-      where: { name: brandName },
+      where: { name: normalizedBrand },
       update: {},
-      create: { name: brandName },
+      create: { name: normalizedBrand },
     });
 
     // 3. Создаем или обновляем запись PrivateLabel

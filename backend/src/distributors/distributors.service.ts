@@ -20,8 +20,9 @@ export class DistributorsService {
     brandName?: string;
   }) {
     // 1. Создаем или обновляем дистрибьютора
+    const normalizedName = data.name.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim().toUpperCase();
     const distributor = await this.prisma.distributor.upsert({
-      where: { name: data.name },
+      where: { name: normalizedName },
       update: {
         website: data.website,
         email: data.email,
@@ -32,7 +33,7 @@ export class DistributorsService {
         lastContactAt: data.status ? new Date() : undefined,
       },
       create: {
-        name: data.name,
+        name: normalizedName,
         website: data.website,
         email: data.email,
         phone: data.phone,
@@ -45,10 +46,11 @@ export class DistributorsService {
 
     // 2. Если передан бренд, сохраняем его в таблице Brand
     if (data.brandName) {
+      const normalizedBrand = data.brandName.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim().toUpperCase();
       await this.prisma.brand.upsert({
-        where: { name: data.brandName },
+        where: { name: normalizedBrand },
         update: {},
-        create: { name: data.brandName },
+        create: { name: normalizedBrand },
       });
     }
 

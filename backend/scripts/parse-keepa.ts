@@ -31,6 +31,13 @@ function cleanString(str: string | undefined | null): string | null {
   return str.toString().replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim();
 }
 
+// Нормализуем имена брендов и производителей, чтобы избежать дубликатов из-за регистра
+function normalizeEntityName(str: string | undefined | null): string | null {
+  const clean = cleanString(str);
+  if (!clean) return null;
+  return clean.toUpperCase();
+}
+
 /**
  * Парсит строку продавца из Keepa (например: "paramount city (80%) / A2125XITGCFM0Q" или "Seller Name / A1234567").
  * Извлекает только чистое название продавца (без рейтинга в процентах) и его Seller ID.
@@ -91,8 +98,8 @@ async function main() {
     for (const row of rows) {
       // Очищаем строки от невидимых спецсимволов и пробелов
       const asin = cleanString(row['ASIN']);
-      const brand = cleanString(row['Brand']);
-      const manufacturer = cleanString(row['Manufacturer']);
+      const brand = normalizeEntityName(row['Brand']);
+      const manufacturer = normalizeEntityName(row['Manufacturer']);
 
       if (asin) uniqueAsins.add(asin);
       if (brand) uniqueBrands.add(brand);
@@ -138,8 +145,8 @@ async function main() {
       const asinCode = row['ASIN']?.toString().trim();
       if (!asinCode) continue;
 
-      const brandName = cleanString(row['Brand']);
-      const manufacturerName = cleanString(row['Manufacturer']);
+      const brandName = normalizeEntityName(row['Brand']);
+      const manufacturerName = normalizeEntityName(row['Manufacturer']);
       const buyBoxSeller = cleanString(row['Buy Box: Buy Box Seller']);
 
       let currentAsin = await prisma.aSIN.findUnique({ where: { code: asinCode } });
@@ -616,10 +623,10 @@ async function main() {
     if (row['Type'] !== undefined && row['Type'] !== null) snapshotData.type = String(row['Type']);
 
     // Manufacturer
-    if (row['Manufacturer'] !== undefined && row['Manufacturer'] !== null) snapshotData.manufacturer = String(row['Manufacturer']);
+    if (row['Manufacturer'] !== undefined && row['Manufacturer'] !== null) snapshotData.manufacturer = normalizeEntityName(row['Manufacturer']);
 
     // Brand
-    if (row['Brand'] !== undefined && row['Brand'] !== null) snapshotData.brand = String(row['Brand']);
+    if (row['Brand'] !== undefined && row['Brand'] !== null) snapshotData.brand = normalizeEntityName(row['Brand']);
 
     // Brand Store Name
     if (row['Brand Store Name'] !== undefined && row['Brand Store Name'] !== null) snapshotData.brandStoreName = String(row['Brand Store Name']);
