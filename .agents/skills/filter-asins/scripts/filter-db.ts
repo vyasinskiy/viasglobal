@@ -10,7 +10,7 @@ if (!inputFile) {
 
 async function checkPrivateLabel(brandName: string, manufacturerName: string) {
   try {
-    const res = await fetch(`http://localhost:3001/private-labels/check?brandName=${encodeURIComponent(brandName)}&manufacturerName=${encodeURIComponent(manufacturerName)}`);
+    const res = await fetch(`http://100.92.50.18:3001/private-labels/check?brandName=${encodeURIComponent(brandName)}&manufacturerName=${encodeURIComponent(manufacturerName)}`);
     if (res.ok) {
       return await res.json();
     }

@@ -38,7 +38,7 @@ description: Генерирует скрипт миграции данных д�
 
    const connectionString =
      process.env.DATABASE_URL ||
-     'postgresql://viasuser:viaspassword@localhost:5432/viasglobal_db?schema=public';
+     'postgresql://viasuser:viaspassword@100.92.50.18:5432/viasglobal_db?schema=public';
 
    const pool = new Pool({ connectionString });
    const adapter = new PrismaPg(pool);
