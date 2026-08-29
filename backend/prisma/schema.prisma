@@ -317,6 +317,15 @@ view AsinView {
   maxBuyPrice Float?
 }
 
+view KeepaExportView {
+  id         Int      @unique
+  brandName  String?
+  sellerName String?
+  createdAt  DateTime
+  brandId    Int?
+  sellerId   String?
+}
+
 model KeepaExport {
   id        Int      @id @default(autoincrement())
   sellerId  String?
