@@ -125,10 +125,18 @@ export class AnalysisService {
         select: { tags: true },
       });
 
-      if (asinRecord && !asinRecord.tags.includes(tagToAdd)) {
+      // Если ASIN найден, мы можем просто использовать connectOrCreate для связи тега.
+      if (asinRecord) {
         await this.prisma.aSIN.update({
           where: { code: asin },
-          data: { tags: { push: tagToAdd } },
+          data: {
+            tags: {
+              connectOrCreate: {
+                where: { name: tagToAdd },
+                create: { name: tagToAdd },
+              },
+            },
+          },
         });
         this.logger.log(`Присвоен тег ${tagToAdd} для ASIN ${asin}`);
       }

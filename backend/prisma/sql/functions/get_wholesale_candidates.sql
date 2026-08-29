@@ -51,7 +51,12 @@ BEGIN
     LEFT JOIN "Distributor" d ON ad."B" = d.id
     WHERE s."salesRankCurrent" >= 1 AND s."salesRankCurrent" <= p_max_bsr
       AND (s."buyBoxAmazon90Days" IS NULL OR s."buyBoxAmazon90Days" = '' OR CAST(s."buyBoxAmazon90Days" AS FLOAT) <= p_max_amazon_buybox)
-      AND NOT ('DEAD_VARIATION' = ANY(a.tags) OR 'MISSING_VARIATION' = ANY(a.tags))
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "_ASINToTag" at
+        JOIN "Tag" t ON t.id = at."B"
+        WHERE at."A" = a.id AND t.name IN ('DEAD_VARIATION', 'MISSING_VARIATION')
+      )
     GROUP BY 
       m.name, b.name, s.name, public.get_asin_filter_reason(a.id), a."brandId", s."sellerId"
     ORDER BY 
