@@ -21,6 +21,12 @@ SELECT * FROM "WholesaleCandidatesView";
 const asins = await prisma.asinView.findMany();
 ```
 
+## Управление схемой БД (Prisma Migrations)
+
+> [!IMPORTANT]
+> При выполнении команды `npx prisma migrate dev` изменения схемы применяются к базе данных, указанной в переменной окружения `DATABASE_URL` в файле `backend/.env`. 
+> В текущей конфигурации БД находится на удаленном сервере (Huawei) в сети Tailscale (например, IP `100.92.50.18`), а не на вашем локальном компьютере.
+
 ## Миграции данных (Data Migrations)
 
 Скрипты разового наполнения и связывания сущностей в БД размещаются в папке `backend/prisma/data-migrations/`:
