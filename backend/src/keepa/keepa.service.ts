@@ -128,9 +128,16 @@ export class KeepaService {
         return;
       }
 
-      // Вычисляем expiresAt (допустим, 30 дней)
+      // Проверяем, не закончились ли токены (с offers=20 запрос стоит 3 токена)
+      if (data.tokensLeft === 0 || (data.tokensLeft !== undefined && data.tokensLeft < 3 && data.tokensConsumed === 0 && !data.products)) {
+        this.logger.warn(`Лимит токенов Keepa исчерпан (осталось: ${data.tokensLeft}). Очередь ставится на паузу до восстановления баланса.`);
+        // Не удаляем ASIN из очереди, чтобы попробовать снова позже
+        return;
+      }
+
+
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
+      expiresAt.setDate(expiresAt.getDate() + 14); // Кэшируем на 14 дней
 
       // Успешно получили данные
       // Keepa возвращает массив продуктов в data.products. Для каждого ASIN находим свой продукт и сохраняем
