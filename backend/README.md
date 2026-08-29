@@ -60,6 +60,17 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`DOMINANT_BUY_BOX_SELLER`**: топовый продавец удерживал BuyBox 90%+ времени за 90 дней (`buyBoxTopSeller90Days >= 0.90`; в БД хранится как `0.0..1.0`, функция автоматически конвертирует параметр `90` в `0.90`).
 - **`NULL`**: товар полностью удовлетворяет критериям оптовой закупки.
 
+## Тегирование ASIN (ASIN Tags)
+
+Для выявления "мертвых" товаров или временно выпавших из продажи вариаций в системе реализовано автоматическое тегирование.
+Когда скрипт обновляет данные по ASIN через Keepa API, товар помещается в очередь `AsinAnalysisQueue`. 
+Независимый воркер (`AnalysisService`) обрабатывает эту очередь:
+- Анализирует историю продавцов в Buy Box (`buyBoxSellerIdHistory`).
+- **`DEAD_VARIATION`**: ASIN является вариацией и не имел активных продавцов в Buy Box более **6 месяцев**.
+- **`MISSING_VARIATION`**: ASIN является вариацией и не имел активных продавцов в Buy Box более **3 месяцев** (но менее 6 месяцев). Это потенциальные кандидаты на эксклюзивное восстановление продаж.
+
+Эти теги автоматически исключают товары из выдачи оптовых кандидатов (`WholesaleCandidatesView`).
+
 ## Расчет максимальной цены закупки (`calculate_max_buy_price`)
 
 SQL-функция `calculate_max_buy_price(p_asin_id INT, p_target_margin_pct FLOAT DEFAULT 10.0, p_inbound_shipping FLOAT DEFAULT 0.40, p_vat_rate FLOAT DEFAULT 21.0)`:

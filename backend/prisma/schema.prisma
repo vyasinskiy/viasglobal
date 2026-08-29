@@ -99,6 +99,7 @@ model ASIN {
   updatedAt      DateTime        @updatedAt
   productFinders ProductFinder[]
   keepaExports   KeepaExport[]
+  tags           String[]        @default([])
 
   @@index([brandId, manufacturerId])
 }
@@ -426,4 +427,10 @@ model KeepaApiProcessedData {
   variationCSV       String?
   
   lastProcessedAt    DateTime @default(now())
+}
+
+model AsinAnalysisQueue {
+  asin        String   @id
+  priority    Int      @default(0)
+  addedAt     DateTime @default(now())
 }

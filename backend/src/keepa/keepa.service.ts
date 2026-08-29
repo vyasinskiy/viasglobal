@@ -2,12 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AnalysisService } from '../analysis/analysis.service';
 
 @Injectable()
 export class KeepaService {
   private readonly logger = new Logger(KeepaService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly analysisService: AnalysisService,
+  ) {}
 
   /**
    * Заполняет очередь ASINов из WholesaleCandidatesView
@@ -52,6 +56,24 @@ export class KeepaService {
   }
 
   /**
+   * Вычисляет размер пачки ASIN для запроса на основе стоимости токенов Keepa API.
+   * Базовый запрос продукта = 1 токен.
+   * Запрос с offers=20 стоит дороже (например, +2 токена).
+   */
+  private calculateKeepaBatchSize(): number {
+    const tokensPerMinute = parseInt(process.env.KEEPA_API_TOKENS_PER_MINUTE || '1', 10);
+    let costPerAsin = 1; // Базовая стоимость
+
+    if (process.env.KEEPA_FETCH_OFFERS === 'true') {
+      // По документации Keepa, offers добавляет стоимость. Предположим offers=20 добавляет 2 токена.
+      costPerAsin += 2;
+    }
+
+    // Возвращаем количество ASIN, которое мы можем позволить себе запросить за 1 минуту
+    return Math.max(1, Math.floor(tokensPerMinute / costPerAsin));
+  }
+
+  /**
    * Сборщик сырых данных (раз в минуту)
    */
   @Cron(CronExpression.EVERY_MINUTE)
@@ -62,28 +84,29 @@ export class KeepaService {
       return;
     }
 
+    const limit = this.calculateKeepaBatchSize();
+
     // Ищем ASIN с максимальным приоритетом, для которого нет записи в RawResponse или она устарела (expiresAt < now)
-    // Используем queryRaw для удобного LEFT JOIN
-    const result: any[] = await this.prisma.$queryRaw`
+    const result: any[] = await this.prisma.$queryRawUnsafe(`
       SELECT q.asin
       FROM "WholesaleAsinQueue" q
       LEFT JOIN "KeepaApiRawResponse" r ON q.asin = r.asin
       WHERE r.asin IS NULL OR (r."expiresAt" IS NOT NULL AND r."expiresAt" < NOW())
       ORDER BY q.priority DESC, q."addedAt" ASC
-      LIMIT 1
-    `;
+      LIMIT $1
+    `, limit);
 
     if (result.length === 0) {
       this.logger.debug('Нет ASIN в очереди для обновления.');
       return;
     }
 
-    const asinToFetch = result[0].asin;
-    this.logger.log(`Запрашиваем Keepa API для ASIN: ${asinToFetch}...`);
+    const asinsToFetch = result.map(r => r.asin).join(',');
+    this.logger.log(`Запрашиваем Keepa API для ASIN: ${asinsToFetch}...`);
 
     try {
       const domain = 4; // Испания по умолчанию
-      let url = `https://api.keepa.com/product?key=${apiKey}&domain=${domain}&asin=${asinToFetch}`;
+      let url = `https://api.keepa.com/product?key=${apiKey}&domain=${domain}&asin=${asinsToFetch}`;
       
       if (process.env.KEEPA_FETCH_OFFERS === 'true') {
         url += '&offers=20';
@@ -93,42 +116,62 @@ export class KeepaService {
       const data = await response.json();
 
       if (data.error) {
-        this.logger.error(`Ошибка API Keepa для ${asinToFetch}: ${JSON.stringify(data.error)}`);
-        // Сохраняем ошибку
-        await this.prisma.keepaApiRawResponse.upsert({
-          where: { asin: asinToFetch },
-          update: { error: JSON.stringify(data.error), isProcessed: false, fetchedAt: new Date() },
-          create: { asin: asinToFetch, error: JSON.stringify(data.error), fetchedAt: new Date() }
-        });
+        this.logger.error(`Ошибка API Keepa: ${JSON.stringify(data.error)}`);
+        // Сохраняем ошибку для всех запрошенных ASIN
+        for (const row of result) {
+          await this.prisma.keepaApiRawResponse.upsert({
+            where: { asin: row.asin },
+            update: { error: JSON.stringify(data.error), isProcessed: false, fetchedAt: new Date() },
+            create: { asin: row.asin, error: JSON.stringify(data.error), fetchedAt: new Date() }
+          });
+        }
         return;
       }
 
-      // Успешно получили данные
       // Вычисляем expiresAt (допустим, 30 дней)
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
 
-      await this.prisma.keepaApiRawResponse.upsert({
-        where: { asin: asinToFetch },
-        update: { 
-          rawPayload: data as any,
-          fetchedAt: new Date(),
-          expiresAt: expiresAt,
-          isProcessed: false,
-          error: null
-        },
-        create: {
-          asin: asinToFetch,
-          rawPayload: data as any,
-          fetchedAt: new Date(),
-          expiresAt: expiresAt,
-          isProcessed: false
+      // Успешно получили данные
+      // Keepa возвращает массив продуктов в data.products. Для каждого ASIN находим свой продукт и сохраняем
+      for (const row of result) {
+        const asinToFetch = row.asin;
+        const product = data.products?.find((p: any) => p.asin === asinToFetch);
+        
+        if (!product) {
+          // Keepa не вернула данные для этого ASIN (возможно неверный ASIN)
+          await this.prisma.keepaApiRawResponse.upsert({
+            where: { asin: asinToFetch },
+            update: { error: 'Not found in Keepa response', isProcessed: false, fetchedAt: new Date(), expiresAt },
+            create: { asin: asinToFetch, error: 'Not found in Keepa response', fetchedAt: new Date(), expiresAt, isProcessed: false }
+          });
+          continue;
         }
-      });
 
-      this.logger.log(`Успешно сохранен сырой ответ Keepa для ${asinToFetch}.`);
+        // Сохраняем успешный ответ, упаковывая отдельный продукт в структуру data
+        const payload = { ...data, products: [product] };
+        await this.prisma.keepaApiRawResponse.upsert({
+          where: { asin: asinToFetch },
+          update: { 
+            rawPayload: payload as any,
+            fetchedAt: new Date(),
+            expiresAt: expiresAt,
+            isProcessed: false,
+            error: null
+          },
+          create: {
+            asin: asinToFetch,
+            rawPayload: payload as any,
+            fetchedAt: new Date(),
+            expiresAt: expiresAt,
+            isProcessed: false
+          }
+        });
+      }
+
+      this.logger.log(`Успешно сохранены сырые ответы Keepa для ${result.length} ASIN.`);
     } catch (error) {
-      this.logger.error(`Сетевая ошибка при запросе к Keepa для ${asinToFetch}: ${error.message}`);
+      this.logger.error(`Сетевая ошибка при запросе к Keepa: ${error.message}`);
     }
   }
 
@@ -137,10 +180,11 @@ export class KeepaService {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async processRawData() {
-    // Берем пачку непроцесснутых ответов (например, 10 за раз, так как это просто парсинг без API запросов)
+    const limit = this.calculateKeepaBatchSize();
+    // Берем пачку непроцесснутых ответов
     const rawResponses = await this.prisma.keepaApiRawResponse.findMany({
       where: { isProcessed: false, error: null },
-      take: 10
+      take: limit
     });
 
     if (rawResponses.length === 0) return;
@@ -244,6 +288,9 @@ export class KeepaService {
         where: { asin: raw.asin },
         data: { isProcessed: true }
       });
+
+      // Добавляем ASIN в очередь на анализ тегов (Dead/Missing Variation) с обычным приоритетом
+      await this.analysisService.queueForAnalysis(raw.asin, 0);
 
       this.logger.log(`ASIN ${raw.asin} успешно обработан и извлечены габариты.`);
     }

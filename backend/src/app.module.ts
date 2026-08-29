@@ -7,6 +7,7 @@ import { BrandsModule } from './brands/brands.module';
 import { DistributorsModule } from './distributors/distributors.module';
 import { PrivateLabelsModule } from './private-labels/private-labels.module';
 import { KeepaModule } from './keepa/keepa.module';
+import { AnalysisModule } from './analysis/analysis.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { KeepaModule } from './keepa/keepa.module';
     DistributorsModule, 
     PrivateLabelsModule, 
     KeepaModule,
+    AnalysisModule,
     ScheduleModule.forRoot()
   ],
   controllers: [AppController],

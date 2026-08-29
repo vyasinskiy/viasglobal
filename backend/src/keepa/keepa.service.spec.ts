@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { KeepaService } from './keepa.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AnalysisService } from '../analysis/analysis.service';
 
 describe('KeepaService', () => {
   let service: KeepaService;
@@ -12,7 +13,13 @@ describe('KeepaService', () => {
         {
           provide: PrismaService,
           useValue: {},
-        }
+        },
+        {
+          provide: AnalysisService,
+          useValue: {
+            queueForAnalysis: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

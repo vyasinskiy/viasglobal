@@ -44,6 +44,14 @@
 7. `DOMINANT_BUY_BOX_SELLER` - доля владения BuyBox у топового продавца за 90 дней (`buyBoxTopSeller90Days`, в БД хранится как `0.0..1.0`) `>= 0.90` (90%, листинг монополизирован). Функция автоматически приводит целый параметр (например, 90) к коэффициенту 0.90.
 8. `NULL` - товар проходит фильтрацию.
 
+## Система тегирования ASIN (ASIN Tags)
+
+При обновлении данных ASIN через Keepa API (в `keepa.service.ts`) товар автоматически добавляется в очередь `AsinAnalysisQueue`. 
+Микросервис `AnalysisService` асинхронно анализирует ASIN на наличие вариаций и дату последней активности продавца в Buy Box.
+1. `DEAD_VARIATION` — нет продаж/продавцов более 6 месяцев.
+2. `MISSING_VARIATION` — нет продаж/продавцов более 3 месяцев (но менее 6 месяцев). Потенциальные эксклюзивы.
+Эти теги сохраняются в поле `tags` таблицы `ASIN` и автоматически отфильтровываются в представлении `WholesaleCandidatesView`.
+
 ## Расчет максимальной цены закупки (`calculate_max_buy_price`)
 
 Функция `calculate_max_buy_price(p_asin_id INT, p_target_margin_pct FLOAT DEFAULT 10.0, p_inbound_shipping FLOAT DEFAULT 0.40, p_vat_rate FLOAT DEFAULT 21.0)`:
