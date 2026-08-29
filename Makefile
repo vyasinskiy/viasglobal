@@ -22,4 +22,4 @@ deploy-master:
 	@echo "Пересборка и перезапуск бэкенда на сервере..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal && make redeploy-back"
 	@echo "Применение миграций базы данных внутри контейнера..."
-	ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && docker compose exec -T -e DATABASE_URL='postgresql://viasuser:viaspassword@db:5432/viasglobal_db?schema=public' backend npx prisma migrate deploy"
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && docker compose exec -T backend sh scripts/deploy-db.sh"
