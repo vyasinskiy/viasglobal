@@ -20,6 +20,23 @@ export class AnalysisService {
   }
 
   /**
+   * Принудительно обрабатывает всю очередь анализа в фоне.
+   */
+  async processAllQueueBackground() {
+    this.logger.log('Принудительный запуск обработки всей очереди анализа...');
+    let processed = 0;
+    while (true) {
+      const queueItemsCount = await this.prisma.asinAnalysisQueue.count();
+      if (queueItemsCount === 0) {
+        break;
+      }
+      await this.analyzeAsins();
+      processed += 100;
+    }
+    this.logger.log(`Принудительная обработка всей очереди анализа завершена!`);
+  }
+
+  /**
    * Конвертирует Keepa-минуты в JS Date
    * Keepa time - это количество минут с 2011-01-01
    */

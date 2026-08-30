@@ -436,7 +436,7 @@ model AsinAnalysisQueue {
 }
 
 model Tag {
-  id    String @id @default(cuid())
+  id    Int    @id @default(autoincrement())
   name  String @unique
   asins ASIN[]
 }
