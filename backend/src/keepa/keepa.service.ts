@@ -277,7 +277,7 @@ export class KeepaService {
         offers: product.offers ? (product.offers as Prisma.InputJsonValue) : Prisma.DbNull,
         buyBoxSellerIdHistory: product.buyBoxSellerIdHistory ? (product.buyBoxSellerIdHistory as Prisma.InputJsonValue) : Prisma.DbNull,
         buyBoxEligibleOfferCounts: product.buyBoxEligibleOfferCounts ? (product.buyBoxEligibleOfferCounts as Prisma.InputJsonValue) : Prisma.DbNull,
-        variationCSV: product.variationCSV || null,
+        variationCSV: product.variationCSV || (Array.isArray(product.variations) ? product.variations.map((v: any) => v.asin).join(',') : null),
         lastProcessedAt: new Date()
       };
 
