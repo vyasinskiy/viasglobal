@@ -12,7 +12,6 @@ import {
   VolumeX,
   Sparkles,
   ArrowRight,
-  Truck,
   Calendar,
   Zap,
 } from "lucide-react";
@@ -223,37 +222,37 @@ export const FiestaVideoHero = () => {
 
             <a
               href="#calendario-fiestas"
-              className="btn-secondary"
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
                 padding: "16px 28px",
                 fontSize: "1.05rem",
-                backdropFilter: "blur(10px)",
-                background: "rgba(255, 255, 255, 0.1)",
-                borderColor: "rgba(255, 255, 255, 0.3)",
+                fontWeight: 700,
+                color: "#34d399",
+                background: "rgba(16, 185, 129, 0.18)",
+                border: "1px solid rgba(16, 185, 129, 0.45)",
+                borderRadius: "var(--radius-sm)",
+                backdropFilter: "blur(12px)",
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: "0 4px 20px rgba(16, 185, 129, 0.2)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(16, 185, 129, 0.28)";
+                e.currentTarget.style.borderColor = "rgba(52, 211, 153, 0.7)";
+                e.currentTarget.style.boxShadow = "0 6px 24px rgba(16, 185, 129, 0.35)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(16, 185, 129, 0.18)";
+                e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.45)";
+                e.currentTarget.style.boxShadow = "0 4px 20px rgba(16, 185, 129, 0.2)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <Calendar size={18} /> {t.calendarBtn}
             </a>
-          </div>
-
-          {/* Плашка срочной доставки */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "0.88rem",
-              color: "#34d399",
-              fontWeight: 700,
-              background: "rgba(16, 185, 129, 0.15)",
-              border: "1px solid rgba(16, 185, 129, 0.3)",
-              padding: "6px 14px",
-              borderRadius: "var(--radius-sm)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <Truck size={16} />
-            <span>{t.dispatchBadge}</span>
           </div>
         </div>
       </div>
