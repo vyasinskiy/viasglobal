@@ -1,75 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import { HeroSection } from "@/components/shop/HeroSection";
+import { FiestaVideoHero } from "@/components/shop/FiestaVideoHero";
+import { FiestaCalendarSection } from "@/components/shop/FiestaCalendarSection";
+import { AiGiftAdvisor } from "@/components/shop/AiGiftAdvisor";
 import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { PRODUCTS_DATA } from "@/data/products";
 import { useCartStore } from "@/store/cartStore";
-import { ArrowRight, Sparkles, Shield, Truck, Award, CheckCircle2 } from "lucide-react";
+import { TRANSLATIONS } from "@/i18n/translations";
+import {
+  Sparkles,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  Zap,
+  ArrowRight,
+  Gift,
+} from "lucide-react";
 
 /**
- * Главная витрина интернет-магазина Viasglobal Store (ES / EN)
+ * Главная страница интернет-магазина Viasglobal Store в светлой теме
+ * - Экран 1: Кинематографичное видео с испанскими фиестами (FiestaVideoHero)
+ * - Экран 2: Интерактивный календарь событий с подборками товаров (FiestaCalendarSection)
+ * - Секция 3: Интерактивный AI Ассистент по подбору подарков (AiGiftAdvisor)
+ * - Секции 4+: Хиты продаж, баннеры категорий, преимущества и гарантии ЕС
  */
 export default function HomePage() {
   const { language } = useCartStore();
-  const bestsellers = PRODUCTS_DATA.filter((p) => p.isBestseller);
-  const featured = PRODUCTS_DATA.filter((p) => p.isFeatured);
+  const t = TRANSLATIONS[language] || TRANSLATIONS.es;
 
-  const t = {
-    bestsellersBadge: language === "es" ? "Los más elegidos" : "Customer Choice",
-    bestsellersTitle: language === "es" ? "Los Más Vendidos" : "Bestselling Products",
-    bestsellersAll: language === "es" ? "Ver todos los más vendidos" : "View all bestsellers",
-    featuredBadge: language === "es" ? "Innovación y Estilo" : "Innovation & Style",
-    featuredTitle: language === "es" ? "Productos Recomendados" : "Featured Products",
-    featuredAll: language === "es" ? "Ver todo el catálogo" : "View full catalog",
-    whyBadge: language === "es" ? "Estándares Europeos de Calidad" : "European Quality Standards",
-    whyTitle: language === "es" ? "¿Por qué comprar en Viasglobal?" : "Why choose Viasglobal Store?",
-    whyDesc:
-      language === "es"
-        ? "Envío directo desde almacenes en Valencia, riguroso control de calidad CE/RoHS y atención al cliente dedicada en España y la UE."
-        : "Direct dispatch from fulfillment centers in Valencia, strict CE/RoHS quality control, and dedicated customer care across Europe.",
-    card1Title: language === "es" ? "Almacén en España y Envío 24-48h" : "Spain Fulfillment & 24-48h Dispatch",
-    card1Desc:
-      language === "es"
-        ? "Todos los productos están en stock real en Valencia y Barcelona. Envío urgente por Correos Express / SEUR / DHL."
-        : "All listed items are stocked in our Spanish fulfillment hubs. Express delivery via Correos Express / SEUR / DHL.",
-    card2Title: language === "es" ? "2 Años de Garantía Total UE" : "2-Year Full European Warranty",
-    card2Desc:
-      language === "es"
-        ? "Cumplimiento estricto de las directivas europeas de consumo. Sustitución rápida en caso de incidencia."
-        : "Strict compliance with EU consumer protection directives. Fast replacement and warranty handling in Spain.",
-    card3Title: language === "es" ? "Facturación VIES e IVA 0%" : "VIES Intra-Community 0% VAT",
-    card3Desc:
-      language === "es"
-        ? "Emitimos facturas oficiales para particulares y empresas con NIF intracomunitario en toda la Unión Europea."
-        : "Official electronic invoicing with zero-rated intra-community VAT for registered European businesses.",
-    newsletterTitle:
-      language === "es"
-        ? "Suscríbete y recibe ofertas exclusivas"
-        : "Subscribe for exclusive deals & drops",
-    newsletterDesc:
-      language === "es"
-        ? "Recibe las últimas novedades en tecnología y cupones de hasta un 25% de descuento en campañas de temporada."
-        : "Get the latest tech arrivals and exclusive coupon codes up to 25% OFF on seasonal sales.",
-    newsletterPlaceholder: language === "es" ? "Tu correo electrónico..." : "Your business email...",
-    newsletterBtn: language === "es" ? "Suscribirme" : "Subscribe",
-    newsletterSuccess:
-      language === "es"
-        ? "¡Gracias por suscribirte! Te hemos enviado tu código de bienvenida."
-        : "Thank you for subscribing! Your welcome discount is on its way.",
-    noSpam: language === "es" ? "Sin spam. Puedes cancelar en 1 clic." : "Zero spam. Unsubscribe anytime in 1 click.",
+  // Хиты продаж и новинки
+  const bestsellers = PRODUCTS_DATA.filter((p) => p.isBestseller).slice(0, 4);
+  const newArrivals = PRODUCTS_DATA.filter((p) => p.isNew).slice(0, 4);
+
+  const tHome = {
+    featuredBadge: language === "es" ? "Selección Exclusiva" : "Exclusive Selection",
+    bestsellersTitle: language === "es" ? "Los Más Vendidos en España" : "Top Bestsellers in Spain",
+    newArrivalsBadge: language === "es" ? "Novedades en Catálogo" : "New Arrivals",
+    newArrivalsTitle: language === "es" ? "Últimos Lanzamientos de Temporada" : "Latest Season Releases",
+    viewAll: language === "es" ? "Ver todos los productos" : "View all products",
+    usp1Title: t.footer.usp1Title,
+    usp1Desc: t.footer.usp1Desc,
+    usp2Title: t.footer.usp2Title,
+    usp2Desc: t.footer.usp2Desc,
+    usp3Title: t.footer.usp3Title,
+    usp3Desc: t.footer.usp3Desc,
   };
 
   return (
-    <div>
-      {/* 1. Главный экран Hero */}
-      <HeroSection />
+    <div style={{ background: "var(--bg-main)" }}>
+      {/* ЭКРАН 1: Всегда видео с испанскими фиестами и призывом к действию */}
+      <FiestaVideoHero />
 
-      {/* 2. Категории и Промо-баннеры */}
+      {/* ЭКРАН 2: Календарь событий с предложением подборок товаров */}
+      <FiestaCalendarSection />
+
+      {/* ЭКРАН 3: Интерактивный AI Ассистент по подбору подарков */}
+      <AiGiftAdvisor />
+
+      {/* 4. Категории и Промо-баннеры */}
       <FeaturedBanners />
 
-      {/* 3. Секция: Хиты продаж */}
+      {/* 5. Секция: Хиты продаж */}
       <section style={{ padding: "40px 0 60px" }}>
         <div className="container">
           <div
@@ -77,25 +70,16 @@ export default function HomePage() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-end",
-              marginBottom: "32px",
+              marginBottom: "28px",
             }}
           >
             <div>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  color: "#fbbf24",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                <Sparkles size={16} /> {t.bestsellersBadge}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#0284c7", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
+                <Sparkles size={16} /> {tHome.featuredBadge}
               </div>
-              <h2 style={{ fontSize: "2rem", marginTop: "4px" }}>{t.bestsellersTitle}</h2>
+              <h2 style={{ fontSize: "2.1rem", color: "var(--text-main)", fontWeight: 800, marginTop: "4px" }}>
+                {tHome.bestsellersTitle}
+              </h2>
             </div>
             <Link
               href="/products?filter=bestsellers"
@@ -103,12 +87,12 @@ export default function HomePage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
-                color: "#38bdf8",
+                color: "#0284c7",
+                fontWeight: 700,
                 fontSize: "0.95rem",
-                fontWeight: 600,
               }}
             >
-              {t.bestsellersAll} <ArrowRight size={16} />
+              {tHome.viewAll} <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -126,37 +110,69 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Секция: Рекомендуемые товары */}
-      <section
-        style={{
-          padding: "60px 0",
-          background: "rgba(255, 255, 255, 0.015)",
-          borderTop: "1px solid var(--border-color)",
-          borderBottom: "1px solid var(--border-color)",
-        }}
-      >
+      {/* 6. Баннер постоянных коллекций и Cheque Regalo */}
+      <section style={{ padding: "20px 0 60px" }}>
+        <div className="container">
+          <div
+            style={{
+              padding: "36px 32px",
+              borderRadius: "var(--radius-lg)",
+              background: "linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%)",
+              border: "1px solid #bae6fd",
+              boxShadow: "var(--shadow-sm)",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "24px",
+            }}
+          >
+            <div style={{ maxWidth: "600px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#047857", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", marginBottom: "8px" }}>
+                <Gift size={16} /> {language === "es" ? "Regalos y Puentes en España" : "Gifts & Bridges in Spain"}
+              </div>
+              <h3 style={{ fontSize: "1.8rem", color: "#0f172a", fontWeight: 800, marginBottom: "8px" }}>
+                {language === "es"
+                  ? "¿Buscas el regalo perfecto para el próximo puente?"
+                  : "Looking for the perfect gift for the upcoming holiday?"}
+              </h3>
+              <p style={{ color: "#334155", fontSize: "1rem", lineHeight: 1.5 }}>
+                {language === "es"
+                  ? "Explora nuestras selecciones especializadas por presupuesto o envía un Cheque Regalo Digital con entrega en 1 minuto por email."
+                  : "Explore our specialized gift guides by budget or send an Instant Digital Gift Card in 1 minute."}
+              </p>
+            </div>
+
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <Link href="/regalos-originales" className="btn-primary" style={{ padding: "14px 24px" }}>
+                <Sparkles size={18} /> {language === "es" ? "Ver Regalos Originales" : "Explore Gifts"}
+              </Link>
+              <Link href="/gift-cards" className="btn-secondary" style={{ padding: "14px 24px" }}>
+                <Gift size={18} /> {language === "es" ? "Cheque Regalo" : "Gift Cards"}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Секция: Новинки */}
+      <section style={{ padding: "20px 0 60px" }}>
         <div className="container">
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-end",
-              marginBottom: "32px",
+              marginBottom: "28px",
             }}
           >
             <div>
-              <span
-                style={{
-                  fontSize: "0.85rem",
-                  color: "#38bdf8",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                {t.featuredBadge}
-              </span>
-              <h2 style={{ fontSize: "2rem", marginTop: "4px" }}>{t.featuredTitle}</h2>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#047857", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
+                <Zap size={16} /> {tHome.newArrivalsBadge}
+              </div>
+              <h2 style={{ fontSize: "2.1rem", color: "var(--text-main)", fontWeight: 800, marginTop: "4px" }}>
+                {tHome.newArrivalsTitle}
+              </h2>
             </div>
             <Link
               href="/products"
@@ -164,12 +180,12 @@ export default function HomePage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
-                color: "#38bdf8",
+                color: "#0284c7",
+                fontWeight: 700,
                 fontSize: "0.95rem",
-                fontWeight: 600,
               }}
             >
-              {t.featuredAll} <ArrowRight size={16} />
+              {tHome.viewAll} <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -180,183 +196,57 @@ export default function HomePage() {
               gap: "24px",
             }}
           >
-            {featured.map((product) => (
+            {newArrivals.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* 5. Секция: Преимущества Viasglobal */}
-      <section style={{ padding: "80px 0" }}>
+      {/* 8. Преимущества сервиса */}
+      <section style={{ padding: "30px 0 70px" }}>
         <div className="container">
-          <div style={{ textAlign: "center", maxWidth: "640px", margin: "0 auto 48px" }}>
-            <span
-              style={{
-                fontSize: "0.85rem",
-                color: "#38bdf8",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {t.whyBadge}
-            </span>
-            <h2 style={{ fontSize: "2.2rem", marginTop: "8px", marginBottom: "16px" }}>
-              {t.whyTitle}
-            </h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "1rem", lineHeight: 1.6 }}>
-              {t.whyDesc}
-            </p>
-          </div>
-
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: "28px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: "20px",
             }}
           >
-            <div className="glass-panel" style={{ padding: "32px" }}>
-              <div
-                style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "14px",
-                  background: "rgba(2, 132, 199, 0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#38bdf8",
-                  marginBottom: "20px",
-                }}
-              >
-                <Truck size={28} />
+            <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "28px 24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#e0f2fe", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284c7", marginBottom: "16px" }}>
+                <Truck size={24} />
               </div>
-              <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "10px" }}>
-                {t.card1Title}
+              <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "6px" }}>
+                {tHome.usp1Title}
               </h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                {t.card1Desc}
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5 }}>
+                {tHome.usp1Desc}
               </p>
             </div>
 
-            <div className="glass-panel" style={{ padding: "32px" }}>
-              <div
-                style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "14px",
-                  background: "rgba(16, 185, 129, 0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#34d399",
-                  marginBottom: "20px",
-                }}
-              >
-                <Shield size={28} />
+            <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "28px 24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", color: "#047857", marginBottom: "16px" }}>
+                <ShieldCheck size={24} />
               </div>
-              <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "10px" }}>
-                {t.card2Title}
+              <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "6px" }}>
+                {tHome.usp2Title}
               </h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                {t.card2Desc}
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5 }}>
+                {tHome.usp2Desc}
               </p>
             </div>
 
-            <div className="glass-panel" style={{ padding: "32px" }}>
-              <div
-                style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "14px",
-                  background: "rgba(245, 158, 11, 0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fbbf24",
-                  marginBottom: "20px",
-                }}
-              >
-                <Award size={28} />
+            <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "28px 24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309", marginBottom: "16px" }}>
+                <RotateCcw size={24} />
               </div>
-              <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "10px" }}>
-                {t.card3Title}
+              <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "6px" }}>
+                {tHome.usp3Title}
               </h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                {t.card3Desc}
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5 }}>
+                {tHome.usp3Desc}
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Секция: Подписка на акции */}
-      <section style={{ padding: "0 0 80px" }}>
-        <div className="container">
-          <div
-            className="glass-panel glass-glow"
-            style={{
-              padding: "48px 32px",
-              borderRadius: "var(--radius-lg)",
-              background: "linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.8) 100%)",
-              textAlign: "center",
-            }}
-          >
-            <h2 style={{ fontSize: "2rem", marginBottom: "12px" }}>
-              {t.newsletterTitle}
-            </h2>
-            <p style={{ color: "var(--text-muted)", maxWidth: "520px", margin: "0 auto 28px", fontSize: "0.95rem" }}>
-              {t.newsletterDesc}
-            </p>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert(t.newsletterSuccess);
-              }}
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "12px",
-                justifyContent: "center",
-                maxWidth: "480px",
-                margin: "0 auto",
-              }}
-            >
-              <input
-                type="email"
-                required
-                placeholder={t.newsletterPlaceholder}
-                style={{
-                  flex: "1 1 240px",
-                  padding: "12px 16px",
-                  background: "rgba(255, 255, 255, 0.08)",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-sm)",
-                  color: "#fff",
-                  outline: "none",
-                  fontSize: "0.95rem",
-                }}
-              />
-              <button type="submit" className="btn-primary" style={{ padding: "12px 24px" }}>
-                {t.newsletterBtn}
-              </button>
-            </form>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                marginTop: "16px",
-                fontSize: "0.8rem",
-                color: "var(--text-subtle)",
-              }}
-            >
-              <CheckCircle2 size={14} color="#34d399" /> {t.noSpam}
             </div>
           </div>
         </div>

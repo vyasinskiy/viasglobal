@@ -5,7 +5,7 @@ import { useCartStore } from "@/store/cartStore";
 import { ShieldCheck, Truck, Award, ArrowRight } from "lucide-react";
 
 /**
- * Страница «О компании» (About Us) на испанском и английском языках
+ * Страница «О компании» (About Us) в светлой теме
  */
 export default function AboutPage() {
   const { language } = useCartStore();
@@ -54,20 +54,20 @@ export default function AboutPage() {
       <div className="container" style={{ maxWidth: "900px" }}>
         {/* Заголовок */}
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#38bdf8", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#0284c7", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
             {t.badge}
           </div>
-          <h1 style={{ fontSize: "2.6rem", marginTop: "8px", marginBottom: "16px" }}>
+          <h1 style={{ fontSize: "2.6rem", color: "var(--text-main)", fontWeight: 800, marginTop: "8px", marginBottom: "16px" }}>
             {t.title}
           </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "1.1rem", lineHeight: 1.6, maxWidth: "680px", margin: "0 auto" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "1.05rem", lineHeight: 1.6, maxWidth: "680px", margin: "0 auto" }}>
             {t.subtitle}
           </p>
         </div>
 
         {/* Секция миссии */}
-        <div className="glass-panel" style={{ padding: "36px", borderRadius: "var(--radius-lg)", marginBottom: "40px" }}>
-          <h2 style={{ fontSize: "1.5rem", color: "#fff", marginBottom: "16px" }}>
+        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "36px", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", marginBottom: "40px" }}>
+          <h2 style={{ fontSize: "1.5rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "16px" }}>
             {t.missionTitle}
           </h2>
           <p style={{ color: "var(--text-muted)", lineHeight: 1.7, fontSize: "1rem", marginBottom: "16px" }}>
@@ -87,31 +87,31 @@ export default function AboutPage() {
             marginBottom: "48px",
           }}
         >
-          <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(2, 132, 199, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#38bdf8", marginBottom: "16px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#e0f2fe", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284c7", marginBottom: "16px" }}>
               <Truck size={24} />
             </div>
-            <h3 style={{ fontSize: "1.15rem", color: "#fff", marginBottom: "8px" }}>{t.card1Title}</h3>
+            <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>{t.card1Title}</h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5 }}>
               {t.card1Desc}
             </p>
           </div>
 
-          <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#34d399", marginBottom: "16px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", color: "#047857", marginBottom: "16px" }}>
               <ShieldCheck size={24} />
             </div>
-            <h3 style={{ fontSize: "1.15rem", color: "#fff", marginBottom: "8px" }}>{t.card2Title}</h3>
+            <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>{t.card2Title}</h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5 }}>
               {t.card2Desc}
             </p>
           </div>
 
-          <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(245, 158, 11, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fbbf24", marginBottom: "16px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309", marginBottom: "16px" }}>
               <Award size={24} />
             </div>
-            <h3 style={{ fontSize: "1.15rem", color: "#fff", marginBottom: "8px" }}>{t.card3Title}</h3>
+            <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>{t.card3Title}</h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.5 }}>
               {t.card3Desc}
             </p>
@@ -120,15 +120,16 @@ export default function AboutPage() {
 
         {/* CTA блок */}
         <div
-          className="glass-panel glass-glow"
           style={{
             padding: "36px",
             borderRadius: "var(--radius-lg)",
             textAlign: "center",
-            background: "linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%)",
+            background: "linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)",
+            border: "1px solid #bae6fd",
+            boxShadow: "var(--shadow-sm)",
           }}
         >
-          <h2 style={{ fontSize: "1.6rem", color: "#fff", marginBottom: "12px" }}>
+          <h2 style={{ fontSize: "1.6rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "12px" }}>
             {t.ctaTitle}
           </h2>
           <p style={{ color: "var(--text-muted)", marginBottom: "24px" }}>

@@ -19,7 +19,7 @@ interface ProductFilterProps {
 }
 
 /**
- * Фильтр и панель управления каталогом товаров (ES / EN)
+ * Фильтр и панель управления каталогом товаров в светлой теме (ES / EN)
  */
 export const ProductFilter = ({
   selectedCategory,
@@ -52,14 +52,16 @@ export const ProductFilter = ({
 
   return (
     <div
-      className="glass-panel"
       style={{
         padding: "20px",
+        background: "#ffffff",
+        border: "1px solid var(--border-color)",
         borderRadius: "var(--radius-md)",
+        boxShadow: "var(--shadow-sm)",
         marginBottom: "32px",
         display: "flex",
         flexDirection: "column",
-        gap: "20px",
+        gap: "18px",
       }}
     >
       {/* Верхний ряд: Поиск, Сортировка и Сброс */}
@@ -83,10 +85,10 @@ export const ProductFilter = ({
               width: "100%",
               padding: "10px 14px 10px 38px",
               fontSize: "0.9rem",
-              background: "rgba(255, 255, 255, 0.05)",
+              background: "#f8fafc",
               border: "1px solid var(--border-color)",
               borderRadius: "var(--radius-sm)",
-              color: "#fff",
+              color: "var(--text-main)",
               outline: "none",
             }}
           />
@@ -107,10 +109,10 @@ export const ProductFilter = ({
               style={{
                 padding: "10px 14px",
                 fontSize: "0.88rem",
-                background: "rgba(15, 23, 42, 0.9)",
+                background: "#ffffff",
                 border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-sm)",
-                color: "#fff",
+                color: "var(--text-main)",
                 outline: "none",
                 cursor: "pointer",
               }}
@@ -129,9 +131,10 @@ export const ProductFilter = ({
               alignItems: "center",
               gap: "8px",
               fontSize: "0.88rem",
-              color: "#e2e8f0",
+              color: "var(--text-main)",
               cursor: "pointer",
               userSelect: "none",
+              fontWeight: 600,
             }}
           >
             <input
@@ -161,12 +164,12 @@ export const ProductFilter = ({
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
-          gap: "10px",
+          gap: "8px",
           paddingTop: "16px",
           borderTop: "1px solid var(--border-color)",
         }}
       >
-        <span style={{ fontSize: "0.85rem", color: "var(--text-subtle)", marginRight: "6px" }}>
+        <span style={{ fontSize: "0.82rem", color: "var(--text-subtle)", fontWeight: 700, marginRight: "4px" }}>
           {labels.category}
         </span>
         {CATEGORIES_CONFIG.map((cat) => {
@@ -179,11 +182,11 @@ export const ProductFilter = ({
               style={{
                 padding: "6px 14px",
                 borderRadius: "var(--radius-full)",
-                fontSize: "0.85rem",
-                fontWeight: 600,
-                background: isSelected ? "var(--primary)" : "rgba(255, 255, 255, 0.05)",
+                fontSize: "0.84rem",
+                fontWeight: 700,
+                background: isSelected ? "#0284c7" : "#f1f5f9",
                 color: isSelected ? "#fff" : "var(--text-muted)",
-                border: isSelected ? "1px solid var(--primary)" : "1px solid var(--border-color)",
+                border: isSelected ? "1px solid #0284c7" : "1px solid var(--border-color)",
                 transition: "all 0.2s ease",
               }}
             >
@@ -193,7 +196,7 @@ export const ProductFilter = ({
         })}
 
         <div style={{ marginLeft: "auto", fontSize: "0.85rem", color: "var(--text-muted)" }}>
-          {labels.found} <strong>{totalFound}</strong>
+          {labels.found} <strong style={{ color: "var(--text-main)" }}>{totalFound}</strong>
         </div>
       </div>
     </div>

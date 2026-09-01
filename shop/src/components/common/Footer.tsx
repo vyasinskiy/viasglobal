@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 /**
- * Подвал сайта (Footer) с юридической информацией (Испания и ЕС) и переводами
+ * Подвал сайта (Footer) в светлой теме с юридической информацией (Испания и ЕС)
  */
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -23,7 +23,7 @@ export const Footer = () => {
   return (
     <footer
       style={{
-        background: "rgba(11, 15, 23, 0.98)",
+        background: "#ffffff",
         borderTop: "1px solid var(--border-color)",
         marginTop: "auto",
       }}
@@ -32,8 +32,8 @@ export const Footer = () => {
       <div
         style={{
           borderBottom: "1px solid var(--border-color)",
-          padding: "40px 0",
-          background: "rgba(255, 255, 255, 0.01)",
+          padding: "36px 0",
+          background: "#f8fafc",
         }}
       >
         <div className="container">
@@ -51,21 +51,21 @@ export const Footer = () => {
                   width: "44px",
                   height: "44px",
                   borderRadius: "10px",
-                  background: "rgba(2, 132, 199, 0.12)",
+                  background: "#e0f2fe",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#38bdf8",
+                  color: "#0284c7",
                   flexShrink: 0,
                 }}
               >
                 <Truck size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: "1rem", color: "#fff", marginBottom: "4px" }}>
+                <h4 style={{ fontSize: "1rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "4px" }}>
                   {t.footer.usp1Title}
                 </h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
                   {t.footer.usp1Desc}
                 </p>
               </div>
@@ -78,21 +78,21 @@ export const Footer = () => {
                   width: "44px",
                   height: "44px",
                   borderRadius: "10px",
-                  background: "rgba(16, 185, 129, 0.12)",
+                  background: "#ecfdf5",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#34d399",
+                  color: "#047857",
                   flexShrink: 0,
                 }}
               >
                 <ShieldCheck size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: "1rem", color: "#fff", marginBottom: "4px" }}>
+                <h4 style={{ fontSize: "1rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "4px" }}>
                   {t.footer.usp2Title}
                 </h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
                   {t.footer.usp2Desc}
                 </p>
               </div>
@@ -105,21 +105,21 @@ export const Footer = () => {
                   width: "44px",
                   height: "44px",
                   borderRadius: "10px",
-                  background: "rgba(245, 158, 11, 0.12)",
+                  background: "#fef3c7",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#fbbf24",
+                  color: "#b45309",
                   flexShrink: 0,
                 }}
               >
                 <RotateCcw size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: "1rem", color: "#fff", marginBottom: "4px" }}>
+                <h4 style={{ fontSize: "1rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "4px" }}>
                   {t.footer.usp3Title}
                 </h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
                   {t.footer.usp3Desc}
                 </p>
               </div>
@@ -132,21 +132,21 @@ export const Footer = () => {
                   width: "44px",
                   height: "44px",
                   borderRadius: "10px",
-                  background: "rgba(168, 85, 247, 0.12)",
+                  background: "#ede9fe",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#c084fc",
+                  color: "#7c3aed",
                   flexShrink: 0,
                 }}
               >
                 <Headphones size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: "1rem", color: "#fff", marginBottom: "4px" }}>
+                <h4 style={{ fontSize: "1rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "4px" }}>
                   {t.footer.usp4Title}
                 </h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
                   {t.footer.usp4Desc}
                 </p>
               </div>
@@ -156,13 +156,13 @@ export const Footer = () => {
       </div>
 
       {/* Основной блок ссылок */}
-      <div className="container" style={{ padding: "50px 24px 30px" }}>
+      <div className="container" style={{ padding: "48px 24px 28px" }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
             gap: "36px",
-            marginBottom: "40px",
+            marginBottom: "36px",
           }}
         >
           {/* Колонка 1: Бренд и реквизиты */}
@@ -174,8 +174,8 @@ export const Footer = () => {
                 alignItems: "center",
                 gap: "8px",
                 fontSize: "1.25rem",
-                fontWeight: 800,
-                marginBottom: "14px",
+                fontWeight: 900,
+                marginBottom: "12px",
               }}
             >
               <div
@@ -183,7 +183,7 @@ export const Footer = () => {
                   width: "30px",
                   height: "30px",
                   borderRadius: "8px",
-                  background: "linear-gradient(135deg, #0284c7 0%, #f59e0b 100%)",
+                  background: "linear-gradient(135deg, #0284c7 0%, #d97706 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -194,8 +194,8 @@ export const Footer = () => {
               >
                 V
               </div>
-              <span style={{ color: "#fff" }}>
-                VIAS<span style={{ color: "#38bdf8" }}>GLOBAL</span>
+              <span style={{ color: "#0f172a" }}>
+                VIAS<span style={{ color: "#0284c7" }}>GLOBAL</span>
               </span>
             </Link>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5, marginBottom: "16px" }}>
@@ -207,12 +207,12 @@ export const Footer = () => {
                 alignItems: "center",
                 gap: "6px",
                 padding: "4px 10px",
-                background: "rgba(16, 185, 129, 0.1)",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
+                background: "#ecfdf5",
+                border: "1px solid #a7f3d0",
                 borderRadius: "6px",
                 fontSize: "0.75rem",
-                color: "#34d399",
-                fontWeight: 600,
+                color: "#047857",
+                fontWeight: 700,
               }}
             >
               <CheckCircle size={14} /> {t.footer.viesBadge}
@@ -221,7 +221,7 @@ export const Footer = () => {
 
           {/* Колонка 2: Навигация */}
           <div>
-            <h4 style={{ fontSize: "0.95rem", color: "#fff", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <h4 style={{ fontSize: "0.92rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {t.footer.catTitle}
             </h4>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.88rem", color: "var(--text-muted)" }}>
@@ -235,20 +235,21 @@ export const Footer = () => {
 
           {/* Колонка 3: Покупателям */}
           <div>
-            <h4 style={{ fontSize: "0.95rem", color: "#fff", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <h4 style={{ fontSize: "0.92rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {t.footer.customerTitle}
             </h4>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.88rem", color: "var(--text-muted)" }}>
               <li><Link href="/shipping">{language === "es" ? "Condiciones de Envío y Garantía" : "Shipping & Warranty Terms"}</Link></li>
+              <li><Link href="/campaigns">{language === "es" ? "Calendario de Campañas Festivas" : "Holiday Campaign Calendar"}</Link></li>
+              <li><Link href="/gift-cards">{language === "es" ? "Cheque Regalo Digital" : "Digital Gift Cards"}</Link></li>
               <li><Link href="/about">{language === "es" ? "Sobre Viasglobal" : "About Viasglobal"}</Link></li>
               <li><Link href="/contact">{language === "es" ? "Contacto y Soporte" : "Contact & Support"}</Link></li>
-              <li><Link href="/cart">{language === "es" ? "Cesta de compra" : "Shopping Cart"}</Link></li>
             </ul>
           </div>
 
           {/* Колонка 4: Юридическая информация */}
           <div>
-            <h4 style={{ fontSize: "0.95rem", color: "#fff", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <h4 style={{ fontSize: "0.92rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {t.footer.legalTitle}
             </h4>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.88rem", color: "var(--text-muted)" }}>
@@ -266,7 +267,7 @@ export const Footer = () => {
         <div
           style={{
             borderTop: "1px solid var(--border-color)",
-            paddingTop: "24px",
+            paddingTop: "20px",
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
@@ -280,7 +281,7 @@ export const Footer = () => {
             © {currentYear} Viasglobal Store. {t.footer.allRightsReserved} {t.footer.operatorInfo}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "var(--text-muted)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--text-muted)" }}>
             <CreditCard size={18} />
             <span>{t.footer.securePayment}</span>
           </div>

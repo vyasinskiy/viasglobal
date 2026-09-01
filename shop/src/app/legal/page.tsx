@@ -3,7 +3,7 @@
 import { useCartStore } from "@/store/cartStore";
 
 /**
- * Страница юридической информации (Aviso Legal - ст. 10 LSSICE) (ES / EN)
+ * Страница юридической информации (Aviso Legal - ст. 10 LSSICE) (ES / EN) в светлой теме
  */
 export default function LegalPage() {
   const { language } = useCartStore();
@@ -11,13 +11,13 @@ export default function LegalPage() {
   return (
     <div style={{ padding: "50px 0 80px" }}>
       <div className="container" style={{ maxWidth: "840px" }}>
-        <h1 style={{ fontSize: "2.4rem", marginBottom: "24px" }}>
+        <h1 style={{ fontSize: "2.4rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "24px" }}>
           {language === "es" ? "Aviso Legal y Términos de Uso" : "Legal Notice & Terms of Use"}
         </h1>
 
-        <div className="glass-panel" style={{ padding: "32px", borderRadius: "var(--radius-lg)", display: "flex", flexDirection: "column", gap: "20px", lineHeight: 1.7, color: "var(--text-muted)", fontSize: "0.95rem" }}>
+        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "32px", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", gap: "24px", lineHeight: 1.7, color: "var(--text-muted)", fontSize: "0.95rem" }}>
           <div>
-            <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {language === "es" ? "1. Datos identificativos del titular (LSSICE art. 10)" : "1. Website Owner Identification (LSSICE Art. 10)"}
             </h2>
             <p>
@@ -36,7 +36,7 @@ export default function LegalPage() {
           </div>
 
           <div>
-            <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {language === "es" ? "2. Propiedad Intelectual e Industrial" : "2. Intellectual & Industrial Property"}
             </h2>
             <p>
@@ -47,7 +47,7 @@ export default function LegalPage() {
           </div>
 
           <div>
-            <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {language === "es" ? "3. Legislación aplicable y Jurisdicción" : "3. Applicable Law & Jurisdiction"}
             </h2>
             <p>

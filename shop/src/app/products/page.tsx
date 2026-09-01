@@ -10,7 +10,7 @@ import { useCartStore } from "@/store/cartStore";
 import { ShoppingBag, Search, Sparkles } from "lucide-react";
 
 /**
- * Внутренний компонент каталога с мультиязычной поддержкой (ES / EN)
+ * Внутренний компонент каталога с мультиязычной поддержкой (ES / EN) в светлой теме
  */
 function CatalogContent() {
   const searchParams = useSearchParams();
@@ -123,23 +123,23 @@ function CatalogContent() {
         <div style={{ marginBottom: "28px" }}>
           {showWishlistOnly ? (
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#ef4444", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#dc2626", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
                 {t.wishlistBadge}
               </div>
-              <h1 style={{ fontSize: "2.4rem", marginTop: "4px" }}>{t.wishlistTitle}</h1>
-              <p style={{ color: "var(--text-muted)", marginTop: "6px", fontSize: "1rem" }}>
+              <h1 style={{ fontSize: "2.3rem", color: "var(--text-main)", fontWeight: 800, marginTop: "4px" }}>{t.wishlistTitle}</h1>
+              <p style={{ color: "var(--text-muted)", marginTop: "4px", fontSize: "1rem" }}>
                 {t.wishlistSubtitle}
               </p>
             </div>
           ) : (
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#38bdf8", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#0284c7", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
                 <Sparkles size={16} /> {t.catalogBadge}
               </div>
-              <h1 style={{ fontSize: "2.4rem", marginTop: "4px" }}>
+              <h1 style={{ fontSize: "2.3rem", color: "var(--text-main)", fontWeight: 800, marginTop: "4px" }}>
                 {category === "all" ? t.catalogTitleAll : `${language === "es" ? "Categoría:" : "Category:"} ${category}`}
               </h1>
-              <p style={{ color: "var(--text-muted)", marginTop: "6px", fontSize: "1rem" }}>
+              <p style={{ color: "var(--text-muted)", marginTop: "4px", fontSize: "1rem" }}>
                 {t.catalogSubtitle}
               </p>
             </div>
@@ -166,7 +166,6 @@ function CatalogContent() {
         {/* Сетка товаров */}
         {filteredProducts.length === 0 ? (
           <div
-            className="glass-panel"
             style={{
               padding: "60px 24px",
               textAlign: "center",
@@ -174,6 +173,10 @@ function CatalogContent() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              background: "#ffffff",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border-color)",
+              boxShadow: "var(--shadow-sm)",
             }}
           >
             <div
@@ -181,17 +184,17 @@ function CatalogContent() {
                 width: "70px",
                 height: "70px",
                 borderRadius: "50%",
-                background: "rgba(255, 255, 255, 0.05)",
+                background: "#f1f5f9",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--text-muted)",
+                color: "var(--text-subtle)",
                 marginBottom: "20px",
               }}
             >
               <Search size={32} />
             </div>
-            <h3 style={{ fontSize: "1.3rem", color: "#fff", marginBottom: "8px" }}>
+            <h3 style={{ fontSize: "1.3rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {t.noProductsTitle}
             </h3>
             <p style={{ color: "var(--text-muted)", maxWidth: "450px", marginBottom: "24px", fontSize: "0.95rem" }}>

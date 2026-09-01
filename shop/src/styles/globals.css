@@ -1,36 +1,76 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Основные фирменные цвета */
+  /* ========================================================
+     Фирменная Валенсийская палитра (Colores Valencianos)
+     - Azul Mediterráneo / Blau Senyera: #0284c7, #0369a1
+     - Naranja de Valencia / Fuego de Fallas: #ea580c, #c2410c, #f97316
+     - Rojo Carmesí Senyera: #dc2626, #b91c1c
+     - Dorado Fallero (Oro de la Corona): #d97706, #ca8a04
+     - Verde de l'Horta (Huerta de Valencia): #059669, #15803d
+     ======================================================== */
   --primary: #0284c7;
   --primary-hover: #0369a1;
   --primary-light: #e0f2fe;
-  --accent: #f59e0b;
-  --accent-glow: rgba(245, 158, 11, 0.25);
+  --primary-subtle: #f0f9ff;
   
-  /* Фоновые градиенты и оттенки */
-  --bg-main: #0b0f17;
-  --bg-surface: #111827;
-  --bg-card: rgba(17, 24, 39, 0.85);
-  --bg-card-hover: rgba(31, 41, 55, 0.95);
-  --bg-subtle: #1e293b;
+  /* Валенсийский цитрусовый оранжевый и огонь Фальяс */
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  --accent-light: #fff7ed;
+  --accent-glow: rgba(234, 88, 12, 0.22);
+  --border-accent: #fed7aa;
+
+  /* Токены валенсийских цветов */
+  --valencia-orange: #ea580c;
+  --valencia-orange-hover: #c2410c;
+  --valencia-orange-light: #fff7ed;
+  --valencia-orange-border: #fed7aa;
+
+  --valencia-blue: #0284c7;
+  --valencia-blue-hover: #0369a1;
+  --valencia-blue-light: #e0f2fe;
+  --valencia-blue-border: #bae6fd;
+
+  --valencia-gold: #d97706;
+  --valencia-gold-hover: #b45309;
+  --valencia-gold-light: #fef3c7;
+  --valencia-gold-border: #fde68a;
+
+  --valencia-red: #dc2626;
+  --valencia-red-light: #fef2f2;
+  --valencia-red-border: #fecaca;
+
+  --valencia-green: #059669;
+  --valencia-green-light: #ecfdf5;
+  --valencia-green-border: #a7f3d0;
+  
+  /* Фоновые цвета светлой темы */
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-subtle: #f1f5f9;
+  --bg-glass: rgba(255, 255, 255, 0.85);
   
   /* Границы и разделители */
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(2, 132, 199, 0.3);
-  --border-accent: rgba(245, 158, 11, 0.4);
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --border-glow: rgba(2, 132, 199, 0.25);
   
-  /* Текст и типографика */
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  /* Текст и контраст */
+  --text-main: #0f172a;
+  --text-muted: #475569;
   --text-subtle: #64748b;
-  --text-inverse: #0b0f17;
+  --text-inverse: #ffffff;
   
-  /* Специфические цвета статусов */
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.15);
-  --warning: #f59e0b;
-  --error: #ef4444;
+  /* Цвета статусов */
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --warning: #ea580c;
+  --warning-bg: #fff7ed;
+  --error: #dc2626;
+  --error-bg: #fef2f2;
   
   /* Скругления и тени */
   --radius-sm: 8px;
@@ -38,10 +78,11 @@
   --radius-lg: 20px;
   --radius-full: 9999px;
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 25px rgba(2, 132, 199, 0.2);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-glow: 0 0 20px rgba(2, 132, 199, 0.12);
+  --shadow-valencia: 0 4px 16px rgba(234, 88, 12, 0.25);
   
   /* Шрифты */
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -69,7 +110,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  background: radial-gradient(circle at 50% 0%, #152238 0%, #0b0f17 70%);
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -112,38 +154,31 @@ img {
   }
 }
 
-/* Стеклянные панели (Glassmorphism) */
+/* Панели светлой темы (Clean White & Subtle Glass) */
 .glass-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: #cbd5e1;
   box-shadow: var(--shadow-md);
 }
 
 .glass-nav {
-  background: rgba(11, 15, 23, 0.85);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
 }
 
 .glass-glow {
-  position: relative;
-}
-
-.glass-glow::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.4), rgba(245, 158, 11, 0.2), transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
 }
 
 /* Кнопки */
@@ -153,19 +188,19 @@ img {
   justify-content: center;
   gap: 8px;
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: #ffffff;
+  color: #ffffff !important;
   padding: 12px 24px;
   border-radius: var(--radius-sm);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  border: 1px solid rgba(2, 132, 199, 0.2);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
   background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
 }
 
@@ -178,40 +213,44 @@ img {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #ffffff;
   color: var(--text-main);
   padding: 12px 24px;
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.95rem;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--primary);
 }
 
+/* Валенсийская кнопка-акцент (Naranja de Valencia & Fuego de Fallas) */
 .btn-accent {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #111827;
+  background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+  color: #ffffff !important;
   padding: 12px 24px;
   border-radius: var(--radius-sm);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 15px var(--accent-glow);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
+  border: 1px solid rgba(234, 88, 12, 0.2);
 }
 
 .btn-accent:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.45);
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
 }
 
 .btn-icon {
@@ -221,19 +260,20 @@ img {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff;
   color: var(--text-main);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
 .btn-icon:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #38bdf8;
+  background: #f0f9ff;
+  color: var(--primary);
   border-color: var(--primary);
 }
 
-/* Бейджи и метки */
+/* Бейджи и метки с валенсийскими оттенками */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -241,42 +281,47 @@ img {
   padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
+/* Золото Фальяс / Хит продаж */
 .badge-bestseller {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
 }
 
+/* Зелень садов Валенсии / Новинка */
 .badge-new {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
+/* Красный цвет Сеньеры / Скидка */
 .badge-discount {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Огонь Фальяс и праздников */
+.badge-fiesta {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
 }
 
 /* Анимации */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
-}
-
 .animate-fade {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.35s ease-out forwards;
 }
 
 /* Пользовательский скроллбар */
@@ -286,14 +331,14 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f17;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }

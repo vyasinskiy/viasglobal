@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 /**
- * Страница полной корзины товаров (Cart Page) с переводами (ES / EN)
+ * Страница полной корзины товаров (Cart Page) в светлой теме с переводами (ES / EN)
  */
 export default function CartPage() {
   const [mounted, setMounted] = useState(false);
@@ -78,17 +78,16 @@ export default function CartPage() {
       <div className="container">
         {/* Заголовок страницы */}
         <div style={{ marginBottom: "32px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#38bdf8", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#0284c7", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
             <ShoppingBag size={16} /> {language === "es" ? "Proceso de compra" : "Shopping Process"}
           </div>
-          <h1 style={{ fontSize: "2.4rem", marginTop: "4px" }}>
+          <h1 style={{ fontSize: "2.3rem", color: "var(--text-main)", fontWeight: 800, marginTop: "4px" }}>
             {language === "es" ? "Cesta de la compra" : "Shopping Cart"}
           </h1>
         </div>
 
         {items.length === 0 ? (
           <div
-            className="glass-panel"
             style={{
               padding: "60px 24px",
               textAlign: "center",
@@ -96,6 +95,10 @@ export default function CartPage() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              background: "#ffffff",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border-color)",
+              boxShadow: "var(--shadow-sm)",
             }}
           >
             <div
@@ -103,17 +106,17 @@ export default function CartPage() {
                 width: "80px",
                 height: "80px",
                 borderRadius: "50%",
-                background: "rgba(255, 255, 255, 0.05)",
+                background: "#f1f5f9",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--text-muted)",
+                color: "var(--text-subtle)",
                 marginBottom: "20px",
               }}
             >
               <ShoppingBag size={40} />
             </div>
-            <h2 style={{ fontSize: "1.5rem", color: "#fff", marginBottom: "10px" }}>
+            <h2 style={{ fontSize: "1.5rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "10px" }}>
               {t.cart.emptyTitle}
             </h2>
             <p style={{ color: "var(--text-muted)", maxWidth: "450px", marginBottom: "28px", fontSize: "1rem" }}>
@@ -136,10 +139,10 @@ export default function CartPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               {/* Баннер бесплатной доставки */}
               <div
-                className="glass-panel"
                 style={{
                   padding: "16px 20px",
-                  background: "rgba(2, 132, 199, 0.08)",
+                  background: "#f0f9ff",
+                  border: "1px solid #bae6fd",
                   borderRadius: "var(--radius-md)",
                 }}
               >
@@ -148,13 +151,13 @@ export default function CartPage() {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    color: remainingForFree === 0 ? "#34d399" : "#e2e8f0",
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    color: remainingForFree === 0 ? "#047857" : "#0369a1",
                     marginBottom: "10px",
                   }}
                 >
-                  <Truck size={18} color={remainingForFree === 0 ? "#34d399" : "#38bdf8"} />
+                  <Truck size={18} color={remainingForFree === 0 ? "#047857" : "#0284c7"} />
                   {remainingForFree === 0 ? (
                     <span>{t.cart.freeShippingUnlocked}</span>
                   ) : (
@@ -167,7 +170,7 @@ export default function CartPage() {
                   style={{
                     width: "100%",
                     height: "8px",
-                    background: "rgba(255, 255, 255, 0.1)",
+                    background: "#e2e8f0",
                     borderRadius: "4px",
                     overflow: "hidden",
                   }}
@@ -178,7 +181,7 @@ export default function CartPage() {
                       height: "100%",
                       background:
                         remainingForFree === 0
-                          ? "linear-gradient(90deg, #10b981, #34d399)"
+                          ? "linear-gradient(90deg, #10b981, #059669)"
                           : "linear-gradient(90deg, #0284c7, #38bdf8)",
                       borderRadius: "4px",
                       transition: "width 0.4s ease",
@@ -188,7 +191,7 @@ export default function CartPage() {
               </div>
 
               {/* Список товаров */}
-              <div className="glass-panel" style={{ padding: "20px", borderRadius: "var(--radius-md)" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "20px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   {items.map((item) => {
                     const productTitle = item.product.title[language] || item.product.title.es;
@@ -214,7 +217,8 @@ export default function CartPage() {
                               height: "80px",
                               borderRadius: "10px",
                               overflow: "hidden",
-                              background: "#1e293b",
+                              background: "#f1f5f9",
+                              border: "1px solid var(--border-color)",
                               flexShrink: 0,
                             }}
                           >
@@ -227,16 +231,16 @@ export default function CartPage() {
                             />
                           </div>
                           <div>
-                            <span style={{ fontSize: "0.75rem", color: "#38bdf8", fontWeight: 700, textTransform: "uppercase" }}>
+                            <span style={{ fontSize: "0.75rem", color: "#0284c7", fontWeight: 800, textTransform: "uppercase" }}>
                               {item.product.brand}
                             </span>
                             <Link
                               href={`/products/${item.product.id}`}
-                              style={{ display: "block", fontSize: "0.95rem", fontWeight: 700, color: "#fff", marginTop: "2px" }}
+                              style={{ display: "block", fontSize: "0.95rem", fontWeight: 700, color: "var(--text-main)", marginTop: "2px" }}
                             >
                               {productTitle}
                             </Link>
-                            <div style={{ fontSize: "0.8rem", color: "var(--text-subtle)", marginTop: "4px" }}>
+                            <div style={{ fontSize: "0.78rem", color: "var(--text-subtle)", marginTop: "4px" }}>
                               Ref: {item.product.sku}
                             </div>
                           </div>
@@ -247,25 +251,26 @@ export default function CartPage() {
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: "10px",
-                            background: "rgba(255, 255, 255, 0.08)",
+                            gap: "8px",
+                            background: "#f8fafc",
                             borderRadius: "8px",
                             padding: "4px 10px",
+                            border: "1px solid var(--border-color)",
                           }}
                         >
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            style={{ color: "#fff", display: "flex" }}
+                            style={{ color: "var(--text-main)", display: "flex" }}
                             aria-label="Disminuir"
                           >
                             <Minus size={14} />
                           </button>
-                          <span style={{ fontSize: "0.95rem", fontWeight: 700, minWidth: "20px", textAlign: "center" }}>
+                          <span style={{ fontSize: "0.95rem", fontWeight: 800, minWidth: "20px", textAlign: "center", color: "var(--text-main)" }}>
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            style={{ color: "#fff", display: "flex" }}
+                            style={{ color: "var(--text-main)", display: "flex" }}
                             aria-label="Aumentar"
                           >
                             <Plus size={14} />
@@ -275,7 +280,7 @@ export default function CartPage() {
                         {/* Цена и Удаление */}
                         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                           <div style={{ textAlign: "right" }}>
-                            <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "#38bdf8" }}>
+                            <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0284c7" }}>
                               €{(item.product.price * item.quantity).toFixed(2)}
                             </div>
                             <div style={{ fontSize: "0.75rem", color: "var(--text-subtle)" }}>
@@ -312,8 +317,8 @@ export default function CartPage() {
                       alignItems: "center",
                       gap: "6px",
                       fontSize: "0.9rem",
-                      color: "#38bdf8",
-                      fontWeight: 600,
+                      color: "#0284c7",
+                      fontWeight: 700,
                     }}
                   >
                     <ArrowLeft size={16} /> {t.cart.continueShopping}
@@ -323,9 +328,10 @@ export default function CartPage() {
                     onClick={clearCart}
                     style={{
                       fontSize: "0.85rem",
-                      color: "#ef4444",
+                      color: "#dc2626",
                       textDecoration: "underline",
                       cursor: "pointer",
+                      fontWeight: 600,
                     }}
                   >
                     {t.cart.clearCart}
@@ -337,13 +343,15 @@ export default function CartPage() {
             {/* Правая колонка: Итоговый расчет */}
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div
-                className="glass-panel glass-glow"
                 style={{
+                  background: "#ffffff",
+                  border: "1px solid #bae6fd",
                   padding: "24px",
                   borderRadius: "var(--radius-md)",
+                  boxShadow: "var(--shadow-sm)",
                 }}
               >
-                <h2 style={{ fontSize: "1.3rem", color: "#fff", marginBottom: "20px" }}>
+                <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "18px" }}>
                   {language === "es" ? "Resumen de compra" : "Order Summary"}
                 </h2>
 
@@ -362,10 +370,10 @@ export default function CartPage() {
                         width: "100%",
                         padding: "10px 12px 10px 34px",
                         fontSize: "0.88rem",
-                        background: "rgba(255, 255, 255, 0.05)",
+                        background: "#f8fafc",
                         border: "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                         textTransform: "uppercase",
                       }}
                     />
@@ -381,11 +389,12 @@ export default function CartPage() {
                   <div
                     style={{
                       fontSize: "0.82rem",
-                      color: feedback.isError ? "#ef4444" : "#10b981",
+                      color: feedback.isError ? "#dc2626" : "#059669",
                       display: "flex",
                       alignItems: "center",
                       gap: "6px",
                       marginBottom: "16px",
+                      fontWeight: 600,
                     }}
                   >
                     {feedback.isError ? <X size={14} /> : <CheckCircle2 size={14} />}
@@ -400,16 +409,17 @@ export default function CartPage() {
                       alignItems: "center",
                       justifyContent: "space-between",
                       padding: "8px 12px",
-                      background: "rgba(16, 185, 129, 0.1)",
-                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      background: "#ecfdf5",
+                      border: "1px solid #a7f3d0",
                       borderRadius: "8px",
                       fontSize: "0.85rem",
-                      color: "#34d399",
+                      color: "#047857",
                       marginBottom: "16px",
+                      fontWeight: 600,
                     }}
                   >
                     <span>Código <strong>{appliedCoupon.code}</strong> (-{appliedCoupon.discountPercent}%)</span>
-                    <button onClick={removeCoupon} style={{ color: "#ef4444", fontSize: "0.8rem", textDecoration: "underline" }}>
+                    <button onClick={removeCoupon} style={{ color: "#dc2626", fontSize: "0.8rem", textDecoration: "underline" }}>
                       {language === "es" ? "Eliminar" : "Remove"}
                     </button>
                   </div>
@@ -419,11 +429,11 @@ export default function CartPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.92rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                     <span>{t.cart.subtotal}</span>
-                    <span style={{ color: "#fff" }}>€{subtotal.toFixed(2)}</span>
+                    <span style={{ color: "var(--text-main)", fontWeight: 600 }}>€{subtotal.toFixed(2)}</span>
                   </div>
 
                   {discount > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#34d399" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#047857", fontWeight: 600 }}>
                       <span>{t.cart.discount} ({appliedCoupon?.code}):</span>
                       <span>-€{discount.toFixed(2)}</span>
                     </div>
@@ -431,7 +441,7 @@ export default function CartPage() {
 
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                     <span>{t.cart.shipping}</span>
-                    <span style={{ color: shipping === 0 ? "#34d399" : "#fff" }}>
+                    <span style={{ color: shipping === 0 ? "#047857" : "var(--text-main)", fontWeight: 600 }}>
                       {shipping === 0 ? (language === "es" ? "Gratis" : "Free") : `€${shipping.toFixed(2)}`}
                     </span>
                   </div>
@@ -445,7 +455,7 @@ export default function CartPage() {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      color: "#fff",
+                      color: "var(--text-main)",
                       fontSize: "1.35rem",
                       fontWeight: 800,
                       marginTop: "10px",
@@ -454,7 +464,7 @@ export default function CartPage() {
                     }}
                   >
                     <span>{t.cart.total}</span>
-                    <span style={{ color: "#38bdf8" }}>€{total.toFixed(2)}</span>
+                    <span style={{ color: "#0284c7" }}>€{total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -475,17 +485,17 @@ export default function CartPage() {
               </div>
 
               {/* Гарантии */}
-              <div className="glass-panel" style={{ padding: "20px", borderRadius: "var(--radius-md)", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "20px", borderRadius: "var(--radius-md)", fontSize: "0.85rem", color: "var(--text-muted)", boxShadow: "var(--shadow-sm)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                  <ShieldCheck size={18} color="#34d399" />
+                  <ShieldCheck size={18} color="#047857" />
                   <span>{language === "es" ? "Pago seguro con cifrado SSL 256-bit" : "256-bit SSL encrypted secure checkout"}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                  <RotateCcw size={18} color="#fbbf24" />
+                  <RotateCcw size={18} color="#b45309" />
                   <span>{language === "es" ? "30 días de garantía de devolución" : "30-day money back guarantee"}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Truck size={18} color="#38bdf8" />
+                  <Truck size={18} color="#0284c7" />
                   <span>{language === "es" ? "Envío en 24h por SEUR / Correos Express" : "24h dispatch via SEUR / DHL Express"}</span>
                 </div>
               </div>

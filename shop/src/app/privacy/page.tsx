@@ -3,7 +3,7 @@
 import { useCartStore } from "@/store/cartStore";
 
 /**
- * Страница политики конфиденциальности и защиты данных (RGPD / LOPDGDD) (ES / EN)
+ * Страница политики конфиденциальности и защиты данных (RGPD / LOPDGDD) (ES / EN) в светлой теме
  */
 export default function PrivacyPage() {
   const { language } = useCartStore();
@@ -11,13 +11,13 @@ export default function PrivacyPage() {
   return (
     <div style={{ padding: "50px 0 80px" }}>
       <div className="container" style={{ maxWidth: "840px" }}>
-        <h1 style={{ fontSize: "2.4rem", marginBottom: "24px" }}>
+        <h1 style={{ fontSize: "2.4rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "24px" }}>
           {language === "es" ? "Política de Privacidad (RGPD)" : "Privacy Policy (GDPR)"}
         </h1>
 
-        <div className="glass-panel" style={{ padding: "32px", borderRadius: "var(--radius-lg)", display: "flex", flexDirection: "column", gap: "20px", lineHeight: 1.7, color: "var(--text-muted)", fontSize: "0.95rem" }}>
+        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "32px", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", gap: "24px", lineHeight: 1.7, color: "var(--text-muted)", fontSize: "0.95rem" }}>
           <div>
-            <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {language === "es" ? "1. Responsable del tratamiento de datos" : "1. Data Controller Information"}
             </h2>
             <p>
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {language === "es" ? "2. Finalidad y legitimación del tratamiento" : "2. Purposes & Legal Basis of Processing"}
             </h2>
             <p>
@@ -59,7 +59,7 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "8px" }}>
               {language === "es" ? "3. Derechos del usuario (ARCO-POL)" : "3. Your Data Rights (ARCO-POL)"}
             </h2>
             <p>

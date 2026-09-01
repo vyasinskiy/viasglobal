@@ -4,7 +4,7 @@ import { useCartStore } from "@/store/cartStore";
 import { Truck, ShieldCheck, CreditCard, CheckCircle2 } from "lucide-react";
 
 /**
- * Страница условий доставки, оплаты и гарантии (ES / EN)
+ * Страница условий доставки, оплаты и гарантии (ES / EN) в светлой теме
  */
 export default function ShippingPage() {
   const { language } = useCartStore();
@@ -61,10 +61,10 @@ export default function ShippingPage() {
     <div style={{ padding: "50px 0 80px" }}>
       <div className="container" style={{ maxWidth: "860px" }}>
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#38bdf8", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#0284c7", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase" }}>
             {t.badge}
           </div>
-          <h1 style={{ fontSize: "2.4rem", marginTop: "6px", marginBottom: "12px" }}>
+          <h1 style={{ fontSize: "2.4rem", color: "var(--text-main)", fontWeight: 800, marginTop: "6px", marginBottom: "12px" }}>
             {t.title}
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "1rem" }}>
@@ -74,83 +74,83 @@ export default function ShippingPage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           {/* Блок 1: Доставка */}
-          <div className="glass-panel" style={{ padding: "32px", borderRadius: "var(--radius-lg)" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "32px", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(2, 132, 199, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#38bdf8" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#e0f2fe", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284c7" }}>
                 <Truck size={22} />
               </div>
-              <h2 style={{ fontSize: "1.4rem", color: "#fff" }}>{t.shippingTitle}</h2>
+              <h2 style={{ fontSize: "1.4rem", color: "var(--text-main)", fontWeight: 800 }}>{t.shippingTitle}</h2>
             </div>
 
             <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "16px" }}>
               {t.shippingIntro}
             </p>
 
-            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "12px", color: "#e2e8f0", fontSize: "0.95rem" }}>
+            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "12px", color: "#1e293b", fontSize: "0.95rem" }}>
               <li style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                <CheckCircle2 size={18} color="#34d399" style={{ flexShrink: 0, marginTop: "3px" }} />
+                <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: "3px" }} />
                 <span>{t.shippingItem1}</span>
               </li>
               <li style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                <CheckCircle2 size={18} color="#34d399" style={{ flexShrink: 0, marginTop: "3px" }} />
+                <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: "3px" }} />
                 <span>{t.shippingItem2}</span>
               </li>
               <li style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                <CheckCircle2 size={18} color="#34d399" style={{ flexShrink: 0, marginTop: "3px" }} />
+                <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: "3px" }} />
                 <span>{t.shippingItem3}</span>
               </li>
             </ul>
           </div>
 
           {/* Блок 2: Оплата */}
-          <div className="glass-panel" style={{ padding: "32px", borderRadius: "var(--radius-lg)" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "32px", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(245, 158, 11, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fbbf24" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center", color: "#b45309" }}>
                 <CreditCard size={22} />
               </div>
-              <h2 style={{ fontSize: "1.4rem", color: "#fff" }}>{t.paymentTitle}</h2>
+              <h2 style={{ fontSize: "1.4rem", color: "var(--text-main)", fontWeight: 800 }}>{t.paymentTitle}</h2>
             </div>
 
             <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "16px" }}>
               {t.paymentIntro}
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px", color: "#e2e8f0", fontSize: "0.9rem" }}>
-              <div style={{ padding: "12px", background: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px", color: "#1e293b", fontSize: "0.9rem" }}>
+              <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
                 {t.pay1}
               </div>
-              <div style={{ padding: "12px", background: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+              <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
                 {t.pay2}
               </div>
-              <div style={{ padding: "12px", background: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+              <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
                 {t.pay3}
               </div>
-              <div style={{ padding: "12px", background: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+              <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
                 {t.pay4}
               </div>
             </div>
           </div>
 
           {/* Блок 3: Гарантия и возврат */}
-          <div className="glass-panel" style={{ padding: "32px", borderRadius: "var(--radius-lg)" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "32px", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(16, 185, 129, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#34d399" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", color: "#047857" }}>
                 <ShieldCheck size={22} />
               </div>
-              <h2 style={{ fontSize: "1.4rem", color: "#fff" }}>{t.warrantyTitle}</h2>
+              <h2 style={{ fontSize: "1.4rem", color: "var(--text-main)", fontWeight: 800 }}>{t.warrantyTitle}</h2>
             </div>
 
             <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "16px" }}>
               {t.warrantyIntro}
             </p>
 
-            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "12px", color: "#e2e8f0", fontSize: "0.95rem" }}>
+            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "12px", color: "#1e293b", fontSize: "0.95rem" }}>
               <li style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                <CheckCircle2 size={18} color="#34d399" style={{ flexShrink: 0, marginTop: "3px" }} />
+                <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: "3px" }} />
                 <span>{t.warrantyItem1}</span>
               </li>
               <li style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                <CheckCircle2 size={18} color="#34d399" style={{ flexShrink: 0, marginTop: "3px" }} />
+                <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: "3px" }} />
                 <span>{t.warrantyItem2}</span>
               </li>
             </ul>

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 /**
- * Страница оформления заказа (Checkout) с переводами (ES / EN)
+ * Страница оформления заказа (Checkout) в светлой теме с переводами (ES / EN)
  */
 export default function CheckoutPage() {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function CheckoutPage() {
     return (
       <div style={{ padding: "80px 0" }}>
         <div className="container" style={{ textAlign: "center" }}>
-          <h2 style={{ fontSize: "1.8rem", marginBottom: "12px" }}>{t.cart.emptyTitle}</h2>
+          <h2 style={{ fontSize: "1.8rem", color: "var(--text-main)", marginBottom: "12px" }}>{t.cart.emptyTitle}</h2>
           <p style={{ color: "var(--text-muted)", marginBottom: "24px" }}>
             {t.cart.emptyDesc}
           </p>
@@ -99,11 +99,14 @@ export default function CheckoutPage() {
   const subtotal = getSubtotal();
   const discount = getDiscountAmount();
   const baseShippingCost = getShippingCost();
-  const selectedShippingObj = SHIPPING_METHODS.find((m) => m.id === selectedShipping);
-  const currentShippingPrice = baseShippingCost === 0 ? 0 : (selectedShippingObj?.price || 4.99);
-  const total = Math.max(0, subtotal - discount + currentShippingPrice);
+  const currentShippingMethod = SHIPPING_METHODS.find((m) => m.id === selectedShipping);
+  const currentShippingPrice =
+    baseShippingCost === 0 ? 0 : currentShippingMethod ? currentShippingMethod.price : 4.99;
+  const total = subtotal - discount + currentShippingPrice;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     setFormData((prev) => ({
@@ -111,93 +114,78 @@ export default function CheckoutPage() {
       [name]: type === "checkbox" ? checked : value,
     }));
     if (formErrors[name]) {
-      setFormErrors((prev) => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    const errText = {
-      fn: language === "es" ? "Indique su nombre" : "Please enter your first name",
-      ln: language === "es" ? "Indique sus apellidos" : "Please enter your last name",
-      em: language === "es" ? "Indique un email válido" : "Please enter a valid email",
-      ph: language === "es" ? "Indique su teléfono" : "Please enter your phone number",
-      addr: language === "es" ? "Indique la dirección de entrega" : "Please enter your street address",
-      ct: language === "es" ? "Indique la ciudad" : "Please enter your city",
-      pc: language === "es" ? "Indique el código postal" : "Please enter your postal code",
-      terms: language === "es" ? "Debe aceptar los términos de compra" : "You must agree to the terms",
-    };
-
-    if (!formData.firstName.trim()) errors.firstName = errText.fn;
-    if (!formData.lastName.trim()) errors.lastName = errText.ln;
-    if (!formData.email.trim() || !formData.email.includes("@"))
-      errors.email = errText.em;
-    if (!formData.phone.trim()) errors.phone = errText.ph;
-    if (!formData.address.trim()) errors.address = errText.addr;
-    if (!formData.city.trim()) errors.city = errText.ct;
-    if (!formData.postalCode.trim()) errors.postalCode = errText.pc;
-    if (!formData.acceptTerms) errors.acceptTerms = errText.terms;
-    return errors;
+    if (!formData.firstName.trim()) errors.firstName = language === "es" ? "Requerido" : "Required";
+    if (!formData.lastName.trim()) errors.lastName = language === "es" ? "Requerido" : "Required";
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      errors.email = language === "es" ? "Email no válido" : "Valid email required";
+    }
+    if (!formData.phone.trim()) errors.phone = language === "es" ? "Requerido" : "Required";
+    if (!formData.address.trim()) errors.address = language === "es" ? "Requerido" : "Required";
+    if (!formData.city.trim()) errors.city = language === "es" ? "Requerido" : "Required";
+    if (!formData.postalCode.trim()) errors.postalCode = language === "es" ? "Requerido" : "Required";
+    if (!formData.acceptTerms) {
+      errors.acceptTerms = language === "es" ? "Debes aceptar los términos y privacidad" : "You must accept terms & privacy";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
+    // Имитация безопасной обработки платежа через Stripe / Redsys
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    setTimeout(() => {
-      const orderId = `VG-${Math.floor(100000 + Math.random() * 900000)}`;
-      const orderPayload = {
-        orderId,
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        total: total.toFixed(2),
-        itemCount: items.reduce((s, i) => s + i.quantity, 0),
-        address: `${formData.address}, ${formData.city} ${formData.postalCode}, ${formData.country}`,
-        shippingMethod: selectedShippingObj?.title[language] || selectedShippingObj?.title.es,
-        paymentMethod: selectedPayment,
-      };
+    const orderId = `VG-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("last_order", JSON.stringify(orderPayload));
-      }
+    const orderData = {
+      orderId,
+      date: new Date().toISOString(),
+      customer: formData,
+      items,
+      paymentMethod: selectedPayment,
+      shippingMethod: selectedShipping,
+      subtotal,
+      discount,
+      shipping: currentShippingPrice,
+      total,
+      currency: "EUR",
+    };
 
-      clearCart();
-      setIsSubmitting(false);
-      router.push(`/checkout/success?orderId=${orderId}`);
-    }, 1200);
+    localStorage.setItem("viasglobal_last_order", JSON.stringify(orderData));
+    clearCart();
+    setIsSubmitting(false);
+    router.push(`/checkout/success?orderId=${orderId}`);
   };
 
   return (
     <div style={{ padding: "40px 0 80px" }}>
       <div className="container">
-        {/* Возврат в корзину */}
-        <div style={{ marginBottom: "24px" }}>
-          <Link
-            href="/cart"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              color: "#38bdf8",
-              fontSize: "0.9rem",
-              fontWeight: 600,
-            }}
-          >
-            <ArrowLeft size={16} /> {t.checkout.backToCart}
-          </Link>
-        </div>
+        {/* Кнопка возврата */}
+        <Link
+          href="/cart"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "0.9rem",
+            color: "#0284c7",
+            fontWeight: 700,
+            marginBottom: "20px",
+          }}
+        >
+          <ArrowLeft size={16} /> {t.checkout.backToCart}
+        </Link>
 
-        <h1 style={{ fontSize: "2.2rem", marginBottom: "32px" }}>{t.checkout.title}</h1>
+        <h1 style={{ fontSize: "2.2rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "28px" }}>{t.checkout.title}</h1>
 
         <form onSubmit={handleSubmitOrder}>
           <div
@@ -211,15 +199,15 @@ export default function CheckoutPage() {
             {/* Левая колонка: Данные и доставка */}
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               {/* Блок 1: Контакты */}
-              <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-                <h2 style={{ fontSize: "1.2rem", color: "#fff", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+                <h2 style={{ fontSize: "1.2rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#0284c7", color: "#fff", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>1</span>
                   {t.checkout.step1Title}
                 </h2>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.firstName}</label>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.firstName}</label>
                     <input
                       type="text"
                       name="firstName"
@@ -228,17 +216,17 @@ export default function CheckoutPage() {
                       style={{
                         width: "100%",
                         padding: "10px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: formErrors.firstName ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                        background: "#f8fafc",
+                        border: formErrors.firstName ? "1px solid #dc2626" : "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                       }}
                     />
-                    {formErrors.firstName && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.firstName}</span>}
+                    {formErrors.firstName && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.firstName}</span>}
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.lastName}</label>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.lastName}</label>
                     <input
                       type="text"
                       name="lastName"
@@ -247,19 +235,19 @@ export default function CheckoutPage() {
                       style={{
                         width: "100%",
                         padding: "10px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: formErrors.lastName ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                        background: "#f8fafc",
+                        border: formErrors.lastName ? "1px solid #dc2626" : "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                       }}
                     />
-                    {formErrors.lastName && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.lastName}</span>}
+                    {formErrors.lastName && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.lastName}</span>}
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.email}</label>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.email}</label>
                     <input
                       type="email"
                       name="email"
@@ -268,17 +256,17 @@ export default function CheckoutPage() {
                       style={{
                         width: "100%",
                         padding: "10px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: formErrors.email ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                        background: "#f8fafc",
+                        border: formErrors.email ? "1px solid #dc2626" : "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                       }}
                     />
-                    {formErrors.email && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.email}</span>}
+                    {formErrors.email && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.email}</span>}
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.phone}</label>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.phone}</label>
                     <input
                       type="tel"
                       name="phone"
@@ -288,19 +276,19 @@ export default function CheckoutPage() {
                       style={{
                         width: "100%",
                         padding: "10px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: formErrors.phone ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                        background: "#f8fafc",
+                        border: formErrors.phone ? "1px solid #dc2626" : "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                       }}
                     />
-                    {formErrors.phone && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.phone}</span>}
+                    {formErrors.phone && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.phone}</span>}
                   </div>
                 </div>
 
                 {/* B2B поля */}
-                <div style={{ padding: "12px", background: "rgba(255, 255, 255, 0.02)", borderRadius: "var(--radius-sm)", border: "1px dashed var(--border-color)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", color: "#38bdf8", marginBottom: "8px", fontWeight: 600 }}>
+                <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "var(--radius-sm)", border: "1px dashed var(--border-color)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", color: "#0284c7", marginBottom: "8px", fontWeight: 700 }}>
                     <Building2 size={14} /> {t.checkout.b2bTitle}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -310,7 +298,7 @@ export default function CheckoutPage() {
                       placeholder={t.checkout.companyName}
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      style={{ padding: "8px 12px", fontSize: "0.85rem", background: "rgba(0,0,0,0.2)", border: "1px solid var(--border-color)", borderRadius: "4px", color: "#fff" }}
+                      style={{ padding: "8px 12px", fontSize: "0.85rem", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "4px", color: "var(--text-main)" }}
                     />
                     <input
                       type="text"
@@ -318,21 +306,21 @@ export default function CheckoutPage() {
                       placeholder={t.checkout.vatNumber}
                       value={formData.vatNumber}
                       onChange={handleInputChange}
-                      style={{ padding: "8px 12px", fontSize: "0.85rem", background: "rgba(0,0,0,0.2)", border: "1px solid var(--border-color)", borderRadius: "4px", color: "#fff" }}
+                      style={{ padding: "8px 12px", fontSize: "0.85rem", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "4px", color: "var(--text-main)" }}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Блок 2: Адрес доставки */}
-              <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-                <h2 style={{ fontSize: "1.2rem", color: "#fff", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+                <h2 style={{ fontSize: "1.2rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#0284c7", color: "#fff", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>2</span>
                   {t.checkout.step2Title}
                 </h2>
 
                 <div style={{ marginBottom: "16px" }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.country}</label>
+                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.country}</label>
                   <select
                     name="country"
                     value={formData.country}
@@ -340,10 +328,10 @@ export default function CheckoutPage() {
                     style={{
                       width: "100%",
                       padding: "10px 14px",
-                      background: "rgba(15, 23, 42, 0.9)",
+                      background: "#f8fafc",
                       border: "1px solid var(--border-color)",
                       borderRadius: "var(--radius-sm)",
-                      color: "#fff",
+                      color: "var(--text-main)",
                       outline: "none",
                     }}
                   >
@@ -357,7 +345,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div style={{ marginBottom: "16px" }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.address}</label>
+                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.address}</label>
                   <input
                     type="text"
                     name="address"
@@ -367,18 +355,18 @@ export default function CheckoutPage() {
                     style={{
                       width: "100%",
                       padding: "10px 14px",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      border: formErrors.address ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                      background: "#f8fafc",
+                      border: formErrors.address ? "1px solid #dc2626" : "1px solid var(--border-color)",
                       borderRadius: "var(--radius-sm)",
-                      color: "#fff",
+                      color: "var(--text-main)",
                     }}
                   />
-                  {formErrors.address && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.address}</span>}
+                  {formErrors.address && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.address}</span>}
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.city}</label>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.city}</label>
                     <input
                       type="text"
                       name="city"
@@ -388,17 +376,17 @@ export default function CheckoutPage() {
                       style={{
                         width: "100%",
                         padding: "10px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: formErrors.city ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                        background: "#f8fafc",
+                        border: formErrors.city ? "1px solid #dc2626" : "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                       }}
                     />
-                    {formErrors.city && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.city}</span>}
+                    {formErrors.city && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.city}</span>}
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t.checkout.postalCode}</label>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "6px", fontWeight: 600 }}>{t.checkout.postalCode}</label>
                     <input
                       type="text"
                       name="postalCode"
@@ -408,20 +396,20 @@ export default function CheckoutPage() {
                       style={{
                         width: "100%",
                         padding: "10px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: formErrors.postalCode ? "1px solid #ef4444" : "1px solid var(--border-color)",
+                        background: "#f8fafc",
+                        border: formErrors.postalCode ? "1px solid #dc2626" : "1px solid var(--border-color)",
                         borderRadius: "var(--radius-sm)",
-                        color: "#fff",
+                        color: "var(--text-main)",
                       }}
                     />
-                    {formErrors.postalCode && <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>{formErrors.postalCode}</span>}
+                    {formErrors.postalCode && <span style={{ fontSize: "0.75rem", color: "#dc2626" }}>{formErrors.postalCode}</span>}
                   </div>
                 </div>
               </div>
 
               {/* Блок 3: Способ доставки */}
-              <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-                <h2 style={{ fontSize: "1.2rem", color: "#fff", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+                <h2 style={{ fontSize: "1.2rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#0284c7", color: "#fff", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>3</span>
                   {t.checkout.step3Title}
                 </h2>
@@ -441,8 +429,8 @@ export default function CheckoutPage() {
                         style={{
                           padding: "16px",
                           borderRadius: "var(--radius-sm)",
-                          background: isSelected ? "rgba(2, 132, 199, 0.12)" : "rgba(255, 255, 255, 0.03)",
-                          border: isSelected ? "1px solid var(--primary)" : "1px solid var(--border-color)",
+                          background: isSelected ? "#e0f2fe" : "#f8fafc",
+                          border: isSelected ? "1px solid #0284c7" : "1px solid var(--border-color)",
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
@@ -451,9 +439,9 @@ export default function CheckoutPage() {
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                          <Truck size={20} color={isSelected ? "#38bdf8" : "var(--text-muted)"} />
+                          <Truck size={20} color={isSelected ? "#0284c7" : "var(--text-muted)"} />
                           <div>
-                            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff" }}>
+                            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-main)" }}>
                               {title}
                             </div>
                             <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
@@ -462,7 +450,7 @@ export default function CheckoutPage() {
                           </div>
                         </div>
 
-                        <div style={{ fontSize: "1rem", fontWeight: 800, color: price === 0 ? "#34d399" : "#38bdf8" }}>
+                        <div style={{ fontSize: "1rem", fontWeight: 800, color: price === 0 ? "#047857" : "#0284c7" }}>
                           {price === 0 ? (language === "es" ? "Gratis" : "Free") : `€${price.toFixed(2)}`}
                         </div>
                       </div>
@@ -472,8 +460,8 @@ export default function CheckoutPage() {
               </div>
 
               {/* Блок 4: Способ оплаты */}
-              <div className="glass-panel" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-                <h2 style={{ fontSize: "1.2rem", color: "#fff", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+                <h2 style={{ fontSize: "1.2rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#0284c7", color: "#fff", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>4</span>
                   {t.checkout.step4Title}
                 </h2>
@@ -491,28 +479,28 @@ export default function CheckoutPage() {
                       style={{
                         padding: "12px",
                         borderRadius: "var(--radius-sm)",
-                        background: selectedPayment === pay.id ? "rgba(2, 132, 199, 0.15)" : "rgba(255, 255, 255, 0.03)",
-                        border: selectedPayment === pay.id ? "1px solid var(--primary)" : "1px solid var(--border-color)",
+                        background: selectedPayment === pay.id ? "#e0f2fe" : "#f8fafc",
+                        border: selectedPayment === pay.id ? "1px solid #0284c7" : "1px solid var(--border-color)",
                         cursor: "pointer",
                         textAlign: "center",
                       }}
                     >
-                      <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#fff" }}>{pay.label}</div>
+                      <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text-main)" }}>{pay.label}</div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-subtle)", marginTop: "2px" }}>{pay.sub}</div>
                     </div>
                   ))}
                 </div>
 
                 {selectedPayment === "card" && (
-                  <div style={{ padding: "16px", background: "rgba(0, 0, 0, 0.2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
+                  <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
                     <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px" }}>{t.checkout.cardNumber}</label>
+                      <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 600 }}>{t.checkout.cardNumber}</label>
                       <div style={{ position: "relative" }}>
                         <input
                           type="text"
                           value={cardDetails.number}
                           onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                          style={{ width: "100%", padding: "10px 14px 10px 38px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid var(--border-color)", borderRadius: "6px", color: "#fff" }}
+                          style={{ width: "100%", padding: "10px 14px 10px 38px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "6px", color: "var(--text-main)" }}
                         />
                         <CreditCard size={18} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "12px" }} />
                       </div>
@@ -520,21 +508,21 @@ export default function CheckoutPage() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px" }}>{t.checkout.cardExpiry}</label>
+                        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 600 }}>{t.checkout.cardExpiry}</label>
                         <input
                           type="text"
                           value={cardDetails.expiry}
                           onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                          style={{ width: "100%", padding: "10px 14px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid var(--border-color)", borderRadius: "6px", color: "#fff" }}
+                          style={{ width: "100%", padding: "10px 14px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "6px", color: "var(--text-main)" }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px" }}>{t.checkout.cardCvc}</label>
+                        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 600 }}>{t.checkout.cardCvc}</label>
                         <input
                           type="text"
                           value={cardDetails.cvc}
                           onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value })}
-                          style={{ width: "100%", padding: "10px 14px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid var(--border-color)", borderRadius: "6px", color: "#fff" }}
+                          style={{ width: "100%", padding: "10px 14px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "6px", color: "var(--text-main)" }}
                         />
                       </div>
                     </div>
@@ -545,8 +533,8 @@ export default function CheckoutPage() {
 
             {/* Правая колонка: Состав заказа и подтверждение */}
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div className="glass-panel glass-glow" style={{ padding: "24px", borderRadius: "var(--radius-md)" }}>
-                <h2 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "16px" }}>
+              <div style={{ background: "#ffffff", border: "1px solid #bae6fd", padding: "24px", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
+                <h2 style={{ fontSize: "1.25rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "16px" }}>
                   {t.checkout.orderSummaryTitle} ({items.reduce((s, i) => s + i.quantity, 0)} {t.checkout.itemsCount})
                 </h2>
 
@@ -557,11 +545,11 @@ export default function CheckoutPage() {
                     return (
                       <div key={item.product.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <div style={{ position: "relative", width: "48px", height: "48px", borderRadius: "6px", overflow: "hidden", background: "#1e293b", flexShrink: 0 }}>
+                          <div style={{ position: "relative", width: "48px", height: "48px", borderRadius: "6px", overflow: "hidden", background: "#f1f5f9", border: "1px solid var(--border-color)", flexShrink: 0 }}>
                             <Image src={item.product.mainImage} alt={productTitle} fill sizes="48px" style={{ objectFit: "cover" }} />
                           </div>
                           <div>
-                            <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#fff", lineHeight: 1.3 }}>
+                            <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text-main)", lineHeight: 1.3 }}>
                               {productTitle}
                             </div>
                             <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
@@ -569,7 +557,7 @@ export default function CheckoutPage() {
                             </div>
                           </div>
                         </div>
-                        <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "#38bdf8" }}>
+                        <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "#0284c7" }}>
                           €{(item.product.price * item.quantity).toFixed(2)}
                         </div>
                       </div>
@@ -581,11 +569,11 @@ export default function CheckoutPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px solid var(--border-color)", paddingTop: "14px", fontSize: "0.9rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                     <span>{t.cart.subtotal}</span>
-                    <span style={{ color: "#fff" }}>€{subtotal.toFixed(2)}</span>
+                    <span style={{ color: "var(--text-main)", fontWeight: 600 }}>€{subtotal.toFixed(2)}</span>
                   </div>
 
                   {discount > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#34d399" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: "#047857", fontWeight: 600 }}>
                       <span>{t.cart.discount} ({appliedCoupon?.code}):</span>
                       <span>-€{discount.toFixed(2)}</span>
                     </div>
@@ -593,7 +581,7 @@ export default function CheckoutPage() {
 
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                     <span>{t.cart.shipping}</span>
-                    <span style={{ color: currentShippingPrice === 0 ? "#34d399" : "#fff" }}>
+                    <span style={{ color: currentShippingPrice === 0 ? "#047857" : "var(--text-main)", fontWeight: 600 }}>
                       {currentShippingPrice === 0 ? (language === "es" ? "Gratis" : "Free") : `€${currentShippingPrice.toFixed(2)}`}
                     </span>
                   </div>
@@ -607,7 +595,7 @@ export default function CheckoutPage() {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      color: "#fff",
+                      color: "var(--text-main)",
                       fontSize: "1.35rem",
                       fontWeight: 800,
                       marginTop: "8px",
@@ -616,7 +604,7 @@ export default function CheckoutPage() {
                     }}
                   >
                     <span>{t.cart.total}</span>
-                    <span style={{ color: "#38bdf8" }}>€{total.toFixed(2)}</span>
+                    <span style={{ color: "#0284c7" }}>€{total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -632,13 +620,13 @@ export default function CheckoutPage() {
                     />
                     <span>
                       {t.checkout.termsAgreement}{" "}
-                      <Link href="/legal" style={{ color: "#38bdf8", textDecoration: "underline" }}>{t.checkout.termsLink}</Link>{" "}
+                      <Link href="/legal" style={{ color: "#0284c7", textDecoration: "underline" }}>{t.checkout.termsLink}</Link>{" "}
                       {language === "es" ? "y la" : "and"}{" "}
-                      <Link href="/privacy" style={{ color: "#38bdf8", textDecoration: "underline" }}>{t.checkout.privacyLink}</Link>.
+                      <Link href="/privacy" style={{ color: "#0284c7", textDecoration: "underline" }}>{t.checkout.privacyLink}</Link>.
                     </span>
                   </label>
                   {formErrors.acceptTerms && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", color: "#ef4444", marginTop: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", color: "#dc2626", marginTop: "4px" }}>
                       <AlertCircle size={14} /> {formErrors.acceptTerms}
                     </div>
                   )}
@@ -668,7 +656,7 @@ export default function CheckoutPage() {
                 </button>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "0.8rem", color: "var(--text-subtle)", marginTop: "14px" }}>
-                  <ShieldCheck size={14} color="#34d399" /> {t.checkout.sslSecure}
+                  <ShieldCheck size={14} color="#047857" /> {t.checkout.sslSecure}
                 </div>
               </div>
             </div>

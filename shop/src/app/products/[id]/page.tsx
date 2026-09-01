@@ -28,7 +28,7 @@ interface ProductPageProps {
 }
 
 /**
- * Карточка товара (Product Detail Page) с переводами (ES / EN)
+ * Карточка товара (Product Detail Page) в светлой теме с переводами (ES / EN)
  */
 export default function ProductDetailPage({ params }: ProductPageProps) {
   const { id } = use(params);
@@ -97,8 +97,8 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
               display: "inline-flex",
               alignItems: "center",
               gap: "4px",
-              color: "#38bdf8",
-              fontWeight: 600,
+              color: "#0284c7",
+              fontWeight: 700,
             }}
           >
             <ArrowLeft size={16} /> {t.productDetail.catalogBack}
@@ -106,30 +106,32 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
           <span>/</span>
           <span style={{ textTransform: "capitalize" }}>{product.category}</span>
           <span>/</span>
-          <span style={{ color: "#fff", fontWeight: 500 }}>{productTitle}</span>
+          <span style={{ color: "var(--text-main)", fontWeight: 600 }}>{productTitle}</span>
         </div>
 
-        {/* Главный блок товара */}
+        {/* Главный блок товара (2 колонки) */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
             gap: "48px",
+            alignItems: "start",
             marginBottom: "64px",
           }}
         >
           {/* Левая колонка: Галерея фото */}
           <div>
             <div
-              className="glass-panel"
               style={{
                 position: "relative",
                 width: "100%",
-                paddingTop: "80%",
+                paddingTop: "85%",
                 borderRadius: "var(--radius-lg)",
                 overflow: "hidden",
+                background: "#f1f5f9",
+                border: "1px solid var(--border-color)",
+                boxShadow: "var(--shadow-sm)",
                 marginBottom: "16px",
-                background: "#151e2e",
               }}
             >
               <Image
@@ -150,6 +152,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                   display: "flex",
                   flexDirection: "column",
                   gap: "6px",
+                  zIndex: 2,
                 }}
               >
                 {product.isBestseller && (
@@ -159,44 +162,42 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 )}
                 {product.isNew && <span className="badge badge-new">{t.productCard.new}</span>}
                 {discountPercent > 0 && (
-                  <span className="badge badge-discount">-{discountPercent}% {t.productCard.discount}</span>
+                  <span className="badge badge-discount">-{discountPercent}%</span>
                 )}
               </div>
             </div>
 
             {/* Миниатюры */}
-            {product.images.length > 1 && (
-              <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "4px" }}>
-                {product.images.map((imgUrl, index) => (
+            {product.images && product.images.length > 1 && (
+              <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "8px" }}>
+                {product.images.map((img, idx) => (
                   <button
-                    key={index}
-                    onClick={() => setSelectedImage(imgUrl)}
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
                     style={{
                       position: "relative",
-                      width: "70px",
-                      height: "70px",
-                      borderRadius: "8px",
+                      width: "72px",
+                      height: "72px",
+                      borderRadius: "var(--radius-sm)",
                       overflow: "hidden",
-                      border:
-                        selectedImage === imgUrl
-                          ? "2px solid #0284c7"
-                          : "1px solid var(--border-color)",
-                      opacity: selectedImage === imgUrl ? 1 : 0.6,
-                      transition: "all 0.2s",
+                      border: selectedImage === img ? "2px solid #0284c7" : "1px solid var(--border-color)",
+                      background: "#f1f5f9",
                       flexShrink: 0,
+                      cursor: "pointer",
+                      boxShadow: selectedImage === img ? "0 2px 8px rgba(2, 132, 199, 0.3)" : "none",
                     }}
                   >
-                    <Image src={imgUrl} alt={`${productTitle} ${index}`} fill style={{ objectFit: "cover" }} />
+                    <Image src={img} alt="" fill sizes="72px" style={{ objectFit: "cover" }} />
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Правая колонка: Информация и покупка */}
+          {/* Правая колонка: Инфо, цена и покупка */}
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <div>
-              {/* Бренд, SKU, Рейтинг */}
+              {/* Бренд, SKU и Рейтинг */}
               <div
                 style={{
                   display: "flex",
@@ -209,23 +210,23 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <span style={{ color: "#38bdf8", fontWeight: 700, textTransform: "uppercase" }}>
+                  <span style={{ color: "#0284c7", fontWeight: 800, textTransform: "uppercase" }}>
                     {product.brand}
                   </span>
                   <span style={{ color: "var(--text-subtle)" }}>{t.productDetail.sku}: {product.sku}</span>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <div style={{ display: "flex", color: "#fbbf24" }}>
-                    <Star size={16} fill="#fbbf24" />
+                  <div style={{ display: "flex", color: "#d97706" }}>
+                    <Star size={16} fill="#d97706" />
                   </div>
-                  <span style={{ color: "#fff", fontWeight: 700 }}>{product.rating}</span>
+                  <span style={{ color: "var(--text-main)", fontWeight: 700 }}>{product.rating}</span>
                   <span style={{ color: "var(--text-muted)" }}>({product.reviewCount} {t.productDetail.reviews})</span>
                 </div>
               </div>
 
               {/* Название товара */}
-              <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.3rem)", lineHeight: 1.25, marginBottom: "12px" }}>
+              <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.3rem)", color: "var(--text-main)", fontWeight: 800, lineHeight: 1.25, marginBottom: "12px" }}>
                 {productTitle}
               </h1>
 
@@ -236,11 +237,10 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                     width: "8px",
                     height: "8px",
                     borderRadius: "50%",
-                    background: product.inStock ? "#10b981" : "#ef4444",
-                    boxShadow: product.inStock ? "0 0 8px #10b981" : "none",
+                    background: product.inStock ? "#059669" : "#dc2626",
                   }}
                 />
-                <span style={{ color: product.inStock ? "#34d399" : "#f87171", fontWeight: 600 }}>
+                <span style={{ color: product.inStock ? "#047857" : "#dc2626", fontWeight: 700 }}>
                   {product.inStock ? `${t.productDetail.inStockCount} (${product.stockCount} uds)` : t.productDetail.outOfStock}
                 </span>
               </div>
@@ -248,10 +248,12 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
 
             {/* Цена */}
             <div
-              className="glass-panel"
               style={{
                 padding: "20px",
+                background: "#ffffff",
+                border: "1px solid #bae6fd",
                 borderRadius: "var(--radius-md)",
+                boxShadow: "var(--shadow-sm)",
                 display: "flex",
                 alignItems: "baseline",
                 justifyContent: "space-between",
@@ -259,7 +261,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
             >
               <div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                  <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "#38bdf8" }}>
+                  <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "#0284c7" }}>
                     €{product.price.toFixed(2)}
                   </span>
                   {product.originalPrice && (
@@ -277,10 +279,10 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 <div
                   style={{
                     padding: "6px 12px",
-                    background: "rgba(239, 68, 68, 0.15)",
-                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    background: "#fef2f2",
+                    border: "1px solid #fecaca",
                     borderRadius: "8px",
-                    color: "#f87171",
+                    color: "#b91c1c",
                     fontWeight: 700,
                     fontSize: "0.9rem",
                   }}
@@ -297,13 +299,13 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
 
             {/* Особенности модели */}
             <div>
-              <h4 style={{ fontSize: "0.95rem", color: "#fff", marginBottom: "12px", textTransform: "uppercase" }}>
+              <h4 style={{ fontSize: "0.92rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "12px", textTransform: "uppercase" }}>
                 {t.productDetail.featuresTitle}
               </h4>
               <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
                 {productFeatures.map((feature, i) => (
-                  <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "0.92rem", color: "#e2e8f0" }}>
-                    <CheckCircle2 size={18} color="#34d399" style={{ flexShrink: 0, marginTop: "2px" }} />
+                  <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "0.92rem", color: "#1e293b" }}>
+                    <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: "2px" }} />
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -317,7 +319,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  background: "rgba(255, 255, 255, 0.08)",
+                  background: "#f8fafc",
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
                   padding: "6px 12px",
@@ -326,17 +328,17 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
               >
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  style={{ color: "#fff", display: "flex" }}
+                  style={{ color: "var(--text-main)", display: "flex" }}
                   aria-label="Disminuir"
                 >
                   <Minus size={16} />
                 </button>
-                <span style={{ fontSize: "1.05rem", fontWeight: 700, minWidth: "24px", textAlign: "center" }}>
+                <span style={{ fontSize: "1.05rem", fontWeight: 800, minWidth: "24px", textAlign: "center", color: "var(--text-main)" }}>
                   {quantity}
                 </span>
                 <button
                   onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
-                  style={{ color: "#fff", display: "flex" }}
+                  style={{ color: "var(--text-main)", display: "flex" }}
                   aria-label="Aumentar"
                 >
                   <Plus size={16} />
@@ -369,32 +371,34 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 style={{ width: "48px", height: "48px" }}
                 title={isCopied ? t.productDetail.shareCopied : "Compartir enlace"}
               >
-                <Share2 size={20} color={isCopied ? "#34d399" : "currentColor"} />
+                <Share2 size={20} color={isCopied ? "#059669" : "currentColor"} />
               </button>
             </div>
 
             {/* Карточка гарантий */}
             <div
-              className="glass-panel"
               style={{
                 padding: "20px",
+                background: "#ffffff",
+                border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-md)",
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
                 gap: "16px",
                 fontSize: "0.85rem",
+                boxShadow: "var(--shadow-sm)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <Truck size={20} color="#38bdf8" />
+                <Truck size={20} color="#0284c7" />
                 <span>{t.productDetail.dispatchBadge}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <ShieldCheck size={20} color="#34d399" />
+                <ShieldCheck size={20} color="#047857" />
                 <span>{t.productDetail.warrantyBadge}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <RotateCcw size={20} color="#fbbf24" />
+                <RotateCcw size={20} color="#b45309" />
                 <span>{t.productDetail.returnsBadge}</span>
               </div>
             </div>
@@ -403,8 +407,8 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
 
         {/* Таблица технических характеристик */}
         <div style={{ marginBottom: "64px" }}>
-          <h2 style={{ fontSize: "1.6rem", marginBottom: "20px" }}>{t.productDetail.specsTitle}</h2>
-          <div className="glass-panel" style={{ overflow: "hidden", borderRadius: "var(--radius-md)" }}>
+          <h2 style={{ fontSize: "1.6rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "20px" }}>{t.productDetail.specsTitle}</h2>
+          <div style={{ overflow: "hidden", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", background: "#ffffff", boxShadow: "var(--shadow-sm)" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.92rem" }}>
               <tbody>
                 {Object.entries(productSpecs).map(([specKey, specVal], index) => (
@@ -412,13 +416,13 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                     key={specKey}
                     style={{
                       borderBottom: "1px solid var(--border-color)",
-                      background: index % 2 === 0 ? "rgba(255, 255, 255, 0.02)" : "transparent",
+                      background: index % 2 === 0 ? "#f8fafc" : "#ffffff",
                     }}
                   >
-                    <td style={{ padding: "14px 20px", color: "var(--text-muted)", width: "35%", fontWeight: 500 }}>
+                    <td style={{ padding: "14px 20px", color: "var(--text-muted)", width: "35%", fontWeight: 600 }}>
                       {specKey}
                     </td>
-                    <td style={{ padding: "14px 20px", color: "#ffffff", fontWeight: 600 }}>
+                    <td style={{ padding: "14px 20px", color: "var(--text-main)", fontWeight: 700 }}>
                       {specVal}
                     </td>
                   </tr>
@@ -431,10 +435,10 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
         {/* Отзывы покупателей */}
         <div style={{ marginBottom: "64px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-            <h2 style={{ fontSize: "1.6rem" }}>{t.productDetail.reviewsTitle} ({product.reviews?.length || 0})</h2>
+            <h2 style={{ fontSize: "1.6rem", color: "var(--text-main)", fontWeight: 800 }}>{t.productDetail.reviewsTitle} ({product.reviews?.length || 0})</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Star size={18} fill="#fbbf24" color="#fbbf24" />
-              <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff" }}>{product.rating}</span>
+              <Star size={18} fill="#d97706" color="#d97706" />
+              <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-main)" }}>{product.rating}</span>
               <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>/ 5.0</span>
             </div>
           </div>
@@ -442,19 +446,19 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
             {product.reviews && product.reviews.length > 0 ? (
               product.reviews.map((rev) => (
-                <div key={rev.id} className="glass-panel" style={{ padding: "20px" }}>
+                <div key={rev.id} style={{ padding: "20px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
                     <div>
-                      <h4 style={{ fontSize: "0.95rem", color: "#fff" }}>{rev.author}</h4>
+                      <h4 style={{ fontSize: "0.95rem", color: "var(--text-main)", fontWeight: 700 }}>{rev.author}</h4>
                       {rev.verifiedPurchase && (
-                        <span style={{ fontSize: "0.75rem", color: "#34d399", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#047857", display: "flex", alignItems: "center", gap: "4px", fontWeight: 600 }}>
                           <CheckCircle2 size={12} /> {t.productDetail.verifiedPurchase}
                         </span>
                       )}
                     </div>
-                    <div style={{ display: "flex", color: "#fbbf24" }}>
+                    <div style={{ display: "flex", color: "#d97706" }}>
                       {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} size={14} fill="#fbbf24" />
+                        <Star key={i} size={14} fill="#d97706" />
                       ))}
                     </div>
                   </div>
@@ -467,7 +471,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 </div>
               ))
             ) : (
-              <div className="glass-panel" style={{ padding: "24px", color: "var(--text-muted)" }}>
+              <div style={{ padding: "24px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", color: "var(--text-muted)" }}>
                 {t.productDetail.noReviews}
               </div>
             )}
@@ -477,7 +481,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
         {/* Похожие товары */}
         {relatedProducts.length > 0 && (
           <div>
-            <h2 style={{ fontSize: "1.6rem", marginBottom: "24px" }}>{t.productDetail.relatedTitle}</h2>
+            <h2 style={{ fontSize: "1.6rem", color: "var(--text-main)", fontWeight: 800, marginBottom: "24px" }}>{t.productDetail.relatedTitle}</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
               {relatedProducts.map((relProduct) => (
                 <ProductCard key={relProduct.id} product={relProduct} />

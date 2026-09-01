@@ -6,7 +6,7 @@ import { TRANSLATIONS } from "@/i18n/translations";
 import { Headphones, Laptop, Cpu, Home, Sparkles, ArrowRight } from "lucide-react";
 
 /**
- * Блок популярных категорий и промо-баннеров (ES / EN)
+ * Блок популярных категорий и промо-баннеров в светлой теме с валенсийской палитрой (ES / EN)
  */
 export const FeaturedBanners = () => {
   const { language } = useCartStore();
@@ -18,7 +18,8 @@ export const FeaturedBanners = () => {
       title: t.categories.audio.title,
       desc: t.categories.audio.desc,
       icon: Headphones,
-      color: "#0284c7",
+      color: "#0284c7", // Azul Mediterráneo
+      bg: "#e0f2fe",
       href: "/products?category=audio",
     },
     {
@@ -26,7 +27,8 @@ export const FeaturedBanners = () => {
       title: t.categories.workspace.title,
       desc: t.categories.workspace.desc,
       icon: Laptop,
-      color: "#f59e0b",
+      color: "#ea580c", // Naranja de Valencia
+      bg: "#fff7ed",
       href: "/products?category=workspace",
     },
     {
@@ -34,7 +36,8 @@ export const FeaturedBanners = () => {
       title: t.categories.smartHome.title,
       desc: t.categories.smartHome.desc,
       icon: Home,
-      color: "#10b981",
+      color: "#059669", // Verde Huerta
+      bg: "#ecfdf5",
       href: "/products?category=smart-home",
     },
     {
@@ -42,7 +45,8 @@ export const FeaturedBanners = () => {
       title: t.categories.electronics.title,
       desc: t.categories.electronics.desc,
       icon: Cpu,
-      color: "#8b5cf6",
+      color: "#dc2626", // Rojo Senyera
+      bg: "#fef2f2",
       href: "/products?category=electronics",
     },
   ];
@@ -50,12 +54,12 @@ export const FeaturedBanners = () => {
   return (
     <section style={{ padding: "40px 0 60px" }}>
       <div className="container">
-        <div style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div style={{ marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div>
-            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#38bdf8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#ea580c", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {t.categories.sectionBadge}
             </span>
-            <h2 style={{ fontSize: "1.8rem", marginTop: "4px" }}>{t.categories.sectionTitle}</h2>
+            <h2 style={{ fontSize: "1.8rem", color: "var(--text-main)", marginTop: "4px" }}>{t.categories.sectionTitle}</h2>
           </div>
           <Link
             href="/products"
@@ -63,9 +67,9 @@ export const FeaturedBanners = () => {
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              color: "#38bdf8",
+              color: "#0284c7",
               fontSize: "0.9rem",
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             {t.categories.viewAll} <ArrowRight size={16} />
@@ -85,7 +89,6 @@ export const FeaturedBanners = () => {
               <Link
                 key={cat.id}
                 href={cat.href}
-                className="glass-panel"
                 style={{
                   padding: "24px",
                   display: "flex",
@@ -93,7 +96,9 @@ export const FeaturedBanners = () => {
                   justifyContent: "space-between",
                   transition: "all 0.25s ease",
                   borderRadius: "var(--radius-md)",
+                  background: "#ffffff",
                   border: "1px solid var(--border-color)",
+                  boxShadow: "var(--shadow-sm)",
                 }}
               >
                 <div>
@@ -102,20 +107,21 @@ export const FeaturedBanners = () => {
                       width: "48px",
                       height: "48px",
                       borderRadius: "12px",
-                      background: `rgba(${cat.id === "audio" ? "2, 132, 199" : cat.id === "workspace" ? "245, 158, 11" : cat.id === "smart-home" ? "16, 185, 129" : "139, 92, 246"}, 0.15)`,
+                      background: cat.bg,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: cat.color,
                       marginBottom: "16px",
+                      border: `1px solid ${cat.color}25`,
                     }}
                   >
                     <Icon size={24} />
                   </div>
-                  <h3 style={{ fontSize: "1.15rem", color: "#fff", marginBottom: "6px" }}>
+                  <h3 style={{ fontSize: "1.15rem", color: "var(--text-main)", fontWeight: 700, marginBottom: "6px" }}>
                     {cat.title}
                   </h3>
-                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
                     {cat.desc}
                   </p>
                 </div>
@@ -126,8 +132,8 @@ export const FeaturedBanners = () => {
                     alignItems: "center",
                     gap: "6px",
                     color: cat.color,
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
+                    fontSize: "0.88rem",
+                    fontWeight: 800,
                     marginTop: "20px",
                   }}
                 >
@@ -138,14 +144,15 @@ export const FeaturedBanners = () => {
           })}
         </div>
 
-        {/* Промо-баннер с купоном */}
+        {/* Промо-баннер с купоном: Теплые валенсийские тона */}
         <div
-          className="glass-panel glass-glow"
           style={{
-            marginTop: "40px",
+            marginTop: "36px",
             padding: "32px",
             borderRadius: "var(--radius-lg)",
-            background: "linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%)",
+            background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #f0f9ff 100%)",
+            border: "1px solid #fed7aa",
+            boxShadow: "var(--shadow-sm)",
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
@@ -154,13 +161,13 @@ export const FeaturedBanners = () => {
           }}
         >
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#fbbf24", fontSize: "0.85rem", fontWeight: 700, marginBottom: "8px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#c2410c", fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", marginBottom: "6px" }}>
               <Sparkles size={16} /> {t.categories.promoBadge}
             </div>
-            <h3 style={{ fontSize: "1.4rem", color: "#fff", marginBottom: "6px" }}>
+            <h3 style={{ fontSize: "1.45rem", color: "#0f172a", fontWeight: 800, marginBottom: "6px" }}>
               {t.categories.promoTitle}
             </h3>
-            <p style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
+            <p style={{ fontSize: "0.92rem", color: "#334155" }}>
               {t.categories.promoDesc}
             </p>
           </div>

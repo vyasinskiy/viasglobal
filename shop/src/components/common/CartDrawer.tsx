@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 /**
- * Выдвижная панель корзины (Cart Drawer) с переводами (ES / EN)
+ * Выдвижная панель корзины (Cart Drawer) в светлой теме с переводами (ES / EN)
  */
 export const CartDrawer = () => {
   const {
@@ -93,8 +93,8 @@ export const CartDrawer = () => {
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.7)",
-          backdropFilter: "blur(6px)",
+          background: "rgba(15, 23, 42, 0.45)",
+          backdropFilter: "blur(4px)",
           animation: "fadeIn 0.2s ease-out",
         }}
       />
@@ -106,11 +106,11 @@ export const CartDrawer = () => {
           width: "100%",
           maxWidth: "460px",
           height: "100%",
-          background: "#0f172a",
+          background: "#ffffff",
           borderLeft: "1px solid var(--border-color)",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "-10px 0 40px rgba(0, 0, 0, 0.7)",
+          boxShadow: "-8px 0 32px rgba(15, 23, 42, 0.15)",
           zIndex: 2001,
           animation: "slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
@@ -118,16 +118,17 @@ export const CartDrawer = () => {
         {/* Шапка корзины */}
         <div
           style={{
-            padding: "20px 24px",
+            padding: "18px 24px",
             borderBottom: "1px solid var(--border-color)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            background: "#ffffff",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <ShoppingBag size={22} color="#38bdf8" />
-            <h2 style={{ fontSize: "1.2rem", fontWeight: 700 }}>
+            <ShoppingBag size={22} color="#0284c7" />
+            <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text-main)" }}>
               {t.cart.drawerTitle} ({items.reduce((s, i) => s + i.quantity, 0)})
             </h2>
           </div>
@@ -144,8 +145,8 @@ export const CartDrawer = () => {
         <div
           style={{
             padding: "12px 24px",
-            background: "rgba(2, 132, 199, 0.08)",
-            borderBottom: "1px solid var(--border-color)",
+            background: "#f0f9ff",
+            borderBottom: "1px solid #bae6fd",
           }}
         >
           <div
@@ -154,12 +155,12 @@ export const CartDrawer = () => {
               alignItems: "center",
               gap: "8px",
               fontSize: "0.85rem",
-              fontWeight: 600,
-              color: remainingForFreeShipping === 0 ? "#34d399" : "#e2e8f0",
+              fontWeight: 700,
+              color: remainingForFreeShipping === 0 ? "#047857" : "#0369a1",
               marginBottom: "8px",
             }}
           >
-            <Truck size={16} color={remainingForFreeShipping === 0 ? "#34d399" : "#38bdf8"} />
+            <Truck size={16} color={remainingForFreeShipping === 0 ? "#047857" : "#0284c7"} />
             {remainingForFreeShipping === 0 ? (
               <span>{t.cart.freeShippingUnlocked}</span>
             ) : (
@@ -172,7 +173,7 @@ export const CartDrawer = () => {
             style={{
               width: "100%",
               height: "6px",
-              background: "rgba(255, 255, 255, 0.1)",
+              background: "#e2e8f0",
               borderRadius: "3px",
               overflow: "hidden",
             }}
@@ -183,7 +184,7 @@ export const CartDrawer = () => {
                 height: "100%",
                 background:
                   remainingForFreeShipping === 0
-                    ? "linear-gradient(90deg, #10b981, #34d399)"
+                    ? "linear-gradient(90deg, #10b981, #059669)"
                     : "linear-gradient(90deg, #0284c7, #38bdf8)",
                 borderRadius: "3px",
                 transition: "width 0.4s ease",
@@ -200,7 +201,7 @@ export const CartDrawer = () => {
             padding: "16px 24px",
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            gap: "14px",
           }}
         >
           {items.length === 0 ? (
@@ -221,16 +222,17 @@ export const CartDrawer = () => {
                   width: "80px",
                   height: "80px",
                   borderRadius: "50%",
-                  background: "rgba(255, 255, 255, 0.05)",
+                  background: "#f1f5f9",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: "16px",
+                  color: "var(--text-subtle)",
                 }}
               >
                 <ShoppingBag size={36} strokeWidth={1.5} />
               </div>
-              <h3 style={{ color: "#fff", marginBottom: "8px", fontSize: "1.1rem" }}>
+              <h3 style={{ color: "var(--text-main)", marginBottom: "8px", fontSize: "1.1rem", fontWeight: 700 }}>
                 {t.cart.emptyTitle}
               </h3>
               <p style={{ fontSize: "0.9rem", marginBottom: "20px" }}>
@@ -255,7 +257,7 @@ export const CartDrawer = () => {
                     display: "flex",
                     gap: "14px",
                     padding: "12px",
-                    background: "rgba(255, 255, 255, 0.03)",
+                    background: "#f8fafc",
                     borderRadius: "var(--radius-sm)",
                     border: "1px solid var(--border-color)",
                   }}
@@ -269,7 +271,8 @@ export const CartDrawer = () => {
                       borderRadius: "8px",
                       overflow: "hidden",
                       flexShrink: 0,
-                      background: "#1e293b",
+                      background: "#ffffff",
+                      border: "1px solid var(--border-color)",
                     }}
                   >
                     <Image
@@ -297,9 +300,9 @@ export const CartDrawer = () => {
                           onClick={() => setCartDrawerOpen(false)}
                           style={{
                             fontSize: "0.9rem",
-                            fontWeight: 600,
+                            fontWeight: 700,
                             lineHeight: "1.3",
-                            color: "#fff",
+                            color: "var(--text-main)",
                           }}
                         >
                           {productTitle}
@@ -316,7 +319,7 @@ export const CartDrawer = () => {
                           <Trash2 size={16} />
                         </button>
                       </div>
-                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                      <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "2px" }}>
                         {item.product.brand} • SKU: {item.product.sku}
                       </div>
                     </div>
@@ -326,7 +329,7 @@ export const CartDrawer = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        marginTop: "10px",
+                        marginTop: "8px",
                       }}
                     >
                       {/* Количество */}
@@ -334,8 +337,8 @@ export const CartDrawer = () => {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: "8px",
-                          background: "rgba(255, 255, 255, 0.08)",
+                          gap: "6px",
+                          background: "#ffffff",
                           borderRadius: "6px",
                           padding: "2px 6px",
                           border: "1px solid var(--border-color)",
@@ -343,26 +346,26 @@ export const CartDrawer = () => {
                       >
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          style={{ padding: "4px", display: "flex", color: "#fff" }}
+                          style={{ padding: "4px", display: "flex", color: "var(--text-main)" }}
                           aria-label="Disminuir"
                         >
-                          <Minus size={14} />
+                          <Minus size={13} />
                         </button>
-                        <span style={{ fontSize: "0.85rem", fontWeight: 700, minWidth: "16px", textAlign: "center" }}>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 700, minWidth: "16px", textAlign: "center", color: "var(--text-main)" }}>
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          style={{ padding: "4px", display: "flex", color: "#fff" }}
+                          style={{ padding: "4px", display: "flex", color: "var(--text-main)" }}
                           aria-label="Aumentar"
                         >
-                          <Plus size={14} />
+                          <Plus size={13} />
                         </button>
                       </div>
 
                       {/* Цена */}
                       <div style={{ textAlign: "right" }}>
-                        <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#38bdf8" }}>
+                        <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0284c7" }}>
                           €{(item.product.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
@@ -378,12 +381,12 @@ export const CartDrawer = () => {
         {items.length > 0 && (
           <div
             style={{
-              padding: "20px 24px",
+              padding: "18px 24px",
               borderTop: "1px solid var(--border-color)",
-              background: "rgba(15, 23, 42, 0.95)",
+              background: "#ffffff",
               display: "flex",
               flexDirection: "column",
-              gap: "14px",
+              gap: "12px",
             }}
           >
             {/* Ввод промокода */}
@@ -401,10 +404,10 @@ export const CartDrawer = () => {
                     width: "100%",
                     padding: "8px 12px 8px 32px",
                     fontSize: "0.85rem",
-                    background: "rgba(255, 255, 255, 0.05)",
+                    background: "#f8fafc",
                     border: "1px solid var(--border-color)",
                     borderRadius: "var(--radius-sm)",
-                    color: "#fff",
+                    color: "var(--text-main)",
                     textTransform: "uppercase",
                   }}
                 />
@@ -428,7 +431,7 @@ export const CartDrawer = () => {
               <div
                 style={{
                   fontSize: "0.8rem",
-                  color: couponFeedback.isError ? "#ef4444" : "#10b981",
+                  color: couponFeedback.isError ? "#dc2626" : "#059669",
                   display: "flex",
                   alignItems: "center",
                   gap: "6px",
@@ -446,17 +449,18 @@ export const CartDrawer = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "6px 10px",
-                  background: "rgba(16, 185, 129, 0.1)",
-                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  background: "#ecfdf5",
+                  border: "1px solid #a7f3d0",
                   borderRadius: "6px",
                   fontSize: "0.8rem",
-                  color: "#34d399",
+                  color: "#047857",
+                  fontWeight: 600,
                 }}
               >
                 <span>Código <strong>{appliedCoupon.code}</strong> (-{appliedCoupon.discountPercent}%)</span>
                 <button
                   onClick={removeCoupon}
-                  style={{ color: "#ef4444", fontSize: "0.75rem", textDecoration: "underline" }}
+                  style={{ color: "#dc2626", fontSize: "0.75rem", textDecoration: "underline" }}
                 >
                   {language === "es" ? "Eliminar" : "Remove"}
                 </button>
@@ -467,11 +471,11 @@ export const CartDrawer = () => {
             <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.88rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                 <span>{t.cart.subtotal}</span>
-                <span>€{subtotal.toFixed(2)}</span>
+                <span style={{ color: "var(--text-main)", fontWeight: 600 }}>€{subtotal.toFixed(2)}</span>
               </div>
 
               {discount > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#34d399" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#047857", fontWeight: 600 }}>
                   <span>{t.cart.discount}</span>
                   <span>-€{discount.toFixed(2)}</span>
                 </div>
@@ -479,15 +483,17 @@ export const CartDrawer = () => {
 
               <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                 <span>{t.cart.shipping}</span>
-                <span>{shipping === 0 ? (language === "es" ? "Gratis" : "Free") : `€${shipping.toFixed(2)}`}</span>
+                <span style={{ color: shipping === 0 ? "#047857" : "var(--text-main)", fontWeight: 600 }}>
+                  {shipping === 0 ? (language === "es" ? "Gratis" : "Free") : `€${shipping.toFixed(2)}`}
+                </span>
               </div>
 
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  color: "#fff",
-                  fontSize: "1.15rem",
+                  color: "var(--text-main)",
+                  fontSize: "1.2rem",
                   fontWeight: 800,
                   marginTop: "6px",
                   paddingTop: "8px",
@@ -495,7 +501,7 @@ export const CartDrawer = () => {
                 }}
               >
                 <span>{t.cart.total}</span>
-                <span style={{ color: "#38bdf8" }}>€{total.toFixed(2)}</span>
+                <span style={{ color: "#0284c7" }}>€{total.toFixed(2)}</span>
               </div>
             </div>
 

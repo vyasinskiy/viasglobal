@@ -13,11 +13,10 @@ import {
   X,
   ShieldCheck,
   Zap,
-  Globe,
 } from "lucide-react";
 
 /**
- * Главное навигационное меню (Header) с переключателем языков (ES / EN)
+ * Главное навигационное меню (Header) в светлой теме с валенсийскими акцентами и переключателем языков (ES / EN)
  */
 export const Header = () => {
   const pathname = usePathname();
@@ -41,20 +40,22 @@ export const Header = () => {
   const navLinks = [
     { href: "/", label: t.header.home },
     { href: "/products", label: t.header.catalog },
+    { href: "/gift-cards", label: language === "es" ? "Cheque Regalo" : "Gift Cards" },
+    { href: "/campaigns", label: language === "es" ? "Calendario Fiestas" : "Fiestas Calendar" },
     { href: "/about", label: t.header.about },
     { href: "/shipping", label: t.header.shipping },
     { href: "/contact", label: t.header.contact },
   ];
 
   return (
-    <header className="glass-nav" style={{ position: "sticky", top: 0, zIndex: 1000 }}>
-      {/* Верхняя информационная полоска */}
+    <header className="glass-nav" style={{ position: "sticky", top: 0, zIndex: 1000, background: "rgba(255, 255, 255, 0.95)", borderBottom: "1px solid var(--border-color)", boxShadow: "var(--shadow-sm)" }}>
+      {/* Верхняя информационная полоска с градиентом Валенсийского синего и оранжевого */}
       <div
         style={{
-          background: "linear-gradient(90deg, #0369a1 0%, #0284c7 50%, #0369a1 100%)",
+          background: "linear-gradient(90deg, #0369a1 0%, #0284c7 65%, #ea580c 100%)",
           padding: "6px 0",
           fontSize: "0.8rem",
-          fontWeight: 600,
+          fontWeight: 700,
           color: "#ffffff",
           textAlign: "center",
         }}
@@ -70,17 +71,17 @@ export const Header = () => {
           }}
         >
           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Zap size={14} color="#fde047" />
+            <Zap size={14} color="#fef08a" />
             {t.header.topBar}
           </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", opacity: 0.9 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", opacity: 0.95 }}>
             <ShieldCheck size={14} /> {t.header.warrantyBadge}
           </span>
         </div>
       </div>
 
       {/* Основная панель навигации */}
-      <div className="container" style={{ padding: "16px 24px" }}>
+      <div className="container" style={{ padding: "14px 24px" }}>
         <div
           style={{
             display: "flex",
@@ -89,7 +90,7 @@ export const Header = () => {
             gap: "24px",
           }}
         >
-          {/* Логотип */}
+          {/* Логотип: Средиземноморский синий + Валенсийский апельсин */}
           <Link
             href="/"
             style={{
@@ -97,7 +98,7 @@ export const Header = () => {
               alignItems: "center",
               gap: "8px",
               fontSize: "1.35rem",
-              fontWeight: 800,
+              fontWeight: 900,
               letterSpacing: "-0.03em",
             }}
           >
@@ -106,30 +107,30 @@ export const Header = () => {
                 width: "36px",
                 height: "36px",
                 borderRadius: "10px",
-                background: "linear-gradient(135deg, #0284c7 0%, #f59e0b 100%)",
+                background: "linear-gradient(135deg, #0284c7 0%, #ea580c 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: "#fff",
                 fontWeight: 900,
-                boxShadow: "0 4px 12px rgba(2, 132, 199, 0.4)",
+                boxShadow: "0 2px 10px rgba(234, 88, 12, 0.35)",
               }}
             >
               V
             </div>
-            <span style={{ color: "#ffffff" }}>
-              VIAS<span style={{ color: "#38bdf8" }}>GLOBAL</span>
+            <span style={{ color: "#0f172a" }}>
+              VIAS<span style={{ color: "#0284c7" }}>GLOBAL</span>
               <span
                 style={{
                   fontSize: "0.65rem",
                   marginLeft: "6px",
                   padding: "2px 6px",
                   borderRadius: "4px",
-                  background: "rgba(2, 132, 199, 0.2)",
-                  color: "#38bdf8",
-                  border: "1px solid rgba(2, 132, 199, 0.3)",
+                  background: "#fff7ed",
+                  color: "#ea580c",
+                  border: "1px solid #fed7aa",
                   verticalAlign: "middle",
-                  fontWeight: 700,
+                  fontWeight: 800,
                 }}
               >
                 STORE
@@ -141,7 +142,7 @@ export const Header = () => {
           <nav
             style={{
               display: "none",
-              gap: "28px",
+              gap: "24px",
               alignItems: "center",
             }}
             className="desktop-nav"
@@ -153,9 +154,9 @@ export const Header = () => {
                   key={link.href}
                   href={link.href}
                   style={{
-                    fontSize: "0.95rem",
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? "#38bdf8" : "var(--text-muted)",
+                    fontSize: "0.92rem",
+                    fontWeight: isActive ? 800 : 600,
+                    color: isActive ? "#ea580c" : "var(--text-muted)",
                     position: "relative",
                     padding: "4px 0",
                     transition: "color 0.2s ease",
@@ -170,7 +171,7 @@ export const Header = () => {
                         left: 0,
                         right: 0,
                         height: "2px",
-                        background: "#38bdf8",
+                        background: "linear-gradient(90deg, #0284c7, #ea580c)",
                         borderRadius: "2px",
                       }}
                     />
@@ -185,7 +186,7 @@ export const Header = () => {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              gap: "10px",
             }}
           >
             {/* Переключатель языков (ES / EN) */}
@@ -193,10 +194,10 @@ export const Header = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                background: "rgba(255, 255, 255, 0.06)",
+                background: "#f1f5f9",
                 border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-sm)",
-                padding: "2px 4px",
+                padding: "2px",
                 gap: "2px",
               }}
             >
@@ -204,9 +205,9 @@ export const Header = () => {
                 onClick={() => setLanguage("es")}
                 style={{
                   padding: "4px 8px",
-                  borderRadius: "4px",
+                  borderRadius: "6px",
                   fontSize: "0.75rem",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   background: language === "es" ? "#0284c7" : "transparent",
                   color: language === "es" ? "#fff" : "var(--text-muted)",
                   transition: "all 0.2s ease",
@@ -219,9 +220,9 @@ export const Header = () => {
                 onClick={() => setLanguage("en")}
                 style={{
                   padding: "4px 8px",
-                  borderRadius: "4px",
+                  borderRadius: "6px",
                   fontSize: "0.75rem",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   background: language === "en" ? "#0284c7" : "transparent",
                   color: language === "en" ? "#fff" : "var(--text-muted)",
                   transition: "all 0.2s ease",
@@ -254,23 +255,25 @@ export const Header = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  background: "rgba(255, 255, 255, 0.06)",
+                  background: "#f8fafc",
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
                   padding: "8px 14px 8px 36px",
                   fontSize: "0.88rem",
-                  color: "#fff",
+                  color: "var(--text-main)",
                   outline: "none",
                   width: "180px",
                   transition: "all 0.2s ease",
                 }}
                 onFocus={(e) => {
-                  e.target.style.width = "240px";
+                  e.target.style.width = "220px";
                   e.target.style.borderColor = "var(--primary)";
+                  e.target.style.background = "#ffffff";
                 }}
                 onBlur={(e) => {
                   e.target.style.width = "180px";
                   e.target.style.borderColor = "var(--border-color)";
+                  e.target.style.background = "#f8fafc";
                 }}
               />
               <Search
@@ -294,13 +297,13 @@ export const Header = () => {
                     position: "absolute",
                     top: "-4px",
                     right: "-4px",
-                    background: "#ef4444",
+                    background: "#dc2626",
                     color: "#fff",
                     borderRadius: "50%",
                     width: "18px",
                     height: "18px",
                     fontSize: "0.7rem",
-                    fontWeight: 700,
+                    fontWeight: 800,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -311,25 +314,25 @@ export const Header = () => {
               )}
             </Link>
 
-            {/* Корзина */}
+            {/* Корзина с акцентным бейджем Naranja de Valencia */}
             <button
               onClick={toggleCartDrawer}
               className="btn-icon"
               title={t.header.cartTitle}
               style={{
                 position: "relative",
-                background: totalCartCount > 0 ? "rgba(2, 132, 199, 0.15)" : undefined,
-                borderColor: totalCartCount > 0 ? "var(--primary)" : undefined,
+                background: totalCartCount > 0 ? "#fff7ed" : undefined,
+                borderColor: totalCartCount > 0 ? "#ea580c" : undefined,
               }}
             >
-              <ShoppingBag size={20} color={totalCartCount > 0 ? "#38bdf8" : "currentColor"} />
+              <ShoppingBag size={20} color={totalCartCount > 0 ? "#ea580c" : "currentColor"} />
               {totalCartCount > 0 && (
                 <span
                   style={{
                     position: "absolute",
                     top: "-5px",
                     right: "-5px",
-                    background: "linear-gradient(135deg, #0284c7, #f59e0b)",
+                    background: "linear-gradient(135deg, #ea580c, #c2410c)",
                     color: "#fff",
                     borderRadius: "50%",
                     width: "20px",
@@ -339,7 +342,7 @@ export const Header = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.4)",
+                    boxShadow: "0 2px 8px rgba(234, 88, 12, 0.4)",
                   }}
                 >
                   {totalCartCount}
@@ -390,12 +393,12 @@ export const Header = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: "100%",
-                  background: "rgba(255, 255, 255, 0.06)",
+                  background: "#f8fafc",
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
                   padding: "10px 14px 10px 36px",
                   fontSize: "0.9rem",
-                  color: "#fff",
+                  color: "var(--text-main)",
                 }}
               />
               <Search
@@ -413,8 +416,8 @@ export const Header = () => {
                 style={{
                   fontSize: "1rem",
                   padding: "8px 0",
-                  color: pathname === link.href ? "#38bdf8" : "var(--text-main)",
-                  fontWeight: pathname === link.href ? 700 : 500,
+                  color: pathname === link.href ? "#ea580c" : "var(--text-main)",
+                  fontWeight: pathname === link.href ? 800 : 600,
                 }}
               >
                 {link.label}
