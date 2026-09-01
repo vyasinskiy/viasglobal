@@ -6,23 +6,23 @@ import { CartDrawer } from "@/components/common/CartDrawer";
 import { Toast } from "@/components/common/Toast";
 
 export const metadata: Metadata = {
-  title: "Viasglobal Store — Премиальная электроника, умный дом и аксессуары в ЕС",
+  title: "Viasglobal Store — Tienda Oficial de Tecnología y Confort en España y la UE",
   description:
-    "Официальный интернет-магазин Viasglobal в Испании и Европе. Премиальные наушники, эргономичные устройства для рабочего места, умный дом и быстрая доставка со складов в ЕС.",
+    "Tienda oficial Viasglobal en España y la Unión Europea. Audio Hi-Res, espacio de trabajo ergonómico y hogar inteligente con envío en 24/48h desde Castellón y Valencia.",
   keywords: [
     "Viasglobal Store",
-    "интернет-магазин электроники ЕС",
-    "наушники с шумоподавлением",
-    "умный дом Matter",
-    "эргономичная клавиатура",
-    "GaN зарядка 100W",
-    "доставка по Испании",
+    "tienda electronica espana",
+    "auriculares cancelacion ruido",
+    "hogar inteligente Matter",
+    "teclado ergonomico",
+    "cargador GaN 100W",
+    "envio rapido valencia",
   ],
   authors: [{ name: "Vitalii Iasinskii (Viasglobal)" }],
   openGraph: {
-    title: "Viasglobal Store — Премиальная электроника и аксессуары в ЕС",
+    title: "Viasglobal Store — Tecnología, Hogar Inteligente y Confort",
     description:
-      "Официальный интернет-магазин: быстрая доставка за 24-48 часов, 2 года гарантии ЕС, скидка 10% по промокоду VIAS10.",
+      "Tienda oficial: electrónica certificada CE/RoHS, entrega en 24/48 horas y 30 días de devolución.",
     siteName: "Viasglobal Store",
     type: "website",
   },
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
+    <html lang="es">
       <body>
         <Header />
         <main style={{ flex: 1 }}>{children}</main>

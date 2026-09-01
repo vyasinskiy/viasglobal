@@ -281,9 +281,9 @@ export const AiGiftAdvisor = () => {
         : (language === "es" ? "para tu uso personal" : "for your personal setup");
 
     if (language === "es") {
-      return `He analizado nuestro catálogo completo y seleccionado estas opciones ${recipientName}. Combinan alta durabilidad, diseño ergonómico y máxima puntuación de satisfacción de clientes en España. Todos los artículos se encuentran listos para expedición inmediata con envío en 24/48h desde los almacenes de Castellón y Valencia con 3 años de garantía oficial.`;
+      return `He analizado nuestro catálogo completo y seleccionado estas opciones ${recipientName}. Combinan alta durabilidad, diseño ergonómico y máxima puntuación de satisfacción de clientes en España. Todos los artículos se encuentran listos para expedición inmediata con envío en 24/48h desde los almacenes de Castellón y Valencia con 30 días de devolución gratuita.`;
     } else {
-      return `I have evaluated our complete product inventory and selected these top-rated gifts ${recipientName}. They balance premium durability, ergonomic aesthetics, and five-star customer feedback in Spain. All items are in stock with 24/48h dispatch from our Castellón and Valencia fulfillment hubs with a 3-year official warranty.`;
+      return `I have evaluated our complete product inventory and selected these top-rated gifts ${recipientName}. They balance premium durability, ergonomic aesthetics, and five-star customer feedback in Spain. All items are in stock with 24/48h dispatch from our Castellón and Valencia fulfillment hubs with 30-day free returns.`;
     }
   };
 
@@ -734,7 +734,7 @@ export const AiGiftAdvisor = () => {
                             <CheckCircle2 size={14} /> {language === "es" ? "Envío 24/48h desde Castellón/Valencia" : "24/48h delivery from Castellón/Valencia"}
                           </span>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                            <CheckCircle2 size={14} /> {language === "es" ? "3 Años de garantía oficial UE" : "3-Year Official EU Warranty"}
+                            <CheckCircle2 size={14} /> {language === "es" ? "Calidad Certificada CE y RoHS" : "CE & RoHS Certified Quality"}
                           </span>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                             <CheckCircle2 size={14} /> {language === "es" ? "30 Días de devolución gratuita" : "30-Day Free EU Returns"}

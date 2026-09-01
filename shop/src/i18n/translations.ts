@@ -162,7 +162,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
   es: {
     header: {
       topBar: "Envío gratis en la UE a partir de 50€ | 10% de descuento con código: VIAS10",
-      warrantyBadge: "2 años de garantía oficial UE",
+      warrantyBadge: "Calidad Certificada CE y RoHS",
       home: "Inicio",
       catalog: "Catálogo",
       about: "Nosotros",
@@ -181,7 +181,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       btnCatalog: "Ver Catálogo",
       btnBestsellers: "Más Vendidos",
       dispatchBadge: "Envío en 24h",
-      warrantyBadge: "2 Años de Garantía",
+      warrantyBadge: "Calidad Certificada",
       ratingBadge: "4.9/5 en valoraciones",
       flagshipBadge: "Destacado de la Temporada",
       btnFlagship: "Descubrir producto",
@@ -237,7 +237,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       verifiedPurchase: "Compra verificada",
       relatedTitle: "Productos relacionados",
       dispatchBadge: "Envío en 24h desde Valencia",
-      warrantyBadge: "2 años de garantía europea",
+      warrantyBadge: "Calidad Certificada",
       returnsBadge: "30 días para devoluciones",
       shareCopied: "¡Enlace copiado!",
     },
@@ -309,7 +309,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     footer: {
       usp1Title: "Envío Express en la UE",
       usp1Desc: "Salida en 24-48h desde almacenes en Valencia y Barcelona. Gratis desde 50€.",
-      usp2Title: "2 Años de Garantía UE",
+      usp2Title: "Calidad Certificada CE y RoHS",
       usp2Desc: "Productos con marcado CE y RoHS y soporte directo en España.",
       usp3Title: "30 Días de Devolución",
       usp3Desc: "Devoluciones sencillas y sin complicaciones si no quedas satisfecho.",
@@ -328,7 +328,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
   en: {
     header: {
       topBar: "Free EU Shipping on orders over €50 | 10% OFF code: VIAS10",
-      warrantyBadge: "2 Years Official EU Warranty",
+      warrantyBadge: "CE & RoHS Certified Quality",
       home: "Home",
       catalog: "Shop",
       about: "About",
@@ -347,7 +347,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       btnCatalog: "Explore Catalog",
       btnBestsellers: "Bestsellers",
       dispatchBadge: "24h Dispatch",
-      warrantyBadge: "2-Year EU Warranty",
+      warrantyBadge: "Certified Quality",
       ratingBadge: "4.9/5 Rating",
       flagshipBadge: "Season Flagship",
       btnFlagship: "View Flagship",
@@ -403,7 +403,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       verifiedPurchase: "Verified Purchase",
       relatedTitle: "Related Products",
       dispatchBadge: "24h Dispatch from Valencia",
-      warrantyBadge: "2-Year European Warranty",
+      warrantyBadge: "Certified Quality",
       returnsBadge: "30-Day Return Period",
       shareCopied: "Link copied!",
     },
@@ -475,7 +475,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     footer: {
       usp1Title: "Express EU Delivery",
       usp1Desc: "Dispatched within 24-48h from Valencia & Barcelona hubs. Free over €50.",
-      usp2Title: "2-Year EU Warranty",
+      usp2Title: "CE & RoHS Certified Quality",
       usp2Desc: "CE & RoHS compliant products with direct replacement in Spain.",
       usp3Title: "30-Day Money Back",
       usp3Desc: "Hassle-free returns within 30 days if not completely satisfied.",

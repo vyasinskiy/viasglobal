@@ -24,18 +24,18 @@ export default function AboutPage() {
         : "Viasglobal Store was founded with a clear mission: to provide European customers with certified, high-standard smart gear without customs delays or middleman markups.",
     missionP2:
       language === "es"
-        ? "Todos los productos pasan un estricto control de calidad CE y RoHS y cuentan con 2 años de garantía europea y soporte técnico directo en España."
-        : "Every device complies with CE and RoHS directives and comes with a full 2-year European warranty with direct support in Spain.",
+        ? "Todos los productos pasan un estricto control de calidad CE y RoHS y cuentan con soporte técnico directo en España."
+        : "Every device complies with CE and RoHS directives with direct customer support in Spain.",
     card1Title: language === "es" ? "Logística en España" : "Spain-Based Logistics",
     card1Desc:
       language === "es"
         ? "Almacenes en Valencia y Barcelona para envíos en el mismo día y entregas en 24-48 horas."
         : "Fulfillment hubs in Valencia and Barcelona enabling same-day dispatch and 24-48h deliveries.",
-    card2Title: language === "es" ? "2 Años de Garantía UE" : "2-Year EU Warranty",
+    card2Title: language === "es" ? "Calidad Certificada" : "Certified Quality",
     card2Desc:
       language === "es"
-        ? "Garantía oficial completa con sustitución o reparación directa en la Unión Europea."
-        : "Official European warranty with fast direct replacement or repair service.",
+        ? "Dispositivos certificados con soporte técnico directo y atención al cliente en España."
+        : "Certified hardware with direct technical support and customer care in Spain.",
     card3Title: language === "es" ? "Operador VIES e IVA 0%" : "VIES & B2B Invoicing",
     card3Desc:
       language === "es"

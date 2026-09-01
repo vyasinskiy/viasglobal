@@ -677,8 +677,8 @@ export const ANNUAL_52_WEEKS_CALENDAR: WeeklyCalendarEvent[] = [
       en: "Fast dispatch from Castellón/Valencia — Wedding & Communion Gifts",
     },
     bannerSubtext: {
-      es: "Tecnología con garantía oficial de 2 años ideal para regalar en ocasiones especiales.",
-      en: "Certified electronics with official 2-year warranty for memorable gifts.",
+      es: "Tecnología de alta calidad y diseño ideal para regalar en ocasiones especiales.",
+      en: "Certified high-quality tech accessories ideal for memorable gifts.",
     },
     targetUrl: "/regalos-originales",
     actionItems: [
@@ -1447,8 +1447,8 @@ export const ANNUAL_52_WEEKS_CALENDAR: WeeklyCalendarEvent[] = [
       en: "Fast dispatch from Castellón/Valencia — Official Black Friday 24h Shipping",
     },
     bannerSubtext: {
-      es: "Descuentos de hasta el 25% con stock garantizado en España y 2 años de garantía europea.",
-      en: "Up to 25% off with guaranteed local stock in Spain and official 2-year warranty.",
+      es: "Descuentos de hasta el 25% con stock garantizado en España y envío urgente 24/48h.",
+      en: "Up to 25% off with guaranteed local stock in Spain and 24/48h express delivery.",
     },
     targetUrl: "/products",
     actionItems: [

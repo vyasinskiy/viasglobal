@@ -276,7 +276,7 @@ export const SPANISH_HOLIDAY_CALENDAR: HolidayEvent[] = [
           en: "Order today, receive in 24/48h — Express dispatch from Castellón/Valencia",
         },
         subtext: {
-          es: "Descuentos de hasta el 25% con stock garantizado y 2 años de garantía europea.",
+          es: "Descuentos de hasta el 25% con stock garantizado y envío urgente 24/48h.",
           en: "Discounts up to 25% with immediate fulfillment from Spain.",
         },
         ctaText: { es: "Comprar Ofertas Black Friday", en: "Shop Black Friday Deals" },
@@ -433,8 +433,8 @@ export const SPANISH_HOLIDAY_CALENDAR: HolidayEvent[] = [
           en: "Three Kings Gifts at Viasglobal: Premium Tech & Sound",
         },
         subtext: {
-          es: "Garantía europea de 2 años y devoluciones ampliadas hasta 30 días.",
-          en: "Official 2-year warranty and extended 30-day returns.",
+          es: "Devoluciones ampliadas hasta 30 días y soporte directo en España.",
+          en: "Extended 30-day returns and direct customer support in Spain.",
         },
         ctaText: { es: "Ver Guía de Reyes", en: "View Kings Catalog" },
         ctaLink: "/products?filter=bestsellers",

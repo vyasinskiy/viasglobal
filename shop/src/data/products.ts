@@ -45,7 +45,6 @@ export const PRODUCTS_DATA: Product[] = [
         "Cancelación de Ruido": "Cancelación Híbrida Adaptativa (-42dB)",
         "Códecs compatibles": "LDAC, AAC, SBC, aptX HD",
         "Peso": "250 g",
-        "Garantía": "2 años oficial UE",
       },
       en: {
         "Connectivity": "Bluetooth 5.3 + 3.5mm AUX Jack",
@@ -53,7 +52,6 @@ export const PRODUCTS_DATA: Product[] = [
         "Noise Cancellation": "Hybrid Adaptive ANC (-42dB)",
         "Audio Codecs": "LDAC, AAC, SBC, aptX HD",
         "Weight": "250 g",
-        "Warranty": "2 Years Official EU",
       },
     },
     features: {
@@ -137,7 +135,6 @@ export const PRODUCTS_DATA: Product[] = [
         "Carga inalámbrica": "Qi Fast Charge 15W",
         "Control": "Panel táctil + Sensor de luz ambiental",
         "Material": "Aluminio anodizado aeroespacial",
-        "Garantía": "2 años oficial UE",
       },
       en: {
         "Color Temperature": "2700K - 6500K (smooth dimming)",
@@ -145,7 +142,6 @@ export const PRODUCTS_DATA: Product[] = [
         "Wireless Charger": "Qi Fast Charge 15W",
         "Controls": "Touch panel + Ambient auto-dimming sensor",
         "Material": "Aerospace-grade anodized aluminum",
-        "Warranty": "2 Years Official EU",
       },
     },
     features: {
@@ -202,14 +198,12 @@ export const PRODUCTS_DATA: Product[] = [
         "Sensores": "CO2 (Láser óptico NDIR), PM2.5, Temperatura, Humedad, VOC",
         "Pantalla": "E-Ink de ultra bajo consumo de 3.2 pulgadas",
         "Alimentación": "USB-C + Batería de respaldo (hasta 10h)",
-        "Garantía": "2 años oficial UE",
       },
       en: {
         "Protocols": "Matter, Thread, Wi-Fi 2.4GHz, Bluetooth 5.0",
         "Sensors": "CO2 (NDIR Laser), PM2.5, Temperature, Humidity, VOC",
         "Display": "3.2-inch ultra-low power E-Ink screen",
         "Power": "USB-C + built-in battery backup (up to 10h)",
-        "Warranty": "2 Years Official EU",
       },
     },
     features: {
@@ -266,7 +260,6 @@ export const PRODUCTS_DATA: Product[] = [
         "Iluminación": "LED blanca cálida con 12 patrones",
         "Batería": "4000 mAh (hasta 3 meses sin retroiluminación)",
         "Sistemas": "macOS, Windows, Linux, iOS, Android",
-        "Garantía": "2 años oficial UE",
       },
       en: {
         "Switch Type": "Custom Silent Linear (5-pin Hot-swappable)",
@@ -274,7 +267,6 @@ export const PRODUCTS_DATA: Product[] = [
         "Backlight": "Warm white LED with 12 lighting modes",
         "Battery": "4000 mAh (up to 3 months without backlight)",
         "OS Compatibility": "macOS, Windows, Linux, iOS, Android",
-        "Warranty": "2 Years Official EU",
       },
     },
     features: {
@@ -329,14 +321,12 @@ export const PRODUCTS_DATA: Product[] = [
         "Área de cobertura": "Hasta 35 m²",
         "Nivel sonoro": "< 20 dB (completamente silencioso)",
         "Materiales": "Vidrio soplado mate, madera de roble, polímero libre de BPA",
-        "Garantía": "2 años oficial UE",
       },
       en: {
         "Tank Capacity": "280 ml (up to 10 hours continuous mist)",
         "Coverage Area": "Up to 35 m²",
         "Noise Level": "< 20 dB (whisper quiet)",
         "Materials": "Frosted blown glass, solid oak, BPA-free polymer",
-        "Warranty": "2 Years Official EU",
       },
     },
     features: {
@@ -392,14 +382,12 @@ export const PRODUCTS_DATA: Product[] = [
         "Puertos": "3 x USB-C (PD 3.0 / PPS), 1 x USB-A (QC 4.0+)",
         "Tecnología": "GaN III (Gallium Nitride)",
         "Protección": "Monitoreo térmico activo ActiveShield 2.0",
-        "Garantía": "2 años oficial UE",
       },
       en: {
         "Max Output": "100W Max",
         "Ports": "3 x USB-C (PD 3.0 / PPS), 1 x USB-A (QC 4.0+)",
         "Technology": "GaN III (Gallium Nitride)",
         "Safety": "ActiveShield 2.0 temperature monitoring",
-        "Warranty": "2 Years Official EU",
       },
     },
     features: {

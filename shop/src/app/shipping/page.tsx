@@ -42,15 +42,15 @@ export default function ShippingPage() {
     pay2: language === "es" ? "📱 Apple Pay & Google Pay" : "📱 Apple Pay & Google Pay",
     pay3: language === "es" ? "🅿️ PayPal (Protección del Comprador)" : "🅿️ PayPal (Buyer Protection)",
     pay4: language === "es" ? "🏦 Transferencia Bancaria SEPA / Factura B2B" : "🏦 SEPA Bank Wire / B2B Invoicing",
-    warrantyTitle: language === "es" ? "2 Años de Garantía y 30 Días de Devolución" : "2-Year EU Warranty & 30-Day Returns",
+    warrantyTitle: language === "es" ? "Garantía de Calidad y 30 Días de Devolución" : "Quality Guarantee & 30-Day Returns",
     warrantyIntro:
       language === "es"
         ? "Conforme a la legislación del Reino de España y las directivas de la UE de protección al consumidor:"
         : "In compliance with Spanish consumer laws and European Union customer protection directives:",
     warrantyItem1:
       language === "es"
-        ? "2 años de garantía oficial: en todos los dispositivos electrónicos y accesorios."
-        : "2 years official warranty: on all electronic and smart hardware products.",
+        ? "Garantía oficial del fabricante: en todos los dispositivos electrónicos y accesorios."
+        : "Official manufacturer warranty: on all electronic and smart hardware products.",
     warrantyItem2:
       language === "es"
         ? "30 días para devoluciones: derecho de desistimiento con reembolso íntegro si el producto se devuelve en su estado y embalaje original."
