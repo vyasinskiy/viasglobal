@@ -734,7 +734,7 @@ export const AiGiftAdvisor = () => {
                             <CheckCircle2 size={14} /> {language === "es" ? "Envío 24/48h desde Castellón/Valencia" : "24/48h delivery from Castellón/Valencia"}
                           </span>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                            <CheckCircle2 size={14} /> {language === "es" ? "Calidad Certificada CE y RoHS" : "CE & RoHS Certified Quality"}
+                            <CheckCircle2 size={14} /> {language === "es" ? "Calidad Certificada" : "Certified Quality"}
                           </span>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                             <CheckCircle2 size={14} /> {language === "es" ? "30 Días de devolución gratuita" : "30-Day Free EU Returns"}

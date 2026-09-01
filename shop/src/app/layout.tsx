@@ -6,9 +6,9 @@ import { CartDrawer } from "@/components/common/CartDrawer";
 import { Toast } from "@/components/common/Toast";
 
 export const metadata: Metadata = {
-  title: "Viasglobal Store — Tienda Oficial de Tecnología y Confort en España y la UE",
+  title: "Viasglobal Store — Tienda Oficial de Tecnología y Confort en España",
   description:
-    "Tienda oficial Viasglobal en España y la Unión Europea. Audio Hi-Res, espacio de trabajo ergonómico y hogar inteligente con envío en 24/48h desde Castellón y Valencia.",
+    "Tienda oficial Viasglobal en España. Audio Hi-Res, espacio de trabajo ergonómico y hogar inteligente con envío en 24/48h desde Castellón y Valencia.",
   keywords: [
     "Viasglobal Store",
     "tienda electronica espana",

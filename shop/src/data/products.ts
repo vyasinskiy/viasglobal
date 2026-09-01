@@ -430,8 +430,8 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
       en: "Standard Delivery (Correos Express / SEUR)",
     },
     description: {
-      es: "Entrega a domicilio en España y la UE",
-      en: "Door-to-door delivery across Spain and EU",
+      es: "Entrega a domicilio en España",
+      en: "Door-to-door delivery across Spain",
     },
     price: 4.99,
     estimatedDays: {

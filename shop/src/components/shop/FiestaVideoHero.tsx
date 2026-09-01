@@ -55,8 +55,8 @@ export const FiestaVideoHero = () => {
   const t = {
     badge:
       language === "es"
-        ? "Vive la Fiesta y el Confort • España y la UE"
-        : "Experience the Fiesta & Tech • Spain & EU",
+        ? "Vive la Fiesta y el Confort • España"
+        : "Experience the Fiesta & Tech • Spain",
     titleMain:
       language === "es"
         ? "Tecnología para Cada Fiesta y Momento Único"

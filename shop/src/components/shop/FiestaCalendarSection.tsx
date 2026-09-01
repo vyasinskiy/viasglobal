@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import {
   getCurrentWeekEvent,
@@ -21,6 +21,7 @@ import {
   Info,
   Clock,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Flame,
 } from "lucide-react";
@@ -38,6 +39,17 @@ export const FiestaCalendarSection = () => {
 
   // Выбранное событие в календаре (по умолчанию — текущая неделя / ближайшее событие)
   const [selectedWeekNum, setSelectedWeekNum] = useState<number>(currentWeek.weekNumber);
+
+  // Ссылка на DOM-контейнер карусели для программной прокрутки кнопками-стрелками
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Функция плавной горизонтальной прокрутки карусели
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const scrollOffset = direction === "left" ? -460 : 460;
+      carouselRef.current.scrollBy({ left: scrollOffset, behavior: "smooth" });
+    }
+  };
 
   const activeEvent = getWeekEvent(selectedWeekNum);
   const activeUpcoming = upcomingEvents.find((e) => e.weekNumber === selectedWeekNum) || upcomingEvents[0];
@@ -60,17 +72,17 @@ export const FiestaCalendarSection = () => {
 
   const t = {
     screenBadge: language === "es" ? "Calendario Cronológico de Fiestas" : "Chronological Fiesta Calendar",
-    title: language === "es" ? "Próximas Fiestas y Podborki Semanales" : "Upcoming Fiestas & Weekly Curated Gear",
+    title: language === "es" ? "Próximas Fiestas y Colecciones Semanales" : "Upcoming Fiestas & Weekly Curated Gear",
     subtitle:
       language === "es"
         ? "Explora las celebraciones en orden cronológico: desde los eventos más inminentes de esta semana hasta los próximos puentes del año. Conoce la historia de cada fiesta y equípate con entrega 24/48h desde Castellón y Valencia."
         : "Explore celebrations in chronological order: from this week's immediate events to upcoming holiday bridges. Discover the history behind each fiesta and gear up with 24/48h delivery from Castellón and Valencia.",
-    upcomingLabel: language === "es" ? "Cronología de eventos (más cercanos primero):" : "Upcoming events timeline (closest first):",
+    upcomingLabel: language === "es" ? "Cronología de eventos" : "Upcoming events timeline",
     aboutTitle: language === "es" ? "Sobre esta celebración y tradición:" : "About this celebration & tradition:",
     gearTitle: language === "es" ? "Equipamiento recomendado para este evento:" : "Recommended gear for this event:",
     viewFullSelection: language === "es" ? "Ver Colección Completa" : "View Full Collection",
     view52Weeks: language === "es" ? "Ver Calendario Completo (52 Semanas)" : "View Complete 52-Week Calendar",
-    curatedTitle: language === "es" ? "Подборка товаров для этого события:" : "Curated gear for this celebration:",
+    curatedTitle: language === "es" ? "Selección de productos para este evento:" : "Curated gear for this celebration:",
   };
 
   return (
@@ -106,25 +118,95 @@ export const FiestaCalendarSection = () => {
 
         {/* Хронологическая лента ближайших событий (по возрастанию удаленности) */}
         <div style={{ marginBottom: "32px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "10px" }}>
             <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "var(--text-subtle)", textTransform: "uppercase", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "6px" }}>
               <Clock size={14} color="#ea580c" /> {t.upcomingLabel}
             </span>
-            <Link
-              href="/campaigns"
-              style={{ fontSize: "0.82rem", color: "#0284c7", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "4px" }}
-            >
-              {t.view52Weeks} <ChevronRight size={14} />
-            </Link>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              {/* Кнопки листания карусели влево / вправо */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <button
+                  type="button"
+                  onClick={() => scrollCarousel("left")}
+                  aria-label="Desplazar a la izquierda"
+                  title="Anterior"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    background: "#ffffff",
+                    border: "1px solid var(--border-color)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "var(--text-main)",
+                    boxShadow: "var(--shadow-sm)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#ea580c";
+                    e.currentTarget.style.color = "#ea580c";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-color)";
+                    e.currentTarget.style.color = "var(--text-main)";
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollCarousel("right")}
+                  aria-label="Desplazar a la derecha"
+                  title="Siguiente"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    background: "#ffffff",
+                    border: "1px solid var(--border-color)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "var(--text-main)",
+                    boxShadow: "var(--shadow-sm)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#ea580c";
+                    e.currentTarget.style.color = "#ea580c";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-color)";
+                    e.currentTarget.style.color = "var(--text-main)";
+                  }}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              <Link
+                href="/campaigns"
+                style={{ fontSize: "0.82rem", color: "#0284c7", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "4px" }}
+              >
+                {t.view52Weeks} <ChevronRight size={14} />
+              </Link>
+            </div>
           </div>
 
           <div
+            ref={carouselRef}
             style={{
               display: "flex",
-              gap: "10px",
+              gap: "12px",
               overflowX: "auto",
-              paddingBottom: "12px",
+              paddingBottom: "14px",
               scrollbarWidth: "thin",
+              scrollBehavior: "smooth",
+              alignItems: "stretch",
             }}
           >
             {upcomingEvents.map((event) => {
@@ -136,7 +218,7 @@ export const FiestaCalendarSection = () => {
                   key={event.weekNumber}
                   onClick={() => setSelectedWeekNum(event.weekNumber)}
                   style={{
-                    padding: "10px 16px",
+                    padding: "14px 16px",
                     borderRadius: "var(--radius-md)",
                     fontSize: "0.85rem",
                     fontWeight: 700,
@@ -152,7 +234,6 @@ export const FiestaCalendarSection = () => {
                       : "1px solid var(--border-color)",
                     color: isSelected ? "#fff" : isCurrent ? "#c2410c" : "var(--text-main)",
                     cursor: "pointer",
-                    whiteSpace: "nowrap",
                     transition: "all 0.2s ease",
                     boxShadow: isSelected
                       ? "0 4px 14px rgba(234, 88, 12, 0.35)"
@@ -160,11 +241,27 @@ export const FiestaCalendarSection = () => {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
-                    gap: "4px",
-                    minWidth: "160px",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    flex: "0 0 240px", // Фиксированная ширина карточки без нежелательного сплющивания
+                    minWidth: "240px",
+                    maxWidth: "260px",
+                    textAlign: "left",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.72rem", textTransform: "uppercase", opacity: isSelected ? 0.95 : 0.85, fontWeight: 800 }}>
+                  {/* Верхний бейдж срока */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      fontSize: "0.72rem",
+                      textTransform: "uppercase",
+                      opacity: isSelected ? 0.95 : 0.85,
+                      fontWeight: 800,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {isCurrent ? (
                       <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", color: isSelected ? "#fef08a" : "#ea580c" }}>
                         <Flame size={12} /> {event.relativeLabel[language] || event.relativeLabel.es}
@@ -174,11 +271,31 @@ export const FiestaCalendarSection = () => {
                     )}
                   </div>
 
-                  <div style={{ fontSize: "0.92rem", fontWeight: 800, textAlign: "left" }}>
+                  {/* Название события с поддержкой двухстрочного переноса текста */}
+                  <div
+                    style={{
+                      fontSize: "0.92rem",
+                      fontWeight: 800,
+                      lineHeight: 1.35,
+                      color: isSelected ? "#ffffff" : "var(--text-main)",
+                      whiteSpace: "normal",
+                      minHeight: "2.7em",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
                     {event.title[language] || event.title.es}
                   </div>
 
-                  <div style={{ fontSize: "0.75rem", opacity: isSelected ? 0.9 : 0.7, fontWeight: 600 }}>
+                  {/* Дата события */}
+                  <div
+                    style={{
+                      fontSize: "0.76rem",
+                      opacity: isSelected ? 0.9 : 0.7,
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {event.dateRange}
                   </div>
                 </button>

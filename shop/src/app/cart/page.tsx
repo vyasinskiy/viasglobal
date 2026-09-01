@@ -162,7 +162,7 @@ export default function CartPage() {
                     <span>{t.cart.freeShippingUnlocked}</span>
                   ) : (
                     <span>
-                      {t.cart.freeShippingRemaining} <strong>€{remainingForFree.toFixed(2)}</strong> {language === "es" ? "más para envío gratis en España y la UE" : "more for free delivery in Spain and EU"}
+                      {t.cart.freeShippingRemaining} <strong>€{remainingForFree.toFixed(2)}</strong> {language === "es" ? "más para envío gratis en España" : "more for free delivery in Spain"}
                     </span>
                   )}
                 </div>

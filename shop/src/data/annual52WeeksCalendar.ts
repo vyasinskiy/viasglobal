@@ -1675,17 +1675,12 @@ export function getUpcomingEvents(
     let targetWeek = ((startWeekNumber - 1 + offset) % total) + 1;
     const event = getWeekEvent(targetWeek);
 
+    // Относительная временная метка для кнопок и бейджей без избыточных суффиксов (+1 sem, +2 sem и т.д.)
     let relativeLabel = { es: "", en: "" };
     if (offset === 0) {
       relativeLabel = { es: "🔥 Esta semana (En curso)", en: "🔥 This Week (Active)" };
     } else if (offset === 1) {
-      relativeLabel = { es: "Próxima semana (+1 sem)", en: "Next Week (+1 wk)" };
-    } else if (offset === 2) {
-      relativeLabel = { es: "En 2 semanas (+2 sem)", en: "In 2 Weeks (+2 wks)" };
-    } else if (offset === 3) {
-      relativeLabel = { es: "En 3 semanas (+3 sem)", en: "In 3 Weeks (+3 wks)" };
-    } else if (offset === 4) {
-      relativeLabel = { es: "En 1 mes (+4 sem)", en: "In 1 Month (+4 wks)" };
+      relativeLabel = { es: "Próxima semana", en: "Next Week" };
     } else {
       relativeLabel = {
         es: `En ${offset} semanas`,

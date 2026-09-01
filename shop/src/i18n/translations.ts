@@ -154,7 +154,7 @@ export interface Translations {
     legalTitle: string;
     allRightsReserved: string;
     operatorInfo: string;
-    securePayment: string;
+    securePayment?: string;
   };
 }
 
@@ -162,7 +162,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
   es: {
     header: {
       topBar: "Envío gratis en la UE a partir de 50€ | 10% de descuento con código: VIAS10",
-      warrantyBadge: "Calidad Certificada CE y RoHS",
+      warrantyBadge: "Calidad Certificada",
       home: "Inicio",
       catalog: "Catálogo",
       about: "Nosotros",
@@ -173,7 +173,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       cartTitle: "Carrito",
     },
     hero: {
-      badge: "Electrónica y ergonomía premium en España y la UE",
+      badge: "Electrónica y ergonomía premium en España",
       titleStart: "Tecnología para vivir,",
       titleGradient: "trabajar y disfrutar",
       subtitle:
@@ -309,13 +309,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     footer: {
       usp1Title: "Envío Express en la UE",
       usp1Desc: "Salida en 24-48h desde almacenes en Valencia y Barcelona. Gratis desde 50€.",
-      usp2Title: "Calidad Certificada CE y RoHS",
+      usp2Title: "Calidad Certificada",
       usp2Desc: "Productos con marcado CE y RoHS y soporte directo en España.",
       usp3Title: "30 Días de Devolución",
       usp3Desc: "Devoluciones sencillas y sin complicaciones si no quedas satisfecho.",
       usp4Title: "Atención al Cliente",
-      usp4Desc: "Asistencia rápida para pedidos particulares y compras al por mayor B2B.",
-      brandDesc: "Comercio digital premium, dispositivos para el hogar y accesorios de oficina en España y la Unión Europea.",
+      usp4Desc: "Asistencia rápida para pedidos particulares.",
+      brandDesc: "Comercio digital premium, dispositivos para el hogar y accesorios de oficina en España.",
       viesBadge: "Operador VIES Intracomunitario 0% IVA",
       catTitle: "Categorías",
       customerTitle: "Atención al Cliente",
@@ -328,7 +328,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
   en: {
     header: {
       topBar: "Free EU Shipping on orders over €50 | 10% OFF code: VIAS10",
-      warrantyBadge: "CE & RoHS Certified Quality",
+      warrantyBadge: "Certified Quality",
       home: "Home",
       catalog: "Shop",
       about: "About",
@@ -339,7 +339,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       cartTitle: "Cart",
     },
     hero: {
-      badge: "Premium Electronics & Workspace Ergonomics in Spain & EU",
+      badge: "Premium Electronics & Workspace Ergonomics in Spain",
       titleStart: "Technology designed for",
       titleGradient: "life, work and comfort",
       subtitle:
@@ -475,13 +475,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     footer: {
       usp1Title: "Express EU Delivery",
       usp1Desc: "Dispatched within 24-48h from Valencia & Barcelona hubs. Free over €50.",
-      usp2Title: "CE & RoHS Certified Quality",
+      usp2Title: "Certified Quality",
       usp2Desc: "CE & RoHS compliant products with direct replacement in Spain.",
       usp3Title: "30-Day Money Back",
       usp3Desc: "Hassle-free returns within 30 days if not completely satisfied.",
       usp4Title: "Customer Support",
-      usp4Desc: "Prompt assistance for retail buyers and B2B wholesale partners.",
-      brandDesc: "Premium digital commerce, smart home tech, and ergonomic workspace gear in Spain and the European Union.",
+      usp4Desc: "Prompt assistance for retail buyers.",
+      brandDesc: "Premium digital commerce, smart home tech, and ergonomic workspace gear in Spain.",
       viesBadge: "VIES Intra-Community 0% VAT Registered",
       catTitle: "Categories",
       customerTitle: "Customer Care",

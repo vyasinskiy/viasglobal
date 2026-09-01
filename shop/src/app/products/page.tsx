@@ -106,8 +106,8 @@ function CatalogContent() {
     catalogTitleAll: language === "es" ? "Todos los productos" : "All Products",
     catalogSubtitle:
       language === "es"
-        ? "Electrónica original, hogar inteligente y accesorios ergonómicos en España y la UE."
-        : "Original tech, smart home gear, and ergonomic workspace accessories across Europe.",
+        ? "Electrónica original, hogar inteligente y accesorios ergonómicos en España."
+        : "Original tech, smart home gear, and ergonomic workspace accessories in Spain.",
     noProductsTitle: language === "es" ? "No se han encontrado productos" : "No products found",
     noProductsDesc:
       language === "es"

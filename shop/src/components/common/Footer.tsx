@@ -8,8 +8,6 @@ import {
   Truck,
   RotateCcw,
   Headphones,
-  CreditCard,
-  CheckCircle,
 } from "lucide-react";
 
 /**
@@ -198,25 +196,9 @@ export const Footer = () => {
                 VIAS<span style={{ color: "#0284c7" }}>GLOBAL</span>
               </span>
             </Link>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5, marginBottom: "16px" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
               {t.footer.brandDesc}
             </p>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "4px 10px",
-                background: "#ecfdf5",
-                border: "1px solid #a7f3d0",
-                borderRadius: "6px",
-                fontSize: "0.75rem",
-                color: "#047857",
-                fontWeight: 700,
-              }}
-            >
-              <CheckCircle size={14} /> {t.footer.viesBadge}
-            </div>
           </div>
 
           {/* Колонка 2: Навигация */}
@@ -279,11 +261,6 @@ export const Footer = () => {
         >
           <div>
             © {currentYear} Viasglobal Store. {t.footer.allRightsReserved} {t.footer.operatorInfo}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--text-muted)" }}>
-            <CreditCard size={18} />
-            <span>{t.footer.securePayment}</span>
           </div>
         </div>
       </div>
