@@ -238,6 +238,19 @@ export const FiestaVideoHero = () => {
                 boxShadow: "0 4px 20px rgba(16, 185, 129, 0.2)",
                 cursor: "pointer",
               }}
+              onClick={(e) => {
+                e.preventDefault();
+                const target = document.getElementById("calendario-fiestas");
+                if (target) {
+                  const headerOffset = 110;
+                  const elementPosition = target.getBoundingClientRect().top;
+                  const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth",
+                  });
+                }
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "rgba(16, 185, 129, 0.28)";
                 e.currentTarget.style.borderColor = "rgba(52, 211, 153, 0.7)";

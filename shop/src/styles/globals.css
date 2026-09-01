@@ -101,6 +101,7 @@ html {
   background-color: var(--bg-main);
   color: var(--text-main);
   scroll-behavior: smooth;
+  scroll-padding-top: 100px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

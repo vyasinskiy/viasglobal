@@ -59,7 +59,7 @@ export const FiestaCalendarSection = () => {
   const fullDescription = getEventFullDescription(activeEvent, language);
 
   const t = {
-    screenBadge: language === "es" ? "Segundo Pantalla • Calendario Cronológico de Fiestas" : "Screen 2 • Chronological Fiesta Calendar",
+    screenBadge: language === "es" ? "Calendario Cronológico de Fiestas" : "Chronological Fiesta Calendar",
     title: language === "es" ? "Próximas Fiestas y Podborki Semanales" : "Upcoming Fiestas & Weekly Curated Gear",
     subtitle:
       language === "es"
@@ -74,7 +74,7 @@ export const FiestaCalendarSection = () => {
   };
 
   return (
-    <section id="calendario-fiestas" style={{ padding: "40px 0 70px" }}>
+    <section id="calendario-fiestas" style={{ padding: "40px 0 70px", scrollMarginTop: "110px" }}>
       <div className="container">
         {/* Заголовок второго экрана */}
         <div style={{ textAlign: "center", maxWidth: "840px", margin: "0 auto 36px" }}>
