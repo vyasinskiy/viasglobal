@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PRODUCTS_DATA } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { AiGiftAdvisor } from "@/components/shop/AiGiftAdvisor";
 import { useCartStore } from "@/store/cartStore";
@@ -13,8 +13,9 @@ import { Gift, Truck, ArrowRight, ArrowLeft, Calendar, Sparkles } from "lucide-r
  */
 export default function RegalosOriginalesPage() {
   const { language } = useCartStore();
+  const { products } = useProducts();
 
-  const giftProducts = PRODUCTS_DATA.filter((p) => p.isBestseller || p.isNew);
+  const giftProducts = products.filter((p) => p.isBestseller || p.isNew);
 
   const t = {
     badge: language === "es" ? "Guía Oficial de Regalos" : "Official Gift Guide",

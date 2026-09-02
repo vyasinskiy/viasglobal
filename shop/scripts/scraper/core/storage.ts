@@ -5,6 +5,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Pool } from "pg";
 import { ScrapedProductRaw, ScrapedItemResult } from "./types";
 import { ScraperLogger } from "./logger";
+import { ImageCdnUploader } from "./imageUploader";
 
 // Загружаем переменные окружения из .env.local и .env
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
@@ -17,10 +18,12 @@ export class ScraperStorage {
   private supabase: SupabaseClient | null = null;
   private pgPool: Pool | null = null;
   private logger: ScraperLogger;
+  private imageUploader: ImageCdnUploader;
   private localBackupFilePath: string;
 
   constructor(logger: ScraperLogger) {
     this.logger = logger;
+    this.imageUploader = new ImageCdnUploader(logger);
     this.localBackupFilePath = path.resolve(process.cwd(), "src", "data", "scraped_products.json");
 
     // 1. Инициализация прямого PostgreSQL подключения (если передан DATABASE_URL)
@@ -193,6 +196,23 @@ export class ScraperStorage {
 
         const targetMasterId = existingId || masterProductId;
 
+        // Переносим картинки на наш собственный CDN (Supabase Storage)
+        let finalMainImage = raw.mainImage;
+        let finalImages = raw.images;
+        try {
+          const cdnGallery = await this.imageUploader.transferProductGallery(
+            targetMasterId,
+            raw.mainImage,
+            raw.images
+          );
+          finalMainImage = cdnGallery.mainImage;
+          finalImages = cdnGallery.images;
+        } catch (cdnErr) {
+          this.logger.warn("SAVE_MASTER", "Ошибка переноса картинок на CDN, сохраняем исходные", {
+            error: String(cdnErr),
+          });
+        }
+
         // Вставка или обновление мастер-товара в products
         if (!isExisting) {
           await this.pgPool.query(
@@ -221,8 +241,8 @@ export class ScraperStorage {
               raw.category || "workspace",
               raw.brand || "Generico",
               raw.sku || (raw.ean ? `SKU-${raw.ean}` : `SKU-${Date.now()}`),
-              raw.mainImage,
-              JSON.stringify(raw.images),
+              finalMainImage,
+              JSON.stringify(finalImages),
               JSON.stringify({ es: raw.specs || {}, en: raw.specs || {} }),
               JSON.stringify({ es: raw.features || [], en: raw.features || [] }),
               4.8,

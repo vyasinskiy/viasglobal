@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FiestaVideoHero } from "@/components/shop/FiestaVideoHero";
 import { FiestaCalendarSection } from "@/components/shop/FiestaCalendarSection";
@@ -7,6 +8,7 @@ import { AiGiftAdvisor } from "@/components/shop/AiGiftAdvisor";
 import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { PRODUCTS_DATA } from "@/data/products";
+import { Product } from "@/types";
 import { useCartStore } from "@/store/cartStore";
 import { TRANSLATIONS } from "@/i18n/translations";
 import {
@@ -30,9 +32,23 @@ export default function HomePage() {
   const { language } = useCartStore();
   const t = TRANSLATIONS[language] || TRANSLATIONS.es;
 
+  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS_DATA);
+
+  useEffect(() => {
+    // Динамическая подгрузка товаров из базы данных Supabase
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllProducts(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Хиты продаж и новинки
-  const bestsellers = PRODUCTS_DATA.filter((p) => p.isBestseller).slice(0, 4);
-  const newArrivals = PRODUCTS_DATA.filter((p) => p.isNew).slice(0, 4);
+  const bestsellers = allProducts.filter((p) => p.isBestseller || p.rating >= 4.8).slice(0, 4);
+  const newArrivals = allProducts.slice(0, 8).slice(0, 4);
 
   const tHome = {
     featuredBadge: language === "es" ? "Selección Exclusiva" : "Exclusive Selection",

@@ -79,12 +79,21 @@
   - `parsing_logs`: пошаговые логи в БД (опционально).
 - **Детальное пошаговое логирование (`core/logger.ts`)**:
   - Запись каждого шага (старт, скролл, загрузка, извлечение JSON-LD, EAN, сохранение, ошибки) ведется одновременно в цветную консоль и в файл `logs/scraper/run_<date>_<source>_<runId>.log`.
-- **Локальный бэкап**:
-  - Даже без настроенного Supabase все товары дублируются в `src/data/scraped_products.json`, с которого витрина может работать автономно.
+- **Интеграция с витриной магазина**:
+  - `src/app/api/products/route.ts` — API список товаров из Supabase с поддержкой фильтрации по категориям.
+  - `src/app/api/products/[id]/route.ts` — API одного товара по ID или slug.
+  - `src/hooks/useProducts.ts` — React-хук для бесшовной реактивной подгрузки товаров на страницы.
+  - Динамическая карточка товара `src/app/products/[id]/page.tsx` загружает спарсенные товары по ID/slug.
+  - В `next.config.ts` разрешен только наш CDN `yzaarsfeztkkzuexhivl.supabase.co`.
+- **Строгий запрет внешних ссылок и CDN поставщиков (Анти-Ankorstore Hotlinking)**:
+  - **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** использовать `img.ankorstore.com`, `cdn.ankorstore.com` и любые прямые ссылки, ведущие на ankorstore на витрине магазина (`products.main_image`, `products.images`, карточки товаров, UI компоненты).
+  - Все фотографии товаров обязаны автоматически скачиваться и перекладываться в наш собственный CDN (Supabase Storage бакет `products`).
+  - Прямые ссылки на сайт поставщика разрешены строго и исключительно во внутренней служебной таблице `product_sources.source_url` для истории происхождения товара, но никогда не выводятся покупателям и в публичный каталог `products`.
 - **Команды запуска CLI**:
   - `npm run scrape -- "<URL>" --limit 25` (стандартный запуск)
   - `npm run scrape -- "<URL>" --limit 10 --head` (с видимым окном для ручного ввода капчи)
   - `npm run scrape -- "<URL>" --category workspace` (с принудительной категорией)
+  - `npx tsx scripts/scraper/sql/migrate.ts` (применение схемы schema.sql к БД)
 
 ## Особенности запуска и сборки
 - Локальный запуск: `npm run dev` (запускается на http://localhost:3001).

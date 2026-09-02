@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PRODUCTS_DATA } from "@/data/products";
 import { Product } from "@/types";
@@ -221,9 +221,22 @@ export const AiGiftAdvisor = () => {
     setHasGenerated(false);
   };
 
+  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS_DATA);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllProducts(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Алгоритм фильтрации и подбора товаров по параметрам
   const getRecommendedProducts = (): Product[] => {
-    let filtered = [...PRODUCTS_DATA];
+    let filtered = [...allProducts];
 
     // Фильтр по интересам
     if (interest === "audio_music") {
@@ -256,7 +269,7 @@ export const AiGiftAdvisor = () => {
 
     // Если список пуст или мал, дополняем хитами
     if (filtered.length < 2) {
-      const bestsellers = PRODUCTS_DATA.filter((p) => p.isBestseller && !filtered.some((f) => f.id === p.id));
+      const bestsellers = allProducts.filter((p) => p.isBestseller && !filtered.some((f) => f.id === p.id));
       filtered = [...filtered, ...bestsellers];
     }
 

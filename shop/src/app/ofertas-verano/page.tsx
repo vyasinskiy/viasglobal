@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PRODUCTS_DATA } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { useCartStore } from "@/store/cartStore";
 import { Sun, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
@@ -11,8 +11,9 @@ import { Sun, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
  */
 export default function OfertasVeranoPage() {
   const { language } = useCartStore();
+  const { products } = useProducts();
 
-  const summerProducts = PRODUCTS_DATA.filter(
+  const summerProducts = products.filter(
     (p) => p.category === "lifestyle" || p.category === "audio" || p.category === "electronics"
   );
 

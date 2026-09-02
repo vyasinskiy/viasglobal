@@ -87,14 +87,22 @@ npm run scrape -- "https://es.ankorstore.com/boutique/gift-universe" --category 
 
 ### Настройка базы данных Supabase
 1. Создайте проект в [Supabase](https://supabase.com).
-2. В разделе **SQL Editor** выполните код из файла [`scripts/scraper/sql/schema.sql`](scripts/scraper/sql/schema.sql).
-3. Добавьте переменные в файл `.env.local`:
+2. Запустите скрипт автоматической миграции:
+   ```bash
+   npx tsx scripts/scraper/sql/migrate.ts
+   ```
+3. Переменные в файле `.env.local`:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   DATABASE_URL=postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
    ```
-4. Если Supabase не подключен, все товары автоматически сохраняются в локальный бэкап `src/data/scraped_products.json`, и витрина работает автономно.
+4. Витрина магазина автоматически подтягивает товары из Supabase через динамические эндпоинты `/api/products` и `/api/products/[id]`, а также хук `useProducts()`. Страница карточки товара `/products/[id]` поддерживает любые спарсенные товары.
+
+### Политика хранения медиа и запрет сторонних CDN (Анти-Ankorstore Hotlinking)
+- **Строгий запрет**: Категорически запрещено использовать хосты `img.ankorstore.com`, `cdn.ankorstore.com` и любые прямые ссылки на Ankorstore на витрине магазина (`products.main_image`, `products.images`, карточки товаров).
+- **Собственный CDN**: Все фотографии товаров скачиваются и размещаются в нашем изолированном хранилище **Supabase Storage** (бакет `products`), обслуживаемом через CDN Cloudflare.
+- **Внутренний учет**: Прямая ссылка на сайт поставщика сохраняется только во внутренней системной таблице `product_sources.source_url` для истории парсинга и никогда не показывается покупателям магазина.
 
 ## Быстрый старт
 

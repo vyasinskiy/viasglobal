@@ -4,19 +4,28 @@ import { supabase } from "./supabase";
 import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 
-// Инициализация пула соединений с PostgreSQL для серверного рендеринга Next.js
+// Гарантируем загрузку .env.local даже в изолированных серверных контекстах
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+// Ленивая инициализация пула соединений с PostgreSQL для серверного рендеринга Next.js
 let serverPgPool: Pool | null = null;
-if (process.env.DATABASE_URL) {
-  try {
-    serverPgPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 3,
-    });
-  } catch {
-    // В клиентском контексте игнорируем
+function getServerPgPool(): Pool | null {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!serverPgPool && dbUrl) {
+    try {
+      serverPgPool = new Pool({
+        connectionString: dbUrl,
+        ssl: { rejectUnauthorized: false },
+        max: 5,
+      });
+    } catch {
+      // Игнорируем в клиентском контексте
+    }
   }
+  return serverPgPool;
 }
 
 /**
@@ -95,7 +104,8 @@ function getLocalScrapedProducts(): Product[] {
  */
 export async function getStoreProducts(category?: ProductCategory): Promise<Product[]> {
   // 1. Попытка прямого запроса к PostgreSQL
-  if (serverPgPool) {
+  const pool = getServerPgPool();
+  if (pool) {
     try {
       let sql = "SELECT * FROM products";
       const params: any[] = [];
@@ -105,11 +115,12 @@ export async function getStoreProducts(category?: ProductCategory): Promise<Prod
       }
       sql += " ORDER BY created_at DESC";
 
-      const res = await serverPgPool.query(sql, params);
+      const res = await pool.query(sql, params);
       if (res.rows.length > 0) {
         return res.rows.map(mapDatabaseRowToProduct);
       }
-    } catch {
+    } catch (dbErr) {
+      console.error("Ошибка при запросе к PostgreSQL:", dbErr);
       // Переходим к Supabase REST
     }
   }
@@ -156,10 +167,14 @@ export async function getStoreProducts(category?: ProductCategory): Promise<Prod
 /**
  * Поиск товара по slug ЧПУ
  */
-export async function getStoreProductBySlug(slug: string): Promise<Product | null> {
-  if (serverPgPool) {
+export async function getStoreProductBySlug(slugOrId: string): Promise<Product | null> {
+  const pool = getServerPgPool();
+  if (pool) {
     try {
-      const res = await serverPgPool.query("SELECT * FROM products WHERE slug = $1 LIMIT 1", [slug]);
+      const res = await pool.query(
+        "SELECT * FROM products WHERE slug = $1 OR id = $1 LIMIT 1",
+        [slugOrId]
+      );
       if (res.rows.length > 0) {
         return mapDatabaseRowToProduct(res.rows[0]);
       }
@@ -170,7 +185,11 @@ export async function getStoreProductBySlug(slug: string): Promise<Product | nul
 
   if (supabase) {
     try {
-      const { data, error } = await supabase.from("products").select("*").eq("slug", slug).maybeSingle();
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
+        .maybeSingle();
       if (!error && data) {
         return mapDatabaseRowToProduct(data);
       }
@@ -180,5 +199,5 @@ export async function getStoreProductBySlug(slug: string): Promise<Product | nul
   }
 
   const all = await getStoreProducts();
-  return all.find((p) => p.slug === slug || p.id === slug) || null;
+  return all.find((p) => p.slug === slugOrId || p.id === slugOrId) || null;
 }

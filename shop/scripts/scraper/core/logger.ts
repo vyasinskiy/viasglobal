@@ -17,6 +17,10 @@ export type ScraperStep =
   | "SAVE_MASTER"
   | "SAVE_SNAPSHOT"
   | "LOCAL_BACKUP"
+  | "STORAGE_SETUP"
+  | "MIGRATION"
+  | "ITEM_TRANSFER"
+  | "CDN_UPLOAD"
   | "FINISH";
 
 // Цветовые коды ANSI для терминала

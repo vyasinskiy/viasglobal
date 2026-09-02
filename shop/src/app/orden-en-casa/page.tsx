@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PRODUCTS_DATA } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { useCartStore } from "@/store/cartStore";
 import { Home, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
@@ -11,8 +11,9 @@ import { Home, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
  */
 export default function OrdenEnCasaPage() {
   const { language } = useCartStore();
+  const { products } = useProducts();
 
-  const homeProducts = PRODUCTS_DATA.filter(
+  const homeProducts = products.filter(
     (p) => p.category === "workspace" || p.category === "smart-home" || p.category === "lifestyle"
   );
 

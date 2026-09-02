@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   getCurrentWeekEvent,
@@ -10,6 +10,7 @@ import {
   UpcomingCalendarEvent,
 } from "@/data/annual52WeeksCalendar";
 import { PRODUCTS_DATA } from "@/data/products";
+import { Product } from "@/types";
 import { useCartStore } from "@/store/cartStore";
 import { ProductCard } from "@/components/shop/ProductCard";
 import {
@@ -51,11 +52,24 @@ export const FiestaCalendarSection = () => {
     }
   };
 
+  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS_DATA);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllProducts(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const activeEvent = getWeekEvent(selectedWeekNum);
   const activeUpcoming = upcomingEvents.find((e) => e.weekNumber === selectedWeekNum) || upcomingEvents[0];
 
   // Подбираем подходящие товары для выбранного события
-  const curatedProducts = PRODUCTS_DATA.filter((p) => {
+  const curatedProducts = allProducts.filter((p) => {
     if (activeEvent.focusCategories.includes(p.category)) return true;
     return false;
   }).slice(0, 4);

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PRODUCTS_DATA } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { useCartStore } from "@/store/cartStore";
 import { Sparkles, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
@@ -11,8 +11,9 @@ import { Sparkles, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
  */
 export default function EspecialPuentesPage() {
   const { language } = useCartStore();
+  const { products } = useProducts();
 
-  const puentesProducts = PRODUCTS_DATA.filter(
+  const puentesProducts = products.filter(
     (p) => p.category === "audio" || p.category === "electronics" || p.category === "lifestyle"
   );
 

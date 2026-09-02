@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PRODUCTS_DATA } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { useCartStore } from "@/store/cartStore";
 import { Sparkles, Truck, ArrowRight, ArrowLeft, Calendar, Gift } from "lucide-react";
@@ -11,8 +11,9 @@ import { Sparkles, Truck, ArrowRight, ArrowLeft, Calendar, Gift } from "lucide-r
  */
 export default function EspecialNavidadPage() {
   const { language } = useCartStore();
+  const { products } = useProducts();
 
-  const christmasProducts = PRODUCTS_DATA.filter((p) => p.isBestseller || p.rating >= 4.7);
+  const christmasProducts = products.filter((p) => p.isBestseller || p.rating >= 4.7);
 
   const t = {
     badge: language === "es" ? "Especial Navidad y Reyes Magos" : "Christmas & Three Kings",

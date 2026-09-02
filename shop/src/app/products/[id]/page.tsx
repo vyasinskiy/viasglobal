@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PRODUCTS_DATA } from "@/data/products";
+import { Product } from "@/types";
 import { useCartStore } from "@/store/cartStore";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { TRANSLATIONS } from "@/i18n/translations";
@@ -32,23 +33,73 @@ interface ProductPageProps {
  */
 export default function ProductDetailPage({ params }: ProductPageProps) {
   const { id } = use(params);
-  const product = PRODUCTS_DATA.find((p) => p.id === id || p.slug === id);
-
-  if (!product) {
-    notFound();
-  }
+  const [product, setProduct] = useState<Product | null>(() => {
+    return PRODUCTS_DATA.find((p) => p.id === id || p.slug === id) || null;
+  });
 
   const { language, addItem, toggleWishlist, isInWishlist } = useCartStore();
   const t = TRANSLATIONS[language] || TRANSLATIONS.es;
 
-  const [selectedImage, setSelectedImage] = useState(product.mainImage);
+  const [selectedImage, setSelectedImage] = useState(product?.mainImage || "");
   const [quantity, setQuantity] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(!product);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!product) {
+      setIsLoading(true);
+      fetch(`/api/products/${id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.id) {
+            setProduct(data);
+            setSelectedImage(data.mainImage);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+    }
+  }, [id, product]);
+
+  useEffect(() => {
+    if (product) {
+      fetch(`/api/products?category=${product.category}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setRelatedProducts(data.filter((p: Product) => p.id !== product.id).slice(0, 3));
+          } else {
+            setRelatedProducts(
+              PRODUCTS_DATA.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3)
+            );
+          }
+        })
+        .catch(() => {
+          setRelatedProducts(
+            PRODUCTS_DATA.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3)
+          );
+        });
+    }
+  }, [product]);
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: "100px 0", textAlign: "center" }}>
+        <div className="container">
+          <div style={{ fontSize: "1.2rem", color: "#64748b", fontWeight: 600 }}>
+            {language === "es" ? "Cargando detalles del producto..." : "Loading product details..."}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    notFound();
+  }
 
   const inWishlist = mounted ? isInWishlist(product.id) : false;
 
@@ -63,10 +114,6 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
       setTimeout(() => setIsCopied(false), 2000);
     }
   };
-
-  const relatedProducts = PRODUCTS_DATA.filter(
-    (p) => p.id !== product.id && p.category === product.category
-  ).slice(0, 3);
 
   const discountPercent = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
