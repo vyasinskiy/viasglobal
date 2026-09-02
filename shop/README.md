@@ -47,6 +47,55 @@
 - [Ankorstore: Cadeaux & Accessoires](https://es.ankorstore.com/collection/cadeaux-accessoires) - подборка трендовых подарков и аксессуаров.
 - [Ankorstore: Gift Universe](https://es.ankorstore.com/boutique/gift-universe) - каталог оригинальных товаров и подарков от поставщика Gift Universe.
 
+## Парсер товаров поставщиков (Playwright Multi-Source Scraper)
+
+Для наполнения магазина реальным ассортиментом разработан модульный парсер европейских B2B платформ (`scripts/scraper/`).
+
+### Возможности и архитектура
+1. **Мульти-источниковая структура**:
+   - Адаптеры поставщиков изолированы в папке `scripts/scraper/adapters/` (например, `ankorstore`).
+   - Автоматическое определение нужного адаптера по ссылке через реестр `AdapterRegistry`.
+2. **Дедупликация товаров по EAN (штрихкоду)**:
+   - Если товар с одним и тем же штрихкодом EAN продается у нескольких поставщиков по разным ценам, в таблице `products` сохраняется единый мастер-товар, а в `product_sources` создаются отдельные записи для каждого поставщика с его ценой и прямой ссылкой.
+3. **Сессии парсинга и снапшоты данных**:
+   - Каждый запуск получает уникальный ID в таблице `parsing_runs` со статусом, счетчиками и путем к логу.
+   - Для каждого товара сохраняется неизмененный снимок сырых данных (`raw_data` snapshot).
+4. **Обход капчи и интерактивный режим (`--head`)**:
+   - При обнаружении Cloudflare Turnstile, reCAPTCHA или hCaptcha скрипт приостанавливает выполнение, выводит звуковое/текстовое оповещение в терминал и ожидает ручного прохождения проверки в окне браузера с подтверждением по клавише `[ENTER]`.
+5. **Детализированное пошаговое логирование**:
+   - Подробная фиксация каждого шага (старт, скролл, загрузка страницы, извлечение JSON-LD, проверка по EAN, сохранение, ошибки со стектрейсом).
+   - Запись ведется в цветную консоль и в файл `logs/scraper/run_<date>_<source>_<runId>.log`.
+
+### Использование CLI
+```bash
+# Базовый парсинг коллекции (например, Back to School) с лимитом 20 товаров
+npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --limit 20
+
+# Интерактивный режим с открытым окном браузера (для ручного решения капчи)
+npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --limit 15 --head
+
+# Парсинг с принудительным назначением категории магазина
+npm run scrape -- "https://es.ankorstore.com/boutique/gift-universe" --category workspace
+
+# Доступные опции:
+#   --limit, -l <число>         Количество собираемых товаров (по умолчанию 20)
+#   --head, -h, --interactive    Видимое окно Chromium для решения капчи
+#   --category, -c <категория>  Категория (electronics, workspace, lifestyle, smart-home, audio)
+#   --source, -s <источник>      Принудительный выбор адаптера (ankorstore и др.)
+#   --save-json-only             Сохранение только в локальный JSON без обращения к Supabase
+```
+
+### Настройка базы данных Supabase
+1. Создайте проект в [Supabase](https://supabase.com).
+2. В разделе **SQL Editor** выполните код из файла [`scripts/scraper/sql/schema.sql`](scripts/scraper/sql/schema.sql).
+3. Добавьте переменные в файл `.env.local`:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ```
+4. Если Supabase не подключен, все товары автоматически сохраняются в локальный бэкап `src/data/scraped_products.json`, и витрина работает автономно.
+
 ## Быстрый старт
 
 ### Установка зависимостей

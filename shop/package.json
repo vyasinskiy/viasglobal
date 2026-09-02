@@ -6,13 +6,17 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "eslint"
+    "lint": "eslint",
+    "scrape": "tsx scripts/scraper/cli.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.113.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
     "lucide-react": "^1.16.0",
     "next": "16.3.0",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zustand": "^5.0.3"
@@ -20,10 +24,13 @@
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "playwright": "^1.62.1",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

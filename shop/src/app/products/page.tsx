@@ -23,8 +23,21 @@ function CatalogContent() {
   const [sortBy, setSortBy] = useState<string>("featured");
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [showWishlistOnly, setShowWishlistOnly] = useState<boolean>(filterType === "wishlist");
+  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS_DATA);
 
   const { language, wishlist } = useCartStore();
+
+  useEffect(() => {
+    // Подгрузка актуальных спарсенных товаров из Supabase
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllProducts(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("category")) {
@@ -42,7 +55,7 @@ function CatalogContent() {
 
   // Фильтрация товаров с учетом выбранного языка
   const filteredProducts = useMemo(() => {
-    let result: Product[] = [...PRODUCTS_DATA];
+    let result: Product[] = [...allProducts];
 
     if (showWishlistOnly) {
       result = result.filter((p) => wishlist.includes(p.id));

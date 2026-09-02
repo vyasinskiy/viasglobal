@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PRODUCTS_DATA } from "@/data/products";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { useCartStore } from "@/store/cartStore";
+import { Product } from "@/types";
 import { GraduationCap, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 
 /**
@@ -11,9 +13,22 @@ import { GraduationCap, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-re
  */
 export default function VueltaAlColePage() {
   const { language } = useCartStore();
+  const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
 
-  const studyProducts = PRODUCTS_DATA.filter(
-    (p) => p.category === "workspace" || p.category === "electronics" || p.category === "audio"
+  useEffect(() => {
+    // Подгрузка товаров из Supabase
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const studyProducts = products.filter(
+    (p) => p.category === "workspace" || p.category === "electronics" || p.category === "audio" || p.category === "lifestyle"
   );
 
   const t = {

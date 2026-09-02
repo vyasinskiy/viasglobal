@@ -45,3 +45,7 @@ keepa/results/
 
 # auto-synced landing pdfs (single source of truth is in other/welcome_letter/attachments/)
 landing/public/viasglobal-company-details*.pdf
+
+# scraper data dumps and logs
+shop/src/data/scraped_products.json
+shop/logs/

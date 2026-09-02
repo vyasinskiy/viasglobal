@@ -35,3 +35,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scraper data dumps and logs
+src/data/scraped_products.json
+/logs/

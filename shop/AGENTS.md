@@ -65,6 +65,38 @@
 - **VIES Intra-Community 0% VAT**: Поддержка ввода NIF/CIF при оформлении заказа для европейских юридических лиц.
 - **Цены B2C**: Все розничные цены включают НДС 21% (IVA) в соответствии с правилами торговли ЕС.
 
+## Модульная система парсинга товаров (Playwright Multi-Source Scraper)
+В проекте реализован расширяемый парсер для автоматического сбора товаров от европейских B2B поставщиков (`scripts/scraper/`):
+- **Архитектура адаптеров**: Каждый источник оформляется как отдельный адаптер в `scripts/scraper/adapters/<source>/` с наследованием от `BaseSourceAdapter` и регистрацией в `AdapterRegistry`.
+  - `ankorstore`: сбор коллекций/брендов Ankorstore через микроразметку Schema.org JSON-LD и infinite scroll.
+- **Интерактивный обход капчи (`core/captcha.ts`)**:
+  - Флаг `--head` (или `--interactive`) открывает видимое окно Chromium.
+  - При возникновении капчи/Cloudflare скрипт приостанавливается, выводит сигнал в терминал и ожидает ручного прохождения пользователем с подтверждением по клавише `[ENTER]`.
+- **База данных Supabase и схема (`scripts/scraper/sql/schema.sql`)**:
+  - `parsing_runs`: сессии парсинга с уникальным UUID, источником, статусом и счетчиками.
+  - `products`: мастер-каталог витрины с дедупликацией по штрихкоду `ean` (GTIN-13).
+  - `product_sources`: привязка предложений поставщиков к мастер-товару с сохранением прямой ссылки, оптовой/розничной цены и полного сырого снимка (`raw_data`).
+  - `parsing_logs`: пошаговые логи в БД (опционально).
+- **Детальное пошаговое логирование (`core/logger.ts`)**:
+  - Запись каждого шага (старт, скролл, загрузка, извлечение JSON-LD, EAN, сохранение, ошибки) ведется одновременно в цветную консоль и в файл `logs/scraper/run_<date>_<source>_<runId>.log`.
+- **Локальный бэкап**:
+  - Даже без настроенного Supabase все товары дублируются в `src/data/scraped_products.json`, с которого витрина может работать автономно.
+- **Команды запуска CLI**:
+  - `npm run scrape -- "<URL>" --limit 25` (стандартный запуск)
+  - `npm run scrape -- "<URL>" --limit 10 --head` (с видимым окном для ручного ввода капчи)
+  - `npm run scrape -- "<URL>" --category workspace` (с принудительной категорией)
+
 ## Особенности запуска и сборки
 - Локальный запуск: `npm run dev` (запускается на http://localhost:3001).
 - Сборка: `npm run build`.
+- Парсинг товаров: `npm run scrape -- "<URL>" [опции]`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
