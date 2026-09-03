@@ -109,7 +109,7 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
       await this.dismissPopins(page);
     }
 
-    const result = Array.from(foundUrlsSet).slice(0, limit);
+    const result = isUnlimited ? Array.from(foundUrlsSet) : Array.from(foundUrlsSet).slice(0, limit);
     this.logger.info("COLLECT_URLS", `Итого собрано ${result.length} ссылок на товары для парсинга.`);
     return result;
   }

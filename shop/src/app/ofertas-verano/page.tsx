@@ -11,11 +11,9 @@ import { Sun, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
  */
 export default function OfertasVeranoPage() {
   const { language } = useCartStore();
-  const { products } = useProducts();
+  const { products, loading } = useProducts(undefined, "playa");
 
-  const summerProducts = products.filter(
-    (p) => p.category === "lifestyle" || p.category === "audio" || p.category === "electronics"
-  );
+  const summerProducts = products;
 
   const t = {
     badge: language === "es" ? "Especial Temporada de Verano" : "Summer Season Deals",
