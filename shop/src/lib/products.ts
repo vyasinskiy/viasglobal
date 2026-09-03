@@ -72,19 +72,20 @@ function mapDatabaseRowToProduct(row: any): Product {
     isBestseller: Boolean(row.is_bestseller),
     isFeatured: Boolean(row.is_featured),
     isNew: Boolean(row.is_new),
+    tags: Array.isArray(row.tags) ? row.tags : [],
     specs,
     features,
   };
 }
 
 /**
- * Загружает спарсенные товары из локального файла бэкапа (если есть)
+ * Читает локально сохраненные товары из JSON бэкапа (если база недоступна)
  */
 function getLocalScrapedProducts(): Product[] {
   try {
-    const filePath = path.resolve(process.cwd(), "src", "data", "scraped_products.json");
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, "utf8");
+    const backupPath = path.resolve(process.cwd(), "src", "data", "scraped_products.json");
+    if (fs.existsSync(backupPath)) {
+      const content = fs.readFileSync(backupPath, "utf8");
       if (content.trim()) {
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
@@ -99,19 +100,30 @@ function getLocalScrapedProducts(): Product[] {
 }
 
 /**
- * Получает каталог всех активных товаров магазина
+ * Получает каталог всех активных товаров магазина с поддержкой фильтрации по категории и тегу
  * Приоритет: 1) Прямой PostgreSQL пул -> 2) Supabase REST -> 3) Локальные спарсенные товары -> 4) Базовый каталог PRODUCTS_DATA
  */
-export async function getStoreProducts(category?: ProductCategory): Promise<Product[]> {
+export async function getStoreProducts(category?: ProductCategory, tag?: string): Promise<Product[]> {
   // 1. Попытка прямого запроса к PostgreSQL
   const pool = getServerPgPool();
   if (pool) {
     try {
       let sql = "SELECT * FROM products";
       const params: any[] = [];
+      const conditions: string[] = [];
+
       if (category && category !== "all") {
-        sql += " WHERE category = $1";
         params.push(category);
+        conditions.push(`category = $${params.length}`);
+      }
+
+      if (tag && tag.trim()) {
+        params.push(tag.trim().toLowerCase());
+        conditions.push(`$${params.length} = ANY(tags)`);
+      }
+
+      if (conditions.length > 0) {
+        sql += " WHERE " + conditions.join(" AND ");
       }
       sql += " ORDER BY created_at DESC";
 
@@ -132,6 +144,10 @@ export async function getStoreProducts(category?: ProductCategory): Promise<Prod
 
       if (category && category !== "all") {
         query = query.eq("category", category);
+      }
+
+      if (tag && tag.trim()) {
+        query = query.contains("tags", [tag.trim().toLowerCase()]);
       }
 
       const { data, error } = await query;

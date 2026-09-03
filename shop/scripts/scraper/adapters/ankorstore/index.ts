@@ -25,8 +25,12 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
   /**
    * Собирает массив прямых ссылок на карточки товаров со страницы коллекции или каталога
    */
-  async collectProductUrls(page: Page, collectionUrl: string, limit: number = 30): Promise<string[]> {
-    this.logger.info("COLLECT_URLS", `Открытие страницы коллекции: ${collectionUrl} (требуется собрать: ${limit} шт.)`);
+  async collectProductUrls(page: Page, collectionUrl: string, limit: number = 0): Promise<string[]> {
+    const isUnlimited = limit <= 0;
+    this.logger.info(
+      "COLLECT_URLS",
+      `Открытие страницы коллекции: ${collectionUrl} (${isUnlimited ? "режим: парсить ВСЮ подборку до конца" : `лимит: ${limit} шт.`})`
+    );
 
     // Переходим на страницу коллекции
     await page.goto(collectionUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -44,7 +48,7 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
     const foundUrlsSet = new Set<string>();
     let previousCount = 0;
     let noNewItemsScrollCount = 0;
-    const maxScrollAttempts = 40;
+    const maxScrollAttempts = isUnlimited ? 300 : Math.max(40, Math.ceil(limit / 4));
 
     // Цикл бесконечной прокрутки (infinite scroll) для подгрузки карточек
     for (let i = 0; i < maxScrollAttempts; i++) {
@@ -66,17 +70,17 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
           // Игнорируем невалидные ссылки
         }
 
-        if (foundUrlsSet.size >= limit) {
+        if (!isUnlimited && foundUrlsSet.size >= limit) {
           break;
         }
       }
 
       this.logger.debug(
         "COLLECT_URLS",
-        `Шаг скролла #${i + 1}: обнаружено ${foundUrlsSet.size} уникальных товаров (цель: ${limit})`
+        `Шаг скролла #${i + 1}: обнаружено ${foundUrlsSet.size} уникальных товаров (${isUnlimited ? "без лимита" : `цель: ${limit}`})`
       );
 
-      if (foundUrlsSet.size >= limit) {
+      if (!isUnlimited && foundUrlsSet.size >= limit) {
         this.logger.info("COLLECT_URLS", `Достигнут лимит в ${limit} товаров. Завершаем сбор ссылок.`);
         break;
       }
@@ -84,8 +88,8 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
       // Проверка застревания прокрутки (достигли ли дна страницы)
       if (foundUrlsSet.size === previousCount) {
         noNewItemsScrollCount++;
-        if (noNewItemsScrollCount >= 4) {
-          this.logger.info("COLLECT_URLS", `Достигнут конец каталога (новых товаров не обнаружено).`);
+        if (noNewItemsScrollCount >= 5) {
+          this.logger.info("COLLECT_URLS", `Достигнут конец каталога (новых товаров больше нет). Всего собрано: ${foundUrlsSet.size}`);
           break;
         }
       } else {

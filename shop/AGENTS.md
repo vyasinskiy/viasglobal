@@ -91,6 +91,7 @@
   - Прямые ссылки на сайт поставщика разрешены строго и исключительно во внутренней служебной таблице `product_sources.source_url` для истории происхождения товара, но никогда не выводятся покупателям и в публичный каталог `products`.
 - **Команды запуска CLI**:
   - `npm run scrape -- "<URL>" --limit 25` (стандартный запуск)
+  - `npm run scrape -- "<URL>" --tags playa,verano --limit 30` (с коллекционными тегами)
   - `npm run scrape -- "<URL>" --limit 10 --head` (с видимым окном для ручного ввода капчи)
   - `npm run scrape -- "<URL>" --category workspace` (с принудительной категорией)
   - `npx tsx scripts/scraper/sql/migrate.ts` (применение схемы schema.sql к БД)

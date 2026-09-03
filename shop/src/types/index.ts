@@ -58,6 +58,7 @@ export interface Product {
   isNew?: boolean;
   isBestseller?: boolean;
   isFeatured?: boolean;
+  tags?: string[]; // Коллекционные теги для сезонных акций и фильтрации ('playa', 'verano', etc.)
   specs: {
     es: Record<string, string>;
     en: Record<string, string>;

@@ -58,6 +58,7 @@ create table if not exists public.products (
   is_bestseller boolean not null default false, -- Метка «Хит продаж»
   is_featured boolean not null default false, -- Метка «Рекомендуемый товар»
   is_new boolean not null default false, -- Метка «Новинка»
+  tags text[] default '{}'::text[], -- Коллекционные теги (например: ['playa', 'verano', 'colegio'])
   primary_source text, -- Первичный источник, откуда товар был добавлен
   created_at timestamptz not null default timezone('utc'::text, now()),
   updated_at timestamptz not null default timezone('utc'::text, now())
@@ -68,6 +69,7 @@ create index if not exists idx_products_ean on public.products(ean);
 create index if not exists idx_products_slug on public.products(slug);
 create index if not exists idx_products_category on public.products(category);
 create index if not exists idx_products_brand on public.products(brand);
+create index if not exists idx_products_tags on public.products using gin(tags);
 
 -- 3. ТАБЛИЦА ИСТОЧНИКОВ И СНАПШОТОВ ПОСТАВЩИКОВ (product_sources)
 -- Связывает мастер-товар со всеми поставщиками, у которых он найден, и хранит сырой снимок данных
@@ -156,3 +158,30 @@ create policy "Allow service_role all on product_sources"
 create policy "Allow service_role all on parsing_logs"
   on public.parsing_logs for all
   using (auth.role() = 'service_role' or current_user = 'postgres');
+
+-- 7. ТАБЛИЦА ТЕМАТИЧЕСКИХ ПОДБОРОК И КОЛЛЕКЦИЙ (collections)
+create table if not exists public.collections (
+  id text primary key,
+  slug text unique not null,
+  title_es text not null,
+  title_en text,
+  title_ru text,
+  description_es text,
+  primary_tag text not null,
+  tags text[] default '{}'::text[],
+  source_url text,
+  source_name text,
+  banner_image text,
+  total_products integer default 0,
+  is_active boolean default true,
+  created_at timestamptz not null default timezone('utc'::text, now()),
+  updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+create index if not exists idx_collections_slug on public.collections(slug);
+create index if not exists idx_collections_primary_tag on public.collections(primary_tag);
+create index if not exists idx_collections_tags on public.collections using gin(tags);
+
+alter table public.collections enable row level security;
+create policy "Allow public read on collections" on public.collections for select using (true);
+create policy "Allow service_role all on collections" on public.collections for all using (auth.role() = 'service_role' or current_user = 'postgres');

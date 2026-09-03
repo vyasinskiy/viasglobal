@@ -77,8 +77,12 @@ npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --limi
 # Парсинг с принудительным назначением категории магазина
 npm run scrape -- "https://es.ankorstore.com/boutique/gift-universe" --category workspace
 
+# Парсинг с добавлением тегов тематической коллекции (пляж, лето)
+npm run scrape -- "https://es.ankorstore.com/collection/summer25-beach" --tags playa,verano,пляж,лето --limit 30
+
 # Доступные опции:
 #   --limit, -l <число>         Количество собираемых товаров (по умолчанию 20)
+#   --tags, -t <теги>           Теги через запятую (например: playa,verano,пляж,лето)
 #   --head, -h, --interactive    Видимое окно Chromium для решения капчи
 #   --category, -c <категория>  Категория (electronics, workspace, lifestyle, smart-home, audio)
 #   --source, -s <источник>      Принудительный выбор адаптера (ankorstore и др.)

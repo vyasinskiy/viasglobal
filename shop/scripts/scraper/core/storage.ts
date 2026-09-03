@@ -3,7 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Pool } from "pg";
-import { ScrapedProductRaw, ScrapedItemResult } from "./types";
+import { ScrapedProductRaw, ScrapedItemResult, CollectionRecord } from "./types";
 import { ScraperLogger } from "./logger";
 import { ImageCdnUploader } from "./imageUploader";
 
@@ -213,6 +213,8 @@ export class ScraperStorage {
           });
         }
 
+        const productTags = raw.tags && raw.tags.length > 0 ? raw.tags : [];
+
         // Вставка или обновление мастер-товара в products
         if (!isExisting) {
           await this.pgPool.query(
@@ -220,10 +222,10 @@ export class ScraperStorage {
               id, ean, slug, title_es, title_en, description_es, description_en,
               short_description_es, short_description_en, price, original_price,
               currency, category, brand, sku, main_image, images, specs, features,
-              rating, review_count, in_stock, stock_count, primary_source
+              rating, review_count, in_stock, stock_count, primary_source, tags
             ) VALUES (
               $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-              $17, $18, $19, $20, $21, $22, $23, $24
+              $17, $18, $19, $20, $21, $22, $23, $24, $25
             )`,
             [
               targetMasterId,
@@ -250,14 +252,19 @@ export class ScraperStorage {
               true,
               Math.floor(Math.random() * 25) + 10,
               raw.sourceName,
+              productTags,
             ]
           );
           this.logger.info("SAVE_MASTER", `Создан новый мастер-товар [ID: ${targetMasterId}] "${raw.title}" (PostgreSQL)`);
         } else {
-          await this.pgPool.query("UPDATE products SET price = $1, updated_at = NOW() WHERE id = $2", [
-            raw.price,
-            targetMasterId,
-          ]);
+          await this.pgPool.query(
+            `UPDATE products 
+             SET price = $1, 
+                 tags = (SELECT ARRAY(SELECT DISTINCT elem FROM unnest(COALESCE(products.tags, '{}'::text[]) || $2::text[]) elem)),
+                 updated_at = NOW() 
+             WHERE id = $3`,
+            [raw.price, productTags, targetMasterId]
+          );
         }
 
         // Сохранение снапшота в product_sources
@@ -364,6 +371,46 @@ export class ScraperStorage {
       fs.writeFileSync(this.localBackupFilePath, JSON.stringify(catalog, null, 2), "utf8");
     } catch (err) {
       this.logger.warn("LOCAL_BACKUP", "Ошибка при записи в локальный JSON-файл", { error: String(err) });
+    }
+  }
+
+  /**
+   * Сохраняет или обновляет сущность коллекции / подборки в таблице collections
+   */
+  public async saveCollection(coll: CollectionRecord): Promise<void> {
+    if (this.pgPool) {
+      try {
+        await this.pgPool.query(
+          `INSERT INTO collections (
+            id, slug, title_es, title_en, title_ru, description_es, primary_tag,
+            tags, source_url, source_name, banner_image, total_products
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          ON CONFLICT (id) DO UPDATE SET
+            title_es = EXCLUDED.title_es,
+            title_en = COALESCE(EXCLUDED.title_en, collections.title_en),
+            title_ru = COALESCE(EXCLUDED.title_ru, collections.title_ru),
+            tags = (SELECT ARRAY(SELECT DISTINCT elem FROM unnest(COALESCE(collections.tags, '{}'::text[]) || EXCLUDED.tags) elem)),
+            total_products = EXCLUDED.total_products,
+            updated_at = NOW()`,
+          [
+            coll.id,
+            coll.slug,
+            coll.titleEs,
+            coll.titleEn || coll.titleEs,
+            coll.titleRu || null,
+            coll.descriptionEs || null,
+            coll.primaryTag,
+            coll.tags,
+            coll.sourceUrl,
+            coll.sourceName,
+            coll.bannerImage || null,
+            coll.totalProducts || 0,
+          ]
+        );
+        this.logger.info("SAVE_MASTER", `✅ Сущность коллекции "${coll.titleEs}" (тег: ${coll.primaryTag}) сохранена в БД`);
+      } catch (err: any) {
+        this.logger.warn("SAVE_MASTER", `Ошибка сохранения коллекции в БД: ${err.message}`);
+      }
     }
   }
 

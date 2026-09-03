@@ -19,6 +19,7 @@ export interface ScrapedProductRaw {
   specs?: Record<string, string>; // Свойства и характеристики (размеры, вес, материал)
   features?: string[]; // Список преимуществ / буллетов
   category?: ProductCategory | string; // Рекомендуемая категория
+  tags?: string[]; // Коллекционные теги (например: ['playa', 'verano'])
   sourceUrl: string; // Прямая ссылка на карточку товара у поставщика
   sourceName: string; // Идентификатор источника (например, 'ankorstore')
   rawData: Record<string, unknown>; // Полный сырой снапшот (JSON-LD, метаданные и т.д.)
@@ -50,6 +51,7 @@ export interface ScraperCliOptions {
   limit?: number; // Максимальное количество товаров для сбора
   head?: boolean; // Запуск с видимым окном браузера (для ручного ввода капчи)
   category?: ProductCategory; // Принудительная категория магазина
+  tags?: string[]; // Коллекционные теги для товаров (например: ['playa', 'verano'])
   source?: string; // Явное указание источника (если не определился по URL)
   verbose?: boolean; // Максимально подробный вывод в терминал
   saveJsonOnly?: boolean; // Сохранять только локально в JSON без обращения к Supabase
@@ -80,4 +82,22 @@ export interface ParsingSessionStats {
   newProductsCreated: number;
   existingProductsUpdated: number;
   durationMs: number;
+}
+
+/**
+ * Запись сущности тематической коллекции / подборки
+ */
+export interface CollectionRecord {
+  id: string; // Уникальный идентификатор (например: 'summer25-beach')
+  slug: string; // ЧПУ
+  titleEs: string; // Название подборки на испанском
+  titleEn?: string; // Название на английском
+  titleRu?: string; // Название на русском
+  descriptionEs?: string; // Описание
+  primaryTag: string; // Основной тег для товаров
+  tags: string[]; // Все ассоциированные теги
+  sourceUrl: string; // Ссылка на источник
+  sourceName: string; // Название платформы ('ankorstore')
+  bannerImage?: string; // Обложка коллекции
+  totalProducts?: number; // Количество товаров
 }

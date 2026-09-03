@@ -4,6 +4,7 @@ import { ScraperLogger } from "./core/logger";
 import { ScraperStorage } from "./core/storage";
 import { AdapterRegistry } from "./adapters/registry";
 import { ScraperCliOptions } from "./core/types";
+import { extractCollectionTags } from "./core/tagHelper";
 import { ProductCategory } from "../../src/types";
 
 /**
@@ -12,9 +13,10 @@ import { ProductCategory } from "../../src/types";
 function parseCliArgs(): ScraperCliOptions {
   const args = process.argv.slice(2);
   let url = "";
-  let limit = 20;
+  let limit = 0; // По умолчанию 0 — собирать всю коллекцию до конца без ограничения
   let head = false;
   let category: ProductCategory | undefined = undefined;
+  let tags: string[] | undefined = undefined;
   let source: string | undefined = undefined;
   let saveJsonOnly = false;
   let verbose = false;
@@ -25,9 +27,17 @@ function parseCliArgs(): ScraperCliOptions {
     if (arg === "--head" || arg === "-h" || arg === "--interactive") {
       head = true;
     } else if (arg === "--limit" || arg === "-l") {
-      limit = parseInt(args[++i], 10) || 20;
+      limit = parseInt(args[++i], 10) || 0;
+    } else if (arg === "--all") {
+      limit = 0;
     } else if (arg === "--category" || arg === "-c") {
       category = args[++i] as ProductCategory;
+    } else if (arg === "--tags" || arg === "-t") {
+      const rawTags = args[++i] || "";
+      tags = rawTags
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
     } else if (arg === "--source" || arg === "-s") {
       source = args[++i];
     } else if (arg === "--save-json-only") {
@@ -56,6 +66,7 @@ function parseCliArgs(): ScraperCliOptions {
     console.log("  --limit, -l <число>      Лимит собираемых товаров (по умолчанию 20)");
     console.log("  --head, -h, --interactive Запуск с видимым окном браузера (для ручного ввода капчи)");
     console.log("  --category, -c <категория> Категория магазина (electronics, workspace, lifestyle, smart-home, audio)");
+    console.log("  --tags, -t <теги>         Теги через запятую (например: playa,verano)");
     console.log("  --source, -s <источник>   Принудительный выбор адаптера (ankorstore и др.)");
     console.log("  --save-json-only          Сохранять только локально в JSON без отправки в Supabase");
     console.log("  --verbose, -v             Подробный вывод всех шагов");
@@ -63,7 +74,7 @@ function parseCliArgs(): ScraperCliOptions {
     process.exit(1);
   }
 
-  return { url, limit, head, category, source, saveJsonOnly, verbose };
+  return { url, limit, head, category, tags, source, saveJsonOnly, verbose };
 }
 
 /**
@@ -78,11 +89,14 @@ async function main(): Promise<void> {
   const initialSource = options.source || "auto";
   const logger = new ScraperLogger(runId, initialSource);
 
+  const effectiveTags = extractCollectionTags(options.url, options.tags);
+
   console.log("\n" + "=".repeat(75));
   console.log("  🚀 СТАРТ СЕССИИ ПАРСИНГА ТОВАРОВ");
   console.log(`  ID сессии:  ${runId}`);
   console.log(`  Целевой URL: ${options.url}`);
-  console.log(`  Лимит:      ${options.limit} товаров`);
+  console.log(`  Лимит:      ${options.limit && options.limit > 0 ? `${options.limit} товаров` : "БЕЗ ОГРАНИЧЕНИЯ (собирать подборку до конца)"}`);
+  console.log(`  Теги:       ${effectiveTags.length > 0 ? effectiveTags.join(", ") : "авто-определение"}`);
   console.log(`  Режим:      ${options.head ? "Интерактивный (с видимым окном)" : "Headless"}`);
   console.log("=".repeat(75) + "\n");
 
@@ -102,6 +116,7 @@ async function main(): Promise<void> {
     limit: options.limit,
     head: options.head,
     category: options.category,
+    tags: effectiveTags,
   });
 
   // 4. Запуск браузера Playwright
@@ -133,6 +148,41 @@ async function main(): Promise<void> {
       return;
     }
 
+    // 5.1 Автоматическое извлечение названия подборки и создание сущности в таблице collections
+    let collectionTitle = "";
+    try {
+      collectionTitle = (await page.$eval("h1", (el) => el.textContent?.trim() || "")) || "";
+    } catch {
+      // Игнорируем
+    }
+    if (!collectionTitle) {
+      try {
+        const rawTitle = await page.title();
+        collectionTitle = rawTitle.split("|")[0].split("-")[0].trim();
+      } catch {
+        // Игнорируем
+      }
+    }
+    if (!collectionTitle) {
+      const slugPart = new URL(options.url).pathname.split("/").filter(Boolean).pop() || "coleccion";
+      collectionTitle = slugPart.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+
+    const collectionSlug = new URL(options.url).pathname.split("/").filter(Boolean).pop() || `coll-${Date.now()}`;
+    const primaryTag = effectiveTags[0] || collectionSlug;
+
+    await storage.saveCollection({
+      id: collectionSlug,
+      slug: collectionSlug,
+      titleEs: collectionTitle,
+      titleEn: collectionTitle,
+      primaryTag,
+      tags: effectiveTags,
+      sourceUrl: options.url,
+      sourceName: adapter.name,
+      totalProducts: productUrls.length,
+    });
+
     logger.info("COLLECT_URLS", `Начинаем поштучный сбор ${productUrls.length} товаров...`);
 
     // 6. Поштучный парсинг каждого товара
@@ -154,6 +204,11 @@ async function main(): Promise<void> {
         // Если при запуске задана конкретная категория витрины, переопределяем
         if (options.category) {
           rawProduct.category = options.category;
+        }
+
+        // Прикрепляем определенные/переданные теги к товару
+        if (effectiveTags && effectiveTags.length > 0) {
+          rawProduct.tags = effectiveTags;
         }
 
         // Сохранение в Supabase (с дедупликацией по EAN) и в локальный бэкап
