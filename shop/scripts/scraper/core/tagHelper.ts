@@ -21,6 +21,10 @@ const TAG_DICTIONARY: Record<string, string[]> = {
   sanvalentin: ["san-valentin", "regalos", "amor"],
   pourelle: ["para-ella", "mujer", "regalos"],
   pourlui: ["para-el", "hombre", "regalos"],
+  easter: ["pascua", "primavera", "decoracion"],
+  paques: ["pascua", "primavera", "decoracion"],
+  pascua: ["pascua", "primavera", "decoracion"],
+  primavera: ["primavera", "flores", "decoracion"],
   workspace: ["oficina", "escritorio", "ergonomia"],
   office: ["oficina", "escritorio"],
 };
