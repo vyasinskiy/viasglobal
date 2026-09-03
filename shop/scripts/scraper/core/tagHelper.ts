@@ -15,6 +15,7 @@ const TAG_DICTIONARY: Record<string, string[]> = {
   cocina: ["cocina", "hogar"],
   kids: ["infantil", "ninos"],
   ninos: ["infantil", "ninos"],
+  halloween: ["halloween", "fiestas", "disfraces", "otono"],
   workspace: ["oficina", "escritorio", "ergonomia"],
   office: ["oficina", "escritorio"],
 };
