@@ -1,30 +1,25 @@
-"use client";
-
 import Link from "next/link";
-import { useProducts } from "@/hooks/useProducts";
+import { getStoreProducts } from "@/lib/products";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { useCartStore } from "@/store/cartStore";
 import { Sun, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 
-/**
- * Постоянный SEO-лендинг для летних предложений и фестивалей (Ofertas Verano España) в светлой теме
- */
-export default function OfertasVeranoPage() {
-  const { language } = useCartStore();
-  const { products, loading } = useProducts(undefined, "playa");
+export const dynamic = "force-dynamic";
 
-  const summerProducts = products;
+/**
+ * Постоянный SEO-лендинг для летних предложений и фестивалей (Ofertas Verano España)
+ * Серверный компонент: загружает товары с тегом 'playa'/'verano' напрямую из Supabase
+ */
+export default async function OfertasVeranoPage() {
+  const summerProducts = await getStoreProducts(undefined, "playa");
 
   const t = {
-    badge: language === "es" ? "Especial Temporada de Verano" : "Summer Season Deals",
-    title: language === "es" ? "Ofertas de Verano: Playa, Música y Climatización" : "Summer Tech: Beach, Audio & Cooling Gear",
+    badge: "Especial Temporada de Verano",
+    title: "Ofertas de Verano: Playa, Vacaciones y Accesorios",
     subtitle:
-      language === "es"
-        ? "Prepárate para la playa, los festivales de música y las olas de calor. Altavoces resistentes al agua, ventilación y cargadores solares con entrega 24/48h."
-        : "Gear up for the beach, music festivals, and heatwaves. Waterproof speakers, portable fans, and power banks from Spain.",
-    guarantee: language === "es" ? "Envío urgente en 24h desde Castellón y Valencia directo a tu destino vacacional." : "24h express dispatch to your holiday destination in Spain & EU.",
-    back: language === "es" ? "Volver al catálogo" : "Back to catalog",
-    allCampaigns: language === "es" ? "Ver Calendario Anual de 52 Semanas" : "View 52-Week Marketing Calendar",
+      "Toallas fouta de rizo, juguetes de playa de silicona, cestas de mimbre y accesorios esenciales con entrega urgente 24/48h directo a tu destino vacacional.",
+    guarantee: "Envío urgente en 24h desde Castellón y Valencia directo a tu destino vacacional.",
+    back: "Volver al catálogo",
+    allCampaigns: "Ver Calendario Anual de 52 Semanas",
   };
 
   return (
