@@ -32,85 +32,135 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
       `Открытие страницы коллекции: ${collectionUrl} (${isUnlimited ? "режим: парсить ВСЮ подборку до конца" : `лимит: ${limit} шт.`})`
     );
 
-    // Переходим на страницу коллекции
-    await page.goto(collectionUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-
-    // Ожидаем загрузки товаров в Vue SPA
-    try {
-      await page.waitForSelector("a[href*='/brand/']", { timeout: 20000 });
-    } catch {
-      this.logger.warn("COLLECT_URLS", "Таймаут ожидания селектора a[href*='/brand/'], пробуем продолжить");
-    }
-
-    // Пытаемся закрыть баннер cookie, если он появился
-    await this.dismissCookieBanner(page);
-
     const foundUrlsSet = new Set<string>();
-    let previousCount = 0;
-    let noNewItemsScrollCount = 0;
-    const maxScrollAttempts = isUnlimited ? 300 : Math.max(40, Math.ceil(limit / 4));
+    let currentUrl = collectionUrl;
+    let pageNum = 1;
+    const maxPages = 20;
 
-    // Цикл бесконечной прокрутки (infinite scroll) для подгрузки карточек
-    for (let i = 0; i < maxScrollAttempts; i++) {
-      // Собираем все ссылки на товары из DOM
-      const pageLinks = await page.$$eval("a[href*='/brand/']", (elements) =>
-        elements.map((el) => (el as HTMLAnchorElement).href || el.getAttribute("href") || "")
-      );
+    // Цикл обхода страниц пагинации (?p=1, ?p=2...)
+    while (pageNum <= maxPages) {
+      this.logger.info("COLLECT_URLS", `[Пагинация ${pageNum}] Загрузка страницы: ${currentUrl}`);
 
-      for (const link of pageLinks) {
-        try {
-          const parsedUrl = new URL(link.startsWith("http") ? link : `https://es.ankorstore.com${link}`);
-          const parts = parsedUrl.pathname.split("/").filter(Boolean);
-          // Формат ссылки на товар: /brand/{brand-slug}/{product-slug} (ровно или больше 3 частей, где parts[0] === 'brand')
-          if (parts.length >= 3 && parts[0] === "brand") {
-            const cleanUrl = `${parsedUrl.origin}/${parts.slice(0, 3).join("/")}`;
-            foundUrlsSet.add(cleanUrl);
+      await page.goto(currentUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+      // Ожидаем загрузки товаров в Vue SPA
+      try {
+        await page.waitForSelector("a[href*='/brand/']", { timeout: 20000 });
+      } catch {
+        this.logger.warn("COLLECT_URLS", `Таймаут ожидания товаров на странице #${pageNum}, пробуем продолжить`);
+      }
+
+      // Пытаемся закрыть баннер cookie, если он появился
+      await this.dismissCookieBanner(page);
+
+      let previousCount = foundUrlsSet.size;
+      let noNewItemsScrollCount = 0;
+      const maxScrollAttempts = 35;
+
+      // Цикл бесконечной прокрутки (infinite scroll) внутри текущей страницы
+      for (let s = 0; s < maxScrollAttempts; s++) {
+        // Собираем все ссылки на товары из DOM
+        const pageLinks = await page.$$eval("a[href*='/brand/']", (elements) =>
+          elements.map((el) => (el as HTMLAnchorElement).href || el.getAttribute("href") || "")
+        );
+
+        for (const link of pageLinks) {
+          try {
+            const parsedUrl = new URL(link.startsWith("http") ? link : `https://es.ankorstore.com${link}`);
+            const parts = parsedUrl.pathname.split("/").filter(Boolean);
+            // Формат ссылки на товар: /brand/{brand-slug}/{product-slug} (3+ части, где parts[0] === 'brand')
+            if (parts.length >= 3 && parts[0] === "brand") {
+              const cleanUrl = `${parsedUrl.origin}/${parts.slice(0, 3).join("/")}`;
+              foundUrlsSet.add(cleanUrl);
+            }
+          } catch {
+            // Игнорируем невалидные ссылки
           }
-        } catch {
-          // Игнорируем невалидные ссылки
+
+          if (!isUnlimited && foundUrlsSet.size >= limit) {
+            break;
+          }
         }
 
         if (!isUnlimited && foundUrlsSet.size >= limit) {
+          this.logger.info("COLLECT_URLS", `Достигнут лимит в ${limit} товаров. Завершаем сбор.`);
           break;
         }
+
+        // Проверка завершения подгрузки товаров на текущей странице
+        if (foundUrlsSet.size === previousCount) {
+          noNewItemsScrollCount++;
+          if (noNewItemsScrollCount >= 4) {
+            break;
+          }
+        } else {
+          noNewItemsScrollCount = 0;
+          previousCount = foundUrlsSet.size;
+        }
+
+        // Прокручиваем страницу вниз
+        await page.evaluate(() => {
+          window.scrollBy({ top: 1200, behavior: "smooth" });
+        });
+        await page.waitForTimeout(1000);
+        await this.dismissPopins(page);
       }
 
-      this.logger.debug(
+      this.logger.info(
         "COLLECT_URLS",
-        `Шаг скролла #${i + 1}: обнаружено ${foundUrlsSet.size} уникальных товаров (${isUnlimited ? "без лимита" : `цель: ${limit}`})`
+        `[Пагинация ${pageNum}] Собрано товаров на данный момент: ${foundUrlsSet.size}`
       );
 
       if (!isUnlimited && foundUrlsSet.size >= limit) {
-        this.logger.info("COLLECT_URLS", `Достигнут лимит в ${limit} товаров. Завершаем сбор ссылок.`);
         break;
       }
 
-      // Проверка застревания прокрутки (достигли ли дна страницы)
-      if (foundUrlsSet.size === previousCount) {
-        noNewItemsScrollCount++;
-        if (noNewItemsScrollCount >= 5) {
-          this.logger.info("COLLECT_URLS", `Достигнут конец каталога (новых товаров больше нет). Всего собрано: ${foundUrlsSet.size}`);
-          break;
+      // Поиск ссылки на следующую страницу (кнопка 'Siguiente >>' или '?p=N')
+      const nextPageUrl = await page.evaluate((currPage) => {
+        const allLinks = Array.from(document.querySelectorAll("a"));
+
+        // 1. Ищем кнопку Siguiente / Next
+        const nextBtn = allLinks.find((a) => {
+          const text = a.textContent?.trim() || "";
+          return (
+            (/siguiente|next|>>/i.test(text) || a.getAttribute("rel") === "next") &&
+            !a.classList.contains("disabled") &&
+            !a.getAttribute("aria-disabled")
+          );
+        });
+        if (nextBtn && nextBtn.href && !nextBtn.href.includes("javascript")) {
+          return nextBtn.href;
         }
+
+        // 2. Ищем ссылку с параметром ?p=currPage+1 или ?page=currPage+1
+        const nextPageTarget = currPage + 1;
+        const numberedLink = allLinks.find((a) => {
+          const href = a.href || "";
+          return (
+            href.includes(`p=${nextPageTarget}`) ||
+            href.includes(`page=${nextPageTarget}`) ||
+            a.textContent?.trim() === String(nextPageTarget)
+          );
+        });
+        if (numberedLink && numberedLink.href) {
+          return numberedLink.href;
+        }
+
+        return null;
+      }, pageNum);
+
+      if (nextPageUrl && nextPageUrl !== currentUrl) {
+        this.logger.info("COLLECT_URLS", `Обнаружен переход на страницу #${pageNum + 1}: ${nextPageUrl}`);
+        currentUrl = nextPageUrl;
+        pageNum++;
       } else {
-        noNewItemsScrollCount = 0;
-        previousCount = foundUrlsSet.size;
+        this.logger.info("COLLECT_URLS", `Все страницы пагинации успешно пройдены (всего страниц: ${pageNum}).`);
+        break;
       }
-
-      // Прокручиваем страницу вниз
-      await page.evaluate(() => {
-        window.scrollBy({ top: 1200, behavior: "smooth" });
-      });
-
-      // Небольшая задержка для загрузки новых блоков
-      await page.waitForTimeout(1500);
-
-      // Периодически проверяем появление всплывающих окон
-      await this.dismissPopins(page);
     }
 
     const result = isUnlimited ? Array.from(foundUrlsSet) : Array.from(foundUrlsSet).slice(0, limit);
-    this.logger.info("COLLECT_URLS", `Итого собрано ${result.length} ссылок на товары для парсинга.`);
+    this.logger.info("COLLECT_URLS", `Итого собрано ${result.length} уникальных ссылок на товары для парсинга.`);
     return result;
   }
 

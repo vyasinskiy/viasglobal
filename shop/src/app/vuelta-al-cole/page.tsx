@@ -1,46 +1,25 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PRODUCTS_DATA } from "@/data/products";
+import { getStoreProducts } from "@/lib/products";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { useCartStore } from "@/store/cartStore";
-import { Product } from "@/types";
 import { GraduationCap, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 /**
- * Постоянный SEO-лендинг для школы, университета и офиса (Vuelta al Cole España) в светлой теме
+ * Постоянный SEO-лендинг для школы, университета и офиса (Vuelta al Cole España)
+ * Серверный компонент: загружает товары с тегом 'colegio' напрямую из Supabase
  */
-export default function VueltaAlColePage() {
-  const { language } = useCartStore();
-  const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
-
-  useEffect(() => {
-    // Подгрузка товаров из Supabase
-    fetch("/api/products")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProducts(data);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const studyProducts = products.filter(
-    (p) => p.category === "workspace" || p.category === "electronics" || p.category === "audio" || p.category === "lifestyle"
-  );
+export default async function VueltaAlColePage() {
+  const studyProducts = await getStoreProducts(undefined, "colegio");
 
   const t = {
-    badge: language === "es" ? "Vuelta al Cole y Oficina" : "Back to School & Desk Setup",
-    title: language === "es" ? "Vuelta al Cole: Ergonomía, Audio y Accesorios de Estudio" : "Back to School: Ergonomics, Tech & Desk Audio",
+    badge: "Vuelta al Cole y Oficina",
+    title: "Vuelta al Cole: Mochilas, Papelería y Accesorios de Estudio",
     subtitle:
-      language === "es"
-        ? "Equipa tu escritorio para el nuevo curso escolar y laboral. Auriculares con cancelación de ruido, soportes de monitor y cargadores GaN con entrega 24/48h."
-        : "Supercharge your study & work setup. ANC headphones, ergonomic monitor arms, and GaN fast chargers with 24/48h delivery.",
-    guarantee: language === "es" ? "Envío urgente en 24h para empezar el curso con el mejor equipamiento." : "24h express dispatch to start your new semester fully equipped.",
-    back: language === "es" ? "Volver al catálogo" : "Back to catalog",
-    allCampaigns: language === "es" ? "Ver Calendario Anual de 52 Semanas" : "View 52-Week Marketing Calendar",
+      "Mochilas infantiles, estuches, agendas, fiambreras y material escolar seleccionado para empezar el nuevo curso con la mejor energía. Envío urgente 24/48h.",
+    guarantee: "Envío urgente en 24h para empezar el curso con el mejor equipamiento.",
+    back: "Volver al catálogo",
+    allCampaigns: "Ver Calendario Anual de 52 Semanas",
   };
 
   return (
