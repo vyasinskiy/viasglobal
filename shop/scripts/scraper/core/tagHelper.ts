@@ -25,6 +25,9 @@ const TAG_DICTIONARY: Record<string, string[]> = {
   paques: ["pascua", "primavera", "decoracion"],
   pascua: ["pascua", "primavera", "decoracion"],
   primavera: ["primavera", "flores", "decoracion"],
+  motherday: ["dia-de-la-madre", "madre", "regalos", "para-ella"],
+  madre: ["dia-de-la-madre", "madre", "regalos", "para-ella"],
+  message: ["regalos-con-mensaje", "mensajes", "regalos"],
   workspace: ["oficina", "escritorio", "ergonomia"],
   office: ["oficina", "escritorio"],
 };
