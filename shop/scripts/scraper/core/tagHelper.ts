@@ -30,6 +30,8 @@ const TAG_DICTIONARY: Record<string, string[]> = {
   motherday: ["dia-de-la-madre", "madre", "regalos", "para-ella"],
   madre: ["dia-de-la-madre", "madre", "regalos", "para-ella"],
   message: ["regalos-con-mensaje", "mensajes", "regalos"],
+  "10euros": ["menos-de-10", "regalos-economicos", "baratos", "regalos"],
+  cadeaux: ["regalos", "detalles"],
   workspace: ["oficina", "escritorio", "ergonomia"],
   office: ["oficina", "escritorio"],
 };
