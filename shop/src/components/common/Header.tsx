@@ -191,6 +191,7 @@ export const Header = () => {
           >
             {/* Переключатель языков (ES / EN) */}
             <div
+              className="hide-on-mobile"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -374,6 +375,49 @@ export const Header = () => {
               gap: "12px",
             }}
           >
+            {/* Переключатель языков в мобильном меню */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                background: "#f1f5f9",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-sm)",
+                padding: "4px",
+                gap: "4px",
+                justifyContent: "center",
+                marginBottom: "8px",
+              }}
+            >
+              <button
+                onClick={() => { setLanguage("es"); setMobileMenuOpen(false); }}
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "6px",
+                  fontSize: "0.85rem",
+                  fontWeight: 800,
+                  background: language === "es" ? "#0284c7" : "transparent",
+                  color: language === "es" ? "#fff" : "var(--text-muted)",
+                }}
+              >
+                🇪🇸 ES
+              </button>
+              <button
+                onClick={() => { setLanguage("en"); setMobileMenuOpen(false); }}
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "6px",
+                  fontSize: "0.85rem",
+                  fontWeight: 800,
+                  background: language === "en" ? "#0284c7" : "transparent",
+                  color: language === "en" ? "#fff" : "var(--text-muted)",
+                }}
+              >
+                🇬🇧 EN
+              </button>
+            </div>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -439,6 +483,9 @@ export const Header = () => {
         @media (max-width: 859px) {
           .mobile-menu-btn {
             display: inline-flex !important;
+          }
+          .hide-on-mobile {
+            display: none !important;
           }
         }
       `}</style>
