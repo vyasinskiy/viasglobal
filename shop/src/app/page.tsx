@@ -5,7 +5,6 @@ import Link from "next/link";
 import { FiestaVideoHero } from "@/components/shop/FiestaVideoHero";
 import { FiestaCalendarSection } from "@/components/shop/FiestaCalendarSection";
 import { AiGiftAdvisor } from "@/components/shop/AiGiftAdvisor";
-import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { PRODUCTS_DATA } from "@/data/products";
 import { Product } from "@/types";
@@ -75,10 +74,7 @@ export default function HomePage() {
       {/* ЭКРАН 3: Интерактивный AI Ассистент по подбору подарков */}
       <AiGiftAdvisor />
 
-      {/* 4. Категории и Промо-баннеры */}
-      <FeaturedBanners />
-
-      {/* 5. Секция: Хиты продаж */}
+      {/* 4. Секция: Хиты продаж */}
       <section style={{ padding: "40px 0 60px" }}>
         <div className="container">
           <div
