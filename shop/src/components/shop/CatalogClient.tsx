@@ -217,6 +217,7 @@ export function CatalogClient({ initialProducts }: CatalogClientProps) {
           </div>
         ) : (
           <div
+            className="grid-products"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",

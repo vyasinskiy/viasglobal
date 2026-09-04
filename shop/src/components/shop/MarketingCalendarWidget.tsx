@@ -271,7 +271,10 @@ export const MarketingCalendarWidget = () => {
         </div>
 
         {/* Рекомендации и план действий */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+        <div
+          className="grid-products" 
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}
+        >
           <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
             <div style={{ fontSize: "0.82rem", color: "#047857", fontWeight: 800, marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
               <Zap size={14} color="#ea580c" /> {t.recommendedTitle}

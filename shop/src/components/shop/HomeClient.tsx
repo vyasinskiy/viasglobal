@@ -150,6 +150,7 @@ export function HomeClient({ initialProducts }: HomeClientProps) {
           </div>
 
           <div
+            className="grid-products"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
@@ -271,6 +272,7 @@ export function HomeClient({ initialProducts }: HomeClientProps) {
           </div>
 
           <div
+            className="grid-products"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",

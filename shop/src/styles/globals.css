@@ -343,3 +343,31 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ========================================================
+   Адаптация под мобильные устройства (Mobile Responsive)
+   ======================================================== */
+@media (max-width: 768px) {
+  /* Уменьшаем шрифты заголовков, если они заданы inline-стилями */
+  h1 { font-size: 2.2rem !important; }
+  h2 { font-size: 1.7rem !important; }
+  h3 { font-size: 1.3rem !important; }
+  
+  /* Уменьшаем отступы в секциях */
+  section {
+    padding-top: 24px !important;
+    padding-bottom: 32px !important;
+  }
+
+  /* Адаптивный грид товаров */
+  .grid-products {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 16px !important;
+  }
+
+  /* Кнопки на всю ширину на мобилке в определенных местах */
+  .mobile-full-width {
+    width: 100%;
+    justify-content: center;
+  }
+}
