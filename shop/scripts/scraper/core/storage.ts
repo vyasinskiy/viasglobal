@@ -247,8 +247,9 @@ export class ScraperStorage {
               JSON.stringify(finalImages),
               JSON.stringify({ es: raw.specs || {}, en: raw.specs || {} }),
               JSON.stringify({ es: raw.features || [], en: raw.features || [] }),
-              4.8,
-              Math.floor(Math.random() * 20) + 5,
+              // Реалистичное распределение: 65% товаров получают рейтинг 4.6 - 5.0, а 35% являются новинками
+              Math.random() < 0.65 ? [4.7, 4.8, 4.9, 5.0, 4.6, 4.8, 4.9][Math.floor(Math.random() * 7)] : 0,
+              Math.random() < 0.65 ? Math.floor(Math.random() * 65) + 5 : 0,
               true,
               Math.floor(Math.random() * 25) + 10,
               raw.sourceName,

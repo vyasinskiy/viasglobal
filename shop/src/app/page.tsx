@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { FiestaVideoHero } from "@/components/shop/FiestaVideoHero";
 import { FiestaCalendarSection } from "@/components/shop/FiestaCalendarSection";
@@ -45,9 +45,23 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
-  // Хиты продаж и новинки
-  const bestsellers = allProducts.filter((p) => p.isBestseller || p.rating >= 4.8).slice(0, 4);
-  const newArrivals = allProducts.slice(0, 8).slice(0, 4);
+  // 4 случайных популярных товара с высоким рейтингом для витрины "Los Más Vendidos en España"
+  const bestsellers = useMemo(() => {
+    // Отбираем товары с высоким рейтингом (от 4.7) и наличием отзывов
+    const rated = allProducts.filter((p) => p.rating >= 4.7 && p.reviewCount > 0);
+    const pool = rated.length >= 4 ? rated : allProducts;
+
+    // Перемешиваем случайным образом при загрузке каталога
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 4);
+  }, [allProducts]);
+
+  // 4 новинки (исключая товары, уже показанные в хитах продаж)
+  const newArrivals = useMemo(() => {
+    const bestsellerIds = new Set(bestsellers.map((b) => b.id));
+    const available = allProducts.filter((p) => !bestsellerIds.has(p.id));
+    return available.slice(0, 4);
+  }, [allProducts, bestsellers]);
 
   const tHome = {
     featuredBadge: language === "es" ? "Selección Exclusiva" : "Exclusive Selection",

@@ -165,11 +165,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             <span style={{ color: "var(--text-subtle)", fontWeight: 700, textTransform: "uppercase" }}>
               {product.brand}
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#d97706" }}>
-              <Star size={13} fill="#d97706" />
-              <span style={{ color: "var(--text-main)", fontWeight: 700 }}>{product.rating}</span>
-              <span style={{ color: "var(--text-subtle)" }}>({product.reviewCount})</span>
-            </div>
+            {product.rating > 0 && product.reviewCount > 0 ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#d97706" }}>
+                <Star size={13} fill="#d97706" />
+                <span style={{ color: "var(--text-main)", fontWeight: 700 }}>{Number(product.rating).toFixed(1)}</span>
+                <span style={{ color: "var(--text-subtle)" }}>({product.reviewCount})</span>
+              </div>
+            ) : (
+              <span style={{ color: "#059669", fontWeight: 700, fontSize: "0.76rem" }}>
+                {language === "es" ? "Nuevo" : "New"}
+              </span>
+            )}
           </div>
 
           {/* Заголовок */}

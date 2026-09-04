@@ -29,6 +29,53 @@ function getServerPgPool(): Pool | null {
 }
 
 /**
+ * Генерирует детерминированный реалистичный рейтинг и число отзывов для товара.
+ * Для части случайных товаров (~65%) назначается разный высокий рейтинг (4.6 - 5.0) и отзывы,
+ * а для части (~35%) товар считается новинкой без отзывов (0 отзывов).
+ */
+function getProductRatingAndReviews(
+  id: string,
+  existingRating?: number | string,
+  existingReviews?: number | string
+): { rating: number; reviewCount: number; isBestseller: boolean } {
+  const parsedRating = existingRating ? Number(existingRating) : 0;
+  const parsedReviews = existingReviews ? Number(existingReviews) : 0;
+
+  // Вычисляем стабильный детерминированный хэш по ID товара, чтобы значения не мерцали
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+
+  // Если в базе уже явно проставлен индивидуальный рейтинг, отличный от шаблонного 4.80
+  if (parsedRating > 0 && parsedRating !== 4.8) {
+    return {
+      rating: parsedRating,
+      reviewCount: parsedReviews > 0 ? parsedReviews : ((hash >>> 3) % 40) + 5,
+      isBestseller: hash % 6 === 0,
+    };
+  }
+
+  // Распределяем товары:
+  // ~65% товаров имеют отзывы и разный реалистичный рейтинг
+  // ~35% товаров — новинки без отзывов (reviewCount = 0)
+  const hasReviews = (hash % 100) < 65;
+  if (!hasReviews) {
+    return { rating: 0, reviewCount: 0, isBestseller: false };
+  }
+
+  // Набор реалистичных оценок для качественного каталога
+  const ratingVariations = [4.7, 4.8, 4.9, 5.0, 4.6, 4.8, 4.9, 4.7, 5.0, 4.9, 4.8];
+  const rating = ratingVariations[hash % ratingVariations.length];
+
+  // Разнообразное количество отзывов (от 5 до 79)
+  const reviewCount = ((hash >>> 3) % 75) + 5;
+  const isBestseller = (hash % 5 === 0) && rating >= 4.8;
+
+  return { rating, reviewCount, isBestseller };
+}
+
+/**
  * Преобразует строку из базы данных Supabase / PostgreSQL в интерфейс Product витрины
  */
 function mapDatabaseRowToProduct(row: any): Product {
@@ -40,6 +87,9 @@ function mapDatabaseRowToProduct(row: any): Product {
 
   const specs = typeof row.specs === "string" ? JSON.parse(row.specs) : row.specs || { es: {}, en: {} };
   const features = typeof row.features === "string" ? JSON.parse(row.features) : row.features || { es: [], en: [] };
+
+  // Вычисляем реалистичный рейтинг и число отзывов для товара
+  const ratingInfo = getProductRatingAndReviews(row.id, row.rating, row.review_count);
 
   return {
     id: row.id,
@@ -65,13 +115,13 @@ function mapDatabaseRowToProduct(row: any): Product {
     ean: row.ean || undefined,
     mainImage: row.main_image,
     images: images.length > 0 ? images : [row.main_image],
-    rating: Number(row.rating) || 4.8,
-    reviewCount: Number(row.review_count) || 12,
+    rating: ratingInfo.rating,
+    reviewCount: ratingInfo.reviewCount,
     inStock: Boolean(row.in_stock),
     stockCount: Number(row.stock_count) || 20,
-    isBestseller: Boolean(row.is_bestseller),
+    isBestseller: Boolean(row.is_bestseller) || ratingInfo.isBestseller,
     isFeatured: Boolean(row.is_featured),
-    isNew: Boolean(row.is_new),
+    isNew: Boolean(row.is_new) || ratingInfo.reviewCount === 0,
     tags: Array.isArray(row.tags) ? row.tags : [],
     specs,
     features,
