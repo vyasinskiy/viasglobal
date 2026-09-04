@@ -96,39 +96,185 @@ export const AiGiftAdvisor = () => {
     },
   ];
 
-  // Варианты для шага 2: Реальные категории каталога магазина
-  const interestOptions = [
-    {
-      id: "hogar_decoracion" as InterestType,
-      label: { es: "Hogar, Cocina & Deco", en: "Home, Kitchen & Decor" },
-      sub: { es: "Vajilla artesanal, velas, vasos y confort para el hogar", en: "Artisan tableware, candles, glasses & home comfort" },
-      icon: Home,
-    },
-    {
-      id: "papeleria_creatividad" as InterestType,
-      label: { es: "Papelería & Creatividad", en: "Stationery & Creativity" },
-      sub: { es: "Cuadernos de diseño, agendas, bolígrafos y oficina", en: "Design notebooks, planners, pens & workspace" },
-      icon: BookOpen,
-    },
-    {
-      id: "ninos_juegos" as InterestType,
-      label: { es: "Niños, Juguetes & Juegos", en: "Kids, Toys & Games" },
-      sub: { es: "Juegos educativos, peluches y manualidades creativas", en: "Educational games, plushies & creative crafts" },
-      icon: Gamepad2,
-    },
-    {
-      id: "moda_accesorios" as InterestType,
-      label: { es: "Moda, Belleza & Accesorios", en: "Fashion, Beauty & Accessories" },
-      sub: { es: "Bolsos tote, neceseres, jabones franceses y complementos", en: "Tote bags, pouches, French soaps & accessories" },
-      icon: ShoppingBag,
-    },
-    {
-      id: "tecnologia_gadgets" as InterestType,
-      label: { es: "Tecnología & Gadgets", en: "Tech & Gadgets" },
-      sub: { es: "Iluminación smart, sonido, cables y novedades tech", en: "Smart lighting, audio, charging & tech novelties" },
-      icon: Zap,
-    },
-  ];
+  // Динамические категории для шага 2, строго адаптированные под выбор адресата (Шаг 1)
+  const getCategoryOptionsForRecipient = (rec: RecipientType | null) => {
+    switch (rec) {
+      case "kids_teens":
+        return [
+          {
+            id: "ninos_juegos" as InterestType,
+            label: { es: "Juguetes & Juegos Creativos", en: "Toys & Creative Games" },
+            sub: { es: "Juegos educativos, cartas, peluches y manualidades", en: "Educational games, card games, plushies & crafts" },
+            icon: Gamepad2,
+          },
+          {
+            id: "papeleria_creatividad" as InterestType,
+            label: { es: "Vuelta al Cole & Papelería", en: "Back to School & Stationery" },
+            sub: { es: "Cuadernos escolares, libretas de dibujo y estuches", en: "School notebooks, sketchbooks & pencil cases" },
+            icon: BookOpen,
+          },
+          {
+            id: "tecnologia_gadgets" as InterestType,
+            label: { es: "Gadgets & Novedades Tech", en: "Gadgets & Fun Tech" },
+            sub: { es: "Luces nocturnas, accesorios curiosos y sonido portátil", en: "Night lamps, fun novelties & portable audio" },
+            icon: Zap,
+          },
+          {
+            id: "moda_accesorios" as InterestType,
+            label: { es: "Mochilas & Accesorios Infantiles", en: "Kids Bags & Accessories" },
+            sub: { es: "Bolsas de tela, botellas y detalles para el día a día", en: "Tote bags, bottles & daily lifestyle items" },
+            icon: ShoppingBag,
+          },
+        ];
+
+      case "coworker_pro":
+        return [
+          {
+            id: "papeleria_creatividad" as InterestType,
+            label: { es: "Oficina, Agendas & Papelería", en: "Office, Planners & Stationery" },
+            sub: { es: "Cuadernos ejecutivos, agendas y bolígrafos de diseño", en: "Executive notebooks, planners & design pens" },
+            icon: BookOpen,
+          },
+          {
+            id: "tecnologia_gadgets" as InterestType,
+            label: { es: "Gadgets & Productividad", en: "Gadgets & Productivity" },
+            sub: { es: "Cargadores rápidos GaN, cables premium e iluminación", en: "GaN fast chargers, premium cables & desk lighting" },
+            icon: Zap,
+          },
+          {
+            id: "hogar_decoracion" as InterestType,
+            label: { es: "Tazas & Bienestar de Escritorio", en: "Mugs & Desk Wellness" },
+            sub: { es: "Tazas de café/té, velas antiestrés y confort para la oficina", en: "Coffee/tea mugs, relaxing candles & desk comfort" },
+            icon: Home,
+          },
+        ];
+
+      case "him":
+        return [
+          {
+            id: "tecnologia_gadgets" as InterestType,
+            label: { es: "Tecnología & Gadgets", en: "Tech & Gadgets" },
+            sub: { es: "Cargadores rápidos, cables trenzados, sonido y gadgets útiles", en: "Fast chargers, braided cables, audio & useful gadgets" },
+            icon: Zap,
+          },
+          {
+            id: "papeleria_creatividad" as InterestType,
+            label: { es: "Libretas de Diseño & Organización", en: "Design Notebooks & Planners" },
+            sub: { es: "Cuadernos de viaje, agendas de trabajo y escritura", en: "Travel journals, work planners & fine writing" },
+            icon: BookOpen,
+          },
+          {
+            id: "moda_accesorios" as InterestType,
+            label: { es: "Cuidado Personal & Accesorios", en: "Grooming & Accessories" },
+            sub: { es: "Jabones artesanales, neceseres de viaje y complementos", en: "Artisan soaps, travel pouches & daily accessories" },
+            icon: ShoppingBag,
+          },
+          {
+            id: "hogar_decoracion" as InterestType,
+            label: { es: "Gourmet, Café & Hogar", en: "Gourmet, Coffee & Home" },
+            sub: { es: "Vasos Beldi marroquíes, tazas de autor y piezas de diseño", en: "Moroccan Beldi glasses, artisan mugs & design pieces" },
+            icon: Home,
+          },
+        ];
+
+      case "her":
+        return [
+          {
+            id: "moda_accesorios" as InterestType,
+            label: { es: "Belleza, Moda & Bienestar", en: "Beauty, Fashion & Wellness" },
+            sub: { es: "Bolsos tote, neceseres bordados, jabones botánicos y autocuidado", en: "Tote bags, embroidered pouches, botanic soaps & self-care" },
+            icon: ShoppingBag,
+          },
+          {
+            id: "hogar_decoracion" as InterestType,
+            label: { es: "Hogar, Velas & Decoración", en: "Home, Candles & Decor" },
+            sub: { es: "Velas aromáticas, vajilla floral Primavera, vasos artesanales", en: "Scented candles, floral tableware & handmade glassware" },
+            icon: Home,
+          },
+          {
+            id: "papeleria_creatividad" as InterestType,
+            label: { es: "Papelería Creativa & Escritura", en: "Creative Stationery & Writing" },
+            sub: { es: "Agendas ilustradas, cuadernos bonitos y caligrafía", en: "Illustrated planners, pretty notebooks & calligraphy" },
+            icon: BookOpen,
+          },
+          {
+            id: "tecnologia_gadgets" as InterestType,
+            label: { es: "Iluminación & Gadgets Chic", en: "Ambient Lights & Chic Gadgets" },
+            sub: { es: "Luces ambientales relajantes, difusores y accesorios smart", en: "Relaxing ambient lights, diffusers & smart accessories" },
+            icon: Zap,
+          },
+        ];
+
+      case "home_family":
+        return [
+          {
+            id: "hogar_decoracion" as InterestType,
+            label: { es: "Mesa, Vajilla & Confort Familiar", en: "Dining, Tableware & Home Comfort" },
+            sub: { es: "Vajilla artesanal, vasos Beldi, velas y piezas para compartir", en: "Handmade dinnerware, Beldi glasses, candles & dining" },
+            icon: Home,
+          },
+          {
+            id: "ninos_juegos" as InterestType,
+            label: { es: "Juegos de Mesa & Ocio Familiar", en: "Board Games & Family Fun" },
+            sub: { es: "Juegos educativos, cartas y dinámicas para toda la familia", en: "Educational games, card games & family activities" },
+            icon: Gamepad2,
+          },
+          {
+            id: "tecnologia_gadgets" as InterestType,
+            label: { es: "Hogar Inteligente & Iluminación", en: "Smart Home & Ambient Lighting" },
+            sub: { es: "Iluminación cálida, difusores y confort para el salón", en: "Warm lighting, diffusers & living room comfort" },
+            icon: Zap,
+          },
+        ];
+
+      case "self":
+      default:
+        return [
+          {
+            id: "hogar_decoracion" as InterestType,
+            label: { es: "Hogar, Velas & Relax", en: "Home, Candles & Relaxation" },
+            sub: { es: "Vajilla especial, velas perfumadas y confort personal", en: "Special tableware, scented candles & personal comfort" },
+            icon: Home,
+          },
+          {
+            id: "papeleria_creatividad" as InterestType,
+            label: { es: "Papelería & Proyectos", en: "Stationery & Personal Projects" },
+            sub: { es: "Cuadernos de ideas, agendas para metas y notas diarias", en: "Idea notebooks, goal planners & daily journals" },
+            icon: BookOpen,
+          },
+          {
+            id: "moda_accesorios" as InterestType,
+            label: { es: "Moda & Autocuidado", en: "Fashion & Self-Care" },
+            sub: { es: "Bolsos tote, jabones botánicos y accesorios con estilo", en: "Tote bags, botanic soaps & stylish accessories" },
+            icon: ShoppingBag,
+          },
+          {
+            id: "tecnologia_gadgets" as InterestType,
+            label: { es: "Tecnología & Caprichos Tech", en: "Tech & Gadget Treats" },
+            sub: { es: "Gadgets modernos, cargadores ultrarrápidos y sonido", en: "Modern gadgets, ultra-fast chargers & audio" },
+            icon: Zap,
+          },
+          {
+            id: "ninos_juegos" as InterestType,
+            label: { es: "Juegos de Mesa & Kidult", en: "Board Games & Kidult" },
+            sub: { es: "Juegos de cartas, retos de ingenio y coleccionables", en: "Card games, brain puzzles & creative novelties" },
+            icon: Gamepad2,
+          },
+        ];
+    }
+  };
+
+  const interestOptions = getCategoryOptionsForRecipient(recipient);
+  const activeRecipientOption = recipientOptions.find((r) => r.id === recipient);
+
+  // Смена адресата с проверкой совместимости выбранной ранее категории
+  const handleSelectRecipient = (recId: RecipientType) => {
+    setRecipient(recId);
+    const available = getCategoryOptionsForRecipient(recId);
+    if (interest && !available.some((opt) => opt.id === interest)) {
+      setInterest(null);
+    }
+  };
 
   // Варианты для шага 3: Бюджет
   const budgetOptions = [
@@ -189,26 +335,40 @@ export const AiGiftAdvisor = () => {
     const q = freeformQuery.toLowerCase();
 
     // Простое сопоставление ключевых слов
-    if (q.includes("él") || q.includes("padre") || q.includes("novio") || q.includes("chico") || q.includes("hombre") || q.includes("him") || q.includes("dad")) {
-      setRecipient("him");
+    let targetRecipient: RecipientType = "self";
+    if (q.includes("niño") || q.includes("hijo") || q.includes("estudiante") || q.includes("bebé") || q.includes("peque") || q.includes("kid")) {
+      targetRecipient = "kids_teens";
+    } else if (q.includes("él") || q.includes("padre") || q.includes("novio") || q.includes("chico") || q.includes("hombre") || q.includes("him") || q.includes("dad")) {
+      targetRecipient = "him";
     } else if (q.includes("ella") || q.includes("madre") || q.includes("novia") || q.includes("chica") || q.includes("mujer") || q.includes("her") || q.includes("mom")) {
-      setRecipient("her");
-    } else if (q.includes("teletrabajo") || q.includes("oficina") || q.includes("trabajo") || q.includes("work")) {
-      setRecipient("coworker_pro");
-    } else {
-      setRecipient("self");
+      targetRecipient = "her";
+    } else if (q.includes("teletrabajo") || q.includes("oficina") || q.includes("trabajo") || q.includes("work") || q.includes("compañero")) {
+      targetRecipient = "coworker_pro";
+    } else if (q.includes("familia") || q.includes("casa familiar")) {
+      targetRecipient = "home_family";
     }
+    setRecipient(targetRecipient);
+
+    const availableForRecipient = getCategoryOptionsForRecipient(targetRecipient);
+    let matchedInterest: InterestType = availableForRecipient[0].id;
 
     if (q.includes("casa") || q.includes("hogar") || q.includes("cocina") || q.includes("vela") || q.includes("decor") || q.includes("taza") || q.includes("home")) {
-      setInterest("hogar_decoracion");
+      matchedInterest = "hogar_decoracion";
     } else if (q.includes("papeler") || q.includes("cuaderno") || q.includes("agenda") || q.includes("boli") || q.includes("oficina") || q.includes("stationery")) {
-      setInterest("papeleria_creatividad");
-    } else if (q.includes("niño") || q.includes("juguete") || q.includes("juego") || q.includes("kid") || q.includes("bebé") || q.includes("peluche")) {
-      setInterest("ninos_juegos");
+      matchedInterest = "papeleria_creatividad";
+    } else if (q.includes("juguete") || q.includes("juego") || q.includes("peluche") || q.includes("craft")) {
+      matchedInterest = "ninos_juegos";
     } else if (q.includes("moda") || q.includes("bolso") || q.includes("belleza") || q.includes("jabón") || q.includes("neceser") || q.includes("beauty")) {
-      setInterest("moda_accesorios");
+      matchedInterest = "moda_accesorios";
+    } else if (q.includes("tech") || q.includes("gadget") || q.includes("cargador") || q.includes("luz")) {
+      matchedInterest = "tecnologia_gadgets";
+    }
+
+    // Проверяем, валиден ли matchedInterest для этого адресата, иначе берем первую опцию
+    if (availableForRecipient.some((o) => o.id === matchedInterest)) {
+      setInterest(matchedInterest);
     } else {
-      setInterest("tecnologia_gadgets");
+      setInterest(availableForRecipient[0].id);
     }
 
     if (q.includes("barato") || q.includes("económico") || q.includes("menos de 40") || q.includes("cheap")) {
@@ -249,7 +409,7 @@ export const AiGiftAdvisor = () => {
   const getRecommendedProducts = (): Product[] => {
     let filtered = [...allProducts];
 
-    // Фильтр по реальным категориям каталога с поддержкой тегов
+    // 1. Фильтр по реальным категориям каталога с поддержкой тегов
     if (interest === "hogar_decoracion") {
       filtered = filtered.filter((p) => p.tags?.some((t) => ["hogar-decoracion", "hogar", "decoracion", "cocina"].includes(t)));
     } else if (interest === "papeleria_creatividad") {
@@ -262,16 +422,42 @@ export const AiGiftAdvisor = () => {
       filtered = filtered.filter((p) => p.tags?.some((t) => ["tecnologia-gadgets", "gadgets"].includes(t)) || p.category === "electronics");
     }
 
-    // Фильтр по получателю
-    if (recipient === "him") {
-      filtered.sort((a, b) => (a.tags?.includes("para-el") ? -1 : b.tags?.includes("para-el") ? 1 : 0));
+    // 2. Дополнительная приоритизация и фильтрация по адресату (recipient)
+    if (recipient === "kids_teens") {
+      // Для детей категорически исключаем взрослую посуду, вино и свечи
+      filtered = filtered.filter((p) => !p.tags?.some((t) => ["vino", "copas", "vajilla"].includes(t)));
+      filtered.sort((a, b) => {
+        const aKid = a.tags?.some((t) => ["ninos", "infantil", "juguetes", "colegio", "kidult"].includes(t)) ? 2 : 0;
+        const bKid = b.tags?.some((t) => ["ninos", "infantil", "juguetes", "colegio", "kidult"].includes(t)) ? 2 : 0;
+        return (bKid + (b.isBestseller ? 1 : 0)) - (aKid + (a.isBestseller ? 1 : 0));
+      });
+    } else if (recipient === "him") {
+      filtered.sort((a, b) => {
+        const aScore = (a.tags?.includes("para-el") ? 3 : 0) + (a.tags?.some((t) => ["tecnologia", "gadgets", "cafe", "escritorio"].includes(t)) ? 1 : 0);
+        const bScore = (b.tags?.includes("para-el") ? 3 : 0) + (b.tags?.some((t) => ["tecnologia", "gadgets", "cafe", "escritorio"].includes(t)) ? 1 : 0);
+        return (bScore + (b.isBestseller ? 1 : 0)) - (aScore + (a.isBestseller ? 1 : 0));
+      });
     } else if (recipient === "her") {
-      filtered.sort((a, b) => (a.tags?.includes("para-ella") ? -1 : b.tags?.includes("para-ella") ? 1 : 0));
+      filtered.sort((a, b) => {
+        const aScore = (a.tags?.includes("para-ella") ? 3 : 0) + (a.tags?.some((t) => ["belleza", "decoracion", "velas", "bolso"].includes(t)) ? 1 : 0);
+        const bScore = (b.tags?.includes("para-ella") ? 3 : 0) + (b.tags?.some((t) => ["belleza", "decoracion", "velas", "bolso"].includes(t)) ? 1 : 0);
+        return (bScore + (b.isBestseller ? 1 : 0)) - (aScore + (a.isBestseller ? 1 : 0));
+      });
     } else if (recipient === "coworker_pro") {
-      filtered.sort((a, b) => (a.category === "workspace" || a.tags?.includes("colegio") ? -1 : 1));
+      filtered.sort((a, b) => {
+        const aScore = a.category === "workspace" || a.tags?.some((t) => ["oficina", "escritorio", "papeleria", "colegio"].includes(t)) ? 2 : 0;
+        const bScore = b.category === "workspace" || b.tags?.some((t) => ["oficina", "escritorio", "papeleria", "colegio"].includes(t)) ? 2 : 0;
+        return (bScore + (b.isBestseller ? 1 : 0)) - (aScore + (a.isBestseller ? 1 : 0));
+      });
+    } else if (recipient === "home_family") {
+      filtered.sort((a, b) => {
+        const aScore = a.tags?.some((t) => ["hogar", "decoracion", "cocina", "familia"].includes(t)) ? 2 : 0;
+        const bScore = b.tags?.some((t) => ["hogar", "decoracion", "cocina", "familia"].includes(t)) ? 2 : 0;
+        return (bScore + (b.isBestseller ? 1 : 0)) - (aScore + (a.isBestseller ? 1 : 0));
+      });
     }
 
-    // Фильтр по бюджету
+    // 3. Фильтр по бюджету
     if (budget === "under_40") {
       filtered = filtered.filter((p) => p.price <= 45);
     } else if (budget === "40_90") {
@@ -280,10 +466,18 @@ export const AiGiftAdvisor = () => {
       filtered = filtered.filter((p) => p.price >= 85);
     }
 
-    // Если список пуст или мал, дополняем хитами
+    // 4. Если список пуст или мал, дополняем хитами с учетом адресата
     if (filtered.length < 2) {
-      const bestsellers = allProducts.filter((p) => p.isBestseller && !filtered.some((f) => f.id === p.id));
-      filtered = [...filtered, ...bestsellers];
+      let candidateBestsellers = allProducts.filter((p) => p.isBestseller && !filtered.some((f) => f.id === p.id));
+      if (recipient === "kids_teens") {
+        const kidBestsellers = candidateBestsellers.filter((p) =>
+          p.tags?.some((t) => ["ninos-juegos", "ninos", "juguetes", "infantil", "colegio", "papeleria"].includes(t))
+        );
+        if (kidBestsellers.length > 0) {
+          candidateBestsellers = kidBestsellers;
+        }
+      }
+      filtered = [...filtered, ...candidateBestsellers];
     }
 
     return filtered.slice(0, 4);
@@ -310,6 +504,45 @@ export const AiGiftAdvisor = () => {
       return `He analizado nuestro catálogo completo y seleccionado estas opciones ${recipientName}. Combinan alta durabilidad, diseño ergonómico y máxima puntuación de satisfacción de clientes en España. Todos los artículos se encuentran listos para expedición inmediata con envío en 24/48h desde los almacenes de Castellón y Valencia con 30 días de devolución gratuita.`;
     } else {
       return `I have evaluated our complete product inventory and selected these top-rated gifts ${recipientName}. They balance premium durability, ergonomic aesthetics, and five-star customer feedback in Spain. All items are in stock with 24/48h dispatch from our Castellón and Valencia fulfillment hubs with 30-day free returns.`;
+    }
+  };
+
+  // Динамический заголовок шага 2, отражающий выбор адресата
+  const getStep2Title = () => {
+    if (language === "es") {
+      switch (recipient) {
+        case "kids_teens":
+          return "Paso 2 de 3: ¿Qué tipo de regalo buscas para niños o estudiantes?";
+        case "coworker_pro":
+          return "Paso 2 de 3: ¿Qué categoría prefieres para su entorno de trabajo?";
+        case "him":
+          return "Paso 2 de 3: ¿Qué categoría encaja mejor con su estilo?";
+        case "her":
+          return "Paso 2 de 3: ¿Qué categoría va más con sus gustos?";
+        case "home_family":
+          return "Paso 2 de 3: ¿Qué rincón o momento de la casa quieres mejorar?";
+        case "self":
+          return "Paso 2 de 3: ¿Qué capricho o categoría te apetece hoy?";
+        default:
+          return "Paso 2 de 3: ¿Qué categoría de producto buscas?";
+      }
+    } else {
+      switch (recipient) {
+        case "kids_teens":
+          return "Step 2 of 3: What gift category are you looking for for kids or students?";
+        case "coworker_pro":
+          return "Step 2 of 3: Which category fits their workspace best?";
+        case "him":
+          return "Step 2 of 3: Which category best matches his style?";
+        case "her":
+          return "Step 2 of 3: Which category best matches her tastes?";
+        case "home_family":
+          return "Step 2 of 3: What area of the home do you want to upgrade?";
+        case "self":
+          return "Step 2 of 3: What treat or category are you looking for today?";
+        default:
+          return "Step 2 of 3: Which product category are you looking for?";
+      }
     }
   };
 
@@ -460,7 +693,7 @@ export const AiGiftAdvisor = () => {
                   return (
                     <button
                       key={opt.id}
-                      onClick={() => setRecipient(opt.id)}
+                      onClick={() => handleSelectRecipient(opt.id)}
                       style={{
                         padding: "16px",
                         borderRadius: "var(--radius-md)",
@@ -509,12 +742,38 @@ export const AiGiftAdvisor = () => {
           {/* ШАГ 2: ВЫБОР ИНТЕРЕСА И СТИЛЯ */}
           {currentStep === 2 && (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Sliders size={18} color="#ea580c" /> {t.step2Title}
+                  <Sliders size={18} color="#ea580c" /> {getStep2Title()}
                 </h3>
                 <span style={{ fontSize: "0.8rem", color: "var(--text-subtle)", fontWeight: 700 }}>2 / 3</span>
               </div>
+
+              {/* Бейдж выбранного адресата для прозрачности связи шагов */}
+              {activeRecipientOption && (
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px", marginBottom: "18px" }}>
+                  <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                    {language === "es" ? "Destinatario seleccionado:" : "Selected recipient:"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 700,
+                      background: "#ffedd5",
+                      color: "#c2410c",
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      border: "1px solid #fed7aa",
+                    }}
+                  >
+                    <span>{activeRecipientOption.icon}</span>
+                    <span>{activeRecipientOption.label[language] || activeRecipientOption.label.es}</span>
+                  </span>
+                </div>
+              )}
 
               <div
                 style={{
