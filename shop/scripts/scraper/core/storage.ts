@@ -214,6 +214,10 @@ export class ScraperStorage {
         }
 
         const productTags = raw.tags && raw.tags.length > 0 ? raw.tags : [];
+        // Назначаем скидку только для ~22% акционных товаров с реалистичным шагом (10-25%)
+        const hasPromoDiscount = Math.random() < 0.22;
+        const discountFactor = [1.12, 1.18, 1.25, 1.33][Math.floor(Math.random() * 4)];
+        const finalOriginalPrice = raw.originalPrice || (hasPromoDiscount ? Math.round(raw.price * discountFactor * 100) / 100 : null);
 
         // Вставка или обновление мастер-товара в products
         if (!isExisting) {
@@ -238,7 +242,7 @@ export class ScraperStorage {
               raw.shortDescription || raw.description.slice(0, 150) + "...",
               raw.shortDescription || raw.description.slice(0, 150) + "...",
               raw.price,
-              raw.originalPrice || Math.round(raw.price * 1.25 * 100) / 100,
+              finalOriginalPrice,
               raw.currency || "EUR",
               raw.category || "workspace",
               raw.brand || "Generico",
