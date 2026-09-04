@@ -238,24 +238,24 @@ export const AiGiftAdvisor = () => {
   const getRecommendedProducts = (): Product[] => {
     let filtered = [...allProducts];
 
-    // Фильтр по интересам
+    // Фильтр по интересам с поддержкой реальных тегов и категорий
     if (interest === "audio_music") {
-      filtered = filtered.filter((p) => p.category === "audio" || p.id === "prod-7" || p.id === "prod-1");
+      filtered = filtered.filter((p) => p.category === "audio" || p.tags?.some((t) => ["fiesta", "regalos", "musica"].includes(t)));
     } else if (interest === "workspace_productivity") {
-      filtered = filtered.filter((p) => p.category === "workspace" || p.id === "prod-2" || p.id === "prod-4" || p.id === "prod-6");
+      filtered = filtered.filter((p) => p.category === "workspace" || p.tags?.some((t) => ["colegio", "papeleria", "escritorio"].includes(t)));
     } else if (interest === "smart_home_relax") {
-      filtered = filtered.filter((p) => p.category === "smart-home" || p.id === "prod-5" || p.id === "prod-3" || p.id === "prod-2");
+      filtered = filtered.filter((p) => p.category === "smart-home" || p.tags?.some((t) => ["decoracion", "pascua", "hogar"].includes(t)));
     } else if (interest === "travel_fiesta") {
-      filtered = filtered.filter((p) => p.id === "prod-7" || p.id === "prod-6" || p.id === "prod-8" || p.id === "prod-9");
+      filtered = filtered.filter((p) => p.tags?.some((t) => ["playa", "verano", "viaje", "fiesta"].includes(t)));
     }
 
     // Фильтр по получателю
     if (recipient === "him") {
-      filtered.sort((a, b) => (b.category === "workspace" || b.category === "audio" ? 1 : -1));
+      filtered.sort((a, b) => (a.tags?.includes("para-el") ? -1 : b.tags?.includes("para-el") ? 1 : 0));
     } else if (recipient === "her") {
-      filtered.sort((a, b) => (a.id === "prod-5" || a.id === "prod-1" || a.id === "prod-2" ? -1 : 1));
+      filtered.sort((a, b) => (a.tags?.includes("para-ella") ? -1 : b.tags?.includes("para-ella") ? 1 : 0));
     } else if (recipient === "coworker_pro") {
-      filtered.sort((a, b) => (a.category === "workspace" ? -1 : 1));
+      filtered.sort((a, b) => (a.category === "workspace" || a.tags?.includes("colegio") ? -1 : 1));
     }
 
     // Фильтр по бюджету
