@@ -18,6 +18,7 @@ function parseCliArgs(): ScraperCliOptions {
   let category: ProductCategory | undefined = undefined;
   let tags: string[] | undefined = undefined;
   let source: string | undefined = undefined;
+  let margin = 15; // По умолчанию маржа магазина составляет 15%
   let saveJsonOnly = false;
   let verbose = false;
 
@@ -40,6 +41,8 @@ function parseCliArgs(): ScraperCliOptions {
         .filter(Boolean);
     } else if (arg === "--source" || arg === "-s") {
       source = args[++i];
+    } else if (arg === "--margin" || arg === "-m") {
+      margin = parseFloat(args[++i]) || 15;
     } else if (arg === "--save-json-only") {
       saveJsonOnly = true;
     } else if (arg === "--verbose" || arg === "-v") {
@@ -60,10 +63,12 @@ function parseCliArgs(): ScraperCliOptions {
     console.log("  npm run scrape -- <URL> [опции]\n");
     console.log("Примеры:");
     console.log('  npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --limit 20');
+    console.log('  npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --margin 15');
     console.log('  npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --limit 10 --head');
     console.log('  npm run scrape -- "https://es.ankorstore.com/boutique/gift-universe" --category workspace\n');
     console.log("Доступные опции:");
-    console.log("  --limit, -l <число>      Лимит собираемых товаров (по умолчанию 20)");
+    console.log("  --limit, -l <число>      Лимит собираемых товаров (по умолчанию 0 — без ограничения)");
+    console.log("  --margin, -m <число>     Маржа магазина в процентах (по умолчанию 15)");
     console.log("  --head, -h, --interactive Запуск с видимым окном браузера (для ручного ввода капчи)");
     console.log("  --category, -c <категория> Категория магазина (electronics, workspace, lifestyle, smart-home, audio)");
     console.log("  --tags, -t <теги>         Теги через запятую (например: playa,verano)");
@@ -74,7 +79,7 @@ function parseCliArgs(): ScraperCliOptions {
     process.exit(1);
   }
 
-  return { url, limit, head, category, tags, source, saveJsonOnly, verbose };
+  return { url, limit, head, category, tags, source, margin, saveJsonOnly, verbose };
 }
 
 /**
@@ -96,6 +101,7 @@ async function main(): Promise<void> {
   console.log(`  ID сессии:  ${runId}`);
   console.log(`  Целевой URL: ${options.url}`);
   console.log(`  Лимит:      ${options.limit && options.limit > 0 ? `${options.limit} товаров` : "БЕЗ ОГРАНИЧЕНИЯ (собирать подборку до конца)"}`);
+  console.log(`  Маржа:      +${options.margin ?? 15}% к базовой цене поставщика`);
   console.log(`  Теги:       ${effectiveTags.length > 0 ? effectiveTags.join(", ") : "авто-определение"}`);
   console.log(`  Режим:      ${options.head ? "Интерактивный (с видимым окном)" : "Headless"}`);
   console.log("=".repeat(75) + "\n");
@@ -114,6 +120,7 @@ async function main(): Promise<void> {
   const storage = new ScraperStorage(logger);
   await storage.createParsingRun(runId, adapter.name, options.url, {
     limit: options.limit,
+    margin: options.margin,
     head: options.head,
     category: options.category,
     tags: effectiveTags,
@@ -193,7 +200,7 @@ async function main(): Promise<void> {
       logger.info("FETCH_ITEM", `${itemIndexStr} Обработка товара: ${itemUrl}`, undefined, itemUrl);
 
       try {
-        const rawProduct = await adapter.scrapeProductPage(page, itemUrl);
+        const rawProduct = await adapter.scrapeProductPage(page, itemUrl, options.margin);
 
         if (!rawProduct) {
           logger.warn("VALIDATE", `${itemIndexStr} Не удалось извлечь данные товара. Пропускаем.`, undefined, itemUrl);

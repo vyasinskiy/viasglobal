@@ -34,8 +34,9 @@ export abstract class BaseSourceAdapter {
    * Извлекает подробную информацию о товаре со страницы карточки
    * @param page Вкладка браузера Playwright
    * @param productUrl Прямая ссылка на товар
+   * @param marginPercent Процент маржи/наценки магазина (по умолчанию 15%)
    */
-  abstract scrapeProductPage(page: Page, productUrl: string): Promise<ScrapedProductRaw | null>;
+  abstract scrapeProductPage(page: Page, productUrl: string, marginPercent?: number): Promise<ScrapedProductRaw | null>;
 
   /**
    * Очищает текст от лишних пробелов, переводов строк и HTML-сущностей

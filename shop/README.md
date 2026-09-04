@@ -80,14 +80,27 @@ npm run scrape -- "https://es.ankorstore.com/boutique/gift-universe" --category 
 # Парсинг с добавлением тегов тематической коллекции (пляж, лето)
 npm run scrape -- "https://es.ankorstore.com/collection/summer25-beach" --tags playa,verano,пляж,лето --limit 30
 
+# Парсинг с кастомной маржой (по умолчанию автоматически применяется 15%)
+npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --margin 15
+
 # Доступные опции:
-#   --limit, -l <число>         Количество собираемых товаров (по умолчанию 20)
+#   --limit, -l <число>         Количество собираемых товаров (по умолчанию 0 — без ограничения)
+#   --margin, -m <число>        Маржа магазина в процентах (по умолчанию 15%)
 #   --tags, -t <теги>           Теги через запятую (например: playa,verano,пляж,лето)
 #   --head, -h, --interactive    Видимое окно Chromium для решения капчи
 #   --category, -c <категория>  Категория (electronics, workspace, lifestyle, smart-home, audio)
 #   --source, -s <источник>      Принудительный выбор адаптера (ankorstore и др.)
 #   --save-json-only             Сохранение только в локальный JSON без обращения к Supabase
 ```
+
+### Ценообразование и маржинальность
+- **Две цены в системе**:
+  - **Оригинальная цена дистрибьютора (Distributor Price)**: базовая рекомендованная цена (PVP / RRP) или оптовая цена поставщика без наценки. Сохраняется в `products.distributor_price` и `product_sources.retail_price`.
+  - **Наша цена продажи (Our Price)**: розничная цена на витрине магазина с учетом наценки (`price = round(distributorPrice * (1 + margin / 100), 2)`). Сохраняется в `products.price` и `product_sources.our_price`.
+- При сборе товаров с **Ankorstore** скрипт парсинга автоматически начисляет **маржу магазина 15%** к цене дистрибьютора (настраивается флагом `--margin <число>`).
+- Для обновления структуры таблиц существующей базы данных подготовлен SQL-скрипт миграции: `scripts/scraper/sql/add_distributor_and_our_price.sql`.
+- Для обновления цен ранее спарсенных товаров подготовлен SQL-скрипт: `scripts/scraper/sql/apply_ankorstore_margin_15.sql`.
+
 
 ### Настройка базы данных Supabase
 1. Создайте проект в [Supabase](https://supabase.com).

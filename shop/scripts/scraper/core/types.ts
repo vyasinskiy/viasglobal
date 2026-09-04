@@ -7,9 +7,11 @@ export interface ScrapedProductRaw {
   title: string; // Название товара на исходном языке
   description: string; // Полное описание
   shortDescription?: string; // Краткое описание
-  price: number; // Розничная цена (PVP) в евро
-  originalPrice?: number; // Исходная цена до скидки
-  wholesalePrice?: number; // Оптовая цена (B2B), если доступна
+  price: number; // Итоговая розничная цена на витрине в евро (Наша цена с учетом маржи)
+  distributorPrice?: number; // Оригинальная базовая цена дистрибьютора/поставщика без наценки (€)
+  originalPrice?: number; // Исходная зачеркнутая цена до скидки (для акционных товаров)
+  wholesalePrice?: number; // Оптовая/закупочная B2B цена поставщика без наценки
+  retailPrice?: number; // Рекомендованная розничная цена поставщика (PVP) до добавления маржи
   currency: string; // Валюта (обычно 'EUR')
   brand: string; // Бренд / торговая марка
   sku?: string; // Артикул поставщика
@@ -53,6 +55,7 @@ export interface ScraperCliOptions {
   category?: ProductCategory; // Принудительная категория магазина
   tags?: string[]; // Коллекционные теги для товаров (например: ['playa', 'verano'])
   source?: string; // Явное указание источника (если не определился по URL)
+  margin?: number; // Процент маржи магазина, добавляемый к цене поставщика (по умолчанию 15%)
   verbose?: boolean; // Максимально подробный вывод в терминал
   saveJsonOnly?: boolean; // Сохранять только локально в JSON без обращения к Supabase
 }

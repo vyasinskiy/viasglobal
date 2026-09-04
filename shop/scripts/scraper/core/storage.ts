@@ -22,6 +22,10 @@ export class ScraperStorage {
   private imageUploader: ImageCdnUploader;
   private localBackupFilePath: string;
 
+  private hasDistributorPriceColumn: boolean = false;
+  private hasOurPriceColumn: boolean = false;
+  private schemaChecked: boolean = false;
+
   constructor(logger: ScraperLogger) {
     this.logger = logger;
     this.imageUploader = new ImageCdnUploader(logger);
@@ -63,6 +67,33 @@ export class ScraperStorage {
         "INIT",
         "База данных не настроена. Все товары сохраняются в локальный JSON-дамп src/data/scraped_products.json."
       );
+    }
+  }
+
+  /**
+   * Проверяет наличие новых колонок distributor_price и our_price в БД
+   */
+  private async checkDbSchema(): Promise<void> {
+    if (!this.pgPool || this.schemaChecked) return;
+    try {
+      const resProducts = await this.pgPool.query(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'products'"
+      );
+      const prodCols = new Set(resProducts.rows.map((r: any) => r.column_name));
+      this.hasDistributorPriceColumn = prodCols.has("distributor_price");
+
+      const resSources = await this.pgPool.query(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'product_sources'"
+      );
+      const sourceCols = new Set(resSources.rows.map((r: any) => r.column_name));
+      this.hasOurPriceColumn = sourceCols.has("our_price");
+      this.schemaChecked = true;
+
+      if (this.hasDistributorPriceColumn && this.hasOurPriceColumn) {
+        this.logger.debug("INIT", "Колонки distributor_price и our_price активны в PostgreSQL");
+      }
+    } catch {
+      // Игнорируем ошибки при проверке
     }
   }
 
@@ -222,79 +253,161 @@ export class ScraperStorage {
         const discountFactor = [1.12, 1.18, 1.25, 1.33][Math.floor(Math.random() * 4)];
         const finalOriginalPrice = raw.originalPrice || (hasPromoDiscount ? Math.round(raw.price * discountFactor * 100) / 100 : null);
 
+        // Проверяем схему БД перед сохранением
+        await this.checkDbSchema();
+        const distributorPrice = raw.distributorPrice || raw.retailPrice || raw.wholesalePrice || null;
+
         // Вставка или обновление мастер-товара в products
         if (!isExisting) {
-          await this.pgPool.query(
-            `INSERT INTO products (
-              id, ean, slug, title_es, title_en, description_es, description_en,
-              short_description_es, short_description_en, price, original_price,
-              currency, category, brand, sku, main_image, images, specs, features,
-              rating, review_count, in_stock, stock_count, primary_source, tags
-            ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-              $17, $18, $19, $20, $21, $22, $23, $24, $25
-            )`,
-            [
-              targetMasterId,
-              raw.ean || null,
-              `${slug}-${Date.now().toString().slice(-4)}`,
-              raw.title,
-              raw.title,
-              raw.description,
-              raw.description,
-              raw.shortDescription || raw.description.slice(0, 150) + "...",
-              raw.shortDescription || raw.description.slice(0, 150) + "...",
-              raw.price,
-              finalOriginalPrice,
-              raw.currency || "EUR",
-              raw.category || "workspace",
-              raw.brand || "Generico",
-              raw.sku || (raw.ean ? `SKU-${raw.ean}` : `SKU-${Date.now()}`),
-              finalMainImage,
-              JSON.stringify(finalImages),
-              JSON.stringify({ es: raw.specs || {}, en: raw.specs || {} }),
-              JSON.stringify({ es: raw.features || [], en: raw.features || [] }),
-              // Реалистичное распределение: 65% товаров получают рейтинг 4.6 - 5.0, а 35% являются новинками
-              Math.random() < 0.65 ? [4.7, 4.8, 4.9, 5.0, 4.6, 4.8, 4.9][Math.floor(Math.random() * 7)] : 0,
-              Math.random() < 0.65 ? Math.floor(Math.random() * 65) + 5 : 0,
-              true,
-              Math.floor(Math.random() * 25) + 10,
-              raw.sourceName,
-              productTags,
-            ]
-          );
+          if (this.hasDistributorPriceColumn) {
+            await this.pgPool.query(
+              `INSERT INTO products (
+                id, ean, slug, title_es, title_en, description_es, description_en,
+                short_description_es, short_description_en, price, distributor_price, original_price,
+                currency, category, brand, sku, main_image, images, specs, features,
+                rating, review_count, in_stock, stock_count, primary_source, tags
+              ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+                $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+              )`,
+              [
+                targetMasterId,
+                raw.ean || null,
+                `${slug}-${Date.now().toString().slice(-4)}`,
+                raw.title,
+                raw.title,
+                raw.description,
+                raw.description,
+                raw.shortDescription || raw.description.slice(0, 150) + "...",
+                raw.shortDescription || raw.description.slice(0, 150) + "...",
+                raw.price, // Наша цена с маржой
+                distributorPrice, // Оригинальная цена дистрибьютора
+                finalOriginalPrice,
+                raw.currency || "EUR",
+                raw.category || "workspace",
+                raw.brand || "Generico",
+                raw.sku || (raw.ean ? `SKU-${raw.ean}` : `SKU-${Date.now()}`),
+                finalMainImage,
+                JSON.stringify(finalImages),
+                JSON.stringify({ es: raw.specs || {}, en: raw.specs || {} }),
+                JSON.stringify({ es: raw.features || [], en: raw.features || [] }),
+                // Реалистичное распределение: 65% товаров получают рейтинг 4.6 - 5.0, а 35% являются новинками
+                Math.random() < 0.65 ? [4.7, 4.8, 4.9, 5.0, 4.6, 4.8, 4.9][Math.floor(Math.random() * 7)] : 0,
+                Math.random() < 0.65 ? Math.floor(Math.random() * 65) + 5 : 0,
+                true,
+                Math.floor(Math.random() * 25) + 10,
+                raw.sourceName,
+                productTags,
+              ]
+            );
+          } else {
+            // Резервная ветка, если колонка distributor_price еще не добавлена миграцией
+            await this.pgPool.query(
+              `INSERT INTO products (
+                id, ean, slug, title_es, title_en, description_es, description_en,
+                short_description_es, short_description_en, price, original_price,
+                currency, category, brand, sku, main_image, images, specs, features,
+                rating, review_count, in_stock, stock_count, primary_source, tags
+              ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+                $17, $18, $19, $20, $21, $22, $23, $24, $25
+              )`,
+              [
+                targetMasterId,
+                raw.ean || null,
+                `${slug}-${Date.now().toString().slice(-4)}`,
+                raw.title,
+                raw.title,
+                raw.description,
+                raw.description,
+                raw.shortDescription || raw.description.slice(0, 150) + "...",
+                raw.shortDescription || raw.description.slice(0, 150) + "...",
+                raw.price,
+                finalOriginalPrice,
+                raw.currency || "EUR",
+                raw.category || "workspace",
+                raw.brand || "Generico",
+                raw.sku || (raw.ean ? `SKU-${raw.ean}` : `SKU-${Date.now()}`),
+                finalMainImage,
+                JSON.stringify(finalImages),
+                JSON.stringify({ es: raw.specs || {}, en: raw.specs || {} }),
+                JSON.stringify({ es: raw.features || [], en: raw.features || [] }),
+                Math.random() < 0.65 ? [4.7, 4.8, 4.9, 5.0, 4.6, 4.8, 4.9][Math.floor(Math.random() * 7)] : 0,
+                Math.random() < 0.65 ? Math.floor(Math.random() * 65) + 5 : 0,
+                true,
+                Math.floor(Math.random() * 25) + 10,
+                raw.sourceName,
+                productTags,
+              ]
+            );
+          }
           this.logger.info("SAVE_MASTER", `Создан новый мастер-товар [ID: ${targetMasterId}] "${raw.title}" (PostgreSQL)`);
         } else {
-          await this.pgPool.query(
-            `UPDATE products 
-             SET price = $1, 
-                 tags = (SELECT ARRAY(SELECT DISTINCT elem FROM unnest(COALESCE(products.tags, '{}'::text[]) || $2::text[]) elem)),
-                 updated_at = NOW() 
-             WHERE id = $3`,
-            [raw.price, productTags, targetMasterId]
-          );
+          if (this.hasDistributorPriceColumn) {
+            await this.pgPool.query(
+              `UPDATE products 
+               SET price = $1, 
+                   distributor_price = COALESCE($2, distributor_price),
+                   tags = (SELECT ARRAY(SELECT DISTINCT elem FROM unnest(COALESCE(products.tags, '{}'::text[]) || $3::text[]) elem)),
+                   updated_at = NOW() 
+               WHERE id = $4`,
+              [raw.price, distributorPrice, productTags, targetMasterId]
+            );
+          } else {
+            await this.pgPool.query(
+              `UPDATE products 
+               SET price = $1, 
+                   tags = (SELECT ARRAY(SELECT DISTINCT elem FROM unnest(COALESCE(products.tags, '{}'::text[]) || $2::text[]) elem)),
+                   updated_at = NOW() 
+               WHERE id = $3`,
+              [raw.price, productTags, targetMasterId]
+            );
+          }
         }
 
         // Сохранение снапшота в product_sources
-        await this.pgPool.query(
-          `INSERT INTO product_sources (
-            product_id, parsing_run_id, source_name, source_url, supplier_sku,
-            supplier_brand, wholesale_price, retail_price, currency, in_stock, raw_data
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-          [
-            targetMasterId,
-            runId,
-            raw.sourceName,
-            raw.sourceUrl,
-            raw.sku || null,
-            raw.brand || null,
-            raw.wholesalePrice || null,
-            raw.price,
-            raw.currency || "EUR",
-            true,
-            JSON.stringify(raw.rawData),
-          ]
-        );
+        if (this.hasOurPriceColumn) {
+          await this.pgPool.query(
+            `INSERT INTO product_sources (
+              product_id, parsing_run_id, source_name, source_url, supplier_sku,
+              supplier_brand, wholesale_price, retail_price, our_price, currency, in_stock, raw_data
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            [
+              targetMasterId,
+              runId,
+              raw.sourceName,
+              raw.sourceUrl,
+              raw.sku || null,
+              raw.brand || null,
+              raw.wholesalePrice || null,
+              raw.retailPrice || distributorPrice || raw.wholesalePrice || null,
+              raw.price, // Наша цена продажи
+              raw.currency || "EUR",
+              true,
+              JSON.stringify(raw.rawData),
+            ]
+          );
+        } else {
+          await this.pgPool.query(
+            `INSERT INTO product_sources (
+              product_id, parsing_run_id, source_name, source_url, supplier_sku,
+              supplier_brand, wholesale_price, retail_price, currency, in_stock, raw_data
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            [
+              targetMasterId,
+              runId,
+              raw.sourceName,
+              raw.sourceUrl,
+              raw.sku || null,
+              raw.brand || null,
+              raw.wholesalePrice || null,
+              raw.retailPrice || distributorPrice || raw.wholesalePrice || raw.price,
+              raw.currency || "EUR",
+              true,
+              JSON.stringify(raw.rawData),
+            ]
+          );
+        }
 
         return {
           url: raw.sourceUrl,
@@ -350,7 +463,10 @@ export class ScraperStorage {
           es: raw.shortDescription || raw.description.slice(0, 140) + "...",
           en: raw.shortDescription || raw.description.slice(0, 140) + "...",
         },
-        price: raw.price,
+        price: raw.price, // Наша розничная цена с маржой
+        distributorPrice: raw.distributorPrice || raw.retailPrice || raw.wholesalePrice || null, // Оригинальная цена дистрибьютора
+        supplierPrice: raw.distributorPrice || raw.retailPrice || raw.wholesalePrice || null,
+        ourPrice: raw.price, // Наша цена
         originalPrice: raw.originalPrice || Math.round(raw.price * 1.25 * 100) / 100,
         currency: raw.currency || "EUR",
         category: raw.category || "workspace",

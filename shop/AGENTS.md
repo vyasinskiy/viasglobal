@@ -97,6 +97,13 @@
   - `src/hooks/useProducts.ts` — React-хук для бесшовной реактивной подгрузки товаров на страницы.
   - Динамическая карточка товара `src/app/products/[id]/page.tsx` загружает спарсенные товары по ID/slug.
   - В `next.config.ts` разрешен только наш CDN `yzaarsfeztkkzuexhivl.supabase.co`.
+- **Ценообразование и фиксация оригинальной цены дистрибьютора и нашей цены**:
+  - Для всех товаров система обязательно фиксирует две цены:
+    - **Оригинальная цена дистрибьютора**: базовая цена поставщика (PVP / RRP или оптовая). Сохраняется в `products.distributor_price` и `product_sources.retail_price`.
+    - **Наша цена продажи**: цена витрины магазина с начисленной маржой (по умолчанию +15% для Ankorstore: `price = round(distributorPrice * 1.15, 2)`). Сохраняется в `products.price` и `product_sources.our_price`.
+  - CLI поддерживает параметр `--margin <число>` (по умолчанию 15).
+  - Миграция для добавления колонок в БД: `scripts/scraper/sql/add_distributor_and_our_price.sql`.
+  - Для пересчета цен существующих товаров в БД используется SQL-скрипт `scripts/scraper/sql/apply_ankorstore_margin_15.sql`.
 - **Строгий запрет внешних ссылок и CDN поставщиков (Анти-Ankorstore Hotlinking)**:
   - **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** использовать `img.ankorstore.com`, `cdn.ankorstore.com` и любые прямые ссылки, ведущие на ankorstore на витрине магазина (`products.main_image`, `products.images`, карточки товаров, UI компоненты).
   - Все фотографии товаров обязаны автоматически скачиваться и перекладываться в наш собственный CDN (Supabase Storage бакет `products`).

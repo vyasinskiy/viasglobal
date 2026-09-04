@@ -42,8 +42,9 @@ export interface Product {
     es: string;
     en: string;
   };
-  price: number; // в евро (€)
-  originalPrice?: number; // старая цена для скидок
+  price: number; // Наша розничная цена на витрине в евро (€)
+  distributorPrice?: number; // Оригинальная цена поставщика/дистрибьютора без наценки магазина (€)
+  originalPrice?: number; // Старая зачеркнутая цена для скидок (€)
   currency: string;
   category: ProductCategory;
   brand: string;

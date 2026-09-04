@@ -41,7 +41,8 @@ create table if not exists public.products (
   description_en text, -- Полное описание на английском языке
   short_description_es text, -- Краткое описание для карточки на испанском
   short_description_en text, -- Краткое описание для карточки на английском
-  price numeric(10, 2) not null, -- Текущая розничная цена на витрине в евро (€)
+  price numeric(10, 2) not null, -- Текущая розничная цена на витрине в евро (€) (Наша цена с маржой)
+  distributor_price numeric(10, 2), -- Оригинальная цена поставщика / дистрибьютора без наценки магазина (€)
   original_price numeric(10, 2), -- Зачеркнутая цена для скидок (€)
   currency text not null default 'EUR', -- Валюта
   category text not null default 'lifestyle', -- Категория каталога ('electronics', 'workspace', etc.)
@@ -82,7 +83,8 @@ create table if not exists public.product_sources (
   supplier_sku text, -- Артикул товара в системе поставщика
   supplier_brand text, -- Название бренда у поставщика
   wholesale_price numeric(10, 2), -- Оптовая B2B цена у поставщика в евро (€), если доступна
-  retail_price numeric(10, 2), -- Рекомендованная розничная цена (PVP) у поставщика в евро (€)
+  retail_price numeric(10, 2), -- Рекомендованная розничная цена (PVP) у поставщика в евро (€) (Оригинальная цена дистрибьютора)
+  our_price numeric(10, 2), -- Наша расчетная розничная цена с учетом маржи магазина (€)
   currency text not null default 'EUR', -- Валюта поставщика
   in_stock boolean not null default true, -- Доступность у поставщика на момент парсинга
   raw_data jsonb not null default '{}'::jsonb, -- Полный неизмененный снимок спарсенных данных (Schema.org JSON-LD и др.)

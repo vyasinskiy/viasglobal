@@ -165,17 +165,17 @@ export class AnkorstoreAdapter extends BaseSourceAdapter {
   }
 
   /**
-   * Загружает детальную карточку товара и извлекает все поля
+   * Загружает детальную карточку товара и извлекает все поля с добавлением маржи (по умолчанию 15%)
    */
-  async scrapeProductPage(page: Page, productUrl: string): Promise<ScrapedProductRaw | null> {
+  async scrapeProductPage(page: Page, productUrl: string, marginPercent: number = 15): Promise<ScrapedProductRaw | null> {
     try {
       await page.goto(productUrl, { waitUntil: "domcontentloaded", timeout: 45000 });
 
       // Закрываем модальные окна авторизации, если они появились
       await this.dismissPopins(page);
 
-      // Запускаем извлечение через парсер
-      return await parseAnkorstoreProductPage(page, productUrl, this.logger);
+      // Запускаем извлечение через парсер с применением маржи
+      return await parseAnkorstoreProductPage(page, productUrl, this.logger, marginPercent);
     } catch (err) {
       this.logger.error("FETCH_ITEM", `Не удалось загрузить страницу товара: ${productUrl}`, err, productUrl);
       return null;

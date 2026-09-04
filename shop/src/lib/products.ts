@@ -112,6 +112,7 @@ function mapDatabaseRowToProduct(row: any): Product {
       en: row.short_description_en || row.description_en?.slice(0, 140) + "..." || "",
     },
     price: Number(row.price),
+    distributorPrice: row.distributor_price ? Number(row.distributor_price) : undefined,
     originalPrice: row.original_price ? Number(row.original_price) : undefined,
     currency: row.currency || "EUR",
     category: (row.category as ProductCategory) || "lifestyle",

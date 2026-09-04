@@ -5,14 +5,16 @@ import { ANKORSTORE_SELECTORS } from "./selectors";
 
 /**
  * Парсер страницы карточки товара Ankorstore
- * Извлекает структурированные данные Schema.org JSON-LD с резервным парсингом DOM
+ * Извлекает структурированные данные Schema.org JSON-LD с резервным парсингом DOM.
+ * К базовой цене поставщика (PVP) автоматически добавляется маржа магазина (по умолчанию 15%).
  */
 export async function parseAnkorstoreProductPage(
   page: Page,
   productUrl: string,
-  logger: ScraperLogger
+  logger: ScraperLogger,
+  marginPercent: number = 15
 ): Promise<ScrapedProductRaw | null> {
-  logger.debug("FETCH_ITEM", `Парсинг карточки товара: ${productUrl}`);
+  logger.debug("FETCH_ITEM", `Парсинг карточки товара: ${productUrl} (маржа: +${marginPercent}%)`);
 
   // ШАГ 1: ПОПЫТКА ИЗВЛЕЧЕНИЯ ИЗ SCHEMA.ORG JSON-LD (НАИБОЛЕЕ НАДЕЖНЫЙ МЕТОД)
   try {
@@ -47,16 +49,22 @@ export async function parseAnkorstoreProductPage(
           }
           images = images.filter((url) => Boolean(url) && url.startsWith("http"));
 
-          // Извлечение цены
-          let price = 0;
+          // Извлечение базовой цены поставщика
+          let supplierPrice = 0;
           let currency = "EUR";
           if (productObj.offers) {
             const offer = Array.isArray(productObj.offers) ? productObj.offers[0] : productObj.offers;
             if (offer) {
-              price = parseFloat(offer.price) || 0;
+              supplierPrice = parseFloat(offer.price) || 0;
               currency = offer.priceCurrency || "EUR";
             }
           }
+
+          // Базовая цена поставщика на Ankorstore (PVP или оптовая)
+          const basePrice = supplierPrice > 0 ? supplierPrice : 29.99;
+          // Добавляем маржу магазина 15% к базовой цене поставщика
+          const marginMultiplier = 1 + marginPercent / 100;
+          const finalPrice = Math.round(basePrice * marginMultiplier * 100) / 100;
 
           // Извлечение бренда
           let brandName = "Ankorstore Brand";
@@ -90,8 +98,11 @@ export async function parseAnkorstoreProductPage(
             title: productObj.name || "Без названия",
             description: productObj.description || "",
             shortDescription: productObj.description ? productObj.description.slice(0, 160) + "..." : undefined,
-            price: price > 0 ? price : 29.99, // Fallback цена, если у скрытых товаров нет PVP
-            originalPrice: price > 0 ? Math.round(price * 1.25 * 100) / 100 : 34.99,
+            price: finalPrice, // Наша розничная цена на витрине с учетом маржи (+15%)
+            distributorPrice: basePrice, // Оригинальная цена дистрибьютора Ankorstore без наценки
+            wholesalePrice: supplierPrice > 0 ? supplierPrice : undefined, // Базовая цена поставщика Ankorstore
+            retailPrice: basePrice, // Рекомендованный розничный PVP поставщика
+            originalPrice: undefined, // Скидка рассчитывается динамически в storage.ts для ~22% товаров
             currency,
             brand: brandName,
             sku: productObj.sku || undefined,
@@ -108,7 +119,7 @@ export async function parseAnkorstoreProductPage(
 
           logger.info(
             "EXTRACT_JSONLD",
-            `Успешно извлечены данные товара: "${rawProduct.title}" | Бренд: ${rawProduct.brand} | EAN: ${rawProduct.ean || "нет"} | Цена: ${rawProduct.price} ${rawProduct.currency}`
+            `Успешно извлечены данные товара: "${rawProduct.title}" | Бренд: ${rawProduct.brand} | EAN: ${rawProduct.ean || "нет"} | Цена дистрибьютора: ${rawProduct.distributorPrice} € | Наша цена (+${marginPercent}% маржа): ${rawProduct.price} ${rawProduct.currency}`
           );
 
           return rawProduct;
@@ -150,13 +161,20 @@ export async function parseAnkorstoreProductPage(
     });
 
     const parsedPrice = priceText ? parseFloat(priceText.replace(",", ".")) : 29.99;
+    const basePrice = isNaN(parsedPrice) ? 29.99 : parsedPrice;
+    // Добавляем маржу магазина 15% к базовой цене из DOM
+    const marginMultiplier = 1 + marginPercent / 100;
+    const finalPrice = Math.round(basePrice * marginMultiplier * 100) / 100;
 
     const domProduct: ScrapedProductRaw = {
       title,
       description,
       shortDescription: description.slice(0, 150) + "...",
-      price: isNaN(parsedPrice) ? 29.99 : parsedPrice,
-      originalPrice: Math.round(parsedPrice * 1.25 * 100) / 100,
+      price: finalPrice, // Наша розничная цена на витрине с учетом маржи (+15%)
+      distributorPrice: basePrice, // Оригинальная цена дистрибьютора Ankorstore без наценки
+      wholesalePrice: basePrice, // Базовая цена поставщика Ankorstore
+      retailPrice: basePrice, // Рекомендованный розничный PVP поставщика
+      originalPrice: undefined,
       currency: "EUR",
       brand: "Ankorstore Brand",
       mainImage: mainImage || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
@@ -164,10 +182,13 @@ export async function parseAnkorstoreProductPage(
       category: "workspace",
       sourceUrl: productUrl,
       sourceName: "ankorstore",
-      rawData: { title, description, mainImage, parsedPrice, parsedVia: "DOM_FALLBACK" },
+      rawData: { title, description, mainImage, basePrice, finalPrice, marginPercent, parsedVia: "DOM_FALLBACK" },
     };
 
-    logger.info("EXTRACT_DOM", `Товар извлечен через DOM: "${domProduct.title}" (${domProduct.price} €)`);
+    logger.info(
+      "EXTRACT_DOM",
+      `Товар извлечен через DOM: "${domProduct.title}" (Цена дистрибьютора: ${basePrice} €, Наша цена +${marginPercent}% маржа: ${domProduct.price} €)`
+    );
     return domProduct;
   } catch (domErr) {
     logger.error("EXTRACT_DOM", `Ошибка парсинга DOM страницы: ${productUrl}`, domErr);
