@@ -154,6 +154,9 @@
   - `npx tsx scripts/scraper/rollback_images.ts` (откат витрины к оригинальным чистым фото)
 
 ## Особенности запуска и сборки
+- **Доменная структура (Production)**:
+  - Основной домен магазина (B2C витрина + Stripe): **`https://viasglobal.es`** (алиасы `www.viasglobal.es` и `shop.viasglobal.es` автоматически перенаправляют на `viasglobal.es`).
+  - Оптовый B2B портал компании: **`https://b2b.viasglobal.es`**.
 - Локальный запуск: `npm run dev` (запускается на http://localhost:3001).
 - Сборка: `npm run build`.
 - Парсинг товаров: `npm run scrape -- "<URL>" [опции]`.

@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     const origin =
       req.headers.get("origin") ||
       process.env.NEXT_PUBLIC_SITE_URL ||
-      "https://shop.viasglobal.es";
+      "https://viasglobal.es";
 
     // 5. Сохранение пред-заказа в PostgreSQL (со статусом pending)
     pgClient = await getPgClient();
