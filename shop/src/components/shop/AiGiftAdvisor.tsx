@@ -13,6 +13,10 @@ import {
   Heart,
   Briefcase,
   Home,
+  BookOpen,
+  Gamepad2,
+  ShoppingBag,
+  Zap,
   Headphones,
   Laptop,
   Flame,
@@ -22,7 +26,6 @@ import {
   CheckCircle2,
   Gift,
   Search,
-  Zap,
   Sliders,
   DollarSign,
 } from "lucide-react";
@@ -35,13 +38,13 @@ import {
 
 // Типы вариантов выбора
 type RecipientType = "him" | "her" | "kids_teens" | "coworker_pro" | "home_family" | "self";
-type InterestType = "audio_music" | "workspace_productivity" | "smart_home_relax" | "travel_fiesta" | "any";
+type InterestType = "hogar_decoracion" | "papeleria_creatividad" | "ninos_juegos" | "moda_accesorios" | "tecnologia_gadgets" | "any";
 type BudgetType = "under_40" | "40_90" | "over_90" | "any";
 
 export const AiGiftAdvisor = () => {
   const { language } = useCartStore();
 
-  // Состояние шагов: 1 = Кому, 2 = Интересы, 3 = Бюджет, 4 = Результат (AI Рекомендация)
+  // Состояние шагов: 1 = Кому, 2 = Интересы/Категории, 3 = Бюджет, 4 = Результат (AI Рекомендация)
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [recipient, setRecipient] = useState<RecipientType | null>(null);
   const [interest, setInterest] = useState<InterestType | null>(null);
@@ -93,31 +96,37 @@ export const AiGiftAdvisor = () => {
     },
   ];
 
-  // Варианты для шага 2: Стиль и интересы
+  // Варианты для шага 2: Реальные категории каталога магазина
   const interestOptions = [
     {
-      id: "audio_music" as InterestType,
-      label: { es: "Sonido Hi-Res & Música", en: "Hi-Res Audio & Music" },
-      sub: { es: "Auriculares ANC, altavoces y libertad inalámbrica", en: "ANC headphones, wireless speakers" },
-      icon: Headphones,
-    },
-    {
-      id: "workspace_productivity" as InterestType,
-      label: { es: "Productividad & Ergonomía", en: "Productivity & Ergonomics" },
-      sub: { es: "Teclados mecánicos, luz inteligente y orden", en: "Keyboards, desk lamps & organization" },
-      icon: Laptop,
-    },
-    {
-      id: "smart_home_relax" as InterestType,
-      label: { es: "Hogar Inteligente & Relax", en: "Smart Home & Relaxation" },
-      sub: { es: "Difusores de aroma, sensores climáticos y ambiente", en: "Aroma diffusers, climate sensors" },
+      id: "hogar_decoracion" as InterestType,
+      label: { es: "Hogar, Cocina & Deco", en: "Home, Kitchen & Decor" },
+      sub: { es: "Vajilla artesanal, velas, vasos y confort para el hogar", en: "Artisan tableware, candles, glasses & home comfort" },
       icon: Home,
     },
     {
-      id: "travel_fiesta" as InterestType,
-      label: { es: "Viajes, Puentes & Fiestas", en: "Travel, Holidays & Fiestas" },
-      sub: { es: "Carga rápida GaN, organizadores y resistencia", en: "GaN chargers, travel pouches" },
-      icon: Flame,
+      id: "papeleria_creatividad" as InterestType,
+      label: { es: "Papelería & Creatividad", en: "Stationery & Creativity" },
+      sub: { es: "Cuadernos de diseño, agendas, bolígrafos y oficina", en: "Design notebooks, planners, pens & workspace" },
+      icon: BookOpen,
+    },
+    {
+      id: "ninos_juegos" as InterestType,
+      label: { es: "Niños, Juguetes & Juegos", en: "Kids, Toys & Games" },
+      sub: { es: "Juegos educativos, peluches y manualidades creativas", en: "Educational games, plushies & creative crafts" },
+      icon: Gamepad2,
+    },
+    {
+      id: "moda_accesorios" as InterestType,
+      label: { es: "Moda, Belleza & Accesorios", en: "Fashion, Beauty & Accessories" },
+      sub: { es: "Bolsos tote, neceseres, jabones franceses y complementos", en: "Tote bags, pouches, French soaps & accessories" },
+      icon: ShoppingBag,
+    },
+    {
+      id: "tecnologia_gadgets" as InterestType,
+      label: { es: "Tecnología & Gadgets", en: "Tech & Gadgets" },
+      sub: { es: "Iluminación smart, sonido, cables y novedades tech", en: "Smart lighting, audio, charging & tech novelties" },
+      icon: Zap,
     },
   ];
 
@@ -190,14 +199,16 @@ export const AiGiftAdvisor = () => {
       setRecipient("self");
     }
 
-    if (q.includes("audio") || q.includes("música") || q.includes("auriculares") || q.includes("sonido") || q.includes("music")) {
-      setInterest("audio_music");
-    } else if (q.includes("teclado") || q.includes("luz") || q.includes("escritorio") || q.includes("setup")) {
-      setInterest("workspace_productivity");
-    } else if (q.includes("difusor") || q.includes("hogar") || q.includes("casa") || q.includes("relax")) {
-      setInterest("smart_home_relax");
+    if (q.includes("casa") || q.includes("hogar") || q.includes("cocina") || q.includes("vela") || q.includes("decor") || q.includes("taza") || q.includes("home")) {
+      setInterest("hogar_decoracion");
+    } else if (q.includes("papeler") || q.includes("cuaderno") || q.includes("agenda") || q.includes("boli") || q.includes("oficina") || q.includes("stationery")) {
+      setInterest("papeleria_creatividad");
+    } else if (q.includes("niño") || q.includes("juguete") || q.includes("juego") || q.includes("kid") || q.includes("bebé") || q.includes("peluche")) {
+      setInterest("ninos_juegos");
+    } else if (q.includes("moda") || q.includes("bolso") || q.includes("belleza") || q.includes("jabón") || q.includes("neceser") || q.includes("beauty")) {
+      setInterest("moda_accesorios");
     } else {
-      setInterest("travel_fiesta");
+      setInterest("tecnologia_gadgets");
     }
 
     if (q.includes("barato") || q.includes("económico") || q.includes("menos de 40") || q.includes("cheap")) {
@@ -238,15 +249,17 @@ export const AiGiftAdvisor = () => {
   const getRecommendedProducts = (): Product[] => {
     let filtered = [...allProducts];
 
-    // Фильтр по интересам с поддержкой реальных тегов и категорий
-    if (interest === "audio_music") {
-      filtered = filtered.filter((p) => p.category === "audio" || p.tags?.some((t) => ["fiesta", "regalos", "musica"].includes(t)));
-    } else if (interest === "workspace_productivity") {
-      filtered = filtered.filter((p) => p.category === "workspace" || p.tags?.some((t) => ["colegio", "papeleria", "escritorio"].includes(t)));
-    } else if (interest === "smart_home_relax") {
-      filtered = filtered.filter((p) => p.category === "smart-home" || p.tags?.some((t) => ["decoracion", "pascua", "hogar"].includes(t)));
-    } else if (interest === "travel_fiesta") {
-      filtered = filtered.filter((p) => p.tags?.some((t) => ["playa", "verano", "viaje", "fiesta"].includes(t)));
+    // Фильтр по реальным категориям каталога с поддержкой тегов
+    if (interest === "hogar_decoracion") {
+      filtered = filtered.filter((p) => p.tags?.some((t) => ["hogar-decoracion", "hogar", "decoracion", "cocina"].includes(t)));
+    } else if (interest === "papeleria_creatividad") {
+      filtered = filtered.filter((p) => p.tags?.some((t) => ["papeleria-creatividad", "papeleria", "colegio", "oficina"].includes(t)) || p.category === "workspace");
+    } else if (interest === "ninos_juegos") {
+      filtered = filtered.filter((p) => p.tags?.some((t) => ["ninos-juegos", "ninos", "juguetes", "infantil", "kidult"].includes(t)));
+    } else if (interest === "moda_accesorios") {
+      filtered = filtered.filter((p) => p.tags?.some((t) => ["moda-accesorios", "accesorios", "bolso", "belleza"].includes(t)));
+    } else if (interest === "tecnologia_gadgets") {
+      filtered = filtered.filter((p) => p.tags?.some((t) => ["tecnologia-gadgets", "gadgets"].includes(t)) || p.category === "electronics");
     }
 
     // Фильтр по получателю
@@ -306,9 +319,9 @@ export const AiGiftAdvisor = () => {
     subtitle:
       language === "es"
         ? "Responde 3 preguntas rápidas o escribe con tus propias palabras. Nuestro motor inteligente encontrará el regalo perfecto con envío en 24/48h desde Castellón y Valencia."
-        : "Answer 3 quick questions or type in freeform. Our smart engine finds the ideal verified tech gift with 24/48h delivery from Castellón and Valencia.",
+        : "Answer 3 quick questions or type in freeform. Our smart engine finds the ideal verified gift with 24/48h delivery from Castellón and Valencia.",
     step1Title: language === "es" ? "Paso 1 de 3: ¿Para quién es el regalo?" : "Step 1 of 3: Who is this gift for?",
-    step2Title: language === "es" ? "Paso 2 de 3: ¿Qué estilo o interés tiene?" : "Step 2 of 3: What is their main interest or style?",
+    step2Title: language === "es" ? "Paso 2 de 3: ¿Qué categoría de producto buscas?" : "Step 2 of 3: Which product category are you looking for?",
     step3Title: language === "es" ? "Paso 3 de 3: ¿Qué presupuesto tienes en mente?" : "Step 3 of 3: What is your preferred budget?",
     nextStep: language === "es" ? "Siguiente paso" : "Next step",
     generateBtn: language === "es" ? "Generar recomendación personalizada" : "Generate Custom Recommendations",

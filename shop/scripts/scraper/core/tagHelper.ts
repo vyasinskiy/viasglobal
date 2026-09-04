@@ -88,3 +88,49 @@ export function extractCollectionTags(
 
   return Array.from(tagsSet);
 }
+
+/**
+ * Автоматическое определение категориальных тегов (hogar, papeleria, ninos, moda, tecnologia)
+ * на основе названия и описания товара
+ */
+export function detectProductCategoryTags(title: string, description?: string): string[] {
+  const text = `${title} ${description || ""}`.toLowerCase();
+  const catTags = new Set<string>();
+
+  // 1. Канцелярия и офис
+  if (text.match(/cuaderno|libreta|agenda|bolígrafo|boligrafo|rotulador|tijeras|sacapuntas|estuche|papelería|papeleria|lapiz|lápiz|clip|portalápices|oficina|organizador de escritorio|bloc|marcapáginas|notas adhesivas|marcador|pluma/)) {
+    catTags.add("papeleria-creatividad");
+    catTags.add("papeleria");
+  }
+
+  // 2. Дети, игрушки и игры
+  if (text.match(/niño|niña|infantil|juguete|juego|dinosaurio|peluche|bebé|bebe|guardería|guarderia|educativo|marioneta|puzzle|creativo|manualidades|bádminton|kidult|plastilina|puzzles|dragon ball|muñeca|construcción/)) {
+    catTags.add("ninos-juegos");
+    catTags.add("juguetes");
+  }
+
+  // 3. Дом, кухня и декор
+  if (text.match(/taza|vaso|plato|porcelana|cerámica|ceramica|vela|manta|cojín|cojin|fouta|toalla|decoración|decoracion|botella|lonchera|bocadillos|cocina|hogar|mesa|jarrón|jarron|cuadro|espejo|tapiz|aroma|difusor|florero|incienso|vajilla|maceta/)) {
+    catTags.add("hogar-decoracion");
+    catTags.add("hogar");
+  }
+
+  // 4. Мода, аксессуары и красота
+  if (text.match(/bolso|tote|neceser|pañuelo|joya|pin |pines|alfiler|calcetín|calcetines|jabón|jabon|perfume|belleza|bikini|bañador|baño|mochila|llavero|cosmética|cosmetica|joyería|joyeria|pendientes|pulsera|anillo/)) {
+    catTags.add("moda-accesorios");
+    catTags.add("accesorios");
+  }
+
+  // 5. Технологии и гаджеты
+  if (text.match(/cargador|cable|led|lámpara|lampara|usb|batería|bateria|tecnología|tecnologia|gadget|bluetooth|altavoz|auricular|reloj|smart|electrónica|electronica|inalámbrico|inalambrico/)) {
+    catTags.add("tecnologia-gadgets");
+  }
+
+  // Если ничего не подошло, относим к домашнему стилю жизни
+  if (catTags.size === 0) {
+    catTags.add("hogar-decoracion");
+    catTags.add("hogar");
+  }
+
+  return Array.from(catTags);
+}

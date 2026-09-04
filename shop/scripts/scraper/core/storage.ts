@@ -6,6 +6,7 @@ import { Pool } from "pg";
 import { ScrapedProductRaw, ScrapedItemResult, CollectionRecord } from "./types";
 import { ScraperLogger } from "./logger";
 import { ImageCdnUploader } from "./imageUploader";
+import { detectProductCategoryTags } from "./tagHelper";
 
 // Загружаем переменные окружения из .env.local и .env
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
@@ -213,7 +214,9 @@ export class ScraperStorage {
           });
         }
 
-        const productTags = raw.tags && raw.tags.length > 0 ? raw.tags : [];
+        const rawTags = raw.tags && raw.tags.length > 0 ? raw.tags : [];
+        const detectedCategoryTags = detectProductCategoryTags(raw.title, raw.description);
+        const productTags = Array.from(new Set([...rawTags, ...detectedCategoryTags]));
         // Назначаем скидку только для ~22% акционных товаров с реалистичным шагом (10-25%)
         const hasPromoDiscount = Math.random() < 0.22;
         const discountFactor = [1.12, 1.18, 1.25, 1.33][Math.floor(Math.random() * 4)];
