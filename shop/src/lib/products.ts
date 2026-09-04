@@ -88,8 +88,13 @@ function mapDatabaseRowToProduct(row: any): Product {
   const specs = typeof row.specs === "string" ? JSON.parse(row.specs) : row.specs || { es: {}, en: {} };
   const features = typeof row.features === "string" ? JSON.parse(row.features) : row.features || { es: [], en: [] };
 
-  // Вычисляем реалистичный рейтинг и число отзывов для товара
-  const ratingInfo = getProductRatingAndReviews(row.id, row.rating, row.review_count);
+  // Считываем точные значения рейтинга и отзывов из базы данных (или вычисляем детерминированно при их отсутствии)
+  const dbRating = row.rating !== undefined && row.rating !== null ? Number(row.rating) : undefined;
+  const dbReviews = row.review_count !== undefined && row.review_count !== null ? Number(row.review_count) : undefined;
+  const fallback = dbRating === undefined ? getProductRatingAndReviews(row.id) : null;
+
+  const finalRating = dbRating !== undefined ? dbRating : fallback!.rating;
+  const finalReviewCount = dbReviews !== undefined ? dbReviews : fallback!.reviewCount;
 
   return {
     id: row.id,
@@ -115,13 +120,13 @@ function mapDatabaseRowToProduct(row: any): Product {
     ean: row.ean || undefined,
     mainImage: row.main_image,
     images: images.length > 0 ? images : [row.main_image],
-    rating: ratingInfo.rating,
-    reviewCount: ratingInfo.reviewCount,
+    rating: finalRating,
+    reviewCount: finalReviewCount,
     inStock: Boolean(row.in_stock),
     stockCount: Number(row.stock_count) || 20,
-    isBestseller: Boolean(row.is_bestseller) || ratingInfo.isBestseller,
+    isBestseller: Boolean(row.is_bestseller),
     isFeatured: Boolean(row.is_featured),
-    isNew: Boolean(row.is_new) || ratingInfo.reviewCount === 0,
+    isNew: Boolean(row.is_new) || finalReviewCount === 0,
     tags: Array.isArray(row.tags) ? row.tags : [],
     specs,
     features,
