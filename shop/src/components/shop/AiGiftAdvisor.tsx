@@ -41,7 +41,11 @@ type RecipientType = "him" | "her" | "kids_teens" | "coworker_pro" | "home_famil
 type InterestType = "hogar_decoracion" | "papeleria_creatividad" | "ninos_juegos" | "moda_accesorios" | "tecnologia_gadgets" | "any";
 type BudgetType = "under_40" | "40_90" | "over_90" | "any";
 
-export const AiGiftAdvisor = () => {
+interface AiGiftAdvisorProps {
+  initialProducts?: Product[];
+}
+
+export const AiGiftAdvisor = ({ initialProducts }: AiGiftAdvisorProps = {}) => {
   const { language } = useCartStore();
 
   // Состояние шагов: 1 = Кому, 2 = Интересы/Категории, 3 = Бюджет, 4 = Результат (AI Рекомендация)
@@ -392,9 +396,14 @@ export const AiGiftAdvisor = () => {
     setHasGenerated(false);
   };
 
-  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS_DATA);
+  const [allProducts, setAllProducts] = useState<Product[]>(
+    initialProducts && initialProducts.length > 0 ? initialProducts : PRODUCTS_DATA
+  );
 
   useEffect(() => {
+    // Если товары переданы с сервера, повторный сетевой запрос не требуется
+    if (initialProducts && initialProducts.length > 0) return;
+
     fetch("/api/products")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -403,7 +412,7 @@ export const AiGiftAdvisor = () => {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [initialProducts]);
 
   // Алгоритм фильтрации и подбора товаров по параметрам
   const getRecommendedProducts = (): Product[] => {

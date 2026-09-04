@@ -27,11 +27,15 @@ import {
   Flame,
 } from "lucide-react";
 
+interface FiestaCalendarSectionProps {
+  initialProducts?: Product[];
+}
+
 /**
  * Второй экран сайта — Интерактивный хронологический календарь событий с подборками товаров и подробными описаниями
  * События упорядочены от ближайших к будущим с валенсийской колористикой (Naranja de Valencia & Blau Senyera).
  */
-export const FiestaCalendarSection = () => {
+export const FiestaCalendarSection = ({ initialProducts }: FiestaCalendarSectionProps = {}) => {
   const { language } = useCartStore();
   const currentWeek = getCurrentWeekEvent();
 
@@ -52,9 +56,14 @@ export const FiestaCalendarSection = () => {
     }
   };
 
-  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS_DATA);
+  const [allProducts, setAllProducts] = useState<Product[]>(
+    initialProducts && initialProducts.length > 0 ? initialProducts : PRODUCTS_DATA
+  );
 
   useEffect(() => {
+    // Если товары уже переданы с сервера, повторный сетевой запрос не требуется
+    if (initialProducts && initialProducts.length > 0) return;
+
     fetch("/api/products")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -63,7 +72,7 @@ export const FiestaCalendarSection = () => {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [initialProducts]);
 
   const activeEvent = getWeekEvent(selectedWeekNum);
   const activeUpcoming = upcomingEvents.find((e) => e.weekNumber === selectedWeekNum) || upcomingEvents[0];
