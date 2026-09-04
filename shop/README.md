@@ -155,6 +155,30 @@ npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --marg
      npx tsx scripts/scraper/backfill_anti_search_images.ts
      ```
 
+## Прием платежей через Stripe Checkout
+
+В интернет-магазине реализован безопасный процессинг платежей европейского стандарта (SCA / 3D Secure 2.0 / PSD2) через **Stripe Hosted Checkout**.
+
+### Архитектура платежного контура
+1. **Создание сессии (`/api/checkout/stripe`)**:
+   - Клиент передает корзину, данные покупателя, промокод и выбранный способ доставки.
+   - Сервер фиксирует заказ в таблице `orders` со статусом `pending`.
+   - Создается защищенная сессия Stripe Checkout (`stripe.checkout.sessions.create`) с позициями товаров, ценами в EUR, превью фото и валютой.
+   - Покупатель перенаправляется на защищенную платежную страницу Stripe (`session.url`), где поддерживаются карты Visa, Mastercard, AMEX, Apple Pay, Google Pay и Link.
+2. **Вебхуки Stripe (`/api/webhooks/stripe`)**:
+   - При успешном списании средств Stripe отправляет событие `checkout.session.completed`.
+   - Сервер проверяет криптографическую подпись `stripe-signature` и переводит заказ в статус `paid`, сохраняя `stripe_payment_intent_id`.
+3. **Верификация и страница успеха (`/checkout/success`)**:
+   - Страница считывает `session_id`, запрашивает статус через `/api/checkout/stripe/verify`, автоматически очищает корзину покупателя и отображает подтвержденный чек с деталями доставки.
+4. **Умный Демо-режим (Zero-Crash Fallback)**:
+   - Если в `.env.local` еще не прописаны боевые ключи Stripe, оформление заказа не падает с ошибкой, а автоматически симулирует успешную оплату в демо-режиме с сохранением записи в БД.
+
+### Локальное тестирование вебхуков Stripe CLI
+```bash
+# Прослушивание вебхуков Stripe локально:
+stripe listen --forward-to localhost:3001/api/webhooks/stripe
+```
+
 ## Быстрый старт
 
 ### Установка зависимостей

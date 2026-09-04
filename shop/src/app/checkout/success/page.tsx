@@ -29,30 +29,66 @@ interface OrderData {
 
 function SuccessContent() {
   const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
   const orderId = searchParams.get("orderId") || "VG-849201";
   const [order, setOrder] = useState<OrderData | null>(null);
 
-  const { language } = useCartStore();
+  const { language, clearCart } = useCartStore();
   const t = TRANSLATIONS[language] || TRANSLATIONS.es;
 
   useEffect(() => {
+    // 1. Праздничный салют конфетти
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
     });
 
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("last_order");
-      if (stored) {
-        try {
-          setOrder(JSON.parse(stored));
-        } catch {
-          // Игнорируем ошибку парсинга
+    // 2. Очищаем корзину после успешной оплаты
+    clearCart();
+
+    // 3. Загружаем подтвержденные данные заказа из API верификации
+    const fetchVerifiedOrder = async () => {
+      try {
+        const query = sessionId ? `session_id=${sessionId}` : `orderId=${orderId}`;
+        const res = await fetch(`/api/checkout/stripe/verify?${query}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.order) {
+            setOrder({
+              orderId: data.order.id,
+              customerName: data.order.customerName,
+              email: data.order.customerEmail,
+              total: Number(data.order.total).toFixed(2),
+              itemCount: Array.isArray(data.order.items)
+                ? data.order.items.reduce((s: number, i: any) => s + (i.quantity || 1), 0)
+                : 1,
+              address: `${data.order.shippingAddress?.address || ""}, ${data.order.shippingAddress?.postalCode || ""} ${data.order.shippingAddress?.city || ""}`.trim(),
+              shippingMethod: data.order.shippingMethod,
+              paymentMethod: "Stripe",
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Не удалось верифицировать заказ через API, читаем локальный снимок:", err);
+      }
+
+      // Резервное чтение из sessionStorage
+      if (typeof window !== "undefined") {
+        const stored = sessionStorage.getItem("last_order");
+        if (stored) {
+          try {
+            setOrder(JSON.parse(stored));
+          } catch {
+            // Игнорируем ошибку
+          }
         }
       }
-    }
-  }, []);
+    };
+
+    fetchVerifiedOrder();
+  }, [sessionId, orderId, clearCart]);
 
   return (
     <div style={{ padding: "60px 0 100px" }}>

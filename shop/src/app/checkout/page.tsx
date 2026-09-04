@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
@@ -141,29 +141,53 @@ export default function CheckoutPage() {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    // Имитация безопасной обработки платежа через Stripe / Redsys
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // 1. Отправляем запрос на создание сессии Stripe Checkout
+      const res = await fetch("/api/checkout/stripe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          customer: formData,
+          shippingMethod: selectedShipping,
+          shippingCost: currentShippingPrice,
+          appliedCoupon,
+          language,
+        }),
+      });
 
-    const orderId = `VG-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      const data = await res.json();
 
-    const orderData = {
-      orderId,
-      date: new Date().toISOString(),
-      customer: formData,
-      items,
-      paymentMethod: selectedPayment,
-      shippingMethod: selectedShipping,
-      subtotal,
-      discount,
-      shipping: currentShippingPrice,
-      total,
-      currency: "EUR",
-    };
+      if (!res.ok || !data.url) {
+        throw new Error(
+          data.error ||
+            (language === "es"
+              ? "Error al conectar con la pasarela de pago segura Stripe"
+              : "Error connecting to Stripe secure payment gateway")
+        );
+      }
 
-    localStorage.setItem("viasglobal_last_order", JSON.stringify(orderData));
-    clearCart();
-    setIsSubmitting(false);
-    router.push(`/checkout/success?orderId=${orderId}`);
+      // 2. Сохраняем локальный снимок заказа для мгновенного отображения при возврате
+      const lastOrderDraft = {
+        orderId: data.orderId,
+        customerName: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        total: `€${total.toFixed(2)}`,
+        itemCount: items.reduce((s, i) => s + i.quantity, 0),
+        address: `${formData.address}, ${formData.postalCode} ${formData.city}`,
+        shippingMethod:
+          currentShippingMethod?.title[language] || currentShippingMethod?.title.es || "Estándar",
+        paymentMethod: "stripe_card",
+      };
+      sessionStorage.setItem("last_order", JSON.stringify(lastOrderDraft));
+
+      // 3. Перенаправляем покупателя на защищенный Stripe Checkout
+      window.location.href = data.url;
+    } catch (err: any) {
+      console.error("Ошибка оформления заказа:", err);
+      alert(err.message || "Error en el pago");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -491,43 +515,40 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {selectedPayment === "card" && (
-                  <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
-                    <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 600 }}>{t.checkout.cardNumber}</label>
-                      <div style={{ position: "relative" }}>
-                        <input
-                          type="text"
-                          value={cardDetails.number}
-                          onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                          style={{ width: "100%", padding: "10px 14px 10px 38px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "6px", color: "var(--text-main)" }}
-                        />
-                        <CreditCard size={18} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "12px" }} />
-                      </div>
+                <div style={{ padding: "18px 20px", background: "#f8fafc", borderRadius: "var(--radius-sm)", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "8px",
+                        background: "#635bff",
+                        color: "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 900,
+                        fontSize: "1.15rem",
+                        boxShadow: "0 2px 8px rgba(99, 91, 255, 0.3)",
+                      }}
+                    >
+                      S
                     </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                      <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 600 }}>{t.checkout.cardExpiry}</label>
-                        <input
-                          type="text"
-                          value={cardDetails.expiry}
-                          onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                          style={{ width: "100%", padding: "10px 14px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "6px", color: "var(--text-main)" }}
-                        />
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--text-main)" }}>
+                        {language === "es" ? "Pasarela Segura Stripe" : "Stripe Secure Gateway"}
                       </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 600 }}>{t.checkout.cardCvc}</label>
-                        <input
-                          type="text"
-                          value={cardDetails.cvc}
-                          onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value })}
-                          style={{ width: "100%", padding: "10px 14px", background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "6px", color: "var(--text-main)" }}
-                        />
+                      <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                        Visa • Mastercard • Maestro • Apple Pay • Google Pay • Link
                       </div>
                     </div>
                   </div>
-                )}
+                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.4, margin: 0 }}>
+                    {language === "es"
+                      ? "Al pulsar «Pagar ahora», serás redirigido a la pasarela cifrada de Stripe para finalizar tu compra con seguridad bancaria 3D Secure 2.0 y encriptación SSL de 256 bits."
+                      : "When clicking 'Pay now', you will be securely redirected to Stripe encrypted checkout with 3D Secure 2.0 and 256-bit SSL encryption."}
+                  </p>
+                </div>
               </div>
             </div>
 

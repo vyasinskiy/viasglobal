@@ -189,3 +189,35 @@ create index if not exists idx_collections_tags on public.collections using gin(
 alter table public.collections enable row level security;
 create policy "Allow public read on collections" on public.collections for select using (true);
 create policy "Allow service_role all on collections" on public.collections for all using (auth.role() = 'service_role' or current_user = 'postgres');
+
+-- 8. ТАБЛИЦА ЗАКАЗОВ И СЕССИЙ STRIPE (orders)
+create table if not exists public.orders (
+  id text primary key,
+  stripe_session_id text unique,
+  stripe_payment_intent_id text,
+  status text not null default 'pending',
+  customer_name text not null,
+  customer_email text not null,
+  customer_phone text,
+  customer_vat text,
+  shipping_address jsonb not null default '{}'::jsonb,
+  shipping_method text not null default 'standard',
+  shipping_cost numeric(10, 2) not null default 0,
+  subtotal numeric(10, 2) not null,
+  discount numeric(10, 2) not null default 0,
+  total numeric(10, 2) not null,
+  currency text not null default 'EUR',
+  items jsonb not null default '[]'::jsonb,
+  metadata jsonb default '{}'::jsonb,
+  created_at timestamptz not null default timezone('utc'::text, now()),
+  updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+create index if not exists idx_orders_stripe_session on public.orders(stripe_session_id);
+create index if not exists idx_orders_status on public.orders(status);
+create index if not exists idx_orders_customer_email on public.orders(customer_email);
+create index if not exists idx_orders_created_at on public.orders(created_at desc);
+
+alter table public.orders enable row level security;
+create policy "Allow public read own order by id" on public.orders for select using (true);
+create policy "Allow service_role all on orders" on public.orders for all using (auth.role() = 'service_role' or current_user = 'postgres');

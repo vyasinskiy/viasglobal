@@ -133,6 +133,16 @@
     - В карточках каталога (`ProductCard.tsx`) и на странице товара (`products/[id]/page.tsx`) над тегом `<Image>` размещен прозрачный защитный слой с `onContextMenu={(e) => e.preventDefault()}`, а также `draggable={false}` и `user-select: none`. Это блокирует браузерное меню «Найти через Google Объектив» и перетаскивание картинки в поиск.
   - **Скрипт бэкфилла для существующих фото**:
     - `npx tsx scripts/scraper/backfill_anti_search_images.ts` — переобрабатывает изображения в каталоге, сохраняет оригиналы и переключает `main_image` на `_opt.webp`.
+- **Платежная система Stripe Checkout и управление заказами**:
+  - **Архитектура**: используется официальный Stripe Hosted Checkout (`stripe.checkout.sessions.create`) для 100% соответствия европейским нормам безопасности (SCA, 3D Secure 2.0, PCI-DSS Level 1) без хранения карточных данных на нашем сервере.
+  - **Таблица заказов (`public.orders`)**:
+    - Сохраняет созданные заказы с полями `stripe_session_id`, `stripe_payment_intent_id`, `status` (`pending`, `paid`, `failed`), данными покупателя, составом корзины (`items`) и адресом доставки.
+    - Миграция: `scripts/scraper/sql/add_orders_table.sql`.
+  - **API Эндпоинты**:
+    - `POST /api/checkout/stripe`: валидация корзины, создание пред-заказа в БД со статусом `pending`, создание сессии Stripe и возврат `session.url`.
+    - `POST /api/webhooks/stripe`: обработка подтверждения оплаты (`checkout.session.completed`) и перевод статуса заказа в `'paid'`.
+    - `GET /api/checkout/stripe/verify?session_id=...`: верификация оплаты для страницы благодарности `/checkout/success`.
+  - **Умный Демо-режим**: если в `.env.local` еще не задан `STRIPE_SECRET_KEY`, система не падает, а безопасно завершает симуляцию заказа в демо-режиме, сохраняя запись в БД.
 - **Команды запуска CLI**:
   - `npm run scrape -- "<URL>" --limit 25` (стандартный запуск)
   - `npm run scrape -- "<URL>" --tags playa,verano --limit 30` (с коллекционными тегами)
