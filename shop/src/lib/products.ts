@@ -121,6 +121,8 @@ function mapDatabaseRowToProduct(row: any): Product {
     ean: row.ean || undefined,
     mainImage: row.main_image,
     images: images.length > 0 ? images : [row.main_image],
+    originalMainImage: row.original_main_image || undefined,
+    originalImages: Array.isArray(row.original_images) ? row.original_images : undefined,
     rating: finalRating,
     reviewCount: finalReviewCount,
     inStock: Boolean(row.in_stock),

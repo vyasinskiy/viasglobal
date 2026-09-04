@@ -50,6 +50,8 @@ create table if not exists public.products (
   sku text, -- Артикул товара
   main_image text not null, -- Главное изображение товара (URL)
   images jsonb not null default '[]'::jsonb, -- Массив дополнительных фото (JSONB array of strings)
+  original_main_image text, -- Оригинальное главное фото до анти-поисковой обработки
+  original_images jsonb default '[]'::jsonb, -- Оригинальный массив дополнительных фото до анти-поисковой обработки
   specs jsonb not null default '{"es": {}, "en": {}}'::jsonb, -- Технические характеристики
   features jsonb not null default '{"es": [], "en": []}'::jsonb, -- Список ключевых преимуществ (буллеты)
   rating numeric(3, 2) not null default 4.8, -- Рейтинг товара (от 1.0 до 5.0)

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { ScraperLogger } from "./logger";
+import { transformImageAntiSearch } from "./imageTransformer";
 
 // Загружаем переменные окружения
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
@@ -79,35 +80,66 @@ export class ImageCdnUploader {
       }
 
       const contentType = response.headers.get("content-type") || "image/webp";
-      const buffer = Buffer.from(await response.arrayBuffer());
+      const rawBuffer = Buffer.from(await response.arrayBuffer());
 
-      // Определяем расширение
-      let ext = "webp";
-      if (contentType.includes("jpeg") || contentType.includes("jpg")) ext = "jpg";
-      else if (contentType.includes("png")) ext = "png";
-      else if (contentType.includes("svg")) ext = "svg";
+      // Определяем расширение оригинала
+      let rawExt = "webp";
+      if (contentType.includes("jpeg") || contentType.includes("jpg")) rawExt = "jpg";
+      else if (contentType.includes("png")) rawExt = "png";
+      else if (contentType.includes("svg")) rawExt = "svg";
 
-      // Генерируем уникальный путь: products/<sanitizedProductId>/image_<index>_<hash>.<ext>
       const sanitizedId = productId.replace(/[^a-zA-Z0-9_-]/g, "_");
       const hash = crypto.createHash("md5").update(externalUrl).digest("hex").slice(0, 8);
-      const storagePath = `${sanitizedId}/img_${index}_${hash}.${ext}`;
 
-      // 2. Загружаем файл в Supabase Storage бакет 'products'
-      const { error: uploadError } = await this.supabase.storage
+      // 2. Сохраняем оригинал в Supabase Storage (без искажений)
+      const originalPath = `${sanitizedId}/img_${index}_${hash}.${rawExt}`;
+      const { error: origUploadError } = await this.supabase.storage
         .from(this.bucketName)
-        .upload(storagePath, buffer, {
+        .upload(originalPath, rawBuffer, {
           contentType,
           upsert: true,
         });
 
-      if (uploadError) {
-        this.logger.warn("CDN_UPLOAD", `Ошибка при загрузке в Supabase Storage: ${uploadError.message}`, undefined, externalUrl);
-        return null;
+      if (origUploadError) {
+        this.logger.warn("CDN_UPLOAD", `Ошибка загрузки оригинала в Supabase Storage: ${origUploadError.message}`, undefined, externalUrl);
       }
 
-      const cdnUrl = this.getPublicCdnUrl(storagePath);
-      this.logger.debug("CDN_UPLOAD", `Изображение переложено на наш CDN: ${cdnUrl}`);
-      return cdnUrl;
+      const originalCdnUrl = this.getPublicCdnUrl(originalPath);
+
+      // 3. Применяем анти-поисковую обработку и сохраняем с неявным суффиксом _opt (optimized)
+      let optBuffer = rawBuffer;
+      let optContentType = "image/webp";
+      const optPath = `${sanitizedId}/img_${index}_${hash}_opt.webp`;
+
+      try {
+        const transformed = await transformImageAntiSearch(rawBuffer);
+        optBuffer = Buffer.from(transformed);
+        optContentType = "image/webp";
+      } catch (transformErr: any) {
+        this.logger.warn(
+          "CDN_UPLOAD",
+          `Ошибка трансформации анти-поиска: ${transformErr.message}, оставляем оригинал`,
+          undefined,
+          externalUrl
+        );
+        optContentType = contentType;
+      }
+
+      const { error: optUploadError } = await this.supabase.storage
+        .from(this.bucketName)
+        .upload(optPath, optBuffer, {
+          contentType: optContentType,
+          upsert: true,
+        });
+
+      if (optUploadError) {
+        this.logger.warn("CDN_UPLOAD", `Ошибка при загрузке обработанного файла: ${optUploadError.message}`, undefined, externalUrl);
+        return originalCdnUrl;
+      }
+
+      const optCdnUrl = this.getPublicCdnUrl(optPath);
+      this.logger.debug("CDN_UPLOAD", `Оригинал сохранен: ${originalCdnUrl}, витринная версия _opt: ${optCdnUrl}`);
+      return optCdnUrl;
     } catch (err: any) {
       this.logger.warn("CDN_UPLOAD", `Исключение при переносе картинки: ${err.message}`, undefined, externalUrl);
       return null;
@@ -121,7 +153,7 @@ export class ImageCdnUploader {
     productId: string,
     mainImage: string,
     images: string[]
-  ): Promise<{ mainImage: string; images: string[] }> {
+  ): Promise<{ mainImage: string; images: string[]; originalMainImage?: string; originalImages?: string[] }> {
     const newMain = await this.transferImageToCdn(mainImage, productId, 0);
 
     const newImages: string[] = [];
@@ -138,6 +170,8 @@ export class ImageCdnUploader {
     return {
       mainImage: fallbackMain,
       images: newImages.length > 0 ? newImages : [fallbackMain],
+      originalMainImage: mainImage,
+      originalImages: images.length > 0 ? images : [mainImage],
     };
   }
 }

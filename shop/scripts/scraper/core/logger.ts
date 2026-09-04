@@ -21,6 +21,7 @@ export type ScraperStep =
   | "MIGRATION"
   | "ITEM_TRANSFER"
   | "CDN_UPLOAD"
+  | "BACKFILL"
   | "FINISH";
 
 // Цветовые коды ANSI для терминала

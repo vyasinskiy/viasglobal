@@ -84,11 +84,26 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           src={product.mainImage}
           alt={productTitle}
           fill
+          draggable={false}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           style={{
             objectFit: "cover",
             transition: "transform 0.4s ease",
             transform: isHovered ? "scale(1.05)" : "scale(1)",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+          }}
+        />
+
+        {/* Защитный слой от поиска по фото (Google Lens / Google Объектив) и контекстного меню */}
+        <div
+          onContextMenu={(e) => e.preventDefault()}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            userSelect: "none",
+            WebkitUserSelect: "none",
           }}
         />
 

@@ -52,6 +52,8 @@ export interface Product {
   ean?: string;
   images: string[];
   mainImage: string;
+  originalMainImage?: string; // Исходное главное фото до анти-поисковой обработки
+  originalImages?: string[]; // Исходный массив фото до анти-поисковой обработки
   rating: number;
   reviewCount: number;
   inStock: boolean;

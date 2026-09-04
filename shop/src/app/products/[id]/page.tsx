@@ -186,8 +186,25 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 alt={productTitle}
                 fill
                 priority
+                draggable={false}
                 sizes="(max-width: 768px) 100vw, 50vw"
-                style={{ objectFit: "cover" }}
+                style={{
+                  objectFit: "cover",
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                }}
+              />
+
+              {/* Защитный слой от поиска по фото (Google Объектив / Lens) */}
+              <div
+                onContextMenu={(e) => e.preventDefault()}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 1,
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                }}
               />
 
               {/* Бейджи */}
@@ -221,6 +238,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(img)}
+                    onContextMenu={(e) => e.preventDefault()}
                     style={{
                       position: "relative",
                       width: "72px",
@@ -234,7 +252,18 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                       boxShadow: selectedImage === img ? "0 2px 8px rgba(2, 132, 199, 0.3)" : "none",
                     }}
                   >
-                    <Image src={img} alt="" fill sizes="72px" style={{ objectFit: "cover" }} />
+                    <Image
+                      src={img}
+                      alt=""
+                      fill
+                      draggable={false}
+                      sizes="72px"
+                      style={{
+                        objectFit: "cover",
+                        userSelect: "none",
+                        WebkitUserSelect: "none",
+                      }}
+                    />
                   </button>
                 ))}
               </div>
