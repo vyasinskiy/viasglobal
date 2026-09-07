@@ -7,6 +7,89 @@ import { AnalysisService } from '../analysis/analysis.service';
 @Injectable()
 export class KeepaService {
   private readonly logger = new Logger(KeepaService.name);
+  
+  // Идентификатор маркетплейса Keepa (4 = amazon.es)
+  private readonly defaultDomainId = 4;
+
+  // Очередь и токены Keepa
+  private tokensLeft: number = 10; // Начальное значение, обновится после первого запроса
+  private refillRate: number = 1;  // Скорость обновления токенов в минуту
+  private requestQueue: QueuedRequest[] = [];
+  private isProcessingQueue: boolean = false;
+
+  /**
+   * Формирует базовый URL для запросов к Keepa API
+   */
+  private buildKeepaApiUrl(endpoint: string, domainId?: number): string | null {
+    const apiKey = process.env.KEEPA_API_KEY;
+    if (!apiKey) return null;
+    
+    const domain = domainId || this.defaultDomainId;
+    return `https://api.keepa.com/${endpoint}?key=${apiKey}&domain=${domain}`;
+  }
+
+  /**
+   * Единый метод для выполнения запросов к Keepa с учетом Rate Limit (токенов).
+   */
+  private executeKeepaRequest(url: string, options?: RequestInit, expectedCost: number = 1): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push({ url, options, expectedCost, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  /**
+   * Процессор очереди запросов, следящий за токенами.
+   */
+  private async processQueue() {
+    if (this.isProcessingQueue) return;
+    this.isProcessingQueue = true;
+
+    try {
+      while (this.requestQueue.length > 0) {
+        const nextRequest = this.requestQueue[0]; // Смотрим на первый элемент
+        
+        if (this.tokensLeft < nextRequest.expectedCost) {
+          // Вычисляем время ожидания: (недостающие токены) * (мс на один токен)
+          // 60000 мс = 1 минута. Время на 1 токен = 60000 / refillRate.
+          const msPerToken = 60000 / Math.max(1, this.refillRate);
+          const delayMs = Math.ceil((nextRequest.expectedCost - this.tokensLeft) * msPerToken);
+          
+          this.logger.warn(`Недостаточно токенов Keepa. Ожидание ${delayMs} мс. (tokensLeft: ${this.tokensLeft}, need: ${nextRequest.expectedCost})`);
+          
+          // Ждем необходимое время
+          await new Promise(res => setTimeout(res, delayMs));
+          
+          // После ожидания оптимистично добавляем накопленные токены
+          // Точное значение будет получено из следующего ответа
+          this.tokensLeft = Math.max(this.tokensLeft, nextRequest.expectedCost);
+        }
+
+        const request = this.requestQueue.shift();
+        if (!request) break;
+
+        try {
+          const response = await fetch(request.url, request.options);
+          const data = await response.json();
+          
+          // Обновляем состояние токенов из ответа API
+          if (data.tokensLeft !== undefined) {
+            this.tokensLeft = data.tokensLeft;
+          }
+          if (data.refillRate !== undefined) {
+            this.refillRate = data.refillRate;
+          }
+          
+          request.resolve(data);
+        } catch (error) {
+          this.logger.error(`Ошибка при выполнении запроса из очереди: ${error.message}`);
+          request.reject(error);
+        }
+      }
+    } finally {
+      this.isProcessingQueue = false;
+    }
+  }
 
   constructor(
     private readonly prisma: PrismaService,
@@ -78,8 +161,8 @@ export class KeepaService {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async fetchRawData() {
-    const apiKey = process.env.KEEPA_API_KEY;
-    if (!apiKey) {
+    const baseUrl = this.buildKeepaApiUrl('product');
+    if (!baseUrl) {
       this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса.');
       return;
     }
@@ -105,15 +188,14 @@ export class KeepaService {
     this.logger.log(`Запрашиваем Keepa API для ASIN: ${asinsToFetch}...`);
 
     try {
-      const domain = 4; // Испания по умолчанию
-      let url = `https://api.keepa.com/product?key=${apiKey}&domain=${domain}&asin=${asinsToFetch}`;
+      let url = `${baseUrl}&asin=${asinsToFetch}`;
       
       if (process.env.KEEPA_FETCH_OFFERS === 'true') {
         url += '&offers=20';
       }
       
-      const response = await fetch(url);
-      const data = await response.json();
+      const cost = (process.env.KEEPA_FETCH_OFFERS === 'true') ? 3 : 1;
+      const data = await this.executeKeepaRequest(url, undefined, cost);
 
       if (data.error) {
         this.logger.error(`Ошибка API Keepa: ${JSON.stringify(data.error)}`);
@@ -128,11 +210,10 @@ export class KeepaService {
         return;
       }
 
-      // Проверяем, не закончились ли токены (с offers=20 запрос стоит 3 токена)
+      // Теперь у нас есть умная очередь, мы не прерываемся так часто. 
+      // Но если токены жестко закончились по вине сторонних процессов, очередь их подождет.
       if (data.tokensLeft === 0 || (data.tokensLeft !== undefined && data.tokensLeft < 3 && data.tokensConsumed === 0 && !data.products)) {
-        this.logger.warn(`Лимит токенов Keepa исчерпан (осталось: ${data.tokensLeft}). Очередь ставится на паузу до восстановления баланса.`);
-        // Не удаляем ASIN из очереди, чтобы попробовать снова позже
-        return;
+        this.logger.warn(`Лимит токенов Keepa исчерпан жестко (осталось: ${data.tokensLeft}). Очередь должна выровнять баланс.`);
       }
 
 
@@ -332,4 +413,165 @@ export class KeepaService {
     
     return 'Special Oversize'; // Всё что больше
   }
+
+  /**
+   * Запрос к Keepa Product Finder API с динамической категорией и безопасными фильтрами
+   * @param categoryId Идентификатор корневой категории Keepa (Browse Node ID)
+   * @param options Дополнительные параметры фильтрации
+   */
+  async fetchProductFinder(categoryId: string, options?: ProductFinderOptions) {
+    const url = this.buildKeepaApiUrl('query', options?.domainId);
+    if (!url) {
+      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder.');
+      return { asins: [], totalResults: 0, queued: 0 };
+    }
+
+    // Формируем полезную нагрузку запроса согласно утвержденному безопасному стандарту
+    const payload = {
+      // 0 = Физические товары Amazon (отсекает цифровые товары, подписки и книги)
+      productType: [0],
+      // Нижняя граница BSR: от 1 для захвата высоколиквидных товаров с быстрой оборачиваемостью
+      current_SALES_gte: options?.salesRankGte ?? 1,
+      // Верхняя граница BSR: до 50 000 для исключения мертвого груза и неликвида
+      current_SALES_lte: options?.salesRankLte ?? 50000,
+      // Нижняя граница цены Buy Box: 15.00 € (в евроцентах) для обеспечения окупаемости комиссий FBA
+      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
+      // Верхняя граница цены Buy Box: 100.00 € (в евроцентах) для защиты оборотного капитала от дорогих возвратов
+      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
+      // От 5 продавцов: гарантия того, что бренд открыт для реселлеров (не Private Label и нет риска жалоб на IP)
+      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
+      // До 15 продавцов: защита от жесткого демпинга цен автоматическими репрайсерами
+      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
+      // Динамический идентификатор категории из утвержденного списка разрешенных категорий
+      rootCategory: [categoryId],
+      // Строгое исключение товаров для взрослых (защита личного имущества автонома по ст. 1911 ГК Испании)
+      isAdultProduct: false,
+      // Двухуровневая сортировка: сначала лучшие продажи по BSR, затем объем продаж в месяц
+      sort: [
+        ['current_SALES', 'asc'],
+        ['monthlySold', 'desc']
+      ],
+      // Размер страницы выдачи (100 позиций за раз для оптимального расхода токенов)
+      perPage: options?.perPage ?? 100,
+      // Номер запрашиваемой страницы
+      page: options?.page ?? 0
+    };
+
+    this.logger.log(`Отправляем запрос к Keepa Product Finder для категории ${categoryId}...`);
+
+    try {
+      // Отправка POST-запроса к API Keepa через очередь
+      // Для Product Finder запрос обычно стоит 1 токен, но может варьироваться. Берем 1 по умолчанию.
+      const data = await this.executeKeepaRequest(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }, 1);
+
+      // Проверка на наличие ошибки от API Keepa
+      if (data.error) {
+        this.logger.error(`Ошибка Keepa Product Finder API: ${JSON.stringify(data.error)}`);
+        return { asins: [], totalResults: 0, queued: 0, error: data.error };
+      }
+
+      const asinList: string[] = data.asinList || [];
+      const totalResults: number = data.totalResults || 0;
+      this.logger.log(`Keepa Product Finder вернул ${asinList.length} ASIN (всего найдено: ${totalResults}) для категории ${categoryId}`);
+
+      if (asinList.length === 0) {
+        return { asins: [], totalResults, queued: 0 };
+      }
+
+      // Добавление найденных ASIN в очередь WholesaleAsinQueue
+      let queuedCount = 0;
+      for (const asin of asinList) {
+        try {
+          await this.prisma.wholesaleAsinQueue.upsert({
+            where: { asin },
+            update: {}, // Если ASIN уже в очереди, сохраняем существующий приоритет
+            create: {
+              asin,
+              priority: 10, // Базовый приоритет для новинок из Product Finder
+              addedAt: new Date()
+            }
+          });
+          queuedCount++;
+        } catch (queueErr) {
+          this.logger.debug(`Пропуск ASIN ${asin} при добавлении в очередь: ${queueErr.message}`);
+        }
+      }
+
+      this.logger.log(`Успешно добавлено в очередь ${queuedCount} новых ASIN из категории ${categoryId}`);
+      return { asins: asinList, totalResults, queued: queuedCount };
+    } catch (error) {
+      this.logger.error(`Сетевая ошибка при вызове Keepa Product Finder: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Запуск выгрузки по всем активным разрешенным категориям из базы данных
+   */
+  async fetchProductFinderForAllAllowedCategories(options?: Omit<ProductFinderOptions, 'domainId'>) {
+    this.logger.log('Получаем список активных разрешенных категорий из базы данных...');
+
+    // Выбираем только активные категории из таблицы KeepaAllowedCategory
+    const categories = await this.prisma.keepaAllowedCategory.findMany({
+      where: { isActive: true }
+    });
+
+    if (categories.length === 0) {
+      this.logger.warn('В базе данных нет активных категорий в таблице KeepaAllowedCategory.');
+      return [];
+    }
+
+    this.logger.log(`Найдено активных категорий: ${categories.length}`);
+    const results = [];
+
+    // Последовательно опрашиваем каждую категорию с паузой для сохранения токенов
+    for (const cat of categories) {
+      this.logger.log(`Обработка категории: ${cat.name} (ID: ${cat.categoryId})...`);
+      const res = await this.fetchProductFinder(cat.categoryId, {
+        ...options,
+        domainId: cat.domainId
+      });
+
+      results.push({
+        categoryId: cat.categoryId,
+        categoryName: cat.name,
+        ...res
+      });
+
+      // Пауза 2 секунды между запросами категорий для плавного расхода лимита токенов Keepa
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    return results;
+  }
+}
+
+/**
+ * Опции для вызова Keepa Product Finder API
+ */
+export interface ProductFinderOptions {
+  salesRankGte?: number;
+  salesRankLte?: number;
+  buyBoxGte?: number;
+  buyBoxLte?: number;
+  countNewGte?: number;
+  countNewLte?: number;
+  perPage?: number;
+  page?: number;
+  domainId?: number;
+}
+
+/**
+ * Описание запроса в очереди.
+ */
+interface QueuedRequest {
+  url: string;
+  options?: RequestInit;
+  expectedCost: number;
+  resolve: (value: any) => void;
+  reject: (reason?: any) => void;
 }

@@ -440,3 +440,14 @@ model Tag {
   name  String @unique
   asins ASIN[]
 }
+
+// Список разрешенных безопасных категорий для парсинга через Keepa Product Finder API
+model KeepaAllowedCategory {
+  id         Int      @id @default(autoincrement())
+  categoryId String   @unique // Keepa Browse Node ID категории (например, "599391031")
+  name       String   // Название категории (например, "Hogar y cocina")
+  domainId   Int      @default(4) // Идентификатор домена Keepa (4 = amazon.es)
+  isActive   Boolean  @default(true) // Флаг активности категории для регулярного опроса
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

@@ -1,4 +1,4 @@
-import { Controller, Post, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Param, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { KeepaService } from './keepa.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -42,5 +42,38 @@ export class KeepaController {
     }
 
     return processed;
+  }
+
+  /**
+   * Получение списка разрешенных безопасных категорий из БД
+   */
+  @Get('allowed-categories')
+  async getAllowedCategories() {
+    // Возвращаем все записи из таблицы разрешенных категорий
+    return this.prisma.keepaAllowedCategory.findMany({
+      orderBy: { id: 'asc' }
+    });
+  }
+
+  /**
+   * Запуск Product Finder для конкретной категории
+   */
+  @Post('product-finder/category/:categoryId')
+  async runProductFinderForCategory(@Param('categoryId') categoryId: string) {
+    if (!categoryId) {
+      throw new HttpException('Идентификатор категории обязателен', HttpStatus.BAD_REQUEST);
+    }
+
+    // Запускаем поиск по категории с безопасными фильтрами по умолчанию
+    return this.keepaService.fetchProductFinder(categoryId);
+  }
+
+  /**
+   * Запуск Product Finder для всех активных категорий из белого списка БД
+   */
+  @Post('product-finder/all')
+  async runProductFinderForAll() {
+    // Опрашиваем все активные категории
+    return this.keepaService.fetchProductFinderForAllAllowedCategories();
   }
 }
