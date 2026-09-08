@@ -2,7 +2,7 @@ Subject: Wholesale Inquiry / B2B Cooperation Request [Ticket: DB-116420] - Viasg
 
 Dear De Bondt B.V. Team,
 
-My name is Vitaliy, representing Viasglobal, a European B2B wholesale and omnichannel distribution company based in Spain.
+My name is Vitalii, representing Viasglobal, a European B2B wholesale and omnichannel distribution company based in Spain.
 
 We specialize in direct volume procurement and distribution across key European consumer sectors (Home & Living, Kitchenware, DIY, Sports & Leisure, and Daily Goods). We partner with established European brand manufacturers and official distributors, guaranteeing strict adherence to Recommended Retail Prices (MAP/RRP), reliable SEPA settlements, and direct inbound logistics (DAP/DDP) to our warehouse in Spain.
 
