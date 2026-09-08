@@ -3,7 +3,7 @@ Subject: B2B Account Opening Request - Viasglobal (Spain)
 
 Dear {Manufacturer_name_or_distributor_name},
 
-My name is Vitaliy, representing Viasglobal, a retail e-commerce company based in Spain.
+My name is Vitalii, representing Viasglobal, a retail e-commerce company based in Spain.
 
 We operate an innovative online webshop tailored to the Spanish market. A unique feature of our platform is an interactive calendar of Spanish national and local fiestas, offering curated product selections for each occasion. Additionally, we integrate an AI-driven shopping assistant that provides highly personalized product recommendations based on specific customer requests. We partner with established European brand manufacturers and official distributors, guaranteeing strict adherence to Recommended Retail Prices (MAP/RRP), reliable SEPA settlements, and direct inbound logistics (DAP/DDP) to our warehouse in Spain.
 

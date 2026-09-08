@@ -3,7 +3,7 @@ Subject: Solicitud de apertura de cuenta profesional - Viasglobal (España)
 
 Estimado equipo de Safta S.A.,
 
-Mi nombre es Vitaliy y represento a Viasglobal, una empresa de comercio electrónico minorista con sede en España.
+Mi nombre es Vitalii y represento a Viasglobal, una empresa de comercio electrónico minorista con sede en España.
 
 Operamos una innovadora tienda online adaptada al mercado español. Una característica única de nuestra plataforma es un calendario interactivo de fiestas nacionales y locales de España, en el que ofrecemos selecciones de productos específicas para cada ocasión. Además, integramos un asistente de compras inteligente (IA) que proporciona recomendaciones de productos altamente personalizadas según las peticiones de los clientes. Colaboramos con fabricantes europeos y distribuidores oficiales reconocidos, garantizando el estricto cumplimiento de los Precios de Venta Recomendados (PVR), pagos seguros mediante transferencia SEPA y logística de recepción directa (DAP/DDP) en nuestro almacén en España.
 
@@ -33,4 +33,4 @@ Asimismo, estamos a su disposición para proporcionar nuestro certificado de sit
 Agradecemos de antemano su tiempo y esperamos poder colaborar pronto.
 
 Atentamente,
-Vitaliy
+Vitalii
