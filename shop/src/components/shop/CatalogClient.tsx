@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGridWithLoadMore } from "@/components/shop/ProductGridWithLoadMore";
 import { ProductFilter } from "@/components/shop/ProductFilter";
 import { ProductCategory, Product } from "@/types";
 import { useCartStore } from "@/store/cartStore";
@@ -216,18 +216,7 @@ export function CatalogClient({ initialProducts }: CatalogClientProps) {
             </button>
           </div>
         ) : (
-          <div
-            className="grid-products"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "24px",
-            }}
-          >
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductGridWithLoadMore products={filteredProducts} initialCount={24} step={24} />
         )}
       </div>
     </div>

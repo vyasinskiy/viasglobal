@@ -81,7 +81,7 @@ export default async function VueltaAlColePage() {
         </div>
 
         {/* Сетка товаров */}
-        <ProductGridWithLoadMore products={studyProducts} initialCount={12} step={12} />
+        <ProductGridWithLoadMore products={studyProducts} initialCount={24} step={24} />
       </div>
     </div>
   );

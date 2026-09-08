@@ -207,11 +207,9 @@ export const Footer = () => {
               {t.footer.catTitle}
             </h4>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.88rem", color: "var(--text-muted)" }}>
-              <li><Link href="/products?category=audio" style={{ transition: "color 0.2s" }}>{language === "es" ? "Audio y Auriculares" : "Audio & Headphones"}</Link></li>
-              <li><Link href="/products?category=workspace" style={{ transition: "color 0.2s" }}>{language === "es" ? "Espacio de Trabajo" : "Workspace & Ergonomics"}</Link></li>
-              <li><Link href="/products?category=smart-home" style={{ transition: "color 0.2s" }}>{language === "es" ? "Hogar Inteligente" : "Smart Home & IoT"}</Link></li>
-              <li><Link href="/products?category=electronics" style={{ transition: "color 0.2s" }}>{language === "es" ? "Cargadores GaN" : "GaN Fast Chargers"}</Link></li>
-              <li><Link href="/products?category=lifestyle" style={{ transition: "color 0.2s" }}>{language === "es" ? "Bienestar y Hogar" : "Lifestyle & Living"}</Link></li>
+              <li><Link href="/products?category=lifestyle" style={{ transition: "color 0.2s" }}>{language === "es" ? "Hogar y Estilo de Vida" : "Home & Lifestyle"}</Link></li>
+              <li><Link href="/products?category=workspace" style={{ transition: "color 0.2s" }}>{language === "es" ? "Papelería y Creatividad" : "Stationery & Workspace"}</Link></li>
+              <li><Link href="/products?category=electronics" style={{ transition: "color 0.2s" }}>{language === "es" ? "Tecnología y Gadgets" : "Tech & Gadgets"}</Link></li>
             </ul>
           </div>
 

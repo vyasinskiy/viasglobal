@@ -86,7 +86,7 @@ export function OrdenEnCasaClient({ initialProducts }: { initialProducts: import
           </div>
         </div>
 
-        <ProductGridWithLoadMore products={homeProducts} initialCount={12} step={12} />
+        <ProductGridWithLoadMore products={homeProducts} initialCount={24} step={24} />
       </div>
     </div>
   );

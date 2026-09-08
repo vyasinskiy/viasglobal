@@ -99,7 +99,7 @@ export function RegalosOriginalesClient({ initialProducts }: { initialProducts: 
             {t.catalogTitle}
           </h2>
 
-          <ProductGridWithLoadMore products={giftProducts} initialCount={12} step={12} />
+          <ProductGridWithLoadMore products={giftProducts} initialCount={24} step={24} />
         </div>
       </div>
     </div>

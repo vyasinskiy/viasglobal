@@ -86,7 +86,7 @@ export function EspecialNavidadClient({ initialProducts }: { initialProducts: im
         </div>
 
         {/* Сетка товаров */}
-        <ProductGridWithLoadMore products={christmasProducts} initialCount={12} step={12} />
+        <ProductGridWithLoadMore products={christmasProducts} initialCount={24} step={24} />
       </div>
     </div>
   );

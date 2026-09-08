@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { useCartStore } from "@/store/cartStore";
 import { Product } from "@/types";
@@ -11,9 +11,14 @@ interface Props {
   step?: number;
 }
 
-export function ProductGridWithLoadMore({ products, initialCount = 12, step = 12 }: Props) {
+export function ProductGridWithLoadMore({ products, initialCount = 24, step = 24 }: Props) {
   const { language } = useCartStore();
   const [visibleCount, setVisibleCount] = useState(initialCount);
+
+  // Сбрасываем пагинацию при изменении списка товаров (например, при фильтрации)
+  useEffect(() => {
+    setVisibleCount(initialCount);
+  }, [products, initialCount]);
 
   const visibleProducts = products.slice(0, visibleCount);
 

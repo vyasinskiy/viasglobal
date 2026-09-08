@@ -52,7 +52,7 @@ export const AiGiftAdvisor = ({ initialProducts }: AiGiftAdvisorProps = {}) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [recipient, setRecipient] = useState<RecipientType | null>(null);
   const [interest, setInterest] = useState<InterestType | null>(null);
-  const [budget, setBudget] = useState<BudgetType | null>(null);
+  const [budget, setBudget] = useState<BudgetType>("any");
 
   // Свободный текстовый поиск через ИИ
   const [freeformQuery, setFreeformQuery] = useState("");
@@ -391,7 +391,7 @@ export const AiGiftAdvisor = ({ initialProducts }: AiGiftAdvisorProps = {}) => {
     setCurrentStep(1);
     setRecipient(null);
     setInterest(null);
-    setBudget(null);
+    setBudget("any");
     setFreeformQuery("");
     setHasGenerated(false);
   };
@@ -934,13 +934,11 @@ export const AiGiftAdvisor = ({ initialProducts }: AiGiftAdvisorProps = {}) => {
                   ← {language === "es" ? "Atrás" : "Back"}
                 </button>
                 <button
-                  disabled={!budget}
                   onClick={handleGenerateRecommendations}
                   className="btn-accent"
                   style={{
                     padding: "14px 32px",
-                    opacity: budget ? 1 : 0.5,
-                    cursor: budget ? "pointer" : "not-allowed",
+                    cursor: "pointer",
                   }}
                 >
                   <Sparkles size={18} /> {t.generateBtn}

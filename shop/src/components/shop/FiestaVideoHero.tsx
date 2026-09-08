@@ -6,10 +6,6 @@ import Image from "next/image";
 import { useCartStore } from "@/store/cartStore";
 import { getCurrentWeekEvent } from "@/data/annual52WeeksCalendar";
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
   Sparkles,
   ArrowRight,
   Calendar,
@@ -25,8 +21,6 @@ export const FiestaVideoHero = () => {
   const currentWeek = getCurrentWeekEvent();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   // Видео-источники (Фейерверки, ночные огни фиест, фестивальная атмосфера Валенсии и Средиземноморья)
@@ -34,23 +28,6 @@ export const FiestaVideoHero = () => {
     "https://assets.mixkit.co/videos/preview/mixkit-fireworks-illuminating-the-beach-sky-41484-large.mp4";
   const posterUrl =
     "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1920&auto=format&fit=crop&q=80";
-
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      videoRef.current.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
 
   const t = {
     badge:
@@ -270,60 +247,6 @@ export const FiestaVideoHero = () => {
         </div>
       </div>
 
-      {/* Кнопки управления видео в нижнем углу */}
-      <div
-        style={{
-          position: "absolute",
-          right: "24px",
-          bottom: "24px",
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          background: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(10px)",
-          padding: "6px 12px",
-          borderRadius: "var(--radius-full)",
-          border: "1px solid rgba(255, 255, 255, 0.15)",
-        }}
-      >
-        <button
-          onClick={togglePlay}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#fff",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            padding: "4px",
-          }}
-          title={isPlaying ? "Pausar vídeo" : "Reproducir vídeo"}
-          aria-label={isPlaying ? "Pausar vídeo" : "Reproducir vídeo"}
-        >
-          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-
-        <button
-          onClick={toggleMute}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#fff",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            padding: "4px",
-          }}
-          title={isMuted ? "Activar sonido" : "Silenciar"}
-          aria-label={isMuted ? "Activar sonido" : "Silenciar"}
-        >
-          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
-
-        <span style={{ fontSize: "0.72rem", color: "rgba(255, 255, 255, 0.7)", fontWeight: 600 }}>
-          Fiestas de España HD
-        </span>
       </div>
     </div>
   );

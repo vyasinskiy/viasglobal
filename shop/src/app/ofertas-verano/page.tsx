@@ -81,7 +81,7 @@ export default async function OfertasVeranoPage() {
         </div>
 
         {/* Сетка товаров */}
-        <ProductGridWithLoadMore products={summerProducts} initialCount={12} step={12} />
+        <ProductGridWithLoadMore products={summerProducts} initialCount={24} step={24} />
       </div>
     </div>
   );

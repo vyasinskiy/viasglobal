@@ -74,7 +74,7 @@ export const MarketingCalendarWidget = () => {
     selectedWeekTitle: language === "es" ? "Detalle de la Semana Seleccionada" : "Selected Week Details",
     recommendedTitle: language === "es" ? "Productos en foco:" : "Focus products:",
     actionPlanTitle: language === "es" ? "Plan de acción operativo:" : "Operational marketing plan:",
-    seoHub: language === "es" ? "Página SEO permanente:" : "Permanent SEO Landing:",
+    seoHub: language === "es" ? "Ir a la colección:" : "Go to collection:",
   };
 
   return (
@@ -196,7 +196,7 @@ export const MarketingCalendarWidget = () => {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: isSelected ? "#ea580c" : "#0284c7", textTransform: "uppercase" }}>
-                  S.{w.weekNumber} • {w.dateRange}
+                  {w.dateRange}
                 </span>
                 <span style={{ fontSize: "0.72rem", color: "var(--text-subtle)", fontWeight: 600 }}>
                   {w.monthName[language] || w.monthName.es}

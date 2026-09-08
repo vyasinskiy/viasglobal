@@ -88,7 +88,7 @@ export function EspecialPuentesClient({ initialProducts }: { initialProducts: im
         </div>
 
         {/* Сетка товаров для мостов и поездок */}
-        <ProductGridWithLoadMore products={puentesProducts} initialCount={12} step={12} />
+        <ProductGridWithLoadMore products={puentesProducts} initialCount={24} step={24} />
       </div>
     </div>
   );
