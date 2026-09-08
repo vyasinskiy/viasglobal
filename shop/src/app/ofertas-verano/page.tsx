@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getStoreProducts } from "@/lib/products";
-import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGridWithLoadMore } from "@/components/shop/ProductGridWithLoadMore";
 import { Sun, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -81,17 +81,7 @@ export default async function OfertasVeranoPage() {
         </div>
 
         {/* Сетка товаров */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {summerProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductGridWithLoadMore products={summerProducts} initialCount={12} step={12} />
       </div>
     </div>
   );

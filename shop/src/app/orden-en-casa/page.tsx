@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useProducts } from "@/hooks/useProducts";
-import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGridWithLoadMore } from "@/components/shop/ProductGridWithLoadMore";
 import { useCartStore } from "@/store/cartStore";
 import { Home, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 
@@ -12,7 +12,6 @@ import { Home, Truck, ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 export default function OrdenEnCasaPage() {
   const { language } = useCartStore();
   const { products } = useProducts();
-
   const homeProducts = products.filter(
     (p) => p.category === "workspace" || p.category === "smart-home" || p.category === "lifestyle"
   );
@@ -87,18 +86,7 @@ export default function OrdenEnCasaPage() {
           </div>
         </div>
 
-        {/* Сетка товаров */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {homeProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductGridWithLoadMore products={homeProducts} initialCount={12} step={12} />
       </div>
     </div>
   );

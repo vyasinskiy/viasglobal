@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useProducts } from "@/hooks/useProducts";
-import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGridWithLoadMore } from "@/components/shop/ProductGridWithLoadMore";
 import { useCartStore } from "@/store/cartStore";
 import { Sparkles, Truck, ArrowRight, ArrowLeft, Calendar, Gift } from "lucide-react";
 
@@ -86,17 +86,7 @@ export default function EspecialNavidadPage() {
         </div>
 
         {/* Сетка товаров */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {christmasProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductGridWithLoadMore products={christmasProducts} initialCount={12} step={12} />
       </div>
     </div>
   );

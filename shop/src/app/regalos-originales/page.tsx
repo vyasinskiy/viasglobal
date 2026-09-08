@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useProducts } from "@/hooks/useProducts";
-import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGridWithLoadMore } from "@/components/shop/ProductGridWithLoadMore";
 import { AiGiftAdvisor } from "@/components/shop/AiGiftAdvisor";
 import { useCartStore } from "@/store/cartStore";
 import { Gift, Truck, ArrowRight, ArrowLeft, Calendar, Sparkles } from "lucide-react";
@@ -99,17 +99,7 @@ export default function RegalosOriginalesPage() {
             {t.catalogTitle}
           </h2>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "24px",
-            }}
-          >
-            {giftProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductGridWithLoadMore products={giftProducts} initialCount={12} step={12} />
         </div>
       </div>
     </div>
