@@ -246,8 +246,6 @@ export const FiestaVideoHero = () => {
           </div>
         </div>
       </div>
-
-      </div>
     </div>
   );
 };
