@@ -1,5 +1,5 @@
 To: {recipient_email}
-Subject: B2B Cooperation Request - Viasglobal (Spain)
+Subject: B2B Account Opening Request - Viasglobal (Spain)
 
 Dear {Manufacturer_name_or_distributor_name},
 

@@ -1,5 +1,5 @@
 To: info@safta.com
-Subject: Solicitud de colaboración B2B - Viasglobal (España)
+Subject: Solicitud de apertura de cuenta profesional - Viasglobal (España)
 
 Estimado equipo de Safta S.A.,
 
