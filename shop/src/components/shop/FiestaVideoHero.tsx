@@ -72,7 +72,7 @@ export const FiestaVideoHero = () => {
         ref={videoRef}
         autoPlay
         loop
-        muted={isMuted}
+        muted={true}
         playsInline
         poster={posterUrl}
         onLoadedData={() => setVideoLoaded(true)}
