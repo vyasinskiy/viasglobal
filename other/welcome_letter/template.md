@@ -1,13 +1,13 @@
 To: {recipient_email}
-Subject: Wholesale Inquiry / B2B Cooperation Request - Viasglobal (Spain)
+Subject: B2B Cooperation Request - Viasglobal (Spain)
 
 Dear {Manufacturer_name_or_distributor_name},
 
-My name is Vitaliy, representing Viasglobal, a European B2B wholesale and omnichannel distribution company based in Spain.
+My name is Vitaliy, representing Viasglobal, a European retail e-commerce company based in Spain.
 
-We specialize in direct volume procurement and distribution across key European consumer sectors (Home & Living, Kitchenware, DIY, Sports & Leisure, and Daily Goods). We partner with established European brand manufacturers and official distributors, guaranteeing strict adherence to Recommended Retail Prices (MAP/RRP), reliable SEPA settlements, and direct inbound logistics (DAP/DDP) to our warehouse in Spain.
+We operate an innovative online webshop tailored to the Spanish market. A unique feature of our platform is an interactive calendar of Spanish national and local fiestas, offering curated product selections for each occasion. Additionally, we integrate an AI-driven shopping assistant that provides highly personalized product recommendations based on specific customer requests. We partner with established European brand manufacturers and official distributors, guaranteeing strict adherence to Recommended Retail Prices (MAP/RRP), reliable SEPA settlements, and direct inbound logistics (DAP/DDP) to our warehouse in Spain.
 
-We are highly interested in establishing a long-term B2B partnership with {Manufacturer_name_or_distributor_name} to purchase your products at wholesale terms.
+We are currently expanding our product assortment and are highly interested in establishing a long-term B2B partnership with {Manufacturer_name_or_distributor_name} to incorporate your items into our catalog.
 
 For reference, we are currently looking for the following items:
 - EAN {number}
@@ -23,7 +23,7 @@ Could you please provide us with:
 Our company details:
 - Company Name: Viasglobal
 - Legal Form / Representative: Vitalii Iasinskii (Autónomo)
-- EU VAT / Tax ID: ESZ1154366R (Active in VIES / ROI - 0% Intra-EU VAT)
+- EU VAT / Tax ID: ESZ1154366R (Active in VIES)
 - Website: https://viasglobal.es
 
 Please find attached our official Company Details Sheet (PDF).
