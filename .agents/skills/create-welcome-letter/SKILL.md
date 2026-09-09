@@ -44,6 +44,15 @@ description: Формирует приветственное B2B письмо п
 
 ---
 
+## Персонализация письма под календарь событий (Опционально)
+
+Если пользователь предоставляет описание или категорию товаров (например, "это краски для раскрашивания игрушек" или "товары для Хэллоуина"), ты должен:
+1. Запросить у пользователя желаемый сезон или выполнить поиск по файлу `shop/src/data/annual52WeeksCalendar.ts` (или `holidayCalendar.ts`), чтобы найти подходящие предстоящие события в ближайшие 3-4 месяца.
+2. Использовать это событие для персонализации письма.
+3. Добавить в письмо аргументацию, почему мы хотим закупить именно эти товары. Например: вместо стандартного "We are currently expanding our product assortment..." написать что-то вроде: "As we are preparing for the upcoming [Event Name] season, we are currently expanding our product assortment in the [Category] category. Your products would perfectly fit our upcoming sales campaign..."
+
+---
+
 ## Формирование письма
 
 1. Прочитай актуальный шаблон из [`other/welcome_letter/template.md`](file:///Users/usuario/code/viasglobal/other/welcome_letter/template.md).
