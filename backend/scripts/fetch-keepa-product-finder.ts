@@ -41,7 +41,7 @@ async function main() {
     // Режим запуска по всем категориям
     if (arg === '--all') {
       console.log('\nЗапуск Keepa Product Finder по ВСЕМ активным категориям из БД...');
-      const response = await fetch(`${backendBaseUrl}/keepa/product-finder/all`, {
+      const response = await fetch(`${backendBaseUrl}/keepa/export/category/all`, {
         method: 'POST'
       });
 
@@ -58,7 +58,7 @@ async function main() {
     // Режим запуска по конкретной категории (передан categoryId)
     const categoryId = arg;
     console.log(`\nЗапуск Keepa Product Finder для категории ${categoryId}...`);
-    const response = await fetch(`${backendBaseUrl}/keepa/product-finder/category/${categoryId}`, {
+    const response = await fetch(`${backendBaseUrl}/keepa/export/category/${categoryId}`, {
       method: 'POST'
     });
 

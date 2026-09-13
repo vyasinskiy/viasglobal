@@ -43,13 +43,13 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
     expect(service).toBeDefined();
   });
 
-  describe('fetchProductFinder', () => {
+  describe('fetchAndSaveKeepaExportForCategory', () => {
     it('должен возвращать пустой результат, если KEEPA_API_KEY не задан', async () => {
       // Сохраняем исходный ключ и очищаем для проверки защитного условия
       const originalKey = process.env.KEEPA_API_KEY;
       delete process.env.KEEPA_API_KEY;
 
-      const result = await service.fetchProductFinder('599391031');
+      const result = await service.fetchAndSaveKeepaExportForCategory('599391031');
       expect(result).toEqual({ asins: [], totalResults: 0, queued: 0 });
 
       // Восстанавливаем ключ
@@ -67,7 +67,7 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
         }),
       } as any);
 
-      const result = await service.fetchProductFinder('599391031');
+      const result = await service.fetchAndSaveKeepaExportForCategory('599391031');
 
       // Проверяем факт вызова fetch
       expect(mockFetch).toHaveBeenCalled();
@@ -95,17 +95,17 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
     });
   });
 
-  describe('fetchProductFinderForAllAllowedCategories', () => {
+  describe('fetchAndSaveKeepaExportForAllCategories', () => {
     it('должен опрашивать все активные разрешенные категории из базы данных', async () => {
       process.env.KEEPA_API_KEY = 'test_key';
 
-      const spySingle = jest.spyOn(service, 'fetchProductFinder').mockResolvedValue({
+      const spySingle = jest.spyOn(service, 'fetchAndSaveKeepaExportForCategory').mockResolvedValue({
         asins: ['B001TEST01'],
         totalResults: 1,
         queued: 1,
       });
 
-      const results = await service.fetchProductFinderForAllAllowedCategories();
+      const results = await service.fetchAndSaveKeepaExportForAllCategories();
 
       expect(prismaService.keepaAllowedCategory.findMany).toHaveBeenCalledWith({
         where: { isActive: true },

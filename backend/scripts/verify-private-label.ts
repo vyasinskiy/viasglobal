@@ -21,6 +21,9 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+// Базовый URL для локального API (можно переопределить через .env)
+const API_BASE_URL = process.env.API_BASE_URL;
+
 // Структура для детальной статистики по продавцу
 interface SellerStat {
   sellerName: string;
@@ -62,7 +65,7 @@ async function verifyPrivateLabel() {
       console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
       return;
     }
-    
+
     // Берем тот вариант бренда, у которого больше всего выгрузок (или первый попавшийся)
     const targetBrand = targetBrands[0];
 
@@ -78,22 +81,33 @@ async function verifyPrivateLabel() {
     }
 
     if (!brandExportCheck) {
-      // Пытаемся найти продавца, чтобы подсказать пользователю его Seller ID
-      const targetSellerForInfo = await prisma.seller.findFirst({
-        where: {
-          OR: [
-            { id: { equals: sellerParam, mode: 'insensitive' } },
-            { name: { equals: sellerParam, mode: 'insensitive' } },
-          ],
-        },
-      });
-      const sellerIdInfo = targetSellerForInfo ? ` (Seller ID продавца "${targetSellerForInfo.name}": ${targetSellerForInfo.id})` : '';
-
       console.log(`⚠️ Отдельная выгрузка каталога для бренда "${targetBrand.name}" не найдена в таблице KeepaExport.`);
-      console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина)${sellerIdInfo}.`);
-      console.log(`   Пожалуйста, выгрузите полный каталог бренда из Keepa (Product Finder -> Brand: "${targetBrand.name}") и загрузите:`);
-      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
-      return;
+      console.log(`⏳ Автоматически запрашиваем каталог бренда через Keepa API... Это может занять несколько минут.`);
+
+      try {
+        const url = `${API_BASE_URL}/keepa/export/brand/${targetBrand.id}?name=${encodeURIComponent(targetBrand.name)}`;
+        const res = await fetch(url, { method: 'POST' });
+
+        if (!res.ok) {
+          throw new Error(`API returned status ${res.status}`);
+        }
+        console.log(`✅ Выгрузка каталога бренда успешно сформирована.\n`);
+      } catch (err: any) {
+        const targetSellerForInfo = await prisma.seller.findFirst({
+          where: {
+            OR: [
+              { id: { equals: sellerParam, mode: 'insensitive' } },
+              { name: { equals: sellerParam, mode: 'insensitive' } },
+            ],
+          },
+        });
+        const sellerIdInfo = targetSellerForInfo ? ` (Seller ID продавца "${targetSellerForInfo.name}": ${targetSellerForInfo.id})` : '';
+        console.log(`❌ Ошибка при автоматическом формировании выгрузки бренда: ${err.message}`);
+        console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина)${sellerIdInfo}.`);
+        console.log(`   Пожалуйста, выгрузите полный каталог бренда из Keepa (Product Finder -> Brand: "${targetBrand.name}") и загрузите:`);
+        console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
+        return;
+      }
     }
 
     // --------------------------------------------------------------------------
@@ -126,10 +140,23 @@ async function verifyPrivateLabel() {
 
     if (!sellerExportCheck) {
       console.log(`⚠️ Отдельная выгрузка витрины для продавца "${targetSeller.name}" не найдена в таблице KeepaExport.`);
-      console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина).`);
-      console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa (Product Finder -> Seller: "${targetSeller.name}" / Seller ID: "${targetSeller.id}") и загрузите:`);
-      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
-      return;
+      console.log(`⏳ Автоматически запрашиваем витрину продавца через Keepa API... Это может занять несколько минут.`);
+
+      try {
+        const url = `${API_BASE_URL}/keepa/export/seller/${targetSeller.id}`;
+        const res = await fetch(url, { method: 'POST' });
+
+        if (!res.ok) {
+          throw new Error(`API returned status ${res.status}`);
+        }
+        console.log(`✅ Выгрузка витрины продавца успешно сформирована.\n`);
+      } catch (err: any) {
+        console.log(`❌ Ошибка при автоматическом формировании выгрузки продавца: ${err.message}`);
+        console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина).`);
+        console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa (Product Finder -> Seller: "${targetSeller.name}" / Seller ID: "${targetSeller.id}") и загрузите:`);
+        console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
+        return;
+      }
     }
 
     // --------------------------------------------------------------------------
@@ -303,8 +330,8 @@ async function verifyPrivateLabel() {
       // --------------------------------------------------------------------------
       const nonDominantSellers = sortedSellers.filter(
         (s) => !s.sellerName.toLowerCase().includes(sellerParam.toLowerCase()) &&
-               (!s.sellerId || s.sellerId.toLowerCase() !== sellerParam.toLowerCase()) &&
-               s.sellerName !== '-'
+          (!s.sellerId || s.sellerId.toLowerCase() !== sellerParam.toLowerCase()) &&
+          s.sellerName !== '-'
       );
 
       if (nonDominantSellers.length > 0) {

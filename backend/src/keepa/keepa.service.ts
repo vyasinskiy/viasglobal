@@ -419,7 +419,7 @@ export class KeepaService {
    * @param categoryId Идентификатор корневой категории Keepa (Browse Node ID)
    * @param options Дополнительные параметры фильтрации
    */
-  async fetchProductFinder(categoryId: string, options?: ProductFinderOptions) {
+  async fetchAndSaveKeepaExportForCategory(categoryId: string, options?: ProductFinderOptions) {
     const url = this.buildKeepaApiUrl('query', options?.domainId);
     if (!url) {
       this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder.');
@@ -512,7 +512,7 @@ export class KeepaService {
   /**
    * Запуск выгрузки по всем активным разрешенным категориям из базы данных
    */
-  async fetchProductFinderForAllAllowedCategories(options?: Omit<ProductFinderOptions, 'domainId'>) {
+  async fetchAndSaveKeepaExportForAllCategories(options?: Omit<ProductFinderOptions, 'domainId'>) {
     this.logger.log('Получаем список активных разрешенных категорий из базы данных...');
 
     // Выбираем только активные категории из таблицы KeepaAllowedCategory
@@ -531,7 +531,7 @@ export class KeepaService {
     // Последовательно опрашиваем каждую категорию с паузой для сохранения токенов
     for (const cat of categories) {
       this.logger.log(`Обработка категории: ${cat.name} (ID: ${cat.categoryId})...`);
-      const res = await this.fetchProductFinder(cat.categoryId, {
+      const res = await this.fetchAndSaveKeepaExportForCategory(cat.categoryId, {
         ...options,
         domainId: cat.domainId
       });
@@ -548,6 +548,196 @@ export class KeepaService {
 
     return results;
   }
+
+  /**
+   * Экспорт каталога бренда из Keepa Product Finder и сохранение в KeepaExport
+   */
+  async fetchAndSaveKeepaExportForBrand(brandId: number, brandName: string, options?: ProductFinderOptions) {
+    const url = this.buildKeepaApiUrl('query', options?.domainId);
+    if (!url) {
+      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder для бренда.');
+      return { asins: [], totalResults: 0, queued: 0 };
+    }
+
+    const payload = {
+      // 0 = Физические товары Amazon (отсекает цифровые товары, подписки и книги)
+      productType: [0],
+      // Массив названий брендов для фильтрации
+      brand: [brandName],
+      // Нижняя граница BSR: от 1 для захвата высоколиквидных товаров с быстрой оборачиваемостью
+      current_SALES_gte: options?.salesRankGte ?? 1,
+      // Верхняя граница BSR: до 50 000 для исключения мертвого груза и неликвида
+      current_SALES_lte: options?.salesRankLte ?? 50000,
+      // Нижняя граница цены Buy Box: 15.00 € (в евроцентах) для обеспечения окупаемости комиссий FBA
+      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
+      // Верхняя граница цены Buy Box: 100.00 € (в евроцентах) для защиты оборотного капитала от дорогих возвратов
+      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
+      // От 5 продавцов: гарантия того, что бренд открыт для реселлеров (не Private Label и нет риска жалоб на IP)
+      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
+      // До 15 продавцов: защита от жесткого демпинга цен автоматическими репрайсерами
+      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
+      // Строгое исключение товаров для взрослых (защита личного имущества автонома по ст. 1911 ГК Испании)
+      isAdultProduct: false,
+      // Двухуровневая сортировка: сначала лучшие продажи по BSR, затем объем продаж в месяц
+      sort: [['current_SALES', 'asc'], ['monthlySold', 'desc']],
+      // Размер страницы выдачи (100 позиций за раз для оптимального расхода токенов)
+      perPage: options?.perPage ?? 100,
+      // Номер запрашиваемой страницы
+      page: options?.page ?? 0
+    };
+
+    this.logger.log(`Отправляем запрос к Keepa Product Finder для бренда ${brandName} (ID: ${brandId})...`);
+
+    try {
+      const data = await this.executeKeepaRequest(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }, 1);
+
+      if (data.error) {
+        this.logger.error(`Ошибка Keepa API для бренда ${brandName}: ${JSON.stringify(data.error)}`);
+        return { asins: [], totalResults: 0, queued: 0, error: data.error };
+      }
+
+      const asinList: string[] = data.asinList || [];
+      const totalResults: number = data.totalResults || 0;
+      this.logger.log(`Keepa Product Finder вернул ${asinList.length} ASIN для бренда ${brandName}`);
+
+      if (asinList.length === 0) {
+        return { asins: [], totalResults, queued: 0 };
+      }
+
+      const keepaExport = await this.prisma.keepaExport.create({
+        data: { brandId }
+      });
+
+      let queuedCount = 0;
+      for (const asinCode of asinList) {
+        try {
+          await this.prisma.aSIN.upsert({
+            where: { code: asinCode },
+            create: { 
+              code: asinCode,
+              keepaExports: { connect: { id: keepaExport.id } }
+            },
+            update: {
+              keepaExports: { connect: { id: keepaExport.id } }
+            }
+          });
+
+          await this.prisma.wholesaleAsinQueue.upsert({
+            where: { asin: asinCode },
+            update: {},
+            create: { asin: asinCode, priority: 15, addedAt: new Date() }
+          });
+          queuedCount++;
+        } catch (e: any) {
+           this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
+        }
+      }
+
+      return { asins: asinList, totalResults, queued: queuedCount, keepaExportId: keepaExport.id };
+    } catch (error: any) {
+      this.logger.error(`Сетевая ошибка при вызове Product Finder для бренда: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Экспорт витрины продавца из Keepa Product Finder и сохранение в KeepaExport
+   */
+  async fetchAndSaveKeepaExportForSeller(sellerId: string, options?: ProductFinderOptions) {
+    const url = this.buildKeepaApiUrl('query', options?.domainId);
+    if (!url) {
+      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder для продавца.');
+      return { asins: [], totalResults: 0, queued: 0 };
+    }
+
+    const payload = {
+      // 0 = Физические товары Amazon (отсекает цифровые товары, подписки и книги)
+      productType: [0],
+      // Идентификаторы продавцов (Seller IDs) для фильтрации предложений на витрине
+      sellerIds: [sellerId],
+      // Нижняя граница BSR: от 1 для захвата высоколиквидных товаров с быстрой оборачиваемостью
+      current_SALES_gte: options?.salesRankGte ?? 1,
+      // Верхняя граница BSR: до 50 000 для исключения мертвого груза и неликвида
+      current_SALES_lte: options?.salesRankLte ?? 50000,
+      // Нижняя граница цены Buy Box: 15.00 € (в евроцентах) для обеспечения окупаемости комиссий FBA
+      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
+      // Верхняя граница цены Buy Box: 100.00 € (в евроцентах) для защиты оборотного капитала от дорогих возвратов
+      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
+      // От 5 продавцов: гарантия того, что бренд открыт для реселлеров (не Private Label и нет риска жалоб на IP)
+      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
+      // До 15 продавцов: защита от жесткого демпинга цен автоматическими репрайсерами
+      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
+      // Строгое исключение товаров для взрослых (защита личного имущества автонома по ст. 1911 ГК Испании)
+      isAdultProduct: false,
+      // Двухуровневая сортировка: сначала лучшие продажи по BSR, затем объем продаж в месяц
+      sort: [['current_SALES', 'asc'], ['monthlySold', 'desc']],
+      // Размер страницы выдачи (100 позиций за раз для оптимального расхода токенов)
+      perPage: options?.perPage ?? 100,
+      // Номер запрашиваемой страницы
+      page: options?.page ?? 0
+    };
+
+    this.logger.log(`Отправляем запрос к Keepa Product Finder для продавца ${sellerId}...`);
+
+    try {
+      const data = await this.executeKeepaRequest(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }, 1);
+
+      if (data.error) {
+        this.logger.error(`Ошибка Keepa API для продавца ${sellerId}: ${JSON.stringify(data.error)}`);
+        return { asins: [], totalResults: 0, queued: 0, error: data.error };
+      }
+
+      const asinList: string[] = data.asinList || [];
+      const totalResults: number = data.totalResults || 0;
+      
+      if (asinList.length === 0) {
+        return { asins: [], totalResults, queued: 0 };
+      }
+
+      const keepaExport = await this.prisma.keepaExport.create({
+        data: { sellerId }
+      });
+
+      let queuedCount = 0;
+      for (const asinCode of asinList) {
+        try {
+          await this.prisma.aSIN.upsert({
+            where: { code: asinCode },
+            create: { 
+              code: asinCode,
+              keepaExports: { connect: { id: keepaExport.id } }
+            },
+            update: {
+              keepaExports: { connect: { id: keepaExport.id } }
+            }
+          });
+
+          await this.prisma.wholesaleAsinQueue.upsert({
+            where: { asin: asinCode },
+            update: {},
+            create: { asin: asinCode, priority: 15, addedAt: new Date() }
+          });
+          queuedCount++;
+        } catch (e: any) {
+           this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
+        }
+      }
+
+      return { asins: asinList, totalResults, queued: queuedCount, keepaExportId: keepaExport.id };
+    } catch (error: any) {
+      this.logger.error(`Сетевая ошибка при вызове Product Finder для продавца: ${error.message}`);
+      throw error;
+    }
+  }
+
 }
 
 /**

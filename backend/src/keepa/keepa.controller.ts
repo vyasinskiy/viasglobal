@@ -58,22 +58,53 @@ export class KeepaController {
   /**
    * Запуск Product Finder для конкретной категории
    */
-  @Post('product-finder/category/:categoryId')
-  async runProductFinderForCategory(@Param('categoryId') categoryId: string) {
+  @Post('export/category/:categoryId')
+  async exportCategory(@Param('categoryId') categoryId: string) {
     if (!categoryId) {
       throw new HttpException('Идентификатор категории обязателен', HttpStatus.BAD_REQUEST);
     }
 
     // Запускаем поиск по категории с безопасными фильтрами по умолчанию
-    return this.keepaService.fetchProductFinder(categoryId);
+    return this.keepaService.fetchAndSaveKeepaExportForCategory(categoryId);
   }
 
   /**
    * Запуск Product Finder для всех активных категорий из белого списка БД
    */
-  @Post('product-finder/all')
-  async runProductFinderForAll() {
+  @Post('export/category-all')
+  async exportAllCategories() {
     // Опрашиваем все активные категории
-    return this.keepaService.fetchProductFinderForAllAllowedCategories();
+    return this.keepaService.fetchAndSaveKeepaExportForAllCategories();
+  }
+
+  /**
+   * Запуск экспорта каталога бренда через Keepa Product Finder
+   */
+  @Post('export/brand/:brandId')
+  async exportBrand(@Param('brandId') brandId: string, @Query('name') brandName: string) {
+    if (!brandId || !brandName) {
+      throw new HttpException('Brand ID and Name are required', HttpStatus.BAD_REQUEST);
+    }
+    const result = await this.keepaService.fetchAndSaveKeepaExportForBrand(parseInt(brandId, 10), brandName);
+    if (!result) {
+      throw new HttpException('Failed to generate export or no ASINs found', HttpStatus.NOT_FOUND);
+    }
+    return result;
+  }
+
+  /**
+   * Запуск экспорта витрины продавца через Keepa Product Finder
+   */
+  @Post('export/seller/:sellerId')
+  async exportSeller(@Param('sellerId') sellerId: string) {
+    if (!sellerId) {
+      throw new HttpException('Seller ID is required', HttpStatus.BAD_REQUEST);
+    }
+    const result = await this.keepaService.fetchAndSaveKeepaExportForSeller(sellerId);
+    if (!result) {
+      throw new HttpException('Failed to generate export or no ASINs found', HttpStatus.NOT_FOUND);
+    }
+    return result;
   }
 }
+
