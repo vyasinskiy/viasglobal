@@ -50,16 +50,22 @@ async function verifyPrivateLabel() {
     // --------------------------------------------------------------------------
     // Шаг 0.1: Поиск бренда и проверка наличия отдельной выгрузки по бренду
     // --------------------------------------------------------------------------
-    const targetBrand = await prisma.brand.findFirst({
+    const targetBrands = await prisma.brand.findMany({
       where: { name: { equals: brandName, mode: 'insensitive' } },
+      include: { _count: { select: { keepaExports: true } } },
+      orderBy: { keepaExports: { _count: 'desc' } }
     });
 
-    if (!targetBrand) {
+    if (targetBrands.length === 0) {
       console.log(`⚠️ Бренд "${brandName}" не найден в базе данных.`);
       console.log(`   Чтобы корректно проанализировать бренд, необходимо загрузить его каталог из Keepa:`);
       console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
       return;
     }
+    
+    // Берем тот вариант бренда, у которого больше всего выгрузок (или первый попавшийся)
+    const targetBrand = targetBrands[0];
+
 
     let brandExportCheck = null;
     try {
