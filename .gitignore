@@ -49,3 +49,6 @@ landing/public/viasglobal-company-details*.pdf
 # scraper data dumps and logs
 shop/src/data/scraped_products.json
 shop/logs/
+
+# Temporary agent scripts
+backend/scripts/temp/
