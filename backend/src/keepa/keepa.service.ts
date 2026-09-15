@@ -1,8 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Prisma } from '@prisma/client';
+import { KeepaRequestType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisService } from '../analysis/analysis.service';
+import {
+  KeepaQueueService,
+  KEEPA_PRIORITY,
+  ProductFinderOptions,
+  KeepaRequestQueueJob,
+  ProductAsinsPayload,
+  CategoryFinderPayload,
+  BrandFinderPayload,
+  SellerFinderPayload,
+} from './keepa-queue.service';
 
 @Injectable()
 export class KeepaService {
@@ -11,89 +21,10 @@ export class KeepaService {
   // Идентификатор маркетплейса Keepa (4 = amazon.es)
   private readonly defaultDomainId = 4;
 
-  // Очередь и токены Keepa
-  private tokensLeft: number = 10; // Начальное значение, обновится после первого запроса
-  private refillRate: number = 1;  // Скорость обновления токенов в минуту
-  private requestQueue: QueuedRequest[] = [];
-  private isProcessingQueue: boolean = false;
-
-  /**
-   * Формирует базовый URL для запросов к Keepa API
-   */
-  private buildKeepaApiUrl(endpoint: string, domainId?: number): string | null {
-    const apiKey = process.env.KEEPA_API_KEY;
-    if (!apiKey) return null;
-
-    const domain = domainId || this.defaultDomainId;
-    return `https://api.keepa.com/${endpoint}?key=${apiKey}&domain=${domain}`;
-  }
-
-  /**
-   * Единый метод для выполнения запросов к Keepa с учетом Rate Limit (токенов).
-   */
-  private executeKeepaRequest(url: string, options?: RequestInit, expectedCost: number = 1): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.requestQueue.push({ url, options, expectedCost, resolve, reject });
-      this.processQueue();
-    });
-  }
-
-  /**
-   * Процессор очереди запросов, следящий за токенами.
-   */
-  private async processQueue() {
-    if (this.isProcessingQueue) return;
-    this.isProcessingQueue = true;
-
-    try {
-      while (this.requestQueue.length > 0) {
-        const nextRequest = this.requestQueue[0]; // Смотрим на первый элемент
-
-        if (this.tokensLeft < nextRequest.expectedCost) {
-          // Вычисляем время ожидания: (недостающие токены) * (мс на один токен)
-          // 60000 мс = 1 минута. Время на 1 токен = 60000 / refillRate.
-          const msPerToken = 60000 / Math.max(1, this.refillRate);
-          const delayMs = Math.ceil((nextRequest.expectedCost - this.tokensLeft) * msPerToken);
-
-          this.logger.warn(`Недостаточно токенов Keepa. Ожидание ${delayMs} мс. (tokensLeft: ${this.tokensLeft}, need: ${nextRequest.expectedCost})`);
-
-          // Ждем необходимое время
-          await new Promise(res => setTimeout(res, delayMs));
-
-          // После ожидания оптимистично добавляем накопленные токены
-          // Точное значение будет получено из следующего ответа
-          this.tokensLeft = Math.max(this.tokensLeft, nextRequest.expectedCost);
-        }
-
-        const request = this.requestQueue.shift();
-        if (!request) break;
-
-        try {
-          const response = await fetch(request.url, request.options);
-          const data = await response.json();
-
-          // Обновляем состояние токенов из ответа API
-          if (data.tokensLeft !== undefined) {
-            this.tokensLeft = data.tokensLeft;
-          }
-          if (data.refillRate !== undefined) {
-            this.refillRate = data.refillRate;
-          }
-
-          request.resolve(data);
-        } catch (error) {
-          this.logger.error(`Ошибка при выполнении запроса из очереди: ${error.message}`);
-          request.reject(error);
-        }
-      }
-    } finally {
-      this.isProcessingQueue = false;
-    }
-  }
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly analysisService: AnalysisService,
+    private readonly queueService: KeepaQueueService,
   ) { }
 
   /**
@@ -158,17 +89,12 @@ export class KeepaService {
 
   /**
    * Сборщик сырых данных (раз в минуту)
+   * Берет очередную пачку ASIN и создает задачу в персистентной очереди KeepaRequestQueue
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async fetchRawData() {
     if (process.env.APP_ENV === 'development') {
       this.logger.debug('Локальное окружение (development): крон fetchRawData отключен');
-      return;
-    }
-
-    const baseUrl = this.buildKeepaApiUrl('product');
-    if (!baseUrl) {
-      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса.');
       return;
     }
 
@@ -189,83 +115,17 @@ export class KeepaService {
       return;
     }
 
-    const asinsToFetch = result.map(r => r.asin).join(',');
-    this.logger.log(`Запрашиваем Keepa API для ASIN: ${asinsToFetch}...`);
+    const asinsToFetch = result.map(r => r.asin);
+    const hasOffers = process.env.KEEPA_FETCH_OFFERS === 'true';
+    const cost = hasOffers ? 3 : 1;
 
-    try {
-      let url = `${baseUrl}&asin=${asinsToFetch}`;
-
-      if (process.env.KEEPA_FETCH_OFFERS === 'true') {
-        url += '&offers=20';
-      }
-
-      const cost = (process.env.KEEPA_FETCH_OFFERS === 'true') ? 3 : 1;
-      const data = await this.executeKeepaRequest(url, undefined, cost);
-
-      if (data.error) {
-        this.logger.error(`Ошибка API Keepa: ${JSON.stringify(data.error)}`);
-        // Сохраняем ошибку для всех запрошенных ASIN
-        for (const row of result) {
-          await this.prisma.keepaApiRawResponse.upsert({
-            where: { asin: row.asin },
-            update: { error: JSON.stringify(data.error), isProcessed: false, fetchedAt: new Date() },
-            create: { asin: row.asin, error: JSON.stringify(data.error), fetchedAt: new Date() }
-          });
-        }
-        return;
-      }
-
-      // Теперь у нас есть умная очередь, мы не прерываемся так часто. 
-      // Но если токены жестко закончились по вине сторонних процессов, очередь их подождет.
-      if (data.tokensLeft === 0 || (data.tokensLeft !== undefined && data.tokensLeft < 3 && data.tokensConsumed === 0 && !data.products)) {
-        this.logger.warn(`Лимит токенов Keepa исчерпан жестко (осталось: ${data.tokensLeft}). Очередь должна выровнять баланс.`);
-      }
-
-
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 14); // Кэшируем на 14 дней
-
-      // Успешно получили данные
-      // Keepa возвращает массив продуктов в data.products. Для каждого ASIN находим свой продукт и сохраняем
-      for (const row of result) {
-        const asinToFetch = row.asin;
-        const product = data.products?.find((p: any) => p.asin === asinToFetch);
-
-        if (!product) {
-          // Keepa не вернула данные для этого ASIN (возможно неверный ASIN)
-          await this.prisma.keepaApiRawResponse.upsert({
-            where: { asin: asinToFetch },
-            update: { error: 'Not found in Keepa response', isProcessed: false, fetchedAt: new Date(), expiresAt },
-            create: { asin: asinToFetch, error: 'Not found in Keepa response', fetchedAt: new Date(), expiresAt, isProcessed: false }
-          });
-          continue;
-        }
-
-        // Сохраняем успешный ответ, упаковывая отдельный продукт в структуру data
-        const payload = { ...data, products: [product] };
-        await this.prisma.keepaApiRawResponse.upsert({
-          where: { asin: asinToFetch },
-          update: {
-            rawPayload: payload as any,
-            fetchedAt: new Date(),
-            expiresAt: expiresAt,
-            isProcessed: false,
-            error: null
-          },
-          create: {
-            asin: asinToFetch,
-            rawPayload: payload as any,
-            fetchedAt: new Date(),
-            expiresAt: expiresAt,
-            isProcessed: false
-          }
-        });
-      }
-
-      this.logger.log(`Успешно сохранены сырые ответы Keepa для ${result.length} ASIN.`);
-    } catch (error) {
-      this.logger.error(`Сетевая ошибка при запросе к Keepa: ${error.message}`);
-    }
+    // Ставим задачу в персистентную очередь запросов с обычным приоритетом
+    await this.queueService.enqueueRequest(
+      KeepaRequestType.PRODUCT_ASINS,
+      { asins: asinsToFetch, offers: hasOffers },
+      KEEPA_PRIORITY.NORMAL,
+      cost,
+    );
   }
 
   /**
@@ -300,248 +160,141 @@ export class KeepaService {
         continue;
       }
 
-      // Извлекаем габариты упаковки
-      const pLength = product.packageLength || null;
-      const pWidth = product.packageWidth || null;
-      const pHeight = product.packageHeight || null;
-      const pWeight = product.packageWeight || null;
-
-      // Извлекаем габариты самого товара
-      const iLength = product.itemLength || null;
-      const iWidth = product.itemWidth || null;
-      const iHeight = product.itemHeight || null;
-      const iWeight = product.itemWeight || null;
-
-      // Вычисляем Amazon Size Tier
-      const sizeTier = this.calculateAmazonTier(pLength, pWidth, pHeight, pWeight);
-
-      // Извлекаем финансы и прочее
-      const fbaFees = product.fbaFees || {};
-      const pickAndPackFee = fbaFees.pickAndPackFee || null;
-
-      let currentSalesRank = null;
-      let avg90SalesRank = null;
-      if (product.stats) {
-        currentSalesRank = product.stats.current?.[3] || null; // В Keepa stats 3 индекс обычно отвечает за Sales Rank (зависит от настроек)
-        avg90SalesRank = product.stats.avg90?.[3] || null;
-      }
-
-      // Сохраняем в чистовик
-      const processedData = {
-        title: product.title || null,
-        brand: product.brand || null,
-        manufacturer: product.manufacturer || null,
-        model: product.model || null,
-        color: product.color || null,
-        size: product.size || null,
-        style: product.style || null,
-        pattern: product.pattern || null,
-        material: product.material || null,
-        itemType: product.itemType || null,
-        brandStoreName: product.brandStoreName || null,
-        brandStoreUrlName: product.brandStoreUrlName || null,
-        isAdultProduct: product.isAdultProduct ?? null,
-        isHeatSensitive: product.isHeatSensitive ?? null,
-        isEligibleForTradeIn: product.isEligibleForTradeIn ?? null,
-        hasReviews: product.hasReviews ?? null,
-        packageLength: pLength,
-        packageWidth: pWidth,
-        packageHeight: pHeight,
-        packageWeight: pWeight,
-        itemLength: iLength,
-        itemWidth: iWidth,
-        itemHeight: iHeight,
-        itemWeight: iWeight,
-        sizeTier: sizeTier,
-        pickAndPackFee: pickAndPackFee,
-        referralFeePercent: product.referralFeePercent ?? null,
-        monthlySold: product.monthlySold || null,
-        currentSalesRank: currentSalesRank,
-        avg90SalesRank: avg90SalesRank,
-        rootCategory: product.rootCategory ? String(product.rootCategory) : null,
-        categoryTree: product.categoryTree ? (product.categoryTree as Prisma.InputJsonValue) : Prisma.DbNull,
-        eanList: product.eanList || [],
-        upcList: product.upcList || [],
-        gtinList: product.gtinList || [],
-        features: product.features || [],
-        images: product.images ? (product.images as Prisma.InputJsonValue) : Prisma.DbNull,
-        offers: product.offers ? (product.offers as Prisma.InputJsonValue) : Prisma.DbNull,
-        buyBoxSellerIdHistory: product.buyBoxSellerIdHistory ? (product.buyBoxSellerIdHistory as Prisma.InputJsonValue) : Prisma.DbNull,
-        buyBoxEligibleOfferCounts: product.buyBoxEligibleOfferCounts ? (product.buyBoxEligibleOfferCounts as Prisma.InputJsonValue) : Prisma.DbNull,
-        variationCSV: product.variationCSV || (Array.isArray(product.variations) ? product.variations.map((v: any) => v.asin).join(',') : null),
-        lastProcessedAt: new Date()
-      };
-
-      await this.prisma.keepaApiProcessedData.upsert({
-        where: { asin: raw.asin },
-        update: processedData,
-        create: {
-          asin: raw.asin,
-          ...processedData
-        }
-      });
-
-      // Помечаем сырые данные как обработанные
-      await this.prisma.keepaApiRawResponse.update({
-        where: { asin: raw.asin },
-        data: { isProcessed: true }
-      });
-
-      // Добавляем ASIN в очередь на анализ тегов (Dead/Missing Variation) с обычным приоритетом
-      await this.analysisService.queueForAnalysis(raw.asin, 0);
-
-      this.logger.log(`ASIN ${raw.asin} успешно обработан и извлечены габариты.`);
+      // Вызываем обработчик разбора продукта
+      await this.processRawProduct(raw.asin, product);
     }
   }
 
   /**
-   * Функция определения FBA Size Tier по габаритам (мм) и весу (г)
-   * Примерная логика по сетке Amazon Europe
+   * Разбор и сохранение чистовых характеристик товара в KeepaApiProcessedData
    */
-  private calculateAmazonTier(lengthMm: number | null, widthMm: number | null, heightMm: number | null, weightG: number | null): string | null {
+  public async processRawProduct(asin: string, product: any) {
+    const pLength = product.packageLength || null;
+    const pWidth = product.packageWidth || null;
+    const pHeight = product.packageHeight || null;
+    const pWeight = product.packageWeight || null;
+
+    const iLength = product.itemLength || null;
+    const iWidth = product.itemWidth || null;
+    const iHeight = product.itemHeight || null;
+    const iWeight = product.itemWeight || null;
+
+    const targetLength = pLength || iLength;
+    const targetWidth = pWidth || iWidth;
+    const targetHeight = pHeight || iHeight;
+    const targetWeight = pWeight || iWeight;
+
+    const sizeTier = this.calculateAmazonTier(targetLength, targetWidth, targetHeight, targetWeight);
+
+    let pickAndPackFee = null;
+    if (product.fbaFees && product.fbaFees.pickAndPackFee) {
+      pickAndPackFee = product.fbaFees.pickAndPackFee / 100;
+    }
+
+    let currentSalesRank = null;
+    let avg90SalesRank = null;
+    if (product.stats) {
+      currentSalesRank = product.stats.current?.[3] ?? null;
+      avg90SalesRank = product.stats.avg90?.[3] ?? null;
+    }
+
+    const processedData = {
+      title: product.title || null,
+      brand: product.brand || null,
+      manufacturer: product.manufacturer || null,
+      model: product.model || null,
+      color: product.color || null,
+      size: product.size || null,
+      style: product.style || null,
+      pattern: product.pattern || null,
+      material: product.material || null,
+      itemType: product.itemType || null,
+      brandStoreName: product.brandStoreName || null,
+      brandStoreUrlName: product.brandStoreUrlName || null,
+      isAdultProduct: product.isAdultProduct ?? null,
+      isHeatSensitive: product.isHeatSensitive ?? null,
+      isEligibleForTradeIn: product.isEligibleForTradeIn ?? null,
+      hasReviews: product.hasReviews ?? null,
+      packageLength: pLength,
+      packageWidth: pWidth,
+      packageHeight: pHeight,
+      packageWeight: pWeight,
+      itemLength: iLength,
+      itemWidth: iWidth,
+      itemHeight: iHeight,
+      itemWeight: iWeight,
+      sizeTier: sizeTier,
+      pickAndPackFee: pickAndPackFee,
+      referralFeePercent: product.referralFeePercent ?? null,
+      monthlySold: product.monthlySold || null,
+      currentSalesRank: currentSalesRank,
+      avg90SalesRank: avg90SalesRank,
+      rootCategory: product.rootCategory ? String(product.rootCategory) : null,
+      categoryTree: product.categoryTree ? (product.categoryTree as Prisma.InputJsonValue) : Prisma.DbNull,
+      eanList: product.eanList || [],
+      upcList: product.upcList || [],
+      gtinList: product.gtinList || [],
+      features: product.features || [],
+      images: product.images ? (product.images as Prisma.InputJsonValue) : Prisma.DbNull,
+      offers: product.offers ? (product.offers as Prisma.InputJsonValue) : Prisma.DbNull,
+      buyBoxSellerIdHistory: product.buyBoxSellerIdHistory ? (product.buyBoxSellerIdHistory as Prisma.InputJsonValue) : Prisma.DbNull,
+      buyBoxEligibleOfferCounts: product.buyBoxEligibleOfferCounts ? (product.buyBoxEligibleOfferCounts as Prisma.InputJsonValue) : Prisma.DbNull,
+      variationCSV: product.variationCSV || (Array.isArray(product.variations) ? product.variations.map((v: any) => v.asin).join(',') : null),
+      lastProcessedAt: new Date(),
+    };
+
+    await this.prisma.keepaApiProcessedData.upsert({
+      where: { asin },
+      update: processedData,
+      create: {
+        asin,
+        ...processedData,
+      },
+    });
+
+    await this.prisma.keepaApiRawResponse.update({
+      where: { asin },
+      data: { isProcessed: true },
+    });
+
+    // Очередь на анализ вариаций
+    await this.analysisService.queueForAnalysis(asin, 0);
+  }
+
+  /**
+   * Вспомогательный метод для определения FBA Size Tier по габаритам (мм) и весу (г)
+   */
+  public calculateAmazonTier(lengthMm: number | null, widthMm: number | null, heightMm: number | null, weightG: number | null): string | null {
     if (!lengthMm || !widthMm || !heightMm || !weightG) return null;
 
-    // Сортируем стороны по убыванию (длинная, средняя, короткая)
     const sides = [lengthMm / 10, widthMm / 10, heightMm / 10].sort((a, b) => b - a);
     const [lCm, wCm, hCm] = sides;
     const kg = weightG / 1000;
 
-    // Small Envelope (20 x 15 x 1 см, до 80г)
     if (lCm <= 20 && wCm <= 15 && hCm <= 1 && kg <= 0.08) return 'Small envelope';
-    // Standard Envelope (33 x 23 x 2.5 см, до 460г)
     if (lCm <= 33 && wCm <= 23 && hCm <= 2.5 && kg <= 0.46) return 'Standard envelope';
-    // Large Envelope (33 x 23 x 5 см, до 960г)
     if (lCm <= 33 && wCm <= 23 && hCm <= 5 && kg <= 0.96) return 'Large envelope';
-    // Standard Parcel (45 x 34 x 26 см, до 11.9 кг)
     if (lCm <= 45 && wCm <= 34 && hCm <= 26 && kg <= 11.9) return 'Standard parcel';
-    // Small Oversize (61 x 46 x 46 см, до 1.76 кг)
     if (lCm <= 61 && wCm <= 46 && hCm <= 46 && kg <= 1.76) return 'Small Oversize';
-    // Standard Oversize (120 x 60 x 60 см, до 29.76 кг)
     if (lCm <= 120 && wCm <= 60 && hCm <= 60 && kg <= 29.76) return 'Standard Oversize';
-    // Large Oversize (>120 или >60 или >60, до 31.5 кг)
     if (kg <= 31.5) return 'Large Oversize';
 
-    return 'Special Oversize'; // Всё что больше
-  }
-
-  /**
-   * Вспомогательный метод для пагинированных запросов к Keepa Product Finder.
-   * Выполняет цикл, пока не выгрузит все результаты или пока не встретит ошибку.
-   */
-  private async executePaginatedKeepaRequest(url: string, payload: any, logContext: string): Promise<{ asins: string[], totalResults: number, error: any }> {
-    let currentPage = payload.page || 0;
-    let allAsins: string[] = [];
-    let totalResults = 0;
-    let hasMore = true;
-    let apiError = null;
-
-    while (hasMore) {
-      payload.page = currentPage;
-      const data = await this.executeKeepaRequest(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }, 1);
-
-      if (data.error) {
-        this.logger.error(`Ошибка Keepa Product Finder API на странице ${currentPage} (${logContext}): ${JSON.stringify(data.error)}`);
-        apiError = data.error;
-        break;
-      }
-
-      const pageAsins: string[] = data.asinList || [];
-      totalResults = data.totalResults || totalResults;
-      allAsins.push(...pageAsins);
-
-      if (pageAsins.length < (payload.perPage || 5000) || (totalResults > 0 && allAsins.length >= totalResults)) {
-        hasMore = false;
-      } else {
-        currentPage++;
-      }
-    }
-
-    this.logger.log(`Keepa Product Finder вернул суммарно ${allAsins.length} ASIN (всего найдено: ${totalResults}) для ${logContext}`);
-
-    return { asins: allAsins, totalResults, error: apiError };
+    return 'Special Oversize';
   }
 
   /**
    * Запрос к Keepa Product Finder API с динамической категорией и безопасными фильтрами
-   * @param categoryId Идентификатор корневой категории Keepa (Browse Node ID)
-   * @param options Дополнительные параметры фильтрации
+   * Создает задачу в персистентной очереди KeepaRequestQueue с низким приоритетом (LOW)
    */
   async fetchAndSaveKeepaExportForCategory(categoryId: string, options?: ProductFinderOptions) {
-    const url = this.buildKeepaApiUrl('query', options?.domainId);
-    if (!url) {
-      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder.');
-      return { asins: [], totalResults: 0, queued: 0 };
-    }
+    const job = await this.queueService.enqueueRequest(
+      KeepaRequestType.CATEGORY_FINDER,
+      { categoryId, options },
+      KEEPA_PRIORITY.LOW,
+      1,
+    );
 
-    // Формируем полезную нагрузку запроса согласно утвержденному безопасному стандарту
-    const payload = {
-      // 0 = Физические товары Amazon (отсекает цифровые товары, подписки и книги)
-      productType: [0],
-      // Нижняя граница BSR: от 1 для захвата высоколиквидных товаров с быстрой оборачиваемостью
-      current_SALES_gte: options?.salesRankGte ?? 1,
-      // Верхняя граница BSR: до 50 000 для исключения мертвого груза и неликвида
-      current_SALES_lte: options?.salesRankLte ?? 50000,
-      // Нижняя граница цены Buy Box: 15.00 € (в евроцентах) для обеспечения окупаемости комиссий FBA
-      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
-      // Верхняя граница цены Buy Box: 100.00 € (в евроцентах) для защиты оборотного капитала от дорогих возвратов
-      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
-      // От 5 продавцов: гарантия того, что бренд открыт для реселлеров (не Private Label и нет риска жалоб на IP)
-      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
-      // До 15 продавцов: защита от жесткого демпинга цен автоматическими репрайсерами
-      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
-      // Динамический идентификатор категории из утвержденного списка разрешенных категорий
-      rootCategory: [categoryId],
-      // Строгое исключение товаров для взрослых (защита личного имущества автонома по ст. 1911 ГК Испании)
-      isAdultProduct: false,
-      // Двухуровневая сортировка: сначала лучшие продажи по BSR, затем объем продаж в месяц
-      sort: [
-        ['current_SALES', 'asc'],
-        ['monthlySold', 'desc']
-      ],
-      // Размер страницы выдачи (5000 позиций за раз для оптимального расхода токенов)
-      perPage: options?.perPage ?? 5000,
-      // Номер запрашиваемой страницы
-      page: options?.page ?? 0
-    };
-
-    this.logger.log(`Отправляем запрос к Keepa Product Finder для категории ${categoryId}...`);
-
-    try {
-      const { asins: allAsins, totalResults, error: apiError } = await this.executePaginatedKeepaRequest(url, payload, `категории ${categoryId}`);
-
-      if (allAsins.length === 0) {
-        return { asins: [], totalResults: 0, queued: 0, error: apiError };
-      }
-
-      // Добавление найденных ASIN в очередь WholesaleAsinQueue
-      let queuedCount = 0;
-      for (const asin of allAsins) {
-        try {
-          await this.prisma.wholesaleAsinQueue.upsert({
-            where: { asin },
-            update: {}, // Если ASIN уже в очереди, сохраняем существующий приоритет
-            create: {
-              asin,
-              priority: 10, // Базовый приоритет для новинок из Product Finder
-              addedAt: new Date()
-            }
-          });
-          queuedCount++;
-        } catch (queueErr) {
-          this.logger.debug(`Пропуск ASIN ${asin} при добавлении в очередь: ${queueErr.message}`);
-        }
-      }
-
-      this.logger.log(`Успешно добавлено в очередь ${queuedCount} новых ASIN из категории ${categoryId}`);
-      return { asins: allAsins, totalResults, queued: queuedCount, error: apiError };
-    } catch (error) {
-      this.logger.error(`Сетевая ошибка при вызове Keepa Product Finder: ${error.message}`);
-      throw error;
-    }
+    return { jobId: job.id, message: `Задача поиска по категории ${categoryId} добавлена в очередь` };
   }
 
   /**
@@ -560,12 +313,10 @@ export class KeepaService {
       return [];
     }
 
-    this.logger.log(`Найдено активных категорий: ${categories.length}`);
+    this.logger.log(`Найдено активных категорий: ${categories.length}. Добавляем задачи в очередь...`);
     const results = [];
 
-    // Последовательно опрашиваем каждую категорию с паузой для сохранения токенов
     for (const cat of categories) {
-      this.logger.log(`Обработка категории: ${cat.name} (ID: ${cat.categoryId})...`);
       const res = await this.fetchAndSaveKeepaExportForCategory(cat.categoryId, {
         ...options,
         domainId: cat.domainId
@@ -576,187 +327,333 @@ export class KeepaService {
         categoryName: cat.name,
         ...res
       });
-
-      // Пауза 2 секунды между запросами категорий для плавного расхода лимита токенов Keepa
-      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     return results;
   }
 
   /**
-   * Экспорт каталога бренда из Keepa Product Finder и сохранение в KeepaExport
+   * Экспорт каталога бренда из Keepa Product Finder через персистентную очередь (HIGH)
    */
   async fetchAndSaveKeepaExportForBrand(brandId: number, brandName: string, options?: ProductFinderOptions) {
-    const url = this.buildKeepaApiUrl('query', options?.domainId);
-    if (!url) {
-      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder для бренда.');
-      return { asins: [], totalResults: 0, queued: 0 };
+    const job = await this.queueService.enqueueRequest(
+      KeepaRequestType.BRAND_FINDER,
+      { brandId, brandName, options },
+      KEEPA_PRIORITY.HIGH,
+      1,
+    );
+
+    return { jobId: job.id, message: `Задача выгрузки бренда ${brandName} добавлена в очередь` };
+  }
+
+  /**
+   * Экспорт витрины продавца из Keepa Product Finder через персистентную очередь (HIGH)
+   */
+  async fetchAndSaveKeepaExportForSeller(sellerId: string, options?: ProductFinderOptions) {
+    const job = await this.queueService.enqueueRequest(
+      KeepaRequestType.SELLER_FINDER,
+      { sellerId, options },
+      KEEPA_PRIORITY.HIGH,
+      1,
+    );
+
+    return { jobId: job.id, message: `Задача выгрузки продавца ${sellerId} добавлена в очередь` };
+  }
+
+  /**
+   * Формирует базовый URL для запросов к Keepa API
+   */
+  public buildKeepaApiUrl(endpoint: string, domainId?: number): string | null {
+    const apiKey = process.env.KEEPA_API_KEY;
+    if (!apiKey) return null;
+
+    const domain = domainId || this.defaultDomainId;
+    return `https://api.keepa.com/${endpoint}?key=${apiKey}&domain=${domain}`;
+  }
+
+  /**
+   * Непосредственное выполнение запроса к Keepa API и диспетчеризация обработчика
+   */
+  public async executeJob(job: KeepaRequestQueueJob): Promise<any> {
+    const apiKey = process.env.KEEPA_API_KEY;
+    if (!apiKey) {
+      throw new Error('KEEPA_API_KEY не установлен в переменных окружения.');
     }
 
-    const payload = {
-      // 0 = Физические товары Amazon (отсекает цифровые товары, подписки и книги)
-      productType: [0],
-      // Массив названий брендов для фильтрации
-      brand: [brandName],
-      // Нижняя граница BSR: от 1 для захвата высоколиквидных товаров с быстрой оборачиваемостью
-      current_SALES_gte: options?.salesRankGte ?? 1,
-      // Верхняя граница BSR: до 50 000 для исключения мертвого груза и неликвида
-      current_SALES_lte: options?.salesRankLte ?? 50000,
-      // Нижняя граница цены Buy Box: 15.00 € (в евроцентах) для обеспечения окупаемости комиссий FBA
-      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
-      // Верхняя граница цены Buy Box: 100.00 € (в евроцентах) для защиты оборотного капитала от дорогих возвратов
-      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
-      // От 5 продавцов: гарантия того, что бренд открыт для реселлеров (не Private Label и нет риска жалоб на IP)
-      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
-      // До 15 продавцов: защита от жесткого демпинга цен автоматическими репрайсерами
-      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
-      // Строгое исключение товаров для взрослых (защита личного имущества автонома по ст. 1911 ГК Испании)
-      isAdultProduct: false,
-      // Двухуровневая сортировка: сначала лучшие продажи по BSR, затем объем продаж в месяц
-      sort: [['current_SALES', 'asc'], ['monthlySold', 'desc']],
-      // Размер страницы выдачи (5000 позиций за раз для оптимального расхода токенов)
-      perPage: options?.perPage ?? 5000,
-      // Номер запрашиваемой страницы
-      page: options?.page ?? 0
-    };
+    switch (job.type) {
+      case KeepaRequestType.PRODUCT_ASINS:
+        return this.handleProductAsinsJob(job);
 
-    this.logger.log(`Отправляем запрос к Keepa Product Finder для бренда ${brandName} (ID: ${brandId})...`);
+      case KeepaRequestType.CATEGORY_FINDER:
+        return this.handleCategoryFinderJob(job);
 
-    try {
-      const { asins: allAsins, totalResults, error: apiError } = await this.executePaginatedKeepaRequest(url, payload, `бренда ${brandName}`);
+      case KeepaRequestType.BRAND_FINDER:
+        return this.handleBrandFinderJob(job);
 
-      if (allAsins.length === 0) {
-        return { asins: [], totalResults: 0, queued: 0, error: apiError };
-      }
+      case KeepaRequestType.SELLER_FINDER:
+        return this.handleSellerFinderJob(job);
 
-      const keepaExport = await this.prisma.keepaExport.create({
-        data: { brandId }
-      });
-
-      let queuedCount = 0;
-      for (const asinCode of allAsins) {
-        try {
-          await this.prisma.aSIN.upsert({
-            where: { code: asinCode },
-            create: {
-              code: asinCode,
-              keepaExports: { connect: { id: keepaExport.id } }
-            },
-            update: {
-              keepaExports: { connect: { id: keepaExport.id } }
-            }
-          });
-
-          await this.prisma.wholesaleAsinQueue.upsert({
-            where: { asin: asinCode },
-            update: {},
-            create: { asin: asinCode, priority: 15, addedAt: new Date() }
-          });
-          queuedCount++;
-        } catch (e: any) {
-          this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
-        }
-      }
-
-      return { asins: allAsins, totalResults, queued: queuedCount, keepaExportId: keepaExport.id };
-    } catch (error: any) {
-      this.logger.error(`Сетевая ошибка при вызове Product Finder для бренда: ${error.message}`);
-      throw error;
+      default:
+        throw new Error(`Неизвестный тип задачи: ${job.type}`);
     }
   }
 
   /**
-   * Экспорт витрины продавца из Keepa Product Finder и сохранение в KeepaExport
+   * Обработчик запроса карточек товаров (PRODUCT_ASINS)
    */
-  async fetchAndSaveKeepaExportForSeller(sellerId: string, options?: ProductFinderOptions) {
-    const url = this.buildKeepaApiUrl('query', options?.domainId);
-    if (!url) {
-      this.logger.warn('KEEPA_API_KEY не установлен. Пропуск запроса Product Finder для продавца.');
-      return { asins: [], totalResults: 0, queued: 0 };
+  public async handleProductAsinsJob(job: KeepaRequestQueueJob): Promise<{ totalAsins: number; processedCount: number }> {
+    const { asins, offers, domainId } = job.payload as unknown as ProductAsinsPayload;
+    const baseUrl = this.buildKeepaApiUrl('product', domainId);
+    if (!baseUrl) throw new Error('Не удалось сформировать URL к Keepa API');
+
+    let url = `${baseUrl}&asin=${asins.join(',')}`;
+    if (offers) {
+      url += '&offers=20';
     }
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    // Синхронизируем статус токенов с сервисом очереди
+    this.queueService.updateTokensInfo(data.tokensLeft, data.refillRate);
+
+    if (data.error) {
+      throw new Error(`Ошибка Keepa API: ${JSON.stringify(data.error)}`);
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 14); // Кэшируем на 14 дней
+
+    let processedCount = 0;
+    for (const asin of asins) {
+      const product = data.products?.find((p: any) => p.asin === asin);
+      if (!product) {
+        await this.prisma.keepaApiRawResponse.upsert({
+          where: { asin },
+          update: { error: 'Not found in Keepa response', isProcessed: false, fetchedAt: new Date(), expiresAt },
+          create: { asin, error: 'Not found in Keepa response', fetchedAt: new Date(), expiresAt, isProcessed: false },
+        });
+        continue;
+      }
+
+      // Сохраняем сырой ответ
+      const payload = { ...data, products: [product] };
+      await this.prisma.keepaApiRawResponse.upsert({
+        where: { asin },
+        update: {
+          rawPayload: payload as any,
+          fetchedAt: new Date(),
+          expiresAt,
+          isProcessed: false,
+          error: null,
+        },
+        create: {
+          asin,
+          rawPayload: payload as any,
+          fetchedAt: new Date(),
+          expiresAt,
+          isProcessed: false,
+          error: null,
+        },
+      });
+
+      // Передаем сырой продукт на разбор и сохранение
+      await this.processRawProduct(asin, product);
+      processedCount++;
+    }
+
+    return { totalAsins: asins.length, processedCount };
+  }
+
+  /**
+   * Обработчик поиска по категории (CATEGORY_FINDER)
+   */
+  public async handleCategoryFinderJob(job: KeepaRequestQueueJob): Promise<{ categoryId: string; totalFound: number; queued: number }> {
+    const { categoryId, options } = job.payload as unknown as CategoryFinderPayload;
+    const url = this.buildKeepaApiUrl('query', options?.domainId);
+    if (!url) throw new Error('Не удалось сформировать URL к Keepa API');
+
+    const payload = {
+      productType: [0],
+      current_SALES_gte: options?.salesRankGte ?? 1,
+      current_SALES_lte: options?.salesRankLte ?? 50000,
+      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
+      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
+      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
+      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
+      rootCategory: [categoryId],
+      isAdultProduct: false,
+      sort: [
+        ['current_SALES', 'asc'],
+        ['monthlySold', 'desc'],
+      ],
+      perPage: options?.perPage ?? 5000,
+      page: options?.page ?? 0,
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    // Синхронизируем статус токенов с сервисом очереди
+    this.queueService.updateTokensInfo(data.tokensLeft, data.refillRate);
+
+    if (data.error) {
+      throw new Error(`Ошибка Keepa API: ${JSON.stringify(data.error)}`);
+    }
+
+    const asins: string[] = data.asinList || [];
+    let queued = 0;
+    for (const asin of asins) {
+      try {
+        await this.prisma.wholesaleAsinQueue.upsert({
+          where: { asin },
+          update: {},
+          create: {
+            asin,
+            priority: 10,
+            addedAt: new Date(),
+          },
+        });
+        queued++;
+      } catch (err: any) {
+        this.logger.debug(`Пропуск ASIN ${asin}: ${err.message}`);
+      }
+    }
+
+    return { categoryId, totalFound: data.totalResults || 0, queued };
+  }
+
+  /**
+   * Обработчик поиска по бренду (BRAND_FINDER)
+   */
+  public async handleBrandFinderJob(job: KeepaRequestQueueJob): Promise<{ brandId: number; totalFound: number; queued: number; keepaExportId: number }> {
+    const { brandId, brandName, options } = job.payload as unknown as BrandFinderPayload;
+    const url = this.buildKeepaApiUrl('query', options?.domainId);
+    if (!url) throw new Error('Не удалось сформировать URL к Keepa API');
+
+    const payload = {
+      productType: [0],
+      brand: [brandName],
+      current_SALES_gte: options?.salesRankGte ?? 1,
+      current_SALES_lte: options?.salesRankLte ?? 50000,
+      current_BUY_BOX_SHIPPING_gte: options?.buyBoxGte ?? 1500,
+      current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
+      current_COUNT_NEW_gte: options?.countNewGte ?? 5,
+      current_COUNT_NEW_lte: options?.countNewLte ?? 15,
+      isAdultProduct: false,
+      sort: [['current_SALES', 'asc'], ['monthlySold', 'desc']],
+      perPage: options?.perPage ?? 5000,
+      page: options?.page ?? 0,
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    // Синхронизируем статус токенов с сервисом очереди
+    this.queueService.updateTokensInfo(data.tokensLeft, data.refillRate);
+
+    if (data.error) throw new Error(`Ошибка Keepa API: ${JSON.stringify(data.error)}`);
+
+    const asins: string[] = data.asinList || [];
+    const keepaExport = await this.prisma.keepaExport.create({
+      data: { brandId },
+    });
+
+    let queuedCount = 0;
+    for (const asinCode of asins) {
+      try {
+        await this.prisma.aSIN.upsert({
+          where: { code: asinCode },
+          create: {
+            code: asinCode,
+            keepaExports: { connect: { id: keepaExport.id } },
+          },
+          update: {
+            keepaExports: { connect: { id: keepaExport.id } },
+          },
+        });
+
+        await this.prisma.wholesaleAsinQueue.upsert({
+          where: { asin: asinCode },
+          update: {},
+          create: { asin: asinCode, priority: 15, addedAt: new Date() },
+        });
+        queuedCount++;
+      } catch (e: any) {
+        this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
+      }
+    }
+
+    return { brandId, totalFound: data.totalResults || 0, queued: queuedCount, keepaExportId: keepaExport.id };
+  }
+
+  /**
+   * Обработчик поиска по витрине продавца (SELLER_FINDER)
+   */
+  public async handleSellerFinderJob(job: KeepaRequestQueueJob): Promise<{ sellerId: string; totalFound: number; queued: number; keepaExportId: number }> {
+    const { sellerId, options } = job.payload as unknown as SellerFinderPayload;
+    const url = this.buildKeepaApiUrl('query', options?.domainId);
+    if (!url) throw new Error('Не удалось сформировать URL к Keepa API');
 
     const payload = {
       productType: [0],
       buyBoxSellerId: [sellerId],
       current_BUY_BOX_SHIPPING_gte: 0,
-      sort: [
-        ['current_SALES', 'asc'],
-        ['monthlySold', 'desc']
-      ],
+      sort: [['current_SALES', 'asc'], ['monthlySold', 'desc']],
       perPage: options?.perPage ?? 5000,
-      page: options?.page ?? 0
+      page: options?.page ?? 0,
     };
 
-    this.logger.log(`Отправляем запрос к Keepa Product Finder для продавца ${sellerId}...`);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
 
-    try {
-      const { asins: allAsins, totalResults, error: apiError } = await this.executePaginatedKeepaRequest(url, payload, `продавца ${sellerId}`);
+    const data = await response.json();
+    // Синхронизируем статус токенов с сервисом очереди
+    this.queueService.updateTokensInfo(data.tokensLeft, data.refillRate);
 
-      if (allAsins.length === 0) {
-        return { asins: [], totalResults: 0, queued: 0, error: apiError };
+    if (data.error) throw new Error(`Ошибка Keepa API: ${JSON.stringify(data.error)}`);
+
+    const asins: string[] = data.asinList || [];
+    const keepaExport = await this.prisma.keepaExport.create({
+      data: { sellerId },
+    });
+
+    let queuedCount = 0;
+    for (const asinCode of asins) {
+      try {
+        await this.prisma.aSIN.upsert({
+          where: { code: asinCode },
+          create: {
+            code: asinCode,
+            keepaExports: { connect: { id: keepaExport.id } },
+          },
+          update: {
+            keepaExports: { connect: { id: keepaExport.id } },
+          },
+        });
+
+        await this.prisma.wholesaleAsinQueue.upsert({
+          where: { asin: asinCode },
+          update: {},
+          create: { asin: asinCode, priority: 15, addedAt: new Date() },
+        });
+        queuedCount++;
+      } catch (e: any) {
+        this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
       }
-
-      const keepaExport = await this.prisma.keepaExport.create({
-        data: { sellerId }
-      });
-
-      let queuedCount = 0;
-      for (const asinCode of allAsins) {
-        try {
-          await this.prisma.aSIN.upsert({
-            where: { code: asinCode },
-            create: {
-              code: asinCode,
-              keepaExports: { connect: { id: keepaExport.id } }
-            },
-            update: {
-              keepaExports: { connect: { id: keepaExport.id } }
-            }
-          });
-
-          await this.prisma.wholesaleAsinQueue.upsert({
-            where: { asin: asinCode },
-            update: {},
-            create: { asin: asinCode, priority: 15, addedAt: new Date() }
-          });
-          queuedCount++;
-        } catch (e: any) {
-          this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
-        }
-      }
-
-      return { asins: allAsins, totalResults, queued: queuedCount, keepaExportId: keepaExport.id };
-    } catch (error: any) {
-      this.logger.error(`Сетевая ошибка при вызове Product Finder для продавца: ${error.message}`);
-      throw error;
     }
+
+    return { sellerId, totalFound: data.totalResults || 0, queued: queuedCount, keepaExportId: keepaExport.id };
   }
-
-}
-
-/**
- * Опции для вызова Keepa Product Finder API
- */
-export interface ProductFinderOptions {
-  salesRankGte?: number;
-  salesRankLte?: number;
-  buyBoxGte?: number;
-  buyBoxLte?: number;
-  countNewGte?: number;
-  countNewLte?: number;
-  perPage?: number;
-  page?: number;
-  domainId?: number;
-}
-
-/**
- * Описание запроса в очереди.
- */
-interface QueuedRequest {
-  url: string;
-  options?: RequestInit;
-  expectedCost: number;
-  resolve: (value: any) => void;
-  reject: (reason?: any) => void;
 }

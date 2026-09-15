@@ -27,10 +27,21 @@
 ## Правила парсинга продавцов Keepa
 
 - **Формат строки продавца в Keepa**: `Seller Name (80%) / SELLER_ID` или `Seller Name / SELLER_ID`.
-- **Рейтинг в процентах**: Число в скобках (например, `(80%)`) — это процент положительных отзывов продавца (Positive Feedback Rating) на Amazon, а не доля Buy Box.
-- **Логика извлечения продавца (`parseSellerInfo`)**:
-  - `sellerName` — чистое наименование продавца без рейтинга (например, `paramount city`).
-  - `sellerId` — уникальный Amazon Seller ID (например, `A2125XITGCFM0Q`).
+## Архитектура персистентной очереди запросов Keepa (`KeepaRequestQueue`)
+
+Для исключения исчерпания лимитов токенов Keepa и предотвращения потерь задач при рестартах реализована персистентная очередь запросов в таблице `KeepaRequestQueue`:
+1. **Шкала приоритетов**:
+   - `CRITICAL` (100) — срочные интерактивные запросы от пользователя (например, `POST /keepa/enqueue/:asin`). Выполняются первыми.
+   - `HIGH` (50) — экспорт каталогов бренда или витрины продавца (`exportBrand`, `exportSeller`).
+   - `NORMAL` (10) — фоновый сбор сырых данных по товарам пачками (`fetchRawData`).
+   - `LOW` (1) — массовый парсинг категорий Product Finder (`exportCategory`, `exportCategoryAll`).
+2. **Неприкосновенный резерв токенов**:
+   - Воркер очереди (`KeepaQueueService`) держит резерв минимум **10 токенов**.
+   - Задачи с обычным/низким приоритетом (`priority < 100`) запускаются **только если токенов строго больше `10 + cost`**.
+   - Резервные 10 токенов расходуются **исключительно** на задачи с приоритетом `CRITICAL`.
+3. **Разделение обязанностей (Single Responsibility)**:
+   - `KeepaQueueService` отвечает **строго** за управление очередью: добавление задач (`enqueueRequest`), мониторинг лимитов токенов и резерва (`tokensLeft`, `tokenReserveThreshold = 10`), приоритетный выбор и захват (`PENDING` -> `PROCESSING` -> `COMPLETED`/`FAILED`), планировщик крон.
+   - `KeepaService` отвечает за бизнес-логику и API: содержит сетевые вызовы к Keepa API, формирование URL, диспетчер `executeJob` и конкретные обработчики запросов (`handleProductAsinsJob`, `handleCategoryFinderJob`, `handleBrandFinderJob`, `handleSellerFinderJob`), сохранение сырых и обработанных данных (`processRawProduct`), синхронизируя остаток токенов через `queueService.updateTokensInfo()`.
 
 ## Логика фильтрации ASIN (`get_asin_filter_reason`)
 

@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { KeepaService } from './keepa.service';
+import { KeepaQueueService } from './keepa-queue.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisService } from '../analysis/analysis.service';
 
 describe('Сервис интеграции с Keepa (KeepaService)', () => {
   let service: KeepaService;
   let prismaService: any;
+  let queueService: any;
 
   beforeEach(async () => {
     prismaService = {
@@ -17,6 +19,10 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
           { id: 1, categoryId: '599391031', name: 'Hogar y cocina', domainId: 4, isActive: true },
         ]),
       },
+    };
+
+    queueService = {
+      enqueueRequest: jest.fn().mockResolvedValue({ id: 1 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,6 +38,10 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
             queueForAnalysis: jest.fn(),
           },
         },
+        {
+          provide: KeepaQueueService,
+          useValue: queueService,
+        },
       ],
     }).compile();
 
@@ -44,54 +54,21 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
   });
 
   describe('fetchAndSaveKeepaExportForCategory', () => {
-    it('должен возвращать пустой результат, если KEEPA_API_KEY не задан', async () => {
-      // Сохраняем исходный ключ и очищаем для проверки защитного условия
-      const originalKey = process.env.KEEPA_API_KEY;
-      delete process.env.KEEPA_API_KEY;
-
-      const result = await service.fetchAndSaveKeepaExportForCategory('599391031');
-      expect(result).toEqual({ asins: [], totalResults: 0, queued: 0 });
-
-      // Восстанавливаем ключ
-      process.env.KEEPA_API_KEY = originalKey;
-    });
-
-    it('должен отправлять корректный POST запрос с параметрами фильтрации и ставить ASIN в очередь', async () => {
-      process.env.KEEPA_API_KEY = 'test_key';
-
-      // Мокаем глобальный fetch
-      const mockFetch = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
-        json: jest.fn().mockResolvedValue({
-          asinList: ['B001TEST01', 'B001TEST02'],
-          totalResults: 2,
-        }),
-      } as any);
+    it('должен ставить задачу поиска по категории в очередь KeepaQueueService с низким приоритетом LOW', async () => {
+      queueService.enqueueRequest.mockResolvedValue({ id: 101 });
 
       const result = await service.fetchAndSaveKeepaExportForCategory('599391031');
 
-      // Проверяем факт вызова fetch
-      expect(mockFetch).toHaveBeenCalled();
-      const callArgs = mockFetch.mock.calls[0];
-      const url = callArgs[0] as string;
-      const options = callArgs[1] as any;
-
-      expect(url).toContain('api.keepa.com/query');
-      expect(options.method).toBe('POST');
-
-      // Проверяем параметры в теле запроса
-      const body = JSON.parse(options.body);
-      expect(body.rootCategory).toEqual(['599391031']);
-      expect(body.isAdultProduct).toBe(false);
-      expect(body.productType).toEqual([0]);
-      expect(body.current_COUNT_NEW_gte).toBe(5);
-      expect(body.current_COUNT_NEW_lte).toBe(15);
-
-      // Проверяем результат и добавление в очередь
-      expect(result.asins).toEqual(['B001TEST01', 'B001TEST02']);
-      expect(result.queued).toBe(2);
-      expect(prismaService.wholesaleAsinQueue.upsert).toHaveBeenCalledTimes(2);
-
-      mockFetch.mockRestore();
+      expect(queueService.enqueueRequest).toHaveBeenCalledWith(
+        'CATEGORY_FINDER',
+        { categoryId: '599391031', options: undefined },
+        1,
+        1,
+      );
+      expect(result).toEqual({
+        jobId: 101,
+        message: 'Задача поиска по категории 599391031 добавлена в очередь',
+      });
     });
   });
 
@@ -115,6 +92,30 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
       expect(results[0].categoryName).toBe('Hogar y cocina');
 
       spySingle.mockRestore();
+    });
+  });
+
+  describe('executeJob', () => {
+    it('должен маршрутизировать задачу PRODUCT_ASINS в соответствующий обработчик', async () => {
+      process.env.KEEPA_API_KEY = 'test_key';
+
+      const mockJob: any = {
+        id: 1,
+        type: 'PRODUCT_ASINS',
+        payload: { asins: ['B001TEST01'], domainId: 4 },
+      };
+
+      const handlerSpy = jest.spyOn(service, 'handleProductAsinsJob').mockResolvedValue({
+        totalAsins: 1,
+        processedCount: 1,
+      });
+
+      const result = await service.executeJob(mockJob);
+
+      expect(handlerSpy).toHaveBeenCalledWith(mockJob);
+      expect(result).toEqual({ totalAsins: 1, processedCount: 1 });
+
+      handlerSpy.mockRestore();
     });
   });
 });

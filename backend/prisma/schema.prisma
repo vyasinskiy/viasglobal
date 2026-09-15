@@ -451,3 +451,38 @@ model KeepaAllowedCategory {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+// ==========================================
+// ПЕРСИСТЕНТНАЯ ОЧЕРЕДЬ ЗАПРОСОВ В KEEPA API
+// ==========================================
+
+enum KeepaRequestType {
+  PRODUCT_ASINS   // Запрос карточек товаров (/product?asin=...)
+  CATEGORY_FINDER // Поиск по категории (/query)
+  BRAND_FINDER    // Поиск по бренду (/query)
+  SELLER_FINDER   // Поиск по продавцу (/query)
+}
+
+enum KeepaRequestStatus {
+  PENDING    // Ожидает выполнения
+  PROCESSING // Выполняется прямо сейчас
+  COMPLETED  // Успешно выполнен и обработан
+  FAILED     // Ошибка выполнения
+}
+
+model KeepaRequestQueue {
+  id            Int                @id @default(autoincrement())
+  type          KeepaRequestType
+  priority      Int                @default(10) // 100 - critical, 50 - high, 10 - normal, 1 - low
+  status        KeepaRequestStatus @default(PENDING)
+  payload       Json               // Входные параметры запроса
+  expectedCost  Int                @default(1)  // Ожидаемый расход токенов Keepa
+  resultSummary Json?              // Сводка результата (найдено, обновлено)
+  error         String?            // Текст ошибки при сбое
+  attempts      Int                @default(0)
+  createdAt     DateTime           @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+
+  @@index([status, priority, createdAt])
+}
