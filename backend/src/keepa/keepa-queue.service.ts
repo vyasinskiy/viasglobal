@@ -9,10 +9,8 @@ import { KeepaService } from './keepa.service';
  * Константы приоритетов запросов к Keepa API
  */
 export const KEEPA_PRIORITY = {
-  CRITICAL: 100, // Экстренные ручные запросы (ручной запрос ASIN пользователем)
-  HIGH: 50,      // Запросы каталогов бренда или витрины продавца
-  NORMAL: 10,    // Регулярный фоновый сбор сырых данных по товарам
-  LOW: 1         // Тяжелый массовый поиск по категориям Product Finder
+  CRITICAL: 100, // Любые прямые пользовательские запросы (ручной ASIN, выгрузка категории, бренда, витрины продавца)
+  NORMAL: 10,    // Регулярный фоновый сбор сырых данных по крону
 } as const;
 
 /**
@@ -118,8 +116,8 @@ export class KeepaQueueService {
    * Добавление нового запроса в персистентную очередь БД
    * @param type Тип запроса к Keepa
    * @param payload Данные запроса
-   * @param priority Приоритет выполнения
-   * @param expectedCost Ожидаемая стоимость в токенах
+   * @param priority Приоритет выполнения (по умолчанию NORMAL = 10, для срочных ручных = CRITICAL = 100)
+   * @param expectedCost Ожидаемая стоимость в токенах (по умолчанию 1)
    */
   async enqueueRequest(
     type: KeepaRequestType,

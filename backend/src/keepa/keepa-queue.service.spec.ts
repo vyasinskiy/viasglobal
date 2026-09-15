@@ -61,12 +61,31 @@ describe('Сервис приоритетной очереди Keepa (KeepaQueue
   });
 
   describe('enqueueRequest', () => {
-    it('должен создавать запись в KeepaRequestQueue со статусом PENDING', async () => {
+    it('должен ставить задачу с явным приоритетом CRITICAL (100) при передаче параметра', async () => {
       const job = await service.enqueueRequest(
         KeepaRequestType.PRODUCT_ASINS,
         { asins: ['B001TEST01'] },
-        KEEPA_PRIORITY.NORMAL,
+        KEEPA_PRIORITY.CRITICAL,
         1,
+      );
+
+      expect(prismaService.keepaRequestQueue.create).toHaveBeenCalledWith({
+        data: {
+          type: KeepaRequestType.PRODUCT_ASINS,
+          payload: { asins: ['B001TEST01'] },
+          priority: KEEPA_PRIORITY.CRITICAL,
+          expectedCost: 1,
+          status: KeepaRequestStatus.PENDING,
+        },
+      });
+      expect(job.id).toBe(1);
+    });
+
+    it('должен ставить задачу с приоритетом NORMAL (10) по умолчанию', async () => {
+      // Вызываем без явного приоритета - по умолчанию должен быть NORMAL (10) и expectedCost = 1
+      const job = await service.enqueueRequest(
+        KeepaRequestType.PRODUCT_ASINS,
+        { asins: ['B001TEST01'] },
       );
 
       expect(prismaService.keepaRequestQueue.create).toHaveBeenCalledWith({

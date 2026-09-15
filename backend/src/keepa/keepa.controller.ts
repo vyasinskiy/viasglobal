@@ -24,7 +24,7 @@ export class KeepaController {
       throw new HttpException('ASIN is required', HttpStatus.BAD_REQUEST);
     }
 
-    // 1. Создаем экстренную задачу с приоритетом CRITICAL (100)
+    // 1. Создаем экстренную задачу с наивысшим приоритетом CRITICAL (100)
     // Она может расходовать токены из резерва (вплоть до 1 токена)
     const job = await this.queueService.enqueueRequest(
       KeepaRequestType.PRODUCT_ASINS,
@@ -80,8 +80,12 @@ export class KeepaController {
       throw new HttpException('Идентификатор категории обязателен', HttpStatus.BAD_REQUEST);
     }
 
-    // Запускаем поиск по категории с безопасными фильтрами по умолчанию
-    return this.keepaService.fetchAndSaveKeepaExportForCategory(categoryId);
+    // Запускаем поиск по категории с безопасными фильтрами и наивысшим приоритетом CRITICAL (ручной запрос)
+    return this.keepaService.fetchAndSaveKeepaExportForCategory(
+      categoryId,
+      undefined,
+      KEEPA_PRIORITY.CRITICAL,
+    );
   }
 
   /**
@@ -89,8 +93,11 @@ export class KeepaController {
    */
   @Post('export/category-all')
   async exportAllCategories() {
-    // Опрашиваем все активные категории
-    return this.keepaService.fetchAndSaveKeepaExportForAllCategories();
+    // Опрашиваем все активные категории с приоритетом CRITICAL (ручной запрос)
+    return this.keepaService.fetchAndSaveKeepaExportForAllCategories(
+      undefined,
+      KEEPA_PRIORITY.CRITICAL,
+    );
   }
 
   /**
@@ -101,7 +108,12 @@ export class KeepaController {
     if (!brandId || !brandName) {
       throw new HttpException('Brand ID and Name are required', HttpStatus.BAD_REQUEST);
     }
-    const result = await this.keepaService.fetchAndSaveKeepaExportForBrand(parseInt(brandId, 10), brandName);
+    const result = await this.keepaService.fetchAndSaveKeepaExportForBrand(
+      parseInt(brandId, 10),
+      brandName,
+      undefined,
+      KEEPA_PRIORITY.CRITICAL,
+    );
     if (!result) {
       throw new HttpException('Failed to generate export or no ASINs found', HttpStatus.NOT_FOUND);
     }
@@ -116,7 +128,11 @@ export class KeepaController {
     if (!sellerId) {
       throw new HttpException('Seller ID is required', HttpStatus.BAD_REQUEST);
     }
-    const result = await this.keepaService.fetchAndSaveKeepaExportForSeller(sellerId);
+    const result = await this.keepaService.fetchAndSaveKeepaExportForSeller(
+      sellerId,
+      undefined,
+      KEEPA_PRIORITY.CRITICAL,
+    );
     if (!result) {
       throw new HttpException('Failed to generate export or no ASINs found', HttpStatus.NOT_FOUND);
     }

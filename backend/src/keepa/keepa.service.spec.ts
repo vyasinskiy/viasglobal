@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { KeepaService } from './keepa.service';
-import { KeepaQueueService } from './keepa-queue.service';
+import { KeepaQueueService, KEEPA_PRIORITY } from './keepa-queue.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisService } from '../analysis/analysis.service';
 
@@ -54,40 +54,72 @@ describe('Сервис интеграции с Keepa (KeepaService)', () => {
   });
 
   describe('fetchAndSaveKeepaExportForCategory', () => {
-    it('должен ставить задачу поиска по категории в очередь KeepaQueueService с низким приоритетом LOW', async () => {
+    it('должен выбрасывать ошибку, если разрешенная категория не найдена в базе данных', async () => {
+      prismaService.keepaAllowedCategory.findUnique = jest.fn().mockResolvedValue(null);
+
+      await expect(service.fetchAndSaveKeepaExportForCategory('999999')).rejects.toThrow(
+        'Разрешенная категория с ID "999999" не найдена в базе данных',
+      );
+    });
+
+    it('должен ставить задачу поиска по категории в очередь KeepaQueueService с приоритетом NORMAL по умолчанию', async () => {
       queueService.enqueueRequest.mockResolvedValue({ id: 101 });
+      prismaService.keepaAllowedCategory.findUnique = jest.fn().mockResolvedValue({
+        categoryId: '599391031',
+        name: 'Hogar y cocina',
+      });
 
       const result = await service.fetchAndSaveKeepaExportForCategory('599391031');
 
       expect(queueService.enqueueRequest).toHaveBeenCalledWith(
         'CATEGORY_FINDER',
         { categoryId: '599391031', options: undefined },
-        1,
+        KEEPA_PRIORITY.NORMAL,
         1,
       );
       expect(result).toEqual({
         jobId: 101,
-        message: 'Задача поиска по категории 599391031 добавлена в очередь',
+        categoryId: '599391031',
+        categoryName: 'Hogar y cocina',
+        message: 'Задача поиска по категории "Hogar y cocina" (ID: 599391031) добавлена в очередь',
       });
+    });
+
+    it('должен ставить задачу с повышенным приоритетом CRITICAL при явной передаче', async () => {
+      queueService.enqueueRequest.mockResolvedValue({ id: 102 });
+      prismaService.keepaAllowedCategory.findUnique = jest.fn().mockResolvedValue({
+        categoryId: '599391031',
+        name: 'Hogar y cocina',
+      });
+
+      await service.fetchAndSaveKeepaExportForCategory('599391031', undefined, KEEPA_PRIORITY.CRITICAL);
+
+      expect(queueService.enqueueRequest).toHaveBeenCalledWith(
+        'CATEGORY_FINDER',
+        { categoryId: '599391031', options: undefined },
+        KEEPA_PRIORITY.CRITICAL,
+        1,
+      );
     });
   });
 
   describe('fetchAndSaveKeepaExportForAllCategories', () => {
-    it('должен опрашивать все активные разрешенные категории из базы данных', async () => {
+    it('должен опрашивать все активные разрешенные категории из базы данных с приоритетом NORMAL по умолчанию', async () => {
       process.env.KEEPA_API_KEY = 'test_key';
 
       const spySingle = jest.spyOn(service, 'fetchAndSaveKeepaExportForCategory').mockResolvedValue({
-        asins: ['B001TEST01'],
-        totalResults: 1,
-        queued: 1,
-      });
+        jobId: 101,
+        categoryId: '599391031',
+        categoryName: 'Hogar y cocina',
+        message: 'Задача поиска добавлена',
+      } as any);
 
       const results = await service.fetchAndSaveKeepaExportForAllCategories();
 
       expect(prismaService.keepaAllowedCategory.findMany).toHaveBeenCalledWith({
         where: { isActive: true },
       });
-      expect(spySingle).toHaveBeenCalledWith('599391031', expect.objectContaining({ domainId: 4 }));
+      expect(spySingle).toHaveBeenCalledWith('599391031', expect.objectContaining({ domainId: 4 }), KEEPA_PRIORITY.NORMAL);
       expect(results.length).toBe(1);
       expect(results[0].categoryName).toBe('Hogar y cocina');
 

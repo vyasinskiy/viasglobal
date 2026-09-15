@@ -119,7 +119,7 @@ export class KeepaService {
     const hasOffers = process.env.KEEPA_FETCH_OFFERS === 'true';
     const cost = hasOffers ? 3 : 1;
 
-    // Ставим задачу в персистентную очередь запросов с обычным приоритетом
+    // Ставим задачу в персистентную очередь запросов с фоновым приоритетом NORMAL
     await this.queueService.enqueueRequest(
       KeepaRequestType.PRODUCT_ASINS,
       { asins: asinsToFetch, offers: hasOffers },
@@ -284,24 +284,49 @@ export class KeepaService {
 
   /**
    * Запрос к Keepa Product Finder API с динамической категорией и безопасными фильтрами
-   * Создает задачу в персистентной очереди KeepaRequestQueue с низким приоритетом (LOW)
+   * @param categoryId ID категории
+   * @param options Фильтры выборки
+   * @param priority Приоритет выполнения (по умолчанию NORMAL = 10 для фоновых вызовов)
    */
-  async fetchAndSaveKeepaExportForCategory(categoryId: string, options?: ProductFinderOptions) {
+  async fetchAndSaveKeepaExportForCategory(
+    categoryId: string,
+    options?: ProductFinderOptions,
+    priority: number = KEEPA_PRIORITY.NORMAL,
+  ) {
+    this.logger.log(`Инициация выгрузки товаров по категории ID: ${categoryId} (priority: ${priority})...`);
+
+    // Проверяем наличие категории в разрешенных категориях БД
+    const allowedCat = await this.prisma.keepaAllowedCategory.findUnique({
+      where: { categoryId },
+    });
+
+    if (!allowedCat || !allowedCat.name) {
+      throw new Error(`Разрешенная категория с ID "${categoryId}" не найдена в базе данных`);
+    }
+
+    const categoryName = allowedCat.name;
+    this.logger.log(`Категория найдена: "${categoryName}" (ID: ${categoryId}). Добавляем задачу в очередь...`);
+
     const job = await this.queueService.enqueueRequest(
       KeepaRequestType.CATEGORY_FINDER,
       { categoryId, options },
-      KEEPA_PRIORITY.LOW,
+      priority,
       1,
     );
 
-    return { jobId: job.id, message: `Задача поиска по категории ${categoryId} добавлена в очередь` };
+    return { jobId: job.id, categoryId, categoryName, message: `Задача поиска по категории "${categoryName}" (ID: ${categoryId}) добавлена в очередь` };
   }
 
   /**
    * Запуск выгрузки по всем активным разрешенным категориям из базы данных
+   * @param options Фильтры выборки
+   * @param priority Приоритет выполнения (по умолчанию NORMAL = 10 для фоновых вызовов)
    */
-  async fetchAndSaveKeepaExportForAllCategories(options?: Omit<ProductFinderOptions, 'domainId'>) {
-    this.logger.log('Получаем список активных разрешенных категорий из базы данных...');
+  async fetchAndSaveKeepaExportForAllCategories(
+    options?: Omit<ProductFinderOptions, 'domainId'>,
+    priority: number = KEEPA_PRIORITY.NORMAL,
+  ) {
+    this.logger.log(`Получаем список активных разрешенных категорий из базы данных (priority: ${priority})...`);
 
     // Выбираем только активные категории из таблицы KeepaAllowedCategory
     const categories = await this.prisma.keepaAllowedCategory.findMany({
@@ -317,29 +342,40 @@ export class KeepaService {
     const results = [];
 
     for (const cat of categories) {
-      const res = await this.fetchAndSaveKeepaExportForCategory(cat.categoryId, {
-        ...options,
-        domainId: cat.domainId
-      });
+      const res = await this.fetchAndSaveKeepaExportForCategory(
+        cat.categoryId,
+        {
+          ...options,
+          domainId: cat.domainId,
+        },
+        priority,
+      );
 
-      results.push({
-        categoryId: cat.categoryId,
-        categoryName: cat.name,
-        ...res
-      });
+      results.push(res);
     }
 
     return results;
   }
 
   /**
-   * Экспорт каталога бренда из Keepa Product Finder через персистентную очередь (HIGH)
+   * Экспорт каталога бренда из Keepa Product Finder через персистентную очередь
+   * @param brandId ID бренда
+   * @param brandName Название бренда
+   * @param options Фильтры выборки
+   * @param priority Приоритет выполнения (по умолчанию NORMAL = 10 для фоновых вызовов)
    */
-  async fetchAndSaveKeepaExportForBrand(brandId: number, brandName: string, options?: ProductFinderOptions) {
+  async fetchAndSaveKeepaExportForBrand(
+    brandId: number,
+    brandName: string,
+    options?: ProductFinderOptions,
+    priority: number = KEEPA_PRIORITY.NORMAL,
+  ) {
+    this.logger.log(`Инициация выгрузки бренда "${brandName}" (ID: ${brandId}) (priority: ${priority})...`);
+
     const job = await this.queueService.enqueueRequest(
       KeepaRequestType.BRAND_FINDER,
       { brandId, brandName, options },
-      KEEPA_PRIORITY.HIGH,
+      priority,
       1,
     );
 
@@ -347,13 +383,22 @@ export class KeepaService {
   }
 
   /**
-   * Экспорт витрины продавца из Keepa Product Finder через персистентную очередь (HIGH)
+   * Экспорт витрины продавца из Keepa Product Finder через персистентную очередь
+   * @param sellerId ID продавца
+   * @param options Фильтры выборки
+   * @param priority Приоритет выполнения (по умолчанию NORMAL = 10 для фоновых вызовов)
    */
-  async fetchAndSaveKeepaExportForSeller(sellerId: string, options?: ProductFinderOptions) {
+  async fetchAndSaveKeepaExportForSeller(
+    sellerId: string,
+    options?: ProductFinderOptions,
+    priority: number = KEEPA_PRIORITY.NORMAL,
+  ) {
+    this.logger.log(`Инициация выгрузки витрины продавца "${sellerId}" (priority: ${priority})...`);
+
     const job = await this.queueService.enqueueRequest(
       KeepaRequestType.SELLER_FINDER,
       { sellerId, options },
-      KEEPA_PRIORITY.HIGH,
+      priority,
       1,
     );
 
@@ -468,12 +513,19 @@ export class KeepaService {
   /**
    * Обработчик поиска по категории (CATEGORY_FINDER)
    */
-  public async handleCategoryFinderJob(job: KeepaRequestQueueJob): Promise<{ categoryId: string; totalFound: number; queued: number }> {
+  public async handleCategoryFinderJob(job: KeepaRequestQueueJob): Promise<{ categoryId: string; categoryName?: string; totalFound: number; queued: number }> {
     const { categoryId, options } = job.payload as unknown as CategoryFinderPayload;
     const url = this.buildKeepaApiUrl('query', options?.domainId);
     if (!url) throw new Error('Не удалось сформировать URL к Keepa API');
 
-    const payload = {
+    // Находим имя категории в БД по id
+    const allowedCat = await this.prisma.keepaAllowedCategory.findUnique({
+      where: { categoryId },
+    });
+    const categoryName = allowedCat?.name;
+    const categoryLabel = categoryName ? `"${categoryName}" (ID: ${categoryId})` : `ID: ${categoryId}`;
+
+    const selection = {
       productType: [0],
       current_SALES_gte: options?.salesRankGte ?? 1,
       current_SALES_lte: options?.salesRankLte ?? 50000,
@@ -481,7 +533,7 @@ export class KeepaService {
       current_BUY_BOX_SHIPPING_lte: options?.buyBoxLte ?? 10000,
       current_COUNT_NEW_gte: options?.countNewGte ?? 5,
       current_COUNT_NEW_lte: options?.countNewLte ?? 15,
-      rootCategory: [categoryId],
+      rootCategory: [parseInt(categoryId, 10)],
       isAdultProduct: false,
       sort: [
         ['current_SALES', 'asc'],
@@ -491,10 +543,12 @@ export class KeepaService {
       page: options?.page ?? 0,
     };
 
+    this.logger.log(`Выполняем запрос к Keepa Product Finder для категории ${categoryLabel}...`);
+
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ selection }),
     });
 
     const data = await response.json();
@@ -524,7 +578,11 @@ export class KeepaService {
       }
     }
 
-    return { categoryId, totalFound: data.totalResults || 0, queued };
+    this.logger.log(
+      `Категория ${categoryLabel}: получено ASIN: ${asins.length}, добавлено в очередь анализа: ${queued} (всего в Keepa: ${data.totalResults || 0})`,
+    );
+
+    return { categoryId, categoryName, totalFound: data.totalResults || 0, queued };
   }
 
   /**
@@ -535,7 +593,7 @@ export class KeepaService {
     const url = this.buildKeepaApiUrl('query', options?.domainId);
     if (!url) throw new Error('Не удалось сформировать URL к Keepa API');
 
-    const payload = {
+    const selection = {
       productType: [0],
       brand: [brandName],
       current_SALES_gte: options?.salesRankGte ?? 1,
@@ -550,10 +608,12 @@ export class KeepaService {
       page: options?.page ?? 0,
     };
 
+    this.logger.log(`Выполняем запрос к Keepa Product Finder для бренда "${brandName}" (ID: ${brandId})...`);
+
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ selection }),
     });
 
     const data = await response.json();
@@ -592,6 +652,10 @@ export class KeepaService {
       }
     }
 
+    this.logger.log(
+      `Бренд "${brandName}": получено ASIN: ${asins.length}, добавлено в очередь анализа: ${queuedCount} (всего в Keepa: ${data.totalResults || 0})`,
+    );
+
     return { brandId, totalFound: data.totalResults || 0, queued: queuedCount, keepaExportId: keepaExport.id };
   }
 
@@ -603,7 +667,7 @@ export class KeepaService {
     const url = this.buildKeepaApiUrl('query', options?.domainId);
     if (!url) throw new Error('Не удалось сформировать URL к Keepa API');
 
-    const payload = {
+    const selection = {
       productType: [0],
       buyBoxSellerId: [sellerId],
       current_BUY_BOX_SHIPPING_gte: 0,
@@ -612,10 +676,12 @@ export class KeepaService {
       page: options?.page ?? 0,
     };
 
+    this.logger.log(`Выполняем запрос к Keepa Product Finder для витрины продавца "${sellerId}"...`);
+
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ selection }),
     });
 
     const data = await response.json();
@@ -653,6 +719,10 @@ export class KeepaService {
         this.logger.debug(`Ошибка сохранения ASIN ${asinCode}: ${e.message}`);
       }
     }
+
+    this.logger.log(
+      `Продавец "${sellerId}": получено ASIN: ${asins.length}, добавлено в очередь анализа: ${queuedCount} (всего в Keepa: ${data.totalResults || 0})`,
+    );
 
     return { sellerId, totalFound: data.totalResults || 0, queued: queuedCount, keepaExportId: keepaExport.id };
   }
