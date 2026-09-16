@@ -37,8 +37,10 @@
    - Воркер очереди (`KeepaQueueService`) держит резерв минимум **10 токенов**.
    - Резервные 10 токенов расходуются **исключительно** на задачи с приоритетом `CRITICAL` (100). Задачи фонового крона (`priority < 100`) ждут накопления токенов свыше 10.
 3. **Разделение обязанностей (Single Responsibility)**:
-   - `KeepaQueueService` отвечает **строго** за управление очередью: добавление задач (`enqueueRequest`), мониторинг лимитов токенов и резерва (`tokensLeft`, `tokenReserveThreshold = 10`), приоритетный выбор и захват (`PENDING` -> `PROCESSING` -> `COMPLETED`/`FAILED`), планировщик крон.
-   - `KeepaService` отвечает за бизнес-логику и API: содержит сетевые вызовы к Keepa API, формирование URL, диспетчер `executeJob` и конкретные обработчики запросов (`handleProductAsinsJob`, `handleCategoryFinderJob`, `handleBrandFinderJob`, `handleSellerFinderJob`), сохранение сырых и обработанных данных (`processRawProduct`), синхронизируя остаток токенов через `queueService.updateTokensInfo()`.
+   - `KeepaQueueService` отвечает **строго** за управление очередью: добавление задач (`enqueueRequest`), мониторинг лимитов токенов и резерва (`tokensLeft`, `tokenReserveThreshold = 10`), приоритетный выбор и захват (`PENDING` -> `PROCESSING` -> `COMPLETED`/`FAILED`), диспетчеризацию `executeJob`.
+   - `KeepaProductService` отвечает за сущность **товаров** (эндпоинт `/product`): управление оптовой очередью (`populateQueue`, фоновый запуск пачек `enqueueNextWholesaleAsins`), расчет лимитов пачки `calculateProductsBatchRequestLimit()`, запрос карточек товаров (`handleProductAsinsJob`), процессинг сырых данных в чистовик (`processRawData`, `processRawProduct`), расчет Size Tier.
+   - `KeepaQueryService` отвечает за **поиск каталогов** (эндпоинт `/query` — Product Finder): выборка по категориям (`handleCategoryFinderJob`), брендам (`handleBrandFinderJob`) и продавцам (`handleSellerFinderJob`).
+   - `KeepaService` выступает удобным фасадом для обратной совместимости, агрегируя оба сервиса.
 
 ## Логика фильтрации ASIN (`get_asin_filter_reason`)
 
@@ -54,7 +56,7 @@
 
 ## Система тегирования ASIN (ASIN Tags)
 
-При обновлении данных ASIN через Keepa API (в `keepa.service.ts`) товар автоматически добавляется в очередь `AsinAnalysisQueue`. 
+При обновлении данных ASIN через Keepa API (в `keepa-product.service.ts`) товар автоматически добавляется в очередь `AnalysisProductQueue`. 
 Микросервис `AnalysisService` асинхронно анализирует ASIN на наличие вариаций и дату последней активности продавца в Buy Box.
 1. `DEAD_VARIATION` — нет продаж/продавцов более 6 месяцев.
 2. `MISSING_VARIATION` — нет продаж/продавцов более 3 месяцев (но менее 6 месяцев). Потенциальные эксклюзивы.

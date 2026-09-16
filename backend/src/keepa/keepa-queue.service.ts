@@ -63,6 +63,19 @@ export interface SellerFinderPayload {
 }
 
 /**
+ * Карта соответствия типов задач очереди и их полезных нагрузок
+ */
+export interface KeepaQueuePayloadMap {
+  [KeepaRequestType.PRODUCT_ASINS]: ProductAsinsPayload;
+  [KeepaRequestType.CATEGORY_FINDER]: CategoryFinderPayload;
+  [KeepaRequestType.BRAND_FINDER]: BrandFinderPayload;
+  [KeepaRequestType.SELLER_FINDER]: SellerFinderPayload;
+}
+
+import { KeepaProductService } from './keepa-product.service';
+import { KeepaQueryService } from './keepa-query.service';
+
+/**
  * Полный типизированный интерфейс сущности задачи KeepaRequestQueue
  */
 export type KeepaRequestQueueJob = KeepaRequestQueue;
@@ -82,9 +95,33 @@ export class KeepaQueueService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly analysisService: AnalysisService,
-    @Inject(forwardRef(() => KeepaService))
-    private readonly keepaService: KeepaService,
+    @Inject(forwardRef(() => KeepaProductService))
+    private readonly productService: KeepaProductService,
+    @Inject(forwardRef(() => KeepaQueryService))
+    private readonly queryService: KeepaQueryService,
   ) {}
+
+  /**
+   * Диспетчеризация выполнения задачи в соответствующий доменный сервис
+   */
+  public async executeJob(job: KeepaRequestQueueJob): Promise<any> {
+    switch (job.type) {
+      case KeepaRequestType.PRODUCT_ASINS:
+        return this.productService.handleProductAsinsJob(job);
+
+      case KeepaRequestType.CATEGORY_FINDER:
+        return this.queryService.handleCategoryFinderJob(job);
+
+      case KeepaRequestType.BRAND_FINDER:
+        return this.queryService.handleBrandFinderJob(job);
+
+      case KeepaRequestType.SELLER_FINDER:
+        return this.queryService.handleSellerFinderJob(job);
+
+      default:
+        throw new Error(`Неизвестный тип задачи: ${(job as any).type}`);
+    }
+  }
 
   /**
    * Получение текущего баланса токенов
@@ -115,13 +152,13 @@ export class KeepaQueueService {
   /**
    * Добавление нового запроса в персистентную очередь БД
    * @param type Тип запроса к Keepa
-   * @param payload Данные запроса
+   * @param payload Строго типизированные данные запроса в зависимости от type
    * @param priority Приоритет выполнения (по умолчанию NORMAL = 10, для срочных ручных = CRITICAL = 100)
    * @param expectedCost Ожидаемая стоимость в токенах (по умолчанию 1)
    */
-  async enqueueRequest(
-    type: KeepaRequestType,
-    payload: any,
+  async enqueueRequest<T extends KeepaRequestType>(
+    type: T,
+    payload: KeepaQueuePayloadMap[T],
     priority: number = KEEPA_PRIORITY.NORMAL,
     expectedCost: number = 1,
   ) {
@@ -130,7 +167,7 @@ export class KeepaQueueService {
     const job = await this.prisma.keepaRequestQueue.create({
       data: {
         type,
-        payload,
+        payload: payload as unknown as Prisma.InputJsonValue,
         priority,
         expectedCost,
         status: KeepaRequestStatus.PENDING,
@@ -206,9 +243,9 @@ export class KeepaQueueService {
           continue;
         }
 
-        // 4. Выполнение задачи через основной сервис KeepaService
+        // 4. Выполнение задачи через соответствующий сервис
         try {
-          const result = await this.keepaService.executeJob(job);
+          const result = await this.executeJob(job);
           await this.prisma.keepaRequestQueue.update({
             where: { id: job.id },
             data: {

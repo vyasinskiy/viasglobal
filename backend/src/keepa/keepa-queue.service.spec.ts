@@ -2,25 +2,34 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { KeepaQueueService, KEEPA_PRIORITY } from './keepa-queue.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisService } from '../analysis/analysis.service';
-import { KeepaService } from './keepa.service';
+import { KeepaProductService } from './keepa-product.service';
+import { KeepaQueryService } from './keepa-query.service';
 import { KeepaRequestStatus, KeepaRequestType } from '@prisma/client';
 
 describe('Сервис приоритетной очереди Keepa (KeepaQueueService)', () => {
   let service: KeepaQueueService;
   let prismaService: any;
   let analysisService: any;
-  let keepaService: any;
+  let productService: any;
+  let queryService: any;
 
   beforeEach(async () => {
-    keepaService = {
+    productService = {
+      handleProductAsinsJob: jest.fn().mockResolvedValue({ totalAsins: 1, processedCount: 1 }),
       processRawProduct: jest.fn().mockResolvedValue(undefined),
+    };
+
+    queryService = {
+      handleCategoryFinderJob: jest.fn().mockResolvedValue({ totalFound: 1 }),
+      handleBrandFinderJob: jest.fn().mockResolvedValue({ totalFound: 1 }),
+      handleSellerFinderJob: jest.fn().mockResolvedValue({ totalFound: 1 }),
     };
 
     prismaService = {
       keepaRequestQueue: {
         create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 1, ...data })),
         findFirst: jest.fn(),
-        update: jest.fn().mockImplementation(({ where, data }) => Promise.resolve({ id: where?.id || 1, ...data })),
+        update: jest.fn().mockImplementation(({ where, data }) => Promise.resolve({ id: where?.id || 1, type: KeepaRequestType.PRODUCT_ASINS, payload: {}, ...data })),
       },
       keepaApiRawResponse: {
         upsert: jest.fn().mockResolvedValue({}),
@@ -29,7 +38,7 @@ describe('Сервис приоритетной очереди Keepa (KeepaQueue
       keepaApiProcessedData: {
         upsert: jest.fn().mockResolvedValue({}),
       },
-      wholesaleAsinQueue: {
+      requestProductQueue: {
         upsert: jest.fn().mockResolvedValue({}),
       },
       keepaExport: {
@@ -49,7 +58,8 @@ describe('Сервис приоритетной очереди Keepa (KeepaQueue
         KeepaQueueService,
         { provide: PrismaService, useValue: prismaService },
         { provide: AnalysisService, useValue: analysisService },
-        { provide: KeepaService, useValue: keepaService },
+        { provide: KeepaProductService, useValue: productService },
+        { provide: KeepaQueryService, useValue: queryService },
       ],
     }).compile();
 
@@ -142,9 +152,6 @@ describe('Сервис приоритетной очереди Keepa (KeepaQueue
         .mockResolvedValueOnce(criticalJob)
         .mockResolvedValueOnce(null); // Второй раз возвращает null для выхода из цикла
 
-      // Проверяем вызов executeJob в основном сервисе KeepaService
-      keepaService.executeJob = jest.fn().mockResolvedValue({ totalAsins: 1, processedCount: 1 });
-
       await service.processNextJobs();
 
       // Экстренная задача должна быть успешно захвачена и выполнена
@@ -154,7 +161,7 @@ describe('Сервис приоритетной очереди Keepa (KeepaQueue
           data: expect.objectContaining({ status: KeepaRequestStatus.PROCESSING }),
         }),
       );
-      expect(keepaService.executeJob).toHaveBeenCalledWith(expect.objectContaining({ id: 77 }));
+      expect(productService.handleProductAsinsJob).toHaveBeenCalledWith(expect.objectContaining({ id: 77 }));
     });
   });
 });

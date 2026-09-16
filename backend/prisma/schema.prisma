@@ -343,7 +343,7 @@ model KeepaExport {
 // KEEPA API DATA PROCESSING
 // ==========================================
 
-model WholesaleAsinQueue {
+model RequestProductQueue {
   id          Int      @id @default(autoincrement())
   asin        String   @unique
   priority    Int      @default(0)
@@ -429,7 +429,7 @@ model KeepaApiProcessedData {
   lastProcessedAt    DateTime @default(now())
 }
 
-model AsinAnalysisQueue {
+model AnalysisProductQueue {
   asin        String   @id
   priority    Int      @default(0)
   addedAt     DateTime @default(now())

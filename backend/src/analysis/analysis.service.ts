@@ -12,7 +12,7 @@ export class AnalysisService {
    * Добавляет ASIN в очередь на анализ
    */
   async queueForAnalysis(asin: string, priority: number = 0) {
-    return this.prisma.asinAnalysisQueue.upsert({
+    return this.prisma.analysisProductQueue.upsert({
       where: { asin },
       update: { priority, addedAt: new Date() },
       create: { asin, priority }
@@ -26,7 +26,7 @@ export class AnalysisService {
     this.logger.log('Принудительный запуск обработки всей очереди анализа...');
     let processed = 0;
     while (true) {
-      const queueItemsCount = await this.prisma.asinAnalysisQueue.count();
+      const queueItemsCount = await this.prisma.analysisProductQueue.count();
       if (queueItemsCount === 0) {
         break;
       }
@@ -51,8 +51,9 @@ export class AnalysisService {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async analyzeAsins() {
+    // Воркер для анализа ASINов из очереди AnalysisProductQueue
     // Берем пачку ASIN-ов из очереди (100 за раз), сортируем по приоритету, затем по дате
-    const queueItems = await this.prisma.asinAnalysisQueue.findMany({
+    const queueItems = await this.prisma.analysisProductQueue.findMany({
       take: 100,
       orderBy: [
         { priority: 'desc' },
@@ -75,14 +76,14 @@ export class AnalysisService {
       if (!keepaData) {
         // Данных нет, логируем ошибку (этого не должно быть, так как в очередь попадают после сохранения)
         this.logger.error(`Данные Keepa не найдены для ASIN ${asin} при анализе тегов!`);
-        await this.prisma.asinAnalysisQueue.delete({ where: { asin } });
+        await this.prisma.analysisProductQueue.delete({ where: { asin } });
         continue;
       }
 
       await this.analyzeVariationTags(asin, keepaData);
 
       // Удаляем из очереди после обработки всех анализаторов
-      await this.prisma.asinAnalysisQueue.delete({ where: { asin } });
+      await this.prisma.analysisProductQueue.delete({ where: { asin } });
     }
 
     this.logger.log(`Анализ пачки завершен.`);

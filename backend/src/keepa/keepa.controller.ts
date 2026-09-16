@@ -1,41 +1,50 @@
 import { Controller, Post, Get, Param, HttpException, HttpStatus, Query } from '@nestjs/common';
-import { KeepaService } from './keepa.service';
-import { KeepaQueueService, KEEPA_PRIORITY } from './keepa-queue.service';
+import { KeepaProductService } from './keepa-product.service';
+import { KeepaQueryService } from './keepa-query.service';
+import { KeepaQueueService, KEEPA_PRIORITY, ProductAsinsPayload } from './keepa-queue.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { KeepaRequestType } from '@prisma/client';
 
 @Controller('keepa')
 export class KeepaController {
   constructor(
-    private readonly keepaService: KeepaService,
+    private readonly productService: KeepaProductService,
+    private readonly queryService: KeepaQueryService,
     private readonly queueService: KeepaQueueService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
   ) {}
 
+  /**
+   * Заполнение оптовой очереди из WholesaleCandidatesView
+   */
   @Post('populate-queue')
   async triggerPopulateQueue() {
-    await this.keepaService.populateQueue();
+    await this.productService.populateQueue();
     return { message: 'Queue populated successfully from WholesaleCandidatesView' };
   }
 
+  /**
+   * Экстренная постановка ASIN в очередь и немедленное получение чистовых данных
+   */
   @Post('enqueue/:asin')
   async enqueueAndFetch(@Param('asin') asin: string) {
     if (!asin) {
       throw new HttpException('ASIN is required', HttpStatus.BAD_REQUEST);
     }
 
+    const asinsPayload: ProductAsinsPayload = { asins: [asin], offers: true };
+
     // 1. Создаем экстренную задачу с наивысшим приоритетом CRITICAL (100)
-    // Она может расходовать токены из резерва (вплоть до 1 токена)
     const job = await this.queueService.enqueueRequest(
       KeepaRequestType.PRODUCT_ASINS,
-      { asins: [asin], offers: true },
+      asinsPayload,
       KEEPA_PRIORITY.CRITICAL,
       1,
     );
 
-    // 2. Немедленно выполняем задачу в приоритетном режиме через основной сервис KeepaService
+    // 2. Немедленно выполняем задачу через KeepaProductService
     try {
-      await this.keepaService.executeJob(job);
+      await this.productService.handleProductAsinsJob(job);
       await this.prisma.keepaRequestQueue.update({
         where: { id: job.id },
         data: { status: 'COMPLETED', completedAt: new Date() },
@@ -65,9 +74,8 @@ export class KeepaController {
    */
   @Get('allowed-categories')
   async getAllowedCategories() {
-    // Возвращаем все записи из таблицы разрешенных категорий
     return this.prisma.keepaAllowedCategory.findMany({
-      orderBy: { id: 'asc' }
+      orderBy: { id: 'asc' },
     });
   }
 
@@ -80,8 +88,7 @@ export class KeepaController {
       throw new HttpException('Идентификатор категории обязателен', HttpStatus.BAD_REQUEST);
     }
 
-    // Запускаем поиск по категории с безопасными фильтрами и наивысшим приоритетом CRITICAL (ручной запрос)
-    return this.keepaService.fetchAndSaveKeepaExportForCategory(
+    return this.queryService.fetchAndSaveKeepaExportForCategory(
       categoryId,
       undefined,
       KEEPA_PRIORITY.CRITICAL,
@@ -93,8 +100,7 @@ export class KeepaController {
    */
   @Post('export/category-all')
   async exportAllCategories() {
-    // Опрашиваем все активные категории с приоритетом CRITICAL (ручной запрос)
-    return this.keepaService.fetchAndSaveKeepaExportForAllCategories(
+    return this.queryService.fetchAndSaveKeepaExportForAllCategories(
       undefined,
       KEEPA_PRIORITY.CRITICAL,
     );
@@ -108,7 +114,7 @@ export class KeepaController {
     if (!brandId || !brandName) {
       throw new HttpException('Brand ID and Name are required', HttpStatus.BAD_REQUEST);
     }
-    const result = await this.keepaService.fetchAndSaveKeepaExportForBrand(
+    const result = await this.queryService.fetchAndSaveKeepaExportForBrand(
       parseInt(brandId, 10),
       brandName,
       undefined,
@@ -128,7 +134,7 @@ export class KeepaController {
     if (!sellerId) {
       throw new HttpException('Seller ID is required', HttpStatus.BAD_REQUEST);
     }
-    const result = await this.keepaService.fetchAndSaveKeepaExportForSeller(
+    const result = await this.queryService.fetchAndSaveKeepaExportForSeller(
       sellerId,
       undefined,
       KEEPA_PRIORITY.CRITICAL,
@@ -139,4 +145,3 @@ export class KeepaController {
     return result;
   }
 }
-
