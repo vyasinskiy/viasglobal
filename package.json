@@ -3,6 +3,7 @@
     "test": "npx tsx --test .agents/skills/**/*.test.ts"
   },
   "dependencies": {
+    "playwright": "^1.63.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

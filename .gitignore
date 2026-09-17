@@ -52,3 +52,6 @@ shop/logs/
 
 # Temporary agent scripts
 backend/scripts/temp/
+
+# Keepa auth storage for skills
+.agents/skills/fetch-keepa-viewer/auth/
