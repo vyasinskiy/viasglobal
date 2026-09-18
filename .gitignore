@@ -55,3 +55,4 @@ backend/scripts/temp/
 
 # Keepa auth storage for skills
 .agents/skills/fetch-keepa-viewer/auth/
+.agents/skills/keepa-seller-finder-playwright/auth/
