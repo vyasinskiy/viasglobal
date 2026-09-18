@@ -174,83 +174,89 @@ async function main() {
     // Очищаем и вводим название бренда
     await brandInput.click();
     await brandInput.fill(brandName);
-    console.log(`Введено значение "${brandName}" в поле Brand. Ожидание выпадающего списка вариантов...`);
-    await page.waitForTimeout(2000);
+    console.log(`Введено значение "${brandName}" в поле Brand.`);
+    await page.waitForTimeout(1000);
 
     // Проверяем появление выпадающего списка автодополнения (.ui-autocomplete)
     const autocompleteList = page.locator('.ui-autocomplete:visible');
-    const hasDropdown = await autocompleteList.isVisible({ timeout: 4000 }).catch(() => false);
+    const hasDropdown = await autocompleteList.isVisible({ timeout: 2500 }).catch(() => false);
 
     if (hasDropdown) {
-      // Ищем точное или наиболее подходящее совпадение по тексту бренда
+      // Ищем точное или валидное совпадение (исключая "no match")
       const lowerBrand = brandName.toLowerCase();
-      const itemMatch = page.locator(`.ui-autocomplete:visible li:has-text("${lowerBrand}")`).first();
+      const itemMatch = page.locator(`.ui-autocomplete:visible li:not(:has-text("no match")):has-text("${lowerBrand}")`).first();
 
-      if (await itemMatch.isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (await itemMatch.isVisible({ timeout: 1500 }).catch(() => false)) {
         const itemText = (await itemMatch.innerText().catch(() => '')).trim();
         console.log(`Выбран вариант из списка: "${itemText}"`);
         await itemMatch.click();
       } else {
-        // Если конкретный пункт не совпал, кликаем второй элемент (первый обычно "Select all")
-        const allItems = page.locator('.ui-autocomplete:visible li');
-        const count = await allItems.count();
-        if (count > 1) {
-          const secondItemText = (await allItems.nth(1).innerText().catch(() => '')).trim();
-          console.log(`Кликаем первый найденный бренд: "${secondItemText}"`);
-          await allItems.nth(1).click();
-        } else if (count === 1) {
-          await allItems.first().click();
-        }
+        console.log('Подходящих вариантов в автодополнении нет, нажимаем Enter.');
+        await page.keyboard.press('Escape');
+        await brandInput.press('Enter');
       }
     } else {
-      console.log('Выпадающий список автодополнения не появился, отправляем клавишу Enter.');
       await brandInput.press('Enter');
     }
 
     await page.waitForTimeout(1000);
 
+    // Закрываем любые всплывающие баннеры и оверлеи (#popup3, popup, modal), которые могут перехватывать клики
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => {
+      document.querySelectorAll('#popup3, .popup, [id^="popup"], .modal').forEach((el) => {
+        (el as HTMLElement).style.display = 'none';
+      });
+    }).catch(() => {});
+
     // Нажимаем синюю кнопку "FIND PRODUCTS" (#filterSubmit)
     console.log('Нажатие кнопки "FIND PRODUCTS"...');
     const findButton = page.locator('#filterSubmit, button:has-text("FIND PRODUCTS"), button:has-text("Find products")').first();
     await findButton.scrollIntoViewIfNeeded().catch(() => {});
-    await findButton.click();
+    await findButton.click({ force: true });
 
     console.log('Ожидание формирования результатов поиска...');
 
     // Обязательно переключаем лимит отображения таблицы на 5000 строк согласно правилам проекта
     console.log('Проверяем и переключаем лимит отображения таблицы на 5000 строк...');
     const rowMenuTrigger = page.locator('.tool__row .trigger, .tool__row').first();
-    await rowMenuTrigger.waitFor({ state: 'visible', timeout: 30000 });
-
-    const currentRowsText = (await rowMenuTrigger.innerText().catch(() => '')).trim();
-    if (!currentRowsText.includes('5000 rows')) {
-      console.log(`Текущий лимит таблицы: "${currentRowsText}". Переключаем на 5000 rows...`);
-      await rowMenuTrigger.click();
-      await page.waitForTimeout(500);
-      const option5000 = page.locator('#tool-row-menu li[data-value="5000"], .mdc-menu li[data-value="5000"]').first();
-      if (await option5000.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await option5000.click();
-        console.log('Успешно выбран лимит: 5000 строк!');
-        await page.waitForTimeout(2500); // Ожидаем перестройки таблицы
+    if (await rowMenuTrigger.isVisible({ timeout: 15000 }).catch(() => false)) {
+      const currentRowsText = (await rowMenuTrigger.innerText().catch(() => '')).trim();
+      if (!currentRowsText.includes('5000 rows')) {
+        console.log(`Текущий лимит таблицы: "${currentRowsText}". Переключаем на 5000 rows...`);
+        await rowMenuTrigger.click();
+        await page.waitForTimeout(500);
+        const option5000 = page.locator('#tool-row-menu li[data-value="5000"], .mdc-menu li[data-value="5000"]').first();
+        if (await option5000.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await option5000.click();
+          console.log('Успешно выбран лимит: 5000 строк!');
+          await page.waitForTimeout(2500); // Ожидаем перестройки таблицы
+        }
+      } else {
+        console.log('Лимит 5000 строк уже активен.');
       }
     } else {
-      console.log('Лимит 5000 строк уже активен.');
+      console.log('Меню выбора строк (.tool__row) не потребовало переключения (малое количество результатов).');
     }
 
     // Ожидаем появление кнопки "Export" в верхней панели результатов (.tool__export)
     let foundExport = false;
     for (let attempt = 0; attempt < 30; attempt++) {
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1500);
 
-      // Закрываем модалки, если появились
-      if (await page.locator('text="Search result"').isVisible().catch(() => false)) {
-        await page.keyboard.press('Escape');
-      }
+      // Закрываем и удаляем модалки и оверлеи (#popup3 и т.д.)
+      await page.keyboard.press('Escape');
+      await page.evaluate(() => {
+        document.querySelectorAll('#popup3, .popup, [id^="popup"]:not(#table-export-dialog), .modal, .ui-widget-overlay').forEach((el) => {
+          (el as HTMLElement).style.display = 'none';
+        });
+      }).catch(() => {});
 
-      const exportTrigger = page.locator('.tool__export, span.tool__export, span.trigger:has-text("Export")').first();
-      if (await exportTrigger.isVisible().catch(() => false)) {
+      const exportTrigger = page.locator('#grid-tools-finder .tool__export, .tool__export .trigger, span.tool__export').first();
+      if (await exportTrigger.isVisible({ timeout: 1000 }).catch(() => false)) {
         console.log('Кнопка "Export" найдена в панели таблицы!');
-        await exportTrigger.click();
+        await exportTrigger.scrollIntoViewIfNeeded().catch(() => {});
+        await exportTrigger.click({ force: true });
         foundExport = true;
         await page.waitForTimeout(1500);
         break;
@@ -268,7 +274,7 @@ async function main() {
     // В диалоге экспорта нажимаем кнопку "Export" (#exportSubmit)
     const dialogBtn = page.locator('#exportSubmit, button:has-text("Export"), input[value*="EXPORT"]').first();
     if (await dialogBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await dialogBtn.click();
+      await dialogBtn.click({ force: true });
     }
 
     const download = await downloadPromise;

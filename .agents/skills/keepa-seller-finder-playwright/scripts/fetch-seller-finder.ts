@@ -6,17 +6,29 @@
  * Использование:
  *   npx tsx fetch-seller-finder.ts <sellerId_или_имя> [--no-parse] [output.xlsx] [domainId]
  */
-import { chromium } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import * as dotenv from 'dotenv';
+
+const backendDir = path.resolve(__dirname, '../../../../backend');
+
+// Функция безопасного подключения модулей из папки backend/node_modules
+function requireBackendModule(moduleName: string) {
+  try {
+    const resolved = require.resolve(moduleName, { paths: [backendDir, process.cwd()] });
+    return require(resolved);
+  } catch (err: any) {
+    return require(moduleName);
+  }
+}
+
+const { chromium } = requireBackendModule('playwright');
+const { PrismaClient } = requireBackendModule('@prisma/client');
+const { Pool } = requireBackendModule('pg');
+const { PrismaPg } = requireBackendModule('@prisma/adapter-pg');
+const dotenv = requireBackendModule('dotenv');
 
 // Загружаем конфигурацию из .env бэкенда
-const backendDir = path.resolve(__dirname, '../../../../backend');
 dotenv.config({ path: path.join(backendDir, '.env') });
 
 /**
