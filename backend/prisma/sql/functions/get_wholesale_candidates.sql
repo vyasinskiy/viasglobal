@@ -58,6 +58,7 @@ BEGIN
         JOIN "Tag" t ON t.id = at."B"
         WHERE at."A" = a.id AND t.name IN ('DEAD_VARIATION', 'MISSING_VARIATION')
       )
+      AND b.status != 'NO_EU_DISTRIBUTOR'
     GROUP BY 
       m.name, b.name, s.name, public.get_asin_filter_reason(a.id), a."brandId", s."sellerId"
     ORDER BY 

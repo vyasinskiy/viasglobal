@@ -7,9 +7,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum BrandStatus {
+  ACTIVE
+  NO_EU_DISTRIBUTOR
+}
+
 model Brand {
   id            Int            @id @default(autoincrement())
   name          String         @unique
+  status        BrandStatus    @default(ACTIVE)
+  notes         String?
   asins         ASIN[]
   privateLabels PrivateLabel[]
   keepaExports  KeepaExport[]

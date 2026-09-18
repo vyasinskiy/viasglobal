@@ -58,6 +58,7 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`NO_BUYBOX_DATA`**: нет данных о BuyBox для ASIN.
 - **`BUYBOX_MATCH_BRAND`**: продавец BuyBox содержит имя бренда.
 - **`BUYBOX_MATCH_MANUFACTURER`**: продавец BuyBox содержит имя производителя.
+- **`NO_EU_DISTRIBUTOR`**: у бренда отсутствует официальная дистрибьюторская сеть в ЕС (`Brand.status = 'NO_EU_DISTRIBUTOR'`).
 - **`PRIVATE_LABEL`**: подтвержденный приватный лейбл (связка Бренд + Продавец).
 - **`DOMINANT_BRAND_SELLER`**: целевой продавец удерживает Buy Box на >= 80% всех товаров каталога бренда в БД (проверка через хранимую функцию `check_brand_seller_dominance` при наличии обеих выгрузок Keepa).
 - **`FEW_BUYBOX_WINNERS`**: за последние 90 дней в BuyBox побеждало менее 4 продавцов (`buyBoxWinnerCount90Days < 4` или `<= 3`).

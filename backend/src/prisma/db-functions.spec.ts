@@ -333,4 +333,33 @@ describe('Функция БД: get_asin_filter_reason', () => {
     const reason = await getFilterReason(asin.id, prisma);
     expect(['FEW_BUYBOX_WINNERS', null]).toContain(reason);
   });
+
+  it('должен возвращать NO_EU_DISTRIBUTOR, если бренд имеет статус NO_EU_DISTRIBUTOR', async () => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Создаем бренд со статусом NO_EU_DISTRIBUTOR
+        const brand = await tx.brand.create({
+          data: {
+            name: `${PREFIX}NO_EU_BRAND`,
+            status: 'NO_EU_DISTRIBUTOR',
+            notes: 'Отсутствует официальная сеть B2B дистрибьюторов в ЕС',
+          },
+        });
+
+        const asin = await tx.aSIN.create({
+          data: {
+            code: `${PREFIX}ASIN_NO_EU`,
+            brandId: brand.id,
+          },
+        });
+
+        const reason = await getFilterReason(asin.id, tx);
+        expect(reason).toBe('NO_EU_DISTRIBUTOR');
+
+        throw new Error('ROLLBACK_TEST');
+      });
+    } catch (e: any) {
+      if (e.message !== 'ROLLBACK_TEST') throw e;
+    }
+  });
 });
