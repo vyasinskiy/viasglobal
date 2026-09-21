@@ -3,7 +3,7 @@
  *
  * Устанавливает поле status = 'NO_EU_DISTRIBUTOR' и сохраняет аналитические заметки
  * в таблице Brand. В результате все товары данного бренда автоматически исключаются
- * из выдачи оптовых кандидатов (WholesaleCandidatesView).
+ * из выдачи оптовых кандидатов (CandidatesProductsView).
  */
 
 import { PrismaClient, BrandStatus } from '@prisma/client';
@@ -65,7 +65,7 @@ async function main() {
 
   console.log(`   ✅ Статус бренда успешно обновлен: ${updatedBrand.status}`);
   console.log(`   📝 Заметки сохранены.`);
-  console.log(`\n🎉 Миграция успешно выполнена! Товары бренда "${updatedBrand.name}" теперь исключены из WholesaleCandidatesView.`);
+  console.log(`\n🎉 Миграция успешно выполнена! Товары бренда "${updatedBrand.name}" теперь исключены из CandidatesProductsView.`);
 }
 
 main()

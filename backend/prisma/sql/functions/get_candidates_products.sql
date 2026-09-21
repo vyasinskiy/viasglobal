@@ -1,5 +1,5 @@
 -- ==============================================================================
--- Функция: get_wholesale_candidates
+-- Функция: get_candidates_products
 -- Назначение: Возвращает сводный список ASIN для оптовой торговли с учетом
 --             параметров фильтрации (BSR и процент владения BuyBox Amazon).
 --             Возвращает таблицу (Table-Valued Function).
@@ -7,7 +7,7 @@
 
 
 
-CREATE OR REPLACE FUNCTION public.get_wholesale_candidates(
+CREATE OR REPLACE FUNCTION public.get_candidates_products(
     p_max_bsr INT DEFAULT 50000,
     p_max_amazon_buybox FLOAT DEFAULT 0.10
 )
@@ -58,7 +58,7 @@ BEGIN
         JOIN "Tag" t ON t.id = at."B"
         WHERE at."A" = a.id AND t.name IN ('DEAD_VARIATION', 'MISSING_VARIATION')
       )
-      AND b.status != 'NO_EU_DISTRIBUTOR'
+      AND b.status NOT IN ('NO_EU_DISTRIBUTOR', 'CONTRACTED')
     GROUP BY 
       m.name, b.name, s.name, public.get_asin_filter_reason(a.id), a."brandId", s."sellerId"
     ORDER BY 

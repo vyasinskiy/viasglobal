@@ -15,12 +15,12 @@ export class KeepaController {
   ) {}
 
   /**
-   * Заполнение оптовой очереди из WholesaleCandidatesView
+   * Заполнение оптовой очереди из CandidatesProductsView
    */
   @Post('populate-queue')
   async triggerPopulateQueue() {
     await this.productService.populateQueue();
-    return { message: 'Queue populated successfully from WholesaleCandidatesView' };
+    return { message: 'Queue populated successfully from CandidatesProductsView' };
   }
 
   /**

@@ -25,11 +25,11 @@ export class KeepaProductService {
   ) {}
 
   /**
-   * Заполняет очередь ASINов из WholesaleCandidatesView
+   * Заполняет очередь ASINов из CandidatesProductsView
    * Этот метод можно вызывать по крону раз в сутки или вручную через API
    */
   async populateQueue() {
-    this.logger.log('Начинаем массовое обновление очереди ASIN из WholesaleCandidatesView...');
+    this.logger.log('Начинаем массовое обновление очереди ASIN из CandidatesProductsView...');
 
     try {
       // Единый SQL-запрос для распаковки строки ASIN, фильтрации и вставки (UPSERT)
@@ -38,7 +38,7 @@ export class KeepaProductService {
           SELECT 
             TRIM(unnest(string_to_array(asins, ','))) AS asin,
             "asinCount" AS priority
-          FROM public."WholesaleCandidatesView"
+          FROM public."CandidatesProductsView"
           WHERE asins IS NOT NULL AND asins != ''
         ),
         filtered_asins AS (

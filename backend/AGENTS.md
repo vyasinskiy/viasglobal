@@ -20,7 +20,7 @@
    - Назначение: просмотр связок брендов и продавцов (приватные лейблы).
    - Поля: `id`, `brandId`, `sellerId`, `brandName`, `sellerName`, `notes` (текст и результаты детального анализа связки), `createdAt`, `updatedAt`.
 
-3. **`WholesaleCandidatesView`**:
+3. **`CandidatesProductsView`**:
    - Назначение: сводный анализ и группировка товаров ASIN по производителям, брендам, продавцам, дистрибьюторам и причинам фильтрации для отбора кандидатов под оптовую торговлю (Wholesale).
    - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `eans`, `distributors`, `brandId`, `sellerId`.
 
@@ -60,7 +60,7 @@
 Микросервис `AnalysisService` асинхронно анализирует ASIN на наличие вариаций и дату последней активности продавца в Buy Box.
 1. `DEAD_VARIATION` — нет продаж/продавцов более 6 месяцев.
 2. `MISSING_VARIATION` — нет продаж/продавцов более 3 месяцев (но менее 6 месяцев). Потенциальные эксклюзивы.
-Эти теги сохраняются в поле `tags` таблицы `ASIN` и автоматически отфильтровываются в представлении `WholesaleCandidatesView`.
+Эти теги сохраняются в поле `tags` таблицы `ASIN` и автоматически отфильтровываются в представлении `CandidatesProductsView`.
 
 ## Расчет максимальной цены закупки (`calculate_max_buy_price`)
 
@@ -75,7 +75,7 @@
 Для каждого объекта базы данных (представления, хранимые функции) в проекте ведется эталонный SQL-файл:
 - **Представления (Views)**: `backend/prisma/sql/views/`
   - `AsinView.sql`
-  - `WholesaleCandidatesView.sql`
+  - `CandidatesProductsView.sql`
   - `PrivateLabelView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `calculate_max_buy_price.sql`
@@ -117,7 +117,7 @@
 
 Для глобальной классификации брендов в таблице `Brand` используется enum `BrandStatus`:
 - `ACTIVE`: Активный бренд, участвует в оптовом анализе.
-- `NO_EU_DISTRIBUTOR`: У бренда отсутствует официальная сеть B2B дистрибьюторов в ЕС. Товары автоматически получают `filterReason = 'NO_EU_DISTRIBUTOR'` в `get_asin_filter_reason` и исключаются из выдачи оптовых кандидатов (`WholesaleCandidatesView`).
+- `NO_EU_DISTRIBUTOR`: У бренда отсутствует официальная сеть B2B дистрибьюторов в ЕС. Товары автоматически получают `filterReason = 'NO_EU_DISTRIBUTOR'` в `get_asin_filter_reason` и исключаются из выдачи оптовых кандидатов (`CandidatesProductsView`).
 
 ## Правила тестирования (Обязательное тестирование)
 

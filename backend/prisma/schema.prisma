@@ -8,14 +8,15 @@ datasource db {
 }
 
 enum BrandStatus {
-  ACTIVE
+  UNPROCESSED
   NO_EU_DISTRIBUTOR
+  CONTRACTED
 }
 
 model Brand {
   id            Int            @id @default(autoincrement())
   name          String         @unique
-  status        BrandStatus    @default(ACTIVE)
+  status        BrandStatus    @default(UNPROCESSED)
   notes         String?
   asins         ASIN[]
   privateLabels PrivateLabel[]

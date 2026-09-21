@@ -12,12 +12,12 @@
 В схеме Prisma и базе данных PostgreSQL созданы представления:
 1. **`AsinView`** — для удобной выборки ASIN со штрихкодом производителя EAN (`asin`, `ean`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
 2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец с подробными заметками анализа (`notes`).
-3. **`WholesaleCandidatesView`** — для сводной группировки товаров по производителям, брендам, продавцам, кодам EAN (`eans`), дистрибьюторам (`distributors`) и отбора кандидатов под оптовую закупку (Wholesale).
+3. **`CandidatesProductsView`** — для сводной группировки товаров по производителям, брендам, продавцам, кодам EAN (`eans`), дистрибьюторам (`distributors`) и отбора кандидатов под оптовую закупку (Wholesale).
 
 Использование в SQL:
 ```sql
 SELECT * FROM "AsinView";
-SELECT * FROM "WholesaleCandidatesView";
+SELECT * FROM "CandidatesProductsView";
 ```
 
 Использование через Prisma Client:
@@ -74,7 +74,7 @@ SQL-функция `get_asin_filter_reason(p_asin_id INT, p_dominant_threshold I
 - **`DEAD_VARIATION`**: ASIN является вариацией и не имел активных продавцов в Buy Box более **6 месяцев**.
 - **`MISSING_VARIATION`**: ASIN является вариацией и не имел активных продавцов в Buy Box более **3 месяцев** (но менее 6 месяцев). Это потенциальные кандидаты на эксклюзивное восстановление продаж.
 
-Эти теги автоматически исключают товары из выдачи оптовых кандидатов (`WholesaleCandidatesView`).
+Эти теги автоматически исключают товары из выдачи оптовых кандидатов (`CandidatesProductsView`).
 
 ## Расчет максимальной цены закупки (`calculate_max_buy_price`)
 
@@ -94,7 +94,7 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
 Для прозрачного отслеживания изменений (diff в Git) исходный код представлений и функций хранится в эталонных SQL-файлах:
 - **Представления (Views)**: `backend/prisma/sql/views/`
   - `AsinView.sql`
-  - `WholesaleCandidatesView.sql`
+  - `CandidatesProductsView.sql`
   - `PrivateLabelView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `calculate_max_buy_price.sql`
