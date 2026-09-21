@@ -25,8 +25,8 @@
    - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `eans`, `distributors`, `brandId`, `sellerId`.
 
 4. **`ContractedProductsView`**:
-   - Назначение: поштучный вывод товаров брендов, находящихся в работе (`BrandStatus = 'CONTRACTED'`), с расчетом себестоимости закупки (`costPrice`), комиссий Amazon, чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %). Отсортирован по убыванию чистой прибыли.
-   - Поля: `asinId`, `asin`, `ean`, `title`, `brand`, `distributor`, `costPrice`, `buyBoxPrice`, `fbaFee`, `referralFee`, `amazonFees`, `netProfit`, `roiPercent`, `marginPercent`, `salesRank`.
+   - Назначение: поштучный вывод товаров брендов, находящихся в работе (`BrandStatus = 'CONTRACTED'`), с расчетом чистой оптовой цены дистрибьютора (`netPrice`), себестоимости закупки с налогами (`grossPrice` / `costPrice`), комиссий Amazon, чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %). Отсортирован по убыванию чистой прибыли.
+   - Поля: `asinId`, `asin`, `ean`, `title`, `brand`, `distributor`, `netPrice`, `grossPrice`, `costPrice`, `buyBoxPrice`, `fbaFee`, `referralFee`, `amazonFees`, `netProfit`, `roiPercent`, `marginPercent`, `salesRank`.
 
 5. **`DistributorPriceSnapshot`**:
    - Назначение: хранение истории оптовых цен из прайс-листов поставщиков со связкой по `asinId` и `ean`.

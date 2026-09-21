@@ -363,13 +363,15 @@ view ContractedProductsView {
   title         String? /// Название товара
   brand         String? /// Название бренда
   distributor   String? /// Название поставщика/дистрибьютора
-  costPrice     Float?  /// Себестоимость закупки с налогами (в евро, 21% IVA + 5.2% RE)
+  netPrice      Float?  /// Чистая оптовая цена закупки дистрибьютора без НДС (в евро)
+  grossPrice    Float?  /// Себестоимость закупки с испанскими налогами (в евро, 21% IVA + 5.2% RE)
+  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
   amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral)
-  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - costPrice
-  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / costPrice) * 100
+  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - grossPrice
+  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / grossPrice) * 100
   marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
 }

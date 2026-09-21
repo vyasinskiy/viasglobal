@@ -1,14 +1,10 @@
--- ==============================================================================
--- Функция: get_contracted_products
--- Назначение: Возвращает поштучный список товаров брендов со статусом CONTRACTED
---             с расчетом себестоимости закупки (costPrice), комиссий Amazon,
---             чистой прибыли (netProfit), ROI (%) и маржинальности (margin %).
---             Результат отсортирован по убыванию потенциальной прибыли.
--- Параметры:
---   p_max_bsr INT DEFAULT 100000            - Максимальный Sales Rank (BSR)
---   p_max_amazon_buybox FLOAT DEFAULT 0.50  - Доля нахождения Amazon в BuyBox (до 50%)
--- ==============================================================================
+-- Drop view first to allow updating the function return type
+DROP VIEW IF EXISTS public."ContractedProductsView";
 
+-- Drop existing function to change return type
+DROP FUNCTION IF EXISTS public.get_contracted_products(INT, FLOAT);
+
+-- Create updated function with netPrice and grossPrice
 CREATE OR REPLACE FUNCTION public.get_contracted_products(
     p_max_bsr INT DEFAULT 100000,
     p_max_amazon_buybox FLOAT DEFAULT 0.50
@@ -147,3 +143,7 @@ BEGIN
         c.calc_sales_rank ASC;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+-- Recreate view ContractedProductsView
+CREATE OR REPLACE VIEW public."ContractedProductsView" AS
+SELECT * FROM public.get_contracted_products();

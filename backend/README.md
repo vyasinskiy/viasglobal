@@ -13,7 +13,7 @@
 1. **`AsinView`** — для удобной выборки ASIN со штрихкодом производителя EAN (`asin`, `ean`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
 2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец с подробными заметками анализа (`notes`).
 3. **`CandidatesProductsView`** — для сводной группировки товаров по производителям, брендам, продавцам, кодам EAN (`eans`), дистрибьюторам (`distributors`) и отбора кандидатов под оптовую закупку (Wholesale).
-4. **`ContractedProductsView`** — поштучный вывод топ-товаров брендов в работе (`BrandStatus = 'CONTRACTED'`) с расчетом себестоимости закупки (`costPrice`), комиссий Amazon (`amazonFees`), чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %).
+4. **`ContractedProductsView`** — поштучный вывод топ-товаров брендов в работе (`BrandStatus = 'CONTRACTED'`) с расчетом чистой оптовой цены закупки (`netPrice`), себестоимости с налогами (`grossPrice` / `costPrice`), комиссий Amazon (`amazonFees`), чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %).
 
 Использование в SQL:
 ```sql

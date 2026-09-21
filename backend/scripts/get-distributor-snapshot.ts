@@ -197,7 +197,8 @@ async function main() {
   if (contractedData) {
     console.log('--- Данные по контракту (ContractedProductsView) ---');
     console.log(`- Актуальная цена Buy Box: ${contractedData.buyBoxPrice ? contractedData.buyBoxPrice.toFixed(2) + ' €' : 'нет'}`);
-    console.log(`- Себестоимость (costPrice): ${contractedData.costPrice ? contractedData.costPrice.toFixed(2) + ' €' : 'нет'}`);
+    console.log(`- Оптовая цена закупки (netPrice): ${contractedData.netPrice ? contractedData.netPrice.toFixed(2) + ' €' : (contractedData.costPrice ? (contractedData.costPrice / 1.262).toFixed(2) + ' €' : 'нет')}`);
+    console.log(`- Себестоимость с налогами (grossPrice): ${contractedData.grossPrice ? contractedData.grossPrice.toFixed(2) + ' €' : (contractedData.costPrice ? contractedData.costPrice.toFixed(2) + ' €' : 'нет')}`);
     console.log(`- Чистая прибыль (Net Profit): ${contractedData.netProfit ? contractedData.netProfit.toFixed(2) + ' €' : 'нет'}`);
     console.log(`- ROI: ${contractedData.roiPercent ? contractedData.roiPercent.toFixed(1) + '%' : 'нет'}`);
     console.log(`- Маржинальность: ${contractedData.marginPercent ? contractedData.marginPercent.toFixed(1) + '%' : 'нет'}`);
