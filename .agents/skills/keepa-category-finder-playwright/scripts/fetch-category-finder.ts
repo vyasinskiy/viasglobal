@@ -249,8 +249,9 @@ async function main() {
     // Определяем диапазоны Sales Rank: всегда делим на 2 части (1-25 000 и 25 001-50 000),
     // чтобы обойти лимит Keepa 10 000 строк и забрать 100% товаров категории без потерь
     const rankRanges = [
-      { name: 'rank1_25k', label: 'Часть 1: Sales Rank 1 - 25 000', from: '1', to: '25000' },
-      { name: 'rank25k_50k', label: 'Часть 2: Sales Rank 25 001 - 50 000', from: '25001', to: '50000' },
+      { name: 'rank1_10k', label: 'Часть 1: Sales Rank 1 - 10 000', from: '1', to: '10000' },
+      { name: 'rank10k_25k', label: 'Часть 2: Sales Rank 10 001 - 25 000', from: '10001', to: '25000' },
+      { name: 'rank25k_50k', label: 'Часть 3: Sales Rank 25 001 - 50 000', from: '25001', to: '50000' },
     ];
 
     for (const rankRange of rankRanges) {
