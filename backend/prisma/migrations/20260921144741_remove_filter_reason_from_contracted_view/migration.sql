@@ -1,10 +1,10 @@
--- ==============================================================================
--- Функция: get_contracted_products
--- Назначение: Возвращает сводный список ASIN для "Брендов в работе"
---             (BrandStatus = 'CONTRACTED'). Использует более мягкие параметры 
---             фильтрации и не проверяет историю продавцов (FEW_BUYBOX_WINNERS).
--- ==============================================================================
+-- Отвязываем старую View
+DROP VIEW IF EXISTS public."ContractedProductsView";
 
+-- Удаляем старую функцию, так как у нее поменялся тип возвращаемой таблицы
+DROP FUNCTION IF EXISTS public.get_contracted_products(INT, FLOAT);
+
+-- Создаем обновленную функцию без filterReason
 CREATE OR REPLACE FUNCTION public.get_contracted_products(
     p_max_bsr INT DEFAULT 100000,
     p_max_amazon_buybox FLOAT DEFAULT 0.50
@@ -53,3 +53,7 @@ BEGIN
       COUNT(DISTINCT a.id) DESC;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+-- Восстанавливаем View
+CREATE OR REPLACE VIEW public."ContractedProductsView" AS
+SELECT * FROM public.get_contracted_products();
