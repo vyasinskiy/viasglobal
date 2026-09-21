@@ -43,6 +43,11 @@ const contractedTop = await prisma.contractedProductsView.findMany({
 npx tsx scripts/import-distributor-prices.ts <путь_к_прайсу.xls> <Имя_дистрибьютора>
 ```
 
+Поиск и проверка закупочных цен по ASIN или EAN для навыка анализа товара:
+```bash
+npx tsx scripts/get-distributor-snapshot.ts <ASIN_или_EAN>
+```
+
 ## Нормализация регистра брендов и производителей (UPPERCASE)
 
 Для предотвращения дублирования данных названия брендов (`Brand.name`) и производителей (`Manufacturer.name`) строго приводятся к **верхнему регистру (UPPERCASE)** во всех скриптах парсинга и сервисах.

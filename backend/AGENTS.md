@@ -31,6 +31,7 @@
 5. **`DistributorPriceSnapshot`**:
    - Назначение: хранение истории оптовых цен из прайс-листов поставщиков со связкой по `asinId` и `ean`.
    - Поля: `distributorId`, `asinId`, `ean`, `priceNetto` (опт без НДС), `costPrice` (себестоимость с испанскими налогами: 21% IVA + 5.2% RE = `priceNetto * 1.262`), `createdAt`.
+   - Быстрый поиск цен по ASIN или EAN: `npx tsx scripts/get-distributor-snapshot.ts <ASIN_или_EAN>` (используется навыком `analyze-product` для автоматического получения закупочных цен при анализе листингов).
 
 ## Правила парсинга продавцов Keepa
 
