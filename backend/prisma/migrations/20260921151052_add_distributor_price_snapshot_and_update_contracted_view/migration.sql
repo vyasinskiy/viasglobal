@@ -1,14 +1,32 @@
--- ==============================================================================
--- Функция: get_contracted_products
--- Назначение: Возвращает поштучный список товаров брендов со статусом CONTRACTED
---             с расчетом себестоимости закупки (costPrice), комиссий Amazon,
---             чистой прибыли (netProfit), ROI (%) и маржинальности (margin %).
---             Результат отсортирован по убыванию потенциальной прибыли.
--- Параметры:
---   p_max_bsr INT DEFAULT 100000            - Максимальный Sales Rank (BSR)
---   p_max_amazon_buybox FLOAT DEFAULT 0.50  - Доля нахождения Amazon в BuyBox (до 50%)
--- ==============================================================================
+-- CreateTable: DistributorPriceSnapshot (Снапшот оптовых цен дистрибьютора)
+CREATE TABLE "DistributorPriceSnapshot" (
+    "id" SERIAL NOT NULL,
+    "distributorId" INTEGER NOT NULL,
+    "asinId" INTEGER,
+    "ean" TEXT,
+    "priceNetto" DOUBLE PRECISION NOT NULL,
+    "costPrice" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    CONSTRAINT "DistributorPriceSnapshot_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "DistributorPriceSnapshot_distributorId_asinId_createdAt_idx" ON "DistributorPriceSnapshot"("distributorId", "asinId", "createdAt" DESC);
+CREATE INDEX "DistributorPriceSnapshot_asinId_idx" ON "DistributorPriceSnapshot"("asinId");
+CREATE INDEX "DistributorPriceSnapshot_ean_idx" ON "DistributorPriceSnapshot"("ean");
+
+-- AddForeignKey
+ALTER TABLE "DistributorPriceSnapshot" ADD CONSTRAINT "DistributorPriceSnapshot_distributorId_fkey" FOREIGN KEY ("distributorId") REFERENCES "Distributor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "DistributorPriceSnapshot" ADD CONSTRAINT "DistributorPriceSnapshot_asinId_fkey" FOREIGN KEY ("asinId") REFERENCES "ASIN"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Отвязываем старую View
+DROP VIEW IF EXISTS public."ContractedProductsView";
+
+-- Удаляем старую функцию, так как у нее изменился тип возвращаемой таблицы
+DROP FUNCTION IF EXISTS public.get_contracted_products(INT, FLOAT);
+
+-- Создаем обновленную функцию get_contracted_products с поштучным выводом товаров и маржинальностью
 CREATE OR REPLACE FUNCTION public.get_contracted_products(
     p_max_bsr INT DEFAULT 100000,
     p_max_amazon_buybox FLOAT DEFAULT 0.50
@@ -141,3 +159,7 @@ BEGIN
         c.calc_sales_rank ASC;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+-- Восстанавливаем View ContractedProductsView
+CREATE OR REPLACE VIEW public."ContractedProductsView" AS
+SELECT * FROM public.get_contracted_products();

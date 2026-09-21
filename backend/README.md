@@ -13,17 +13,45 @@
 1. **`AsinView`** — для удобной выборки ASIN со штрихкодом производителя EAN (`asin`, `ean`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
 2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец с подробными заметками анализа (`notes`).
 3. **`CandidatesProductsView`** — для сводной группировки товаров по производителям, брендам, продавцам, кодам EAN (`eans`), дистрибьюторам (`distributors`) и отбора кандидатов под оптовую закупку (Wholesale).
+4. **`ContractedProductsView`** — поштучный вывод топ-товаров брендов в работе (`BrandStatus = 'CONTRACTED'`) с расчетом себестоимости закупки (`costPrice`), комиссий Amazon (`amazonFees`), чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %).
 
 Использование в SQL:
 ```sql
 SELECT * FROM "AsinView";
 SELECT * FROM "CandidatesProductsView";
+SELECT * FROM "ContractedProductsView" ORDER BY "netProfit" DESC NULLS LAST;
 ```
 
 Использование через Prisma Client:
 ```typescript
 const asins = await prisma.asinView.findMany();
+const contractedTop = await prisma.contractedProductsView.findMany({
+  orderBy: { netProfit: 'desc' },
+});
 ```
+
+## Снапшоты цен дистрибьюторов (`DistributorPriceSnapshot`)
+
+Для учета динамики изменения цен в прайс-листах поставщиков создана модель `DistributorPriceSnapshot`:
+- `priceNetto` — базовая оптовая цена из прайс-листа в евро без налогов.
+- `costPrice` — итоговая расчетная себестоимость закупки с учетом испанских налогов (`priceNetto * 1.262`: 21% IVA + 5.2% Recargo de Equivalencia).
+- `distributorId` — связь с поставщиком `Distributor`.
+- `asinId` и `ean` — привязка к товару в нашей базе данных.
+
+Импорт прайс-листа выполняется скриптом:
+```bash
+npx tsx scripts/import-distributor-prices.ts <путь_к_прайсу.xls> <Имя_дистрибьютора>
+```
+
+## Нормализация регистра брендов и производителей (UPPERCASE)
+
+Для предотвращения дублирования данных названия брендов (`Brand.name`) и производителей (`Manufacturer.name`) строго приводятся к **верхнему регистру (UPPERCASE)** во всех скриптах парсинга и сервисах.
+В PostgreSQL созданы функциональные уникальные индексы:
+```sql
+CREATE UNIQUE INDEX "Brand_name_upper_idx" ON "Brand"(UPPER(TRIM("name")));
+CREATE UNIQUE INDEX "Manufacturer_name_upper_idx" ON "Manufacturer"(UPPER(TRIM("name")));
+```
+Это гарантирует невозможность создания дубликатов с разным регистром (например, `Safta` и `SAFTA`).
 
 ## Управление схемой БД (Prisma Migrations)
 

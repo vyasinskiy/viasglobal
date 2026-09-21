@@ -1,0 +1,5187 @@
+[
+  {
+    "lower_name": "3 claveles",
+    "duplicates": [
+      {
+        "id": 1631,
+        "name": "3 CLAVELES",
+        "status": "UNPROCESSED",
+        "asins": 75
+      },
+      {
+        "id": 374,
+        "name": "3 Claveles",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "3 sprouts",
+    "duplicates": [
+      {
+        "id": 3528,
+        "name": "3 SPROUTS",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 261,
+        "name": "3 Sprouts",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "acan",
+    "duplicates": [
+      {
+        "id": 3307,
+        "name": "ACAN",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 13,
+        "name": "Acan",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "activeallbrite",
+    "duplicates": [
+      {
+        "id": 3400,
+        "name": "ACTIVEALLBRITE",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 81,
+        "name": "activeallbrite",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "aeropress",
+    "duplicates": [
+      {
+        "id": 95,
+        "name": "AeroPress",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 3344,
+        "name": "AEROPRESS",
+        "status": "UNPROCESSED",
+        "asins": 6
+      }
+    ]
+  },
+  {
+    "lower_name": "aigostar",
+    "duplicates": [
+      {
+        "id": 3509,
+        "name": "AIGOSTAR",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 211,
+        "name": "Aigostar",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "airscape",
+    "duplicates": [
+      {
+        "id": 291,
+        "name": "AirScape",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3500,
+        "name": "AIRSCAPE",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "ak interactive",
+    "duplicates": [
+      {
+        "id": 468,
+        "name": "AK Interactive",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 4062,
+        "name": "AK INTERACTIVE",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "alwayspon",
+    "duplicates": [
+      {
+        "id": 5030,
+        "name": "ALWAYSPON",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 474,
+        "name": "Alwayspon",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "amazinggirl",
+    "duplicates": [
+      {
+        "id": 202,
+        "name": "Amazinggirl",
+        "status": "UNPROCESSED",
+        "asins": 9
+      },
+      {
+        "id": 3445,
+        "name": "AMAZINGGIRL",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "americanflat",
+    "duplicates": [
+      {
+        "id": 40,
+        "name": "Americanflat",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 3367,
+        "name": "AMERICANFLAT",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "amscan",
+    "duplicates": [
+      {
+        "id": 3592,
+        "name": "AMSCAN",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 229,
+        "name": "amscan",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "amsterdam",
+    "duplicates": [
+      {
+        "id": 3234,
+        "name": "AMSTERDAM",
+        "status": "UNPROCESSED",
+        "asins": 46
+      },
+      {
+        "id": 105,
+        "name": "Amsterdam",
+        "status": "UNPROCESSED",
+        "asins": 21
+      }
+    ]
+  },
+  {
+    "lower_name": "amzhandler",
+    "duplicates": [
+      {
+        "id": 176,
+        "name": "AmzHandler",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 1191,
+        "name": "AMZHANDLER",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "angelus",
+    "duplicates": [
+      {
+        "id": 3309,
+        "name": "ANGELUS",
+        "status": "UNPROCESSED",
+        "asins": 68
+      },
+      {
+        "id": 101,
+        "name": "Angelus",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "aotengou",
+    "duplicates": [
+      {
+        "id": 46,
+        "name": "aotengou",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3525,
+        "name": "AOTENGOU",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "a-pce",
+    "duplicates": [
+      {
+        "id": 132,
+        "name": "A-Pce",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3427,
+        "name": "A-PCE",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "aqua optima",
+    "duplicates": [
+      {
+        "id": 22,
+        "name": "Aqua Optima",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3200,
+        "name": "AQUA OPTIMA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "arcoroc",
+    "duplicates": [
+      {
+        "id": 3560,
+        "name": "ARCOROC",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 390,
+        "name": "Arcoroc",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "arcos",
+    "duplicates": [
+      {
+        "id": 3134,
+        "name": "ARCOS",
+        "status": "UNPROCESSED",
+        "asins": 284
+      },
+      {
+        "id": 18,
+        "name": "Arcos",
+        "status": "UNPROCESSED",
+        "asins": 7
+      }
+    ]
+  },
+  {
+    "lower_name": "ariete",
+    "duplicates": [
+      {
+        "id": 2513,
+        "name": "ARIETE",
+        "status": "UNPROCESSED",
+        "asins": 15
+      },
+      {
+        "id": 317,
+        "name": "Ariete",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "arlis",
+    "duplicates": [
+      {
+        "id": 3905,
+        "name": "ARLIS",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 531,
+        "name": "arlis",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "artemio",
+    "duplicates": [
+      {
+        "id": 716,
+        "name": "Artemio",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 3781,
+        "name": "ARTEMIO",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "arteneur",
+    "duplicates": [
+      {
+        "id": 3152,
+        "name": "ARTENEUR",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 7,
+        "name": "arteneur",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "athebalove",
+    "duplicates": [
+      {
+        "id": 82,
+        "name": "Athebalove",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3216,
+        "name": "ATHEBALOVE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "auxmir",
+    "duplicates": [
+      {
+        "id": 36,
+        "name": "Auxmir",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 3238,
+        "name": "AUXMIR",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "axentia",
+    "duplicates": [
+      {
+        "id": 228,
+        "name": "axentia",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4137,
+        "name": "AXENTIA",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "balvi",
+    "duplicates": [
+      {
+        "id": 160,
+        "name": "Balvi",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 3661,
+        "name": "BALVI",
+        "status": "UNPROCESSED",
+        "asins": 9
+      }
+    ]
+  },
+  {
+    "lower_name": "baumalu",
+    "duplicates": [
+      {
+        "id": 3330,
+        "name": "BAUMALU",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 343,
+        "name": "Baumalu",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "bburago",
+    "duplicates": [
+      {
+        "id": 3230,
+        "name": "BBURAGO",
+        "status": "UNPROCESSED",
+        "asins": 25
+      },
+      {
+        "id": 97,
+        "name": "Bburago",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "beaumont",
+    "duplicates": [
+      {
+        "id": 372,
+        "name": "Beaumont",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3924,
+        "name": "BEAUMONT",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "bialetti",
+    "duplicates": [
+      {
+        "id": 3163,
+        "name": "BIALETTI",
+        "status": "UNPROCESSED",
+        "asins": 32
+      },
+      {
+        "id": 72,
+        "name": "Bialetti",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "bignosedeer",
+    "duplicates": [
+      {
+        "id": 3185,
+        "name": "BIGNOSEDEER",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 20,
+        "name": "BigNoseDeer",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "bizak",
+    "duplicates": [
+      {
+        "id": 2521,
+        "name": "BIZAK",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 496,
+        "name": "Bizak",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "black+decker",
+    "duplicates": [
+      {
+        "id": 1271,
+        "name": "BLACK+DECKER",
+        "status": "UNPROCESSED",
+        "asins": 90
+      },
+      {
+        "id": 104,
+        "name": "Black+Decker",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "blumtal",
+    "duplicates": [
+      {
+        "id": 268,
+        "name": "Blumtal",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3826,
+        "name": "BLUMTAL",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "bobbiny",
+    "duplicates": [
+      {
+        "id": 382,
+        "name": "Bobbiny",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 3938,
+        "name": "BOBBINY",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "bolsius",
+    "duplicates": [
+      {
+        "id": 3317,
+        "name": "BOLSIUS",
+        "status": "UNPROCESSED",
+        "asins": 14
+      },
+      {
+        "id": 195,
+        "name": "Bolsius",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "bosch",
+    "duplicates": [
+      {
+        "id": 1273,
+        "name": "BOSCH",
+        "status": "UNPROCESSED",
+        "asins": 504
+      },
+      {
+        "id": 410,
+        "name": "Bosch",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "bosch thermotechnik",
+    "duplicates": [
+      {
+        "id": 3554,
+        "name": "BOSCH THERMOTECHNIK",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 505,
+        "name": "Bosch Thermotechnik",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "braun",
+    "duplicates": [
+      {
+        "id": 3144,
+        "name": "BRAUN",
+        "status": "UNPROCESSED",
+        "asins": 46
+      },
+      {
+        "id": 199,
+        "name": "Braun",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "buyweek",
+    "duplicates": [
+      {
+        "id": 2252,
+        "name": "BUYWEEK",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 406,
+        "name": "BuyWeek",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "cadrim",
+    "duplicates": [
+      {
+        "id": 1945,
+        "name": "CADRIM",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 187,
+        "name": "Cadrim",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "canson",
+    "duplicates": [
+      {
+        "id": 270,
+        "name": "Canson",
+        "status": "UNPROCESSED",
+        "asins": 118
+      },
+      {
+        "id": 3161,
+        "name": "CANSON",
+        "status": "UNPROCESSED",
+        "asins": 68
+      }
+    ]
+  },
+  {
+    "lower_name": "caramont",
+    "duplicates": [
+      {
+        "id": 90,
+        "name": "Caramont",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3321,
+        "name": "CARAMONT",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "casio",
+    "duplicates": [
+      {
+        "id": 2228,
+        "name": "CASIO",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 391,
+        "name": "Casio",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "chemex",
+    "duplicates": [
+      {
+        "id": 3453,
+        "name": "CHEMEX",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 316,
+        "name": "Chemex",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "chiaogoo",
+    "duplicates": [
+      {
+        "id": 580,
+        "name": "ChiaoGoo",
+        "status": "UNPROCESSED",
+        "asins": 226
+      },
+      {
+        "id": 3985,
+        "name": "CHIAOGOO",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "chilly's",
+    "duplicates": [
+      {
+        "id": 92,
+        "name": "Chilly's",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3438,
+        "name": "CHILLY'S",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "clabby",
+    "duplicates": [
+      {
+        "id": 221,
+        "name": "Clabby",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3922,
+        "name": "CLABBY",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "clastyle",
+    "duplicates": [
+      {
+        "id": 168,
+        "name": "Clastyle",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3385,
+        "name": "CLASTYLE",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "clover",
+    "duplicates": [
+      {
+        "id": 3352,
+        "name": "CLOVER",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 107,
+        "name": "Clover",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "cole & mason",
+    "duplicates": [
+      {
+        "id": 3693,
+        "name": "COLE & MASON",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 210,
+        "name": "Cole & Mason",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "comfortness",
+    "duplicates": [
+      {
+        "id": 255,
+        "name": "ComfortneSS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3595,
+        "name": "COMFORTNESS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "command",
+    "duplicates": [
+      {
+        "id": 4041,
+        "name": "COMMAND",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 502,
+        "name": "Command",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "contigo",
+    "duplicates": [
+      {
+        "id": 1888,
+        "name": "CONTIGO",
+        "status": "UNPROCESSED",
+        "asins": 56
+      },
+      {
+        "id": 67,
+        "name": "Contigo",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "craftelier",
+    "duplicates": [
+      {
+        "id": 652,
+        "name": "Craftelier",
+        "status": "UNPROCESSED",
+        "asins": 541
+      },
+      {
+        "id": 4195,
+        "name": "CRAFTELIER",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "creahaus",
+    "duplicates": [
+      {
+        "id": 174,
+        "name": "Creahaus",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 3599,
+        "name": "CREAHAUS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "creative deco",
+    "duplicates": [
+      {
+        "id": 24,
+        "name": "Creative DECO",
+        "status": "UNPROCESSED",
+        "asins": 45
+      },
+      {
+        "id": 1399,
+        "name": "CREATIVE DECO",
+        "status": "UNPROCESSED",
+        "asins": 40
+      }
+    ]
+  },
+  {
+    "lower_name": "cricut",
+    "duplicates": [
+      {
+        "id": 3374,
+        "name": "CRICUT",
+        "status": "UNPROCESSED",
+        "asins": 20
+      },
+      {
+        "id": 266,
+        "name": "Cricut",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "cyrank",
+    "duplicates": [
+      {
+        "id": 2054,
+        "name": "CYRANK",
+        "status": "UNPROCESSED",
+        "asins": 13
+      },
+      {
+        "id": 313,
+        "name": "Cyrank",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "daler rowney",
+    "duplicates": [
+      {
+        "id": 702,
+        "name": "Daler Rowney",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 4026,
+        "name": "DALER ROWNEY",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "daniel smith",
+    "duplicates": [
+      {
+        "id": 3716,
+        "name": "DANIEL SMITH",
+        "status": "UNPROCESSED",
+        "asins": 55
+      },
+      {
+        "id": 690,
+        "name": "Daniel Smith",
+        "status": "UNPROCESSED",
+        "asins": 35
+      }
+    ]
+  },
+  {
+    "lower_name": "da vinci",
+    "duplicates": [
+      {
+        "id": 440,
+        "name": "da Vinci",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 4006,
+        "name": "DA VINCI",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "decoart",
+    "duplicates": [
+      {
+        "id": 669,
+        "name": "DecoArt",
+        "status": "UNPROCESSED",
+        "asins": 33
+      },
+      {
+        "id": 4086,
+        "name": "DECOART",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "decoking",
+    "duplicates": [
+      {
+        "id": 8,
+        "name": "DecoKing",
+        "status": "UNPROCESSED",
+        "asins": 43
+      },
+      {
+        "id": 3172,
+        "name": "DECOKING",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "de'longhi",
+    "duplicates": [
+      {
+        "id": 3194,
+        "name": "DE'LONGHI",
+        "status": "UNPROCESSED",
+        "asins": 32
+      },
+      {
+        "id": 363,
+        "name": "De'Longhi",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "derwent",
+    "duplicates": [
+      {
+        "id": 667,
+        "name": "Derwent",
+        "status": "UNPROCESSED",
+        "asins": 22
+      },
+      {
+        "id": 4150,
+        "name": "DERWENT",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "desconocido",
+    "duplicates": [
+      {
+        "id": 1695,
+        "name": "DESCONOCIDO",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 730,
+        "name": "Desconocido",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "dilidala",
+    "duplicates": [
+      {
+        "id": 5,
+        "name": "DiliDala",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3150,
+        "name": "DILIDALA",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "disney",
+    "duplicates": [
+      {
+        "id": 1990,
+        "name": "DISNEY",
+        "status": "UNPROCESSED",
+        "asins": 15
+      },
+      {
+        "id": 44,
+        "name": "Disney",
+        "status": "UNPROCESSED",
+        "asins": 10
+      }
+    ]
+  },
+  {
+    "lower_name": "done by deer",
+    "duplicates": [
+      {
+        "id": 421,
+        "name": "Done by Deer",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4184,
+        "name": "DONE BY DEER",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "dotcomgiftshop",
+    "duplicates": [
+      {
+        "id": 3634,
+        "name": "DOTCOMGIFTSHOP",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 123,
+        "name": "dotcomgiftshop",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "douceur d'intérieur",
+    "duplicates": [
+      {
+        "id": 3443,
+        "name": "DOUCEUR D'INTÉRIEUR",
+        "status": "UNPROCESSED",
+        "asins": 50
+      },
+      {
+        "id": 45,
+        "name": "Douceur d'Intérieur",
+        "status": "UNPROCESSED",
+        "asins": 20
+      }
+    ]
+  },
+  {
+    "lower_name": "#doyouryoga",
+    "duplicates": [
+      {
+        "id": 2215,
+        "name": "#DOYOURYOGA",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 201,
+        "name": "#DoYourYoga",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "dreamzie",
+    "duplicates": [
+      {
+        "id": 1,
+        "name": "Dreamzie",
+        "status": "UNPROCESSED",
+        "asins": 33
+      },
+      {
+        "id": 3132,
+        "name": "DREAMZIE",
+        "status": "UNPROCESSED",
+        "asins": 16
+      }
+    ]
+  },
+  {
+    "lower_name": "duralex",
+    "duplicates": [
+      {
+        "id": 3578,
+        "name": "DURALEX",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 159,
+        "name": "Duralex",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "durgol",
+    "duplicates": [
+      {
+        "id": 3220,
+        "name": "DURGOL",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 30,
+        "name": "Durgol",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "dylon",
+    "duplicates": [
+      {
+        "id": 3274,
+        "name": "DYLON",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 106,
+        "name": "Dylon",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "ecoline",
+    "duplicates": [
+      {
+        "id": 282,
+        "name": "Ecoline",
+        "status": "UNPROCESSED",
+        "asins": 13
+      },
+      {
+        "id": 3935,
+        "name": "ECOLINE",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "ehomfory",
+    "duplicates": [
+      {
+        "id": 38,
+        "name": "Ehomfory",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3198,
+        "name": "EHOMFORY",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "eigpluy",
+    "duplicates": [
+      {
+        "id": 353,
+        "name": "EigPluy",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 3697,
+        "name": "EIGPLUY",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "ele eleoption",
+    "duplicates": [
+      {
+        "id": 360,
+        "name": "ele ELEOPTION",
+        "status": "UNPROCESSED",
+        "asins": 58
+      },
+      {
+        "id": 4156,
+        "name": "ELE ELEOPTION",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "encasa xo",
+    "duplicates": [
+      {
+        "id": 235,
+        "name": "Encasa XO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3539,
+        "name": "ENCASA XO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "escoda",
+    "duplicates": [
+      {
+        "id": 515,
+        "name": "Escoda",
+        "status": "UNPROCESSED",
+        "asins": 53
+      },
+      {
+        "id": 3823,
+        "name": "ESCODA",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "eurofiestas",
+    "duplicates": [
+      {
+        "id": 152,
+        "name": "EuroFiestas",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 3372,
+        "name": "EUROFIESTAS",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "exerz",
+    "duplicates": [
+      {
+        "id": 2000,
+        "name": "EXERZ",
+        "status": "UNPROCESSED",
+        "asins": 13
+      },
+      {
+        "id": 127,
+        "name": "Exerz",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "exzact",
+    "duplicates": [
+      {
+        "id": 3668,
+        "name": "EXZACT",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 397,
+        "name": "Exzact",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "faber-castell",
+    "duplicates": [
+      {
+        "id": 3519,
+        "name": "FABER-CASTELL",
+        "status": "UNPROCESSED",
+        "asins": 8
+      },
+      {
+        "id": 178,
+        "name": "Faber-Castell",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "fabriano",
+    "duplicates": [
+      {
+        "id": 683,
+        "name": "Fabriano",
+        "status": "UNPROCESSED",
+        "asins": 38
+      },
+      {
+        "id": 4034,
+        "name": "FABRIANO",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "fanquare",
+    "duplicates": [
+      {
+        "id": 4120,
+        "name": "FANQUARE",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 318,
+        "name": "fanquare",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "fansu",
+    "duplicates": [
+      {
+        "id": 3462,
+        "name": "FANSU",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 93,
+        "name": "Fansu",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "fdit",
+    "duplicates": [
+      {
+        "id": 466,
+        "name": "Fdit",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 4930,
+        "name": "FDIT",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "febreze",
+    "duplicates": [
+      {
+        "id": 43,
+        "name": "Febreze",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3244,
+        "name": "FEBREZE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "fissler",
+    "duplicates": [
+      {
+        "id": 3692,
+        "name": "FISSLER",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 462,
+        "name": "Fissler",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "fisura",
+    "duplicates": [
+      {
+        "id": 3236,
+        "name": "FISURA",
+        "status": "UNPROCESSED",
+        "asins": 56
+      },
+      {
+        "id": 57,
+        "name": "Fisura",
+        "status": "UNPROCESSED",
+        "asins": 11
+      }
+    ]
+  },
+  {
+    "lower_name": "flintronic",
+    "duplicates": [
+      {
+        "id": 1500,
+        "name": "FLINTRONIC",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 79,
+        "name": "flintronic",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "fmprofessional",
+    "duplicates": [
+      {
+        "id": 509,
+        "name": "FMprofessional",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3987,
+        "name": "FMPROFESSIONAL",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "fonzies",
+    "duplicates": [
+      {
+        "id": 366,
+        "name": "Fonzies",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3860,
+        "name": "FONZIES",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "framan",
+    "duplicates": [
+      {
+        "id": 351,
+        "name": "Framan",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 4141,
+        "name": "FRAMAN",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "gadgy",
+    "duplicates": [
+      {
+        "id": 3347,
+        "name": "GADGY",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 117,
+        "name": "Gadgy",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "garosa",
+    "duplicates": [
+      {
+        "id": 4125,
+        "name": "GAROSA",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 492,
+        "name": "Garosa",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "generisch",
+    "duplicates": [
+      {
+        "id": 2380,
+        "name": "GENERISCH",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 454,
+        "name": "Generisch",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "giftgarden",
+    "duplicates": [
+      {
+        "id": 120,
+        "name": "Giftgarden",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3370,
+        "name": "GIFTGARDEN",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "gobikey",
+    "duplicates": [
+      {
+        "id": 1801,
+        "name": "GOBIKEY",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 26,
+        "name": "Gobikey",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "goo gone",
+    "duplicates": [
+      {
+        "id": 332,
+        "name": "Goo Gone",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3908,
+        "name": "GOO GONE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "graines créatives",
+    "duplicates": [
+      {
+        "id": 305,
+        "name": "Graines Créatives",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4196,
+        "name": "GRAINES CRÉATIVES",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "green mark textilien",
+    "duplicates": [
+      {
+        "id": 3381,
+        "name": "GREEN MARK TEXTILIEN",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 135,
+        "name": "GREEN MARK Textilien",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "greenpan",
+    "duplicates": [
+      {
+        "id": 3395,
+        "name": "GREENPAN",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 308,
+        "name": "GreenPan",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "green stuff world",
+    "duplicates": [
+      {
+        "id": 4171,
+        "name": "GREEN STUFF WORLD",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 347,
+        "name": "Green Stuff World",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "grupo erik",
+    "duplicates": [
+      {
+        "id": 1793,
+        "name": "GRUPO ERIK",
+        "status": "UNPROCESSED",
+        "asins": 86
+      },
+      {
+        "id": 320,
+        "name": "Grupo Erik",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "gucass",
+    "duplicates": [
+      {
+        "id": 3396,
+        "name": "GUCASS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 170,
+        "name": "Gucass",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "gütermann",
+    "duplicates": [
+      {
+        "id": 27,
+        "name": "Gütermann",
+        "status": "UNPROCESSED",
+        "asins": 14
+      },
+      {
+        "id": 3224,
+        "name": "GÜTERMANN",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "hahnemühle",
+    "duplicates": [
+      {
+        "id": 369,
+        "name": "Hahnemühle",
+        "status": "UNPROCESSED",
+        "asins": 33
+      },
+      {
+        "id": 3638,
+        "name": "HAHNEMÜHLE",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "hammetex",
+    "duplicates": [
+      {
+        "id": 3617,
+        "name": "HAMMETEX",
+        "status": "UNPROCESSED",
+        "asins": 14
+      },
+      {
+        "id": 128,
+        "name": "Hammetex",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "harry potter",
+    "duplicates": [
+      {
+        "id": 3951,
+        "name": "HARRY POTTER",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 752,
+        "name": "Harry Potter",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "haute couture",
+    "duplicates": [
+      {
+        "id": 452,
+        "name": "haute couture",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3978,
+        "name": "HAUTE COUTURE",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "hero collector",
+    "duplicates": [
+      {
+        "id": 463,
+        "name": "Hero Collector",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3838,
+        "name": "HERO COLLECTOR",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "h.koenig",
+    "duplicates": [
+      {
+        "id": 6,
+        "name": "H.Koenig",
+        "status": "UNPROCESSED",
+        "asins": 9
+      },
+      {
+        "id": 3154,
+        "name": "H.KOENIG",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "hydro flask",
+    "duplicates": [
+      {
+        "id": 2036,
+        "name": "HYDRO FLASK",
+        "status": "UNPROCESSED",
+        "asins": 67
+      },
+      {
+        "id": 286,
+        "name": "Hydro Flask",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "ikea",
+    "duplicates": [
+      {
+        "id": 1549,
+        "name": "IKEA",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 459,
+        "name": "Ikea",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "irobot",
+    "duplicates": [
+      {
+        "id": 3204,
+        "name": "IROBOT",
+        "status": "UNPROCESSED",
+        "asins": 9
+      },
+      {
+        "id": 442,
+        "name": "iRobot",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "isi",
+    "duplicates": [
+      {
+        "id": 3698,
+        "name": "ISI",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 356,
+        "name": "iSi",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "iwill create pro",
+    "duplicates": [
+      {
+        "id": 190,
+        "name": "iwill CREATE PRO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3464,
+        "name": "IWILL CREATE PRO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "jacquard",
+    "duplicates": [
+      {
+        "id": 342,
+        "name": "Jacquard",
+        "status": "UNPROCESSED",
+        "asins": 17
+      },
+      {
+        "id": 3384,
+        "name": "JACQUARD",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "jada",
+    "duplicates": [
+      {
+        "id": 3646,
+        "name": "JADA",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 485,
+        "name": "Jada",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "jaotto",
+    "duplicates": [
+      {
+        "id": 204,
+        "name": "Jaotto",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3790,
+        "name": "JAOTTO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "jata",
+    "duplicates": [
+      {
+        "id": 1285,
+        "name": "JATA",
+        "status": "UNPROCESSED",
+        "asins": 115
+      },
+      {
+        "id": 193,
+        "name": "Jata",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "jerry fabrics",
+    "duplicates": [
+      {
+        "id": 296,
+        "name": "Jerry Fabrics",
+        "status": "UNPROCESSED",
+        "asins": 8
+      },
+      {
+        "id": 3736,
+        "name": "JERRY FABRICS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "joseph joseph",
+    "duplicates": [
+      {
+        "id": 3393,
+        "name": "JOSEPH JOSEPH",
+        "status": "UNPROCESSED",
+        "asins": 87
+      },
+      {
+        "id": 111,
+        "name": "Joseph Joseph",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "jura",
+    "duplicates": [
+      {
+        "id": 3398,
+        "name": "JURA",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 222,
+        "name": "Jura",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "kalita",
+    "duplicates": [
+      {
+        "id": 4095,
+        "name": "KALITA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 507,
+        "name": "Kalita",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "kalysky",
+    "duplicates": [
+      {
+        "id": 63,
+        "name": "Kalysky",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3408,
+        "name": "KALYSKY",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "kd essentials",
+    "duplicates": [
+      {
+        "id": 161,
+        "name": "KD Essentials",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3818,
+        "name": "KD ESSENTIALS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "kilner",
+    "duplicates": [
+      {
+        "id": 3913,
+        "name": "KILNER",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 341,
+        "name": "Kilner",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "kingcenton",
+    "duplicates": [
+      {
+        "id": 3545,
+        "name": "KINGCENTON",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 196,
+        "name": "Kingcenton",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "knitpro",
+    "duplicates": [
+      {
+        "id": 3459,
+        "name": "KNITPRO",
+        "status": "UNPROCESSED",
+        "asins": 18
+      },
+      {
+        "id": 586,
+        "name": "KnitPro",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "koziol",
+    "duplicates": [
+      {
+        "id": 432,
+        "name": "Koziol",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4033,
+        "name": "KOZIOL",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "kpop demon hunters",
+    "duplicates": [
+      {
+        "id": 4004,
+        "name": "KPOP DEMON HUNTERS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 536,
+        "name": "KPop Demon Hunters",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "kuretake",
+    "duplicates": [
+      {
+        "id": 897,
+        "name": "KURETAKE",
+        "status": "UNPROCESSED",
+        "asins": 1081
+      },
+      {
+        "id": 469,
+        "name": "Kuretake",
+        "status": "UNPROCESSED",
+        "asins": 17
+      }
+    ]
+  },
+  {
+    "lower_name": "laguiole style de vie",
+    "duplicates": [
+      {
+        "id": 498,
+        "name": "Laguiole Style de Vie",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3767,
+        "name": "LAGUIOLE STYLE DE VIE",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "laica",
+    "duplicates": [
+      {
+        "id": 3995,
+        "name": "LAICA",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 376,
+        "name": "Laica",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "lalord",
+    "duplicates": [
+      {
+        "id": 258,
+        "name": "Lalord",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 3563,
+        "name": "LALORD",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "lefranc bourgeois",
+    "duplicates": [
+      {
+        "id": 3208,
+        "name": "LEFRANC BOURGEOIS",
+        "status": "UNPROCESSED",
+        "asins": 25
+      },
+      {
+        "id": 743,
+        "name": "Lefranc Bourgeois",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "legami",
+    "duplicates": [
+      {
+        "id": 2125,
+        "name": "LEGAMI",
+        "status": "UNPROCESSED",
+        "asins": 22
+      },
+      {
+        "id": 663,
+        "name": "Legami",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "leifheit",
+    "duplicates": [
+      {
+        "id": 3235,
+        "name": "LEIFHEIT",
+        "status": "UNPROCESSED",
+        "asins": 44
+      },
+      {
+        "id": 253,
+        "name": "Leifheit",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "lexon",
+    "duplicates": [
+      {
+        "id": 242,
+        "name": "Lexon",
+        "status": "UNPROCESSED",
+        "asins": 14
+      },
+      {
+        "id": 3657,
+        "name": "LEXON",
+        "status": "UNPROCESSED",
+        "asins": 7
+      }
+    ]
+  },
+  {
+    "lower_name": "linkidea",
+    "duplicates": [
+      {
+        "id": 2072,
+        "name": "LINKIDEA",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 535,
+        "name": "Linkidea",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "liquitex",
+    "duplicates": [
+      {
+        "id": 3157,
+        "name": "LIQUITEX",
+        "status": "UNPROCESSED",
+        "asins": 109
+      },
+      {
+        "id": 213,
+        "name": "Liquitex",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "locknlock",
+    "duplicates": [
+      {
+        "id": 3419,
+        "name": "LOCKNLOCK",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 137,
+        "name": "LocknLock",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "loctite",
+    "duplicates": [
+      {
+        "id": 4248,
+        "name": "LOCTITE",
+        "status": "UNPROCESSED",
+        "asins": 17
+      },
+      {
+        "id": 546,
+        "name": "Loctite",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "lodge",
+    "duplicates": [
+      {
+        "id": 3486,
+        "name": "LODGE",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 273,
+        "name": "Lodge",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "longzon",
+    "duplicates": [
+      {
+        "id": 96,
+        "name": "longzon",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3392,
+        "name": "LONGZON",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "loussiesd",
+    "duplicates": [
+      {
+        "id": 277,
+        "name": "Loussiesd",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 3722,
+        "name": "LOUSSIESD",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "maestri house",
+    "duplicates": [
+      {
+        "id": 9,
+        "name": "Maestri House",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 3175,
+        "name": "MAESTRI HOUSE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "maimeri",
+    "duplicates": [
+      {
+        "id": 729,
+        "name": "Maimeri",
+        "status": "UNPROCESSED",
+        "asins": 9
+      },
+      {
+        "id": 4932,
+        "name": "MAIMERI",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "mando compatible",
+    "duplicates": [
+      {
+        "id": 180,
+        "name": "Mando Compatible",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 4139,
+        "name": "MANDO COMPATIBLE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "mangata",
+    "duplicates": [
+      {
+        "id": 3415,
+        "name": "MANGATA",
+        "status": "UNPROCESSED",
+        "asins": 13
+      },
+      {
+        "id": 398,
+        "name": "Mangata",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "marvel",
+    "duplicates": [
+      {
+        "id": 1797,
+        "name": "MARVEL",
+        "status": "UNPROCESSED",
+        "asins": 20
+      },
+      {
+        "id": 759,
+        "name": "Marvel",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "maxpro",
+    "duplicates": [
+      {
+        "id": 307,
+        "name": "Maxpro",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3967,
+        "name": "MAXPRO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "mepal",
+    "duplicates": [
+      {
+        "id": 2744,
+        "name": "MEPAL",
+        "status": "UNPROCESSED",
+        "asins": 40
+      },
+      {
+        "id": 524,
+        "name": "Mepal",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "miele",
+    "duplicates": [
+      {
+        "id": 3323,
+        "name": "MIELE",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 191,
+        "name": "Miele",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "minecraft",
+    "duplicates": [
+      {
+        "id": 519,
+        "name": "Minecraft",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 2441,
+        "name": "MINECRAFT",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "mirrorvana",
+    "duplicates": [
+      {
+        "id": 220,
+        "name": "Mirrorvana",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3773,
+        "name": "MIRRORVANA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "mister pomez",
+    "duplicates": [
+      {
+        "id": 114,
+        "name": "Mister Pomez",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3407,
+        "name": "MISTER POMEZ",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "monbento",
+    "duplicates": [
+      {
+        "id": 2458,
+        "name": "MONBENTO",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 446,
+        "name": "monbento",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "motta",
+    "duplicates": [
+      {
+        "id": 109,
+        "name": "Motta",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3761,
+        "name": "MOTTA",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "moulinex",
+    "duplicates": [
+      {
+        "id": 3142,
+        "name": "MOULINEX",
+        "status": "UNPROCESSED",
+        "asins": 23
+      },
+      {
+        "id": 385,
+        "name": "Moulinex",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "naturemark",
+    "duplicates": [
+      {
+        "id": 3345,
+        "name": "NATUREMARK",
+        "status": "UNPROCESSED",
+        "asins": 32
+      },
+      {
+        "id": 212,
+        "name": "NatureMark",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "nemesis now",
+    "duplicates": [
+      {
+        "id": 3902,
+        "name": "NEMESIS NOW",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 540,
+        "name": "Nemesis Now",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "netuno",
+    "duplicates": [
+      {
+        "id": 3270,
+        "name": "NETUNO",
+        "status": "UNPROCESSED",
+        "asins": 107
+      },
+      {
+        "id": 55,
+        "name": "Netuno",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "niimo",
+    "duplicates": [
+      {
+        "id": 42,
+        "name": "Niimo",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3256,
+        "name": "NIIMO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "nilfisk",
+    "duplicates": [
+      {
+        "id": 1385,
+        "name": "NILFISK",
+        "status": "UNPROCESSED",
+        "asins": 25
+      },
+      {
+        "id": 214,
+        "name": "Nilfisk",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "nippon kodo",
+    "duplicates": [
+      {
+        "id": 324,
+        "name": "nippon kodo",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 3817,
+        "name": "NIPPON KODO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "nobildonna",
+    "duplicates": [
+      {
+        "id": 257,
+        "name": "Nobildonna",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 3575,
+        "name": "NOBILDONNA",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "normcore",
+    "duplicates": [
+      {
+        "id": 428,
+        "name": "Normcore",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3848,
+        "name": "NORMCORE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "nuliie",
+    "duplicates": [
+      {
+        "id": 11,
+        "name": "Nuliie",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3176,
+        "name": "NULIIE",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "onepine",
+    "duplicates": [
+      {
+        "id": 232,
+        "name": "OnePine",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 3683,
+        "name": "ONEPINE",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "oroley",
+    "duplicates": [
+      {
+        "id": 3607,
+        "name": "OROLEY",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 225,
+        "name": "Oroley",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "ortiny",
+    "duplicates": [
+      {
+        "id": 83,
+        "name": "Ortiny",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3301,
+        "name": "ORTINY",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "out of the blue",
+    "duplicates": [
+      {
+        "id": 1733,
+        "name": "OUT OF THE BLUE",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 386,
+        "name": "Out of the blue",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "owill",
+    "duplicates": [
+      {
+        "id": 54,
+        "name": "OWill",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3311,
+        "name": "OWILL",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "pajoma",
+    "duplicates": [
+      {
+        "id": 399,
+        "name": "Pajoma",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3840,
+        "name": "PAJOMA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "paladone",
+    "duplicates": [
+      {
+        "id": 2803,
+        "name": "PALADONE",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 488,
+        "name": "Paladone",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "pandoo",
+    "duplicates": [
+      {
+        "id": 2249,
+        "name": "PANDOO",
+        "status": "UNPROCESSED",
+        "asins": 16
+      },
+      {
+        "id": 146,
+        "name": "pandoo",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "papier d'armenie",
+    "duplicates": [
+      {
+        "id": 217,
+        "name": "Papier d'Armenie",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3461,
+        "name": "PAPIER D'ARMENIE",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "parkside",
+    "duplicates": [
+      {
+        "id": 1416,
+        "name": "PARKSIDE",
+        "status": "UNPROCESSED",
+        "asins": 33
+      },
+      {
+        "id": 529,
+        "name": "Parkside",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "pentel",
+    "duplicates": [
+      {
+        "id": 709,
+        "name": "Pentel",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3952,
+        "name": "PENTEL",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "pg tips",
+    "duplicates": [
+      {
+        "id": 76,
+        "name": "PG tips",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3305,
+        "name": "PG TIPS",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "ph pandahall",
+    "duplicates": [
+      {
+        "id": 444,
+        "name": "PH PandaHall",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 4044,
+        "name": "PH PANDAHALL",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "planetary design",
+    "duplicates": [
+      {
+        "id": 3574,
+        "name": "PLANETARY DESIGN",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 186,
+        "name": "Planetary Design",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "pokémon",
+    "duplicates": [
+      {
+        "id": 764,
+        "name": "Pokémon",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3741,
+        "name": "POKÉMON",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "poligino",
+    "duplicates": [
+      {
+        "id": 31,
+        "name": "Poligino",
+        "status": "UNPROCESSED",
+        "asins": 513
+      },
+      {
+        "id": 3280,
+        "name": "POLIGINO",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "poo-pourri",
+    "duplicates": [
+      {
+        "id": 251,
+        "name": "Poo-Pourri",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 3573,
+        "name": "POO-POURRI",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "posca",
+    "duplicates": [
+      {
+        "id": 3353,
+        "name": "POSCA",
+        "status": "UNPROCESSED",
+        "asins": 9
+      },
+      {
+        "id": 74,
+        "name": "Posca",
+        "status": "UNPROCESSED",
+        "asins": 6
+      }
+    ]
+  },
+  {
+    "lower_name": "pott'd",
+    "duplicates": [
+      {
+        "id": 236,
+        "name": "Pott'd",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3517,
+        "name": "POTT'D",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "princeton art & brush company",
+    "duplicates": [
+      {
+        "id": 489,
+        "name": "Princeton Art & Brush Company",
+        "status": "UNPROCESSED",
+        "asins": 21
+      },
+      {
+        "id": 3894,
+        "name": "PRINCETON ART & BRUSH COMPANY",
+        "status": "UNPROCESSED",
+        "asins": 6
+      }
+    ]
+  },
+  {
+    "lower_name": "prometis",
+    "duplicates": [
+      {
+        "id": 4140,
+        "name": "PROMETIS",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 371,
+        "name": "Prometis",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "prym",
+    "duplicates": [
+      {
+        "id": 3504,
+        "name": "PRYM",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 333,
+        "name": "Prym",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "purkeep",
+    "duplicates": [
+      {
+        "id": 34,
+        "name": "PurKeep",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3242,
+        "name": "PURKEEP",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "queta",
+    "duplicates": [
+      {
+        "id": 2301,
+        "name": "QUETA",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 330,
+        "name": "Queta",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "quokka",
+    "duplicates": [
+      {
+        "id": 2050,
+        "name": "QUOKKA",
+        "status": "UNPROCESSED",
+        "asins": 54
+      },
+      {
+        "id": 15,
+        "name": "Quokka",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "raplink",
+    "duplicates": [
+      {
+        "id": 4,
+        "name": "Raplink",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3147,
+        "name": "RAPLINK",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "real madrid",
+    "duplicates": [
+      {
+        "id": 1139,
+        "name": "REAL MADRID",
+        "status": "UNPROCESSED",
+        "asins": 59
+      },
+      {
+        "id": 248,
+        "name": "Real Madrid",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "recamania",
+    "duplicates": [
+      {
+        "id": 122,
+        "name": "Recamania",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 5010,
+        "name": "RECAMANIA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "reisenthel",
+    "duplicates": [
+      {
+        "id": 2930,
+        "name": "REISENTHEL",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 416,
+        "name": "reisenthel",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "relaxdays",
+    "duplicates": [
+      {
+        "id": 1419,
+        "name": "RELAXDAYS",
+        "status": "UNPROCESSED",
+        "asins": 270
+      },
+      {
+        "id": 433,
+        "name": "Relaxdays",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "rembrandt",
+    "duplicates": [
+      {
+        "id": 731,
+        "name": "Rembrandt",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3883,
+        "name": "REMBRANDT",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "reschimica",
+    "duplicates": [
+      {
+        "id": 3418,
+        "name": "RESCHIMICA",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 240,
+        "name": "Reschimica",
+        "status": "UNPROCESSED",
+        "asins": 6
+      }
+    ]
+  },
+  {
+    "lower_name": "resszo",
+    "duplicates": [
+      {
+        "id": 285,
+        "name": "Resszo",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3963,
+        "name": "RESSZO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "roca",
+    "duplicates": [
+      {
+        "id": 3022,
+        "name": "ROCA",
+        "status": "UNPROCESSED",
+        "asins": 45
+      },
+      {
+        "id": 297,
+        "name": "Roca",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "rowenta",
+    "duplicates": [
+      {
+        "id": 3127,
+        "name": "ROWENTA",
+        "status": "UNPROCESSED",
+        "asins": 33
+      },
+      {
+        "id": 70,
+        "name": "Rowenta",
+        "status": "UNPROCESSED",
+        "asins": 9
+      }
+    ]
+  },
+  {
+    "lower_name": "russell hobbs",
+    "duplicates": [
+      {
+        "id": 3189,
+        "name": "RUSSELL HOBBS",
+        "status": "UNPROCESSED",
+        "asins": 59
+      },
+      {
+        "id": 29,
+        "name": "Russell Hobbs",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "safta",
+    "duplicates": [
+      {
+        "id": 651,
+        "name": "Safta",
+        "status": "CONTRACTED",
+        "asins": 3701
+      },
+      {
+        "id": 1138,
+        "name": "SAFTA",
+        "status": "UNPROCESSED",
+        "asins": 398
+      }
+    ]
+  },
+  {
+    "lower_name": "sage",
+    "duplicates": [
+      {
+        "id": 141,
+        "name": "Sage",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3420,
+        "name": "SAGE",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "samsung",
+    "duplicates": [
+      {
+        "id": 3240,
+        "name": "SAMSUNG",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 166,
+        "name": "Samsung",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "savel",
+    "duplicates": [
+      {
+        "id": 3158,
+        "name": "SAVEL",
+        "status": "UNPROCESSED",
+        "asins": 28
+      },
+      {
+        "id": 464,
+        "name": "Savel",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "scheepjes",
+    "duplicates": [
+      {
+        "id": 262,
+        "name": "Scheepjes",
+        "status": "UNPROCESSED",
+        "asins": 4499
+      },
+      {
+        "id": 3636,
+        "name": "SCHEEPJES",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "schmincke",
+    "duplicates": [
+      {
+        "id": 480,
+        "name": "Schmincke",
+        "status": "UNPROCESSED",
+        "asins": 15
+      },
+      {
+        "id": 3664,
+        "name": "SCHMINCKE",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "schott zwiesel",
+    "duplicates": [
+      {
+        "id": 3402,
+        "name": "SCHOTT ZWIESEL",
+        "status": "UNPROCESSED",
+        "asins": 18
+      },
+      {
+        "id": 156,
+        "name": "Schott Zwiesel",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "sculpey",
+    "duplicates": [
+      {
+        "id": 3900,
+        "name": "SCULPEY",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 679,
+        "name": "Sculpey",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "sennelier",
+    "duplicates": [
+      {
+        "id": 511,
+        "name": "Sennelier",
+        "status": "UNPROCESSED",
+        "asins": 60
+      },
+      {
+        "id": 3703,
+        "name": "SENNELIER",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "severin",
+    "duplicates": [
+      {
+        "id": 1341,
+        "name": "SEVERIN",
+        "status": "UNPROCESSED",
+        "asins": 50
+      },
+      {
+        "id": 49,
+        "name": "Severin",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "sevi's",
+    "duplicates": [
+      {
+        "id": 293,
+        "name": "sevi's",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3616,
+        "name": "SEVI'S",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "sharpie",
+    "duplicates": [
+      {
+        "id": 3441,
+        "name": "SHARPIE",
+        "status": "UNPROCESSED",
+        "asins": 9
+      },
+      {
+        "id": 696,
+        "name": "Sharpie",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "showylive",
+    "duplicates": [
+      {
+        "id": 3527,
+        "name": "SHOWYLIVE",
+        "status": "UNPROCESSED",
+        "asins": 8
+      },
+      {
+        "id": 445,
+        "name": "ShowyLive",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "shuttle art",
+    "duplicates": [
+      {
+        "id": 167,
+        "name": "Shuttle Art",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 3276,
+        "name": "SHUTTLE ART",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "simplicol",
+    "duplicates": [
+      {
+        "id": 99,
+        "name": "simplicol",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 3291,
+        "name": "SIMPLICOL",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "singer",
+    "duplicates": [
+      {
+        "id": 157,
+        "name": "Singer",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3520,
+        "name": "SINGER",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "sinzyo",
+    "duplicates": [
+      {
+        "id": 301,
+        "name": "Sinzyo",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 3701,
+        "name": "SINZYO",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "sodastream",
+    "duplicates": [
+      {
+        "id": 2240,
+        "name": "SODASTREAM",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 394,
+        "name": "sodastream",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "sofetiy",
+    "duplicates": [
+      {
+        "id": 4334,
+        "name": "SOFETIY",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 134,
+        "name": "Sofetiy",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "solac",
+    "duplicates": [
+      {
+        "id": 3363,
+        "name": "SOLAC",
+        "status": "UNPROCESSED",
+        "asins": 24
+      },
+      {
+        "id": 294,
+        "name": "Solac",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "sonett",
+    "duplicates": [
+      {
+        "id": 451,
+        "name": "Sonett",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4192,
+        "name": "SONETT",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "sonny angel",
+    "duplicates": [
+      {
+        "id": 483,
+        "name": "Sonny Angel",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3914,
+        "name": "SONNY ANGEL",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "speedball",
+    "duplicates": [
+      {
+        "id": 357,
+        "name": "Speedball",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4144,
+        "name": "SPEEDBALL",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "spiegelau",
+    "duplicates": [
+      {
+        "id": 3624,
+        "name": "SPIEGELAU",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 243,
+        "name": "Spiegelau",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "spirella",
+    "duplicates": [
+      {
+        "id": 3362,
+        "name": "SPIRELLA",
+        "status": "UNPROCESSED",
+        "asins": 21
+      },
+      {
+        "id": 197,
+        "name": "Spirella",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "spirituellementbien",
+    "duplicates": [
+      {
+        "id": 292,
+        "name": "Spirituellementbien",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3811,
+        "name": "SPIRITUELLEMENTBIEN",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "stafeny",
+    "duplicates": [
+      {
+        "id": 171,
+        "name": "Stafeny",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3401,
+        "name": "STAFENY",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "stamperia",
+    "duplicates": [
+      {
+        "id": 673,
+        "name": "Stamperia",
+        "status": "UNPROCESSED",
+        "asins": 458
+      },
+      {
+        "id": 3733,
+        "name": "STAMPERIA",
+        "status": "UNPROCESSED",
+        "asins": 7
+      }
+    ]
+  },
+  {
+    "lower_name": "stedi",
+    "duplicates": [
+      {
+        "id": 3808,
+        "name": "STEDI",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 387,
+        "name": "stedi",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "stölzle lausitz",
+    "duplicates": [
+      {
+        "id": 3265,
+        "name": "STÖLZLE LAUSITZ",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 62,
+        "name": "Stölzle Lausitz",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "stor",
+    "duplicates": [
+      {
+        "id": 3269,
+        "name": "STOR",
+        "status": "UNPROCESSED",
+        "asins": 27
+      },
+      {
+        "id": 461,
+        "name": "Stor",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "stowbin",
+    "duplicates": [
+      {
+        "id": 3647,
+        "name": "STOWBIN",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 393,
+        "name": "StowBin",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "superior electronics",
+    "duplicates": [
+      {
+        "id": 3390,
+        "name": "SUPERIOR ELECTRONICS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 549,
+        "name": "Superior Electronics",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "switchbot",
+    "duplicates": [
+      {
+        "id": 1301,
+        "name": "SWITCHBOT",
+        "status": "UNPROCESSED",
+        "asins": 20
+      },
+      {
+        "id": 118,
+        "name": "SwitchBot",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "talens",
+    "duplicates": [
+      {
+        "id": 710,
+        "name": "Talens",
+        "status": "UNPROCESSED",
+        "asins": 176
+      },
+      {
+        "id": 3300,
+        "name": "TALENS",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "talens art creation",
+    "duplicates": [
+      {
+        "id": 346,
+        "name": "Talens Art Creation",
+        "status": "UNPROCESSED",
+        "asins": 12
+      },
+      {
+        "id": 3251,
+        "name": "TALENS ART CREATION",
+        "status": "UNPROCESSED",
+        "asins": 7
+      }
+    ]
+  },
+  {
+    "lower_name": "tamiya",
+    "duplicates": [
+      {
+        "id": 3348,
+        "name": "TAMIYA",
+        "status": "UNPROCESSED",
+        "asins": 8
+      },
+      {
+        "id": 310,
+        "name": "Tamiya",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "tatay",
+    "duplicates": [
+      {
+        "id": 1261,
+        "name": "TATAY",
+        "status": "UNPROCESSED",
+        "asins": 161
+      },
+      {
+        "id": 319,
+        "name": "Tatay",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "technivorm moccamaster",
+    "duplicates": [
+      {
+        "id": 163,
+        "name": "Technivorm Moccamaster",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4151,
+        "name": "TECHNIVORM MOCCAMASTER",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "tefal",
+    "duplicates": [
+      {
+        "id": 3137,
+        "name": "TEFAL",
+        "status": "UNPROCESSED",
+        "asins": 81
+      },
+      {
+        "id": 2,
+        "name": "Tefal",
+        "status": "UNPROCESSED",
+        "asins": 8
+      }
+    ]
+  },
+  {
+    "lower_name": "tekhoho",
+    "duplicates": [
+      {
+        "id": 3476,
+        "name": "TEKHOHO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 153,
+        "name": "Tekhoho",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "the army painter",
+    "duplicates": [
+      {
+        "id": 3333,
+        "name": "THE ARMY PAINTER",
+        "status": "UNPROCESSED",
+        "asins": 17
+      },
+      {
+        "id": 64,
+        "name": "The Army Painter",
+        "status": "UNPROCESSED",
+        "asins": 11
+      }
+    ]
+  },
+  {
+    "lower_name": "the beadsmith",
+    "duplicates": [
+      {
+        "id": 147,
+        "name": "The Beadsmith",
+        "status": "UNPROCESSED",
+        "asins": 8
+      },
+      {
+        "id": 2886,
+        "name": "THE BEADSMITH",
+        "status": "UNPROCESSED",
+        "asins": 6
+      }
+    ]
+  },
+  {
+    "lower_name": "thermocafé by thermos",
+    "duplicates": [
+      {
+        "id": 3828,
+        "name": "THERMOCAFÉ BY THERMOS",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 267,
+        "name": "THERMOcafé by THERMOS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "thxmadam",
+    "duplicates": [
+      {
+        "id": 165,
+        "name": "ThxMadam",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 3555,
+        "name": "THXMADAM",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "titan",
+    "duplicates": [
+      {
+        "id": 3972,
+        "name": "TITAN",
+        "status": "UNPROCESSED",
+        "asins": 7
+      },
+      {
+        "id": 713,
+        "name": "Titan",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "titan arts",
+    "duplicates": [
+      {
+        "id": 698,
+        "name": "Titan Arts",
+        "status": "UNPROCESSED",
+        "asins": 30
+      },
+      {
+        "id": 4352,
+        "name": "TITAN ARTS",
+        "status": "UNPROCESSED",
+        "asins": 7
+      }
+    ]
+  },
+  {
+    "lower_name": "ti tin",
+    "duplicates": [
+      {
+        "id": 349,
+        "name": "Ti TIN",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3942,
+        "name": "TI TIN",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "tnfeeon",
+    "duplicates": [
+      {
+        "id": 298,
+        "name": "Tnfeeon",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4010,
+        "name": "TNFEEON",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "tombow",
+    "duplicates": [
+      {
+        "id": 681,
+        "name": "Tombow",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 4054,
+        "name": "TOMBOW",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "tork",
+    "duplicates": [
+      {
+        "id": 3334,
+        "name": "TORK",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 481,
+        "name": "Tork",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "tortillada",
+    "duplicates": [
+      {
+        "id": 512,
+        "name": "Tortillada",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4181,
+        "name": "TORTILLADA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "totsy baby",
+    "duplicates": [
+      {
+        "id": 33,
+        "name": "Totsy Baby",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 3181,
+        "name": "TOTSY BABY",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "toyo",
+    "duplicates": [
+      {
+        "id": 707,
+        "name": "Toyo",
+        "status": "UNPROCESSED",
+        "asins": 11
+      },
+      {
+        "id": 5004,
+        "name": "TOYO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "trimming shop",
+    "duplicates": [
+      {
+        "id": 470,
+        "name": "Trimming Shop",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 4180,
+        "name": "TRIMMING SHOP",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "tulip",
+    "duplicates": [
+      {
+        "id": 576,
+        "name": "Tulip",
+        "status": "UNPROCESSED",
+        "asins": 120
+      },
+      {
+        "id": 4114,
+        "name": "TULIP",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "tupperware",
+    "duplicates": [
+      {
+        "id": 2214,
+        "name": "TUPPERWARE",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 526,
+        "name": "Tupperware",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "twinzen",
+    "duplicates": [
+      {
+        "id": 3277,
+        "name": "TWINZEN",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 98,
+        "name": "Twinzen",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "ubio",
+    "duplicates": [
+      {
+        "id": 350,
+        "name": "Ubio",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3635,
+        "name": "UBIO",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "umami",
+    "duplicates": [
+      {
+        "id": 321,
+        "name": "Umami",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 4112,
+        "name": "UMAMI",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "unity",
+    "duplicates": [
+      {
+        "id": 388,
+        "name": "Unity",
+        "status": "UNPROCESSED",
+        "asins": 5
+      },
+      {
+        "id": 3609,
+        "name": "UNITY",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "urnex",
+    "duplicates": [
+      {
+        "id": 3508,
+        "name": "URNEX",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 482,
+        "name": "Urnex",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "utopia towels",
+    "duplicates": [
+      {
+        "id": 126,
+        "name": "Utopia Towels",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3213,
+        "name": "UTOPIA TOWELS",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "uvex",
+    "duplicates": [
+      {
+        "id": 2053,
+        "name": "UVEX",
+        "status": "UNPROCESSED",
+        "asins": 92
+      },
+      {
+        "id": 265,
+        "name": "Uvex",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "vacuvin",
+    "duplicates": [
+      {
+        "id": 3788,
+        "name": "VACUVIN",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 164,
+        "name": "Vacuvin",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "valdoza",
+    "duplicates": [
+      {
+        "id": 379,
+        "name": "Valdoza",
+        "status": "UNPROCESSED",
+        "asins": 6
+      },
+      {
+        "id": 4205,
+        "name": "VALDOZA",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "vallejo",
+    "duplicates": [
+      {
+        "id": 25,
+        "name": "Vallejo",
+        "status": "UNPROCESSED",
+        "asins": 343
+      },
+      {
+        "id": 3227,
+        "name": "VALLEJO",
+        "status": "UNPROCESSED",
+        "asins": 25
+      }
+    ]
+  },
+  {
+    "lower_name": "vancasso",
+    "duplicates": [
+      {
+        "id": 436,
+        "name": "vancasso",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 3758,
+        "name": "VANCASSO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "vanderhome",
+    "duplicates": [
+      {
+        "id": 234,
+        "name": "VanderHOME",
+        "status": "UNPROCESSED",
+        "asins": 93
+      },
+      {
+        "id": 4101,
+        "name": "VANDERHOME",
+        "status": "UNPROCESSED",
+        "asins": 5
+      }
+    ]
+  },
+  {
+    "lower_name": "vangogh",
+    "duplicates": [
+      {
+        "id": 654,
+        "name": "Vangogh",
+        "status": "UNPROCESSED",
+        "asins": 8
+      },
+      {
+        "id": 3737,
+        "name": "VANGOGH",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "vantasii",
+    "duplicates": [
+      {
+        "id": 543,
+        "name": "Vantasii",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 3751,
+        "name": "VANTASII",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "verybarista",
+    "duplicates": [
+      {
+        "id": 177,
+        "name": "verybarista",
+        "status": "UNPROCESSED",
+        "asins": 10
+      },
+      {
+        "id": 3511,
+        "name": "VERYBARISTA",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "victor",
+    "duplicates": [
+      {
+        "id": 381,
+        "name": "Victor",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 3898,
+        "name": "VICTOR",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "victorinox",
+    "duplicates": [
+      {
+        "id": 1806,
+        "name": "VICTORINOX",
+        "status": "UNPROCESSED",
+        "asins": 105
+      },
+      {
+        "id": 66,
+        "name": "Victorinox",
+        "status": "UNPROCESSED",
+        "asins": 4
+      }
+    ]
+  },
+  {
+    "lower_name": "vidarosa",
+    "duplicates": [
+      {
+        "id": 219,
+        "name": "VidaRosa",
+        "status": "UNPROCESSED",
+        "asins": 4
+      },
+      {
+        "id": 3521,
+        "name": "VIDAROSA",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "vihoom",
+    "duplicates": [
+      {
+        "id": 124,
+        "name": "Vihoom",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 4043,
+        "name": "VIHOOM",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "vilde",
+    "duplicates": [
+      {
+        "id": 3606,
+        "name": "VILDE",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 425,
+        "name": "Vilde",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "vileda",
+    "duplicates": [
+      {
+        "id": 3149,
+        "name": "VILEDA",
+        "status": "UNPROCESSED",
+        "asins": 25
+      },
+      {
+        "id": 269,
+        "name": "Vileda",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "villeroy & boch",
+    "duplicates": [
+      {
+        "id": 3798,
+        "name": "VILLEROY & BOCH",
+        "status": "UNPROCESSED",
+        "asins": 30
+      },
+      {
+        "id": 508,
+        "name": "Villeroy & Boch",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "vunzo",
+    "duplicates": [
+      {
+        "id": 3984,
+        "name": "VUNZO",
+        "status": "UNPROCESSED",
+        "asins": 1
+      },
+      {
+        "id": 21,
+        "name": "Vunzo",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "walther design",
+    "duplicates": [
+      {
+        "id": 3292,
+        "name": "WALTHER DESIGN",
+        "status": "UNPROCESSED",
+        "asins": 104
+      },
+      {
+        "id": 283,
+        "name": "walther design",
+        "status": "UNPROCESSED",
+        "asins": 3
+      }
+    ]
+  },
+  {
+    "lower_name": "wenburg",
+    "duplicates": [
+      {
+        "id": 275,
+        "name": "Wenburg",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 3960,
+        "name": "WENBURG",
+        "status": "UNPROCESSED",
+        "asins": 0
+      }
+    ]
+  },
+  {
+    "lower_name": "wenko",
+    "duplicates": [
+      {
+        "id": 3455,
+        "name": "WENKO",
+        "status": "UNPROCESSED",
+        "asins": 42
+      },
+      {
+        "id": 501,
+        "name": "Wenko",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "we r memory keepers",
+    "duplicates": [
+      {
+        "id": 686,
+        "name": "We R Memory Keepers",
+        "status": "UNPROCESSED",
+        "asins": 41
+      },
+      {
+        "id": 3705,
+        "name": "WE R MEMORY KEEPERS",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "westmark",
+    "duplicates": [
+      {
+        "id": 1901,
+        "name": "WESTMARK",
+        "status": "UNPROCESSED",
+        "asins": 34
+      },
+      {
+        "id": 85,
+        "name": "Westmark",
+        "status": "UNPROCESSED",
+        "asins": 18
+      }
+    ]
+  },
+  {
+    "lower_name": "winsor & newton",
+    "duplicates": [
+      {
+        "id": 3193,
+        "name": "WINSOR & NEWTON",
+        "status": "UNPROCESSED",
+        "asins": 313
+      },
+      {
+        "id": 41,
+        "name": "Winsor & Newton",
+        "status": "UNPROCESSED",
+        "asins": 13
+      }
+    ]
+  },
+  {
+    "lower_name": "yankee candle",
+    "duplicates": [
+      {
+        "id": 3322,
+        "name": "YANKEE CANDLE",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 281,
+        "name": "Yankee Candle",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  },
+  {
+    "lower_name": "yardwe",
+    "duplicates": [
+      {
+        "id": 2690,
+        "name": "YARDWE",
+        "status": "UNPROCESSED",
+        "asins": 2
+      },
+      {
+        "id": 395,
+        "name": "Yardwe",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "zeller",
+    "duplicates": [
+      {
+        "id": 3581,
+        "name": "ZELLER",
+        "status": "UNPROCESSED",
+        "asins": 17
+      },
+      {
+        "id": 323,
+        "name": "Zeller",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "zenker",
+    "duplicates": [
+      {
+        "id": 3259,
+        "name": "ZENKER",
+        "status": "UNPROCESSED",
+        "asins": 24
+      },
+      {
+        "id": 215,
+        "name": "Zenker",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "zippo",
+    "duplicates": [
+      {
+        "id": 1928,
+        "name": "ZIPPO",
+        "status": "UNPROCESSED",
+        "asins": 15
+      },
+      {
+        "id": 280,
+        "name": "Zippo",
+        "status": "UNPROCESSED",
+        "asins": 1
+      }
+    ]
+  },
+  {
+    "lower_name": "zyliss",
+    "duplicates": [
+      {
+        "id": 244,
+        "name": "Zyliss",
+        "status": "UNPROCESSED",
+        "asins": 3
+      },
+      {
+        "id": 3714,
+        "name": "ZYLISS",
+        "status": "UNPROCESSED",
+        "asins": 2
+      }
+    ]
+  }
+]

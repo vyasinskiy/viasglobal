@@ -88,6 +88,7 @@ model Distributor {
   notes           String?
   lastContactAt   DateTime?
   asins           ASIN[] // implicit m-to-m
+  priceSnapshots  DistributorPriceSnapshot[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -99,9 +100,10 @@ model ASIN {
   brandId        Int?
   manufacturerId Int?
 
-  brand        Brand?        @relation(fields: [brandId], references: [id])
-  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
-  distributors Distributor[] // implicit m-to-m
+  brand          Brand?        @relation(fields: [brandId], references: [id])
+  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  distributors   Distributor[] // implicit m-to-m
+  priceSnapshots DistributorPriceSnapshot[]
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -110,6 +112,24 @@ model ASIN {
   tags           Tag[]
 
   @@index([brandId, manufacturerId])
+}
+
+/// Снапшот закупочных цен из прайс-листов дистрибьюторов/поставщиков
+model DistributorPriceSnapshot {
+  id            Int         @id @default(autoincrement())
+  distributorId Int         /// Внешний ключ: ID дистрибьютора
+  asinId        Int?        /// Внешний ключ: сопоставленный ASIN в нашей базе данных
+  ean           String?     /// Штрихкод EAN товара из прайс-листа (для автосопоставления)
+  priceNetto    Float       /// Оптовая цена закупки без НДС (в евро)
+  costPrice     Float       /// Себестоимость с испанскими налогами (priceNetto * 1.262: 21% IVA + 5.2% Recargo de Equivalencia)
+  createdAt     DateTime    @default(now()) /// Дата и время загрузки прайс-листа
+
+  distributor   Distributor @relation(fields: [distributorId], references: [id])
+  asin          ASIN?       @relation(fields: [asinId], references: [id])
+
+  @@index([distributorId, asinId, createdAt(sort: Desc)])
+  @@index([asinId])
+  @@index([ean])
 }
 
 model ProductFinder {
@@ -333,6 +353,25 @@ view KeepaExportView {
   createdAt  DateTime
   brandId    Int?
   sellerId   String?
+}
+
+/// Сводное представление товаров брендов в работе с расчетом потенциальной маржинальности
+view ContractedProductsView {
+  asinId        Int     @unique /// ID товара в таблице ASIN
+  asin          String  /// Код ASIN товара на Amazon
+  ean           String? /// Штрихкод EAN товара
+  title         String? /// Название товара
+  brand         String? /// Название бренда
+  distributor   String? /// Название поставщика/дистрибьютора
+  costPrice     Float?  /// Себестоимость закупки с налогами (в евро, 21% IVA + 5.2% RE)
+  buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
+  fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
+  referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
+  amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral)
+  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - costPrice
+  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / costPrice) * 100
+  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
+  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
 }
 
 model KeepaExport {
