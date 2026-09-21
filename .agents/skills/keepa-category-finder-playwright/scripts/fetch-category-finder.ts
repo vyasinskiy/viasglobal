@@ -137,9 +137,10 @@ async function main() {
   const rawArgs = process.argv.slice(2);
   if (rawArgs.length === 0 || rawArgs.includes('--help') || rawArgs.includes('-h')) {
     console.log('Использование:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <категория_или_id> [--pages N] [--no-parse] [domainId]');
+    console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <категория_или_id> [--pages N] [--resume-part P] [--no-parse] [domainId]');
     console.log('\nПараметры:');
-    console.log('  --pages N     Количество страниц по 5000 строк для выгрузки (по умолчанию: 2, то есть до 10 000 товаров)');
+    console.log('  --pages N        Количество страниц по 5000 строк (по умолчанию 2)');
+    console.log('  --resume-part P  Начать с указанной части (1-5), пропустив предыдущие');
     console.log('  --no-parse    Только скачать файлы Excel, не импортировать в базу данных');
     console.log('\nПримеры:');
     console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín"');
@@ -150,13 +151,18 @@ async function main() {
 
   // Парсинг аргументов
   let maxPages = 2; // По умолчанию выгружаем 2 страницы по 5000 = 10 000 товаров
+  let resumePart = 1;
+  const resumePartIdx = rawArgs.indexOf('--resume-part');
+  if (resumePartIdx !== -1 && rawArgs[resumePartIdx + 1]) {
+    resumePart = parseInt(rawArgs[resumePartIdx + 1], 10) || 1;
+  }
   const pagesIdx = rawArgs.indexOf('--pages');
   if (pagesIdx !== -1 && rawArgs[pagesIdx + 1]) {
     maxPages = parseInt(rawArgs[pagesIdx + 1], 10) || 2;
   }
 
   const noParse = rawArgs.includes('--no-parse');
-  const filteredArgs = rawArgs.filter((a, idx) => a !== '--no-parse' && a !== '--pages' && rawArgs[idx - 1] !== '--pages');
+  const filteredArgs = rawArgs.filter((a, idx) => a !== '--no-parse' && a !== '--pages' && rawArgs[idx - 1] !== '--pages' && a !== '--resume-part' && rawArgs[idx - 1] !== '--resume-part');
 
   const rawParam = filteredArgs[0];
   const domainId = filteredArgs[1] || '4'; // 4 = amazon.es
@@ -248,11 +254,14 @@ async function main() {
 
     // Определяем диапазоны Sales Rank: всегда делим на 2 части (1-25 000 и 25 001-50 000),
     // чтобы обойти лимит Keepa 10 000 строк и забрать 100% товаров категории без потерь
-    const rankRanges = [
+    const allRankRanges = [
       { name: 'rank1_10k', label: 'Часть 1: Sales Rank 1 - 10 000', from: '1', to: '10000' },
-      { name: 'rank10k_25k', label: 'Часть 2: Sales Rank 10 001 - 25 000', from: '10001', to: '25000' },
-      { name: 'rank25k_50k', label: 'Часть 3: Sales Rank 25 001 - 50 000', from: '25001', to: '50000' },
+      { name: 'rank10k_20k', label: 'Часть 2: Sales Rank 10 001 - 20 000', from: '10001', to: '20000' },
+      { name: 'rank20k_30k', label: 'Часть 3: Sales Rank 20 001 - 30 000', from: '20001', to: '30000' },
+      { name: 'rank30k_40k', label: 'Часть 4: Sales Rank 30 001 - 40 000', from: '30001', to: '40000' },
+      { name: 'rank40k_50k', label: 'Часть 5: Sales Rank 40 001 - 50 000', from: '40001', to: '50000' },
     ];
+    const rankRanges = allRankRanges.slice(resumePart - 1);
 
     for (const rankRange of rankRanges) {
       console.log(`\n=============================================================`);

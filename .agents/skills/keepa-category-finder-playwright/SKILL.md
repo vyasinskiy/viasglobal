@@ -7,7 +7,7 @@ description: Автоматизированная выгрузка катало�
 
 Этот навык автоматизирует выгрузку товаров корневой категории из раздела **Keepa Product Finder** (`https://keepa.com/#!finder`) с использованием Playwright и сохраненной браузерной сессии Google Chrome.
 
-Он работает **абсолютно бесплатно** (0 токенов Keepa API), поддерживает **выгрузку порциями по 5000 строк с переходом по страницам пагинации** и **автоматически сохраняет все данные в базу данных** через `backend/scripts/parse-keepa.ts` (создает/обновляет бренды, производителей, продавцов, ASIN, снапшоты цен и связывает выгрузку).
+Он работает **абсолютно бесплатно** (0 токенов Keepa API), поддерживает **выгрузку категорий частями (Sales Rank) с переходом по страницам пагинации** и **автоматически сохраняет все данные в базу данных** через `backend/scripts/parse-keepa.ts` (создает/обновляет бренды, производителей, продавцов, ASIN, снапшоты цен и связывает выгрузку).
 
 ---
 
@@ -31,19 +31,19 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-sel
 Запуск выгрузки каталога категории:
 
 ```bash
-cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <название_или_id_категории> [--pages N] [--no-parse]
+cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <название_или_id_категории> [--pages N] [--resume-part P] [--no-parse]
 ```
 
 ### Примеры использования:
 
-1. **По названию категории с пагинацией (по умолчанию 2 страницы по 5000 = до 10 000 товаров)**:
+1. **По названию категории с пагинацией (по умолчанию 2 страницы = до 10 000 товаров на часть)**:
    ```bash
    cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín"
    ```
 
-2. **Выгрузка 1 страницы (до 5000 товаров)**:
+2. **Возобновление выгрузки (например, с 4-й части BSR)**:
    ```bash
-   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --pages 1
+   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --resume-part 4
    ```
 
 3. **По Category ID из базы данных (KeepaAllowedCategory)**:
@@ -67,9 +67,13 @@ cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts
    - Вводится название категории в фильтр *"Root category"* (`#autocomplete-rootCategory`).
    - Выбирается вариант в выпадающем списке автодополнения.
    - **Автоматически применяются стандартные оптовые Wholesale-фильтры**:
-     * **Двухчастная выгрузка Sales Rank (Обход лимита 10 000 строк Keepa)**:
-       - **Часть 1**: Sales Rank `1 - 25 000` (файлы `..._rank1_25k_page1.xlsx`, `..._rank1_25k_page2.xlsx`)
-       - **Часть 2**: Sales Rank `25 001 - 50 000` (файлы `..._rank25k_50k_page1.xlsx`, `..._rank25k_50k_page2.xlsx`)
+     * **Дробление выгрузки Sales Rank на 5 частей (Обход пагинации и лимитов)**:
+       - **Часть 1**: Sales Rank `1 - 10 000`
+       - **Часть 2**: Sales Rank `10 001 - 20 000`
+       - **Часть 3**: Sales Rank `20 001 - 30 000`
+       - **Часть 4**: Sales Rank `30 001 - 40 000`
+       - **Часть 5**: Sales Rank `40 001 - 50 000`
+       Каждая часть гарантированно помещается в 5000 строк, но если товаров больше, скрипт использует пагинацию (по умолчанию 2 страницы).
      * **Buy Box Price**: от `15 €` до `100 €` (`#numberFrom-BUY_BOX_SHIPPING_current` / `#numberTo-BUY_BOX_SHIPPING_current`)
      * **New Offer Count**: от `3` до `15` продавцов (`#numberFrom-COUNT_NEW_current` / `#numberTo-COUNT_NEW_current`)
      * *(Фильтр Amazon Out of Stock строго отключен)*
@@ -83,14 +87,12 @@ cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts
   * При исчерпании квоты (0% или предупреждение в диалоге экспорта) Keepa блокирует скачивание Excel.
   * Скрипт обязан проверять квоту перед выгрузкой и в диалоге экспорта: при нехватке токенов скрипт останавливается и **явно выводит пользователю текущий остаток квоты и сообщение о необходимости подождать восстановления токенов** (квота пополняется Keepa поминутно).
 4. **Фаза 1: Сбор и сохранение всех страниц выгрузки на диск**:
-   - Для каждой части (`1-25k` и `25k-50k`):
-     * Для каждой страницы (от `1` до `2`):
-       - Проверяется статус квоты в тулбаре Keepa.
-       - Ожидается полное исчезновение оверлея загрузки и появление строк.
-       - Нажимается кнопка *"Export"*.
-       - В диалоге экспорта активируется радиокнопка *"All active columns"* (`#allCh-radio`).
-       - Скачивается файл `.xlsx` с суффиксом диапазона и страницы.
-       - Нажимается кнопка *"Next"* (`div[ref="btNext"]`) для перехода к следующей порции из 5000 товаров.
+   - Для каждой из 5 частей Sales Rank (если не передан `--resume-part`):
+     * Проверяется статус квоты в тулбаре Keepa.
+     * Ожидается полное исчезновение оверлея загрузки и появление строк.
+     * Нажимается кнопка *"Export"*.
+     * В диалоге экспорта активируется радиокнопка *"All active columns"* (`#allCh-radio`).
+     * Скачивается файл `.xlsx`.
    - **Браузер завершает работу и закрывается (`browser.close()`) только после того, как все файлы сохранены на диск.**
 5. **Промежуточный шаг: Краткое самари и проверка глазами**:
    - ИИ выводит список скачанных файлов, их размер, количество строк и диапазон.
