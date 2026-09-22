@@ -43,6 +43,7 @@ BEGIN
             snap."salesRankCurrent",
             snap."buyBoxAmazon90Days",
             snap."buyBoxCurrent",
+            snap."newCurrent",
             snap."fBAPickPackFee",
             snap."referralFee",
             snap."referralFeeBasedOnCurrentBuyBoxPrice"
@@ -71,16 +72,13 @@ BEGIN
             COALESCE(dp."distributorName", d_rel.name, '')::TEXT AS calc_distributor,
             dp."priceNetto"::FLOAT AS calc_price_netto,
             dp."costPrice"::FLOAT AS calc_cost_price,
-            s."buyBoxCurrent"::FLOAT AS calc_buy_box_price,
+            LEAST(s."buyBoxCurrent", s."newCurrent")::FLOAT AS calc_buy_box_price,
             s."fBAPickPackFee"::FLOAT AS calc_fba_fee,
-            COALESCE(
-                s."referralFeeBasedOnCurrentBuyBoxPrice",
-                CASE 
-                    WHEN s."referralFee" IS NOT NULL AND s."referralFee" > 0 AND s."buyBoxCurrent" IS NOT NULL 
-                    THEN ROUND((s."buyBoxCurrent" * s."referralFee")::numeric, 2)
-                    ELSE NULL
-                END
-            )::FLOAT AS calc_referral_fee,
+            CASE 
+                WHEN s."referralFee" IS NOT NULL AND s."referralFee" > 0 AND LEAST(s."buyBoxCurrent", s."newCurrent") IS NOT NULL 
+                THEN ROUND((LEAST(s."buyBoxCurrent", s."newCurrent") * s."referralFee")::numeric, 2)
+                ELSE s."referralFeeBasedOnCurrentBuyBoxPrice"
+            END::FLOAT AS calc_referral_fee,
             s."salesRankCurrent"::INT AS calc_sales_rank
         FROM "ASIN" a
         JOIN "Brand" b ON a."brandId" = b.id
