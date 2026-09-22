@@ -21,16 +21,23 @@ async function main() {
 
   const resolvedEansPath = path.resolve(process.cwd(), eansFile);
   const resolvedOutputPath = path.resolve(process.cwd(), outputFile);
-  const storageStatePath = path.resolve(__dirname, '../auth/storage_state.json');
+  // Поиск файла сессии в известных локациях
+  const possibleAuthPaths = [
+    path.resolve(__dirname, '../auth/storage_state.json'),
+    path.resolve(__dirname, '../../keepa-seller-finder-playwright/auth/storage_state.json'),
+    path.resolve(__dirname, '../../keepa-brand-finder-playwright/auth/storage_state.json'),
+  ];
+  const storageStatePath = possibleAuthPaths.find((p) => fs.existsSync(p));
 
-  if (!fs.existsSync(resolvedEansPath)) {
-    console.error(`Файл со списком EAN не найден: ${resolvedEansPath}`);
+  if (!storageStatePath) {
+    console.error('Файл сохраненной сессии не найден ни в одной из папок:');
+    possibleAuthPaths.forEach((p) => console.error(` - ${p}`));
+    console.error('Сначала запустите скрипт авторизации: npx tsx save-session.ts');
     process.exit(1);
   }
 
-  if (!fs.existsSync(storageStatePath)) {
-    console.error(`Файл сохраненной сессии не найден: ${storageStatePath}`);
-    console.error('Сначала запустите скрипт авторизации: npx tsx save-session.ts');
+  if (!fs.existsSync(resolvedEansPath)) {
+    console.error(`Файл со списком EAN не найден: ${resolvedEansPath}`);
     process.exit(1);
   }
 
@@ -114,23 +121,37 @@ async function main() {
 
     if (foundExport) {
       console.log('Кнопка "Export" найдена в тулбаре!');
-      await foundExport.click();
+
+      // Скрываем блокирующие всплывающие окна и оверлеи Keepa (#popup3 и т.д.)
+      await page.keyboard.press('Escape');
+      await page.evaluate(() => {
+        document.querySelectorAll('#popup3, .popup, [id^="popup"]:not(#table-export-dialog), .modal, .ui-widget-overlay').forEach((el) => {
+          (el as HTMLElement).style.display = 'none';
+        });
+      }).catch(() => {});
+
+      await foundExport.click({ force: true });
       await page.waitForTimeout(1500);
       break;
     }
   }
 
-  // Ожидаем скачивание при нажатии на экспорт
-  console.log('Подтверждаем экспорт файла Excel...');
-  const downloadPromise = page.waitForEvent('download', { timeout: 60000 });
-
-  // В модальном окне экспорта кликаем по подтверждающей кнопке "EXPORT" (обычно синяя кнопка)
-  const dialogBtn = page.locator('button:has-text("EXPORT"), input[value*="EXPORT"], .button--primary:has-text("EXPORT")').last();
-  if (await dialogBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await dialogBtn.click();
+  // В диалоге экспорта активируем радиокнопку All active columns (#allCh-radio)
+  const allColumnsRadio = page.locator('#allCh-radio');
+  if (await allColumnsRadio.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await allColumnsRadio.check({ force: true });
+    console.log('Выбрана опция: All active columns (#allCh-radio)');
   }
 
-  const download = await downloadPromise;
+  // Ожидаем скачивание при нажатии на экспорт
+  console.log('Подтверждаем экспорт файла Excel...');
+  const dialogBtn = page.locator('#exportSubmit, button:has-text("EXPORT"), input[value*="EXPORT"], .button--primary:has-text("EXPORT")').first();
+  await dialogBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download', { timeout: 60000 }),
+    dialogBtn.click({ force: true }),
+  ]);
 
   // Сохраняем файл
   fs.mkdirSync(path.dirname(resolvedOutputPath), { recursive: true });

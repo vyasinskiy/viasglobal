@@ -30,8 +30,8 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/fetch-kee
 cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/fetch-keepa-viewer/scripts/fetch-viewer.ts <путь_к_файлу_с_кодами.txt> <куда_сохранить_выгрузку.xlsx> [domainId]
 ```
 
-- По умолчанию `domainId = 4` (Испания - amazon.es).
 - Полученный `.xlsx` файл затем сразу передается в навык `parse-keepa`:
   ```bash
   cd /Users/usuario/code/viasglobal/backend && npx tsx scripts/parse-keepa.ts <путь_к_сохраненному.xlsx>
   ```
+- **Обработка несопоставленных EAN**: несопоставленные EAN из прайс-листов дистрибьюторов сохраняются в файл `<дистрибьютор>_unmatched_eans.txt` как список позиций, не заведенных на Amazon, для дальнейшего анализа под создание карточек. Автоматическая повторная выгрузка по ним через Keepa не выполняется, так как физически карточек на маркетплейсе еще нет.

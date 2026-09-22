@@ -53,14 +53,16 @@ async function main() {
   let targetAsin: string | null = !isEan ? query : null;
 
   if (isEan) {
-    // Если передан EAN, сначала ищем соответствующий ASIN через снапшоты или сырые данные
+    targetEan = query;
+    // Ищем товар по EAN
     const foundByEan: any[] = await prisma.$queryRaw`
-      SELECT a.id, a.code, b.name as brand_name, m.name as manufacturer_name
-      FROM "DistributorPriceSnapshot" s
-      JOIN "ASIN" a ON s."asinId" = a.id
+      SELECT a.id, a.code, a."brandId", b.name as brand_name, m.name as manufacturer_name
+      FROM "ASIN" a
+      JOIN "ProductFinder" pf ON pf."asinId" = a.id
       LEFT JOIN "Brand" b ON a."brandId" = b.id
       LEFT JOIN "Manufacturer" m ON a."manufacturerId" = m.id
-      WHERE s.ean = ${query}
+      WHERE pf."productCodesEAN" = ${query}
+      ORDER BY pf."createdAt" DESC
       LIMIT 1
     `;
     if (foundByEan.length > 0) {
@@ -70,7 +72,7 @@ async function main() {
   } else {
     // Если передан код ASIN, ищем запись в таблице ASIN
     const foundByAsin: any[] = await prisma.$queryRaw`
-      SELECT a.id, a.code, b.name as brand_name, m.name as manufacturer_name
+      SELECT a.id, a.code, a."brandId", b.name as brand_name, m.name as manufacturer_name
       FROM "ASIN" a
       LEFT JOIN "Brand" b ON a."brandId" = b.id
       LEFT JOIN "Manufacturer" m ON a."manufacturerId" = m.id
@@ -140,10 +142,53 @@ async function main() {
     }
   }
 
-  // 4. Проверка обработанных данных Keepa (габариты, комиссии)
+  // 4. Проверка обработанных данных Keepa (габариты, комиссии) и привязки к последней выгрузке бренда
   let keepaData: any = null;
-  if (targetAsin) {
+  let latestKeepaSnapshot: any = null;
+  let latestBrandExport: any = null;
+  let isInLatestBrandExport = false;
+
+  if (targetAsin && asinRecord) {
     try {
+      // Ищем самую свежую выгрузку бренда в таблице KeepaExport
+      if (asinRecord.brandId) {
+        const brandExports: any[] = await prisma.$queryRaw`
+          SELECT id, "createdAt"
+          FROM "KeepaExport"
+          WHERE "brandId" = ${asinRecord.brandId}
+          ORDER BY "createdAt" DESC
+          LIMIT 1
+        `;
+        if (brandExports.length > 0) {
+          latestBrandExport = brandExports[0];
+
+          // Проверяем, вошел ли наш ASIN в эту последнюю выгрузку бренда
+          const checkInExport: any[] = await prisma.$queryRaw`
+            SELECT 1 FROM "_ASINToKeepaExport"
+            WHERE "B" = ${latestBrandExport.id} AND "A" = ${asinRecord.id}
+            LIMIT 1
+          `;
+          isInLatestBrandExport = checkInExport.length > 0;
+        }
+      }
+
+      // Ищем самый свежий снапшот Keepa ProductFinder для проверки цен
+      const snapRows: any[] = await prisma.$queryRaw`
+        SELECT 
+          pf."createdAt",
+          pf."buyBoxCurrent",
+          pf."amazonCurrent",
+          pf."newCurrent",
+          pf."salesRankCurrent"
+        FROM "ProductFinder" pf
+        WHERE pf."asinId" = ${asinRecord.id}
+        ORDER BY pf."createdAt" DESC
+        LIMIT 1
+      `;
+      if (snapRows.length > 0) {
+        latestKeepaSnapshot = snapRows[0];
+      }
+
       const keepaRows: any[] = await prisma.$queryRaw`
         SELECT 
           kd."asin",
@@ -209,6 +254,40 @@ async function main() {
     console.log(`- Комиссия FBA: ${keepaData.fbaFee ? keepaData.fbaFee.toFixed(2) + ' €' : 'нет'}`);
     console.log(`- Комиссия Referral: ${keepaData.referralFeePercent ? keepaData.referralFeePercent + '%' : 'нет'}`);
     console.log('');
+  }
+
+  // 6. Проверка актуальности данных Keepa относительно последней выгрузки бренда
+  console.log('--- Свежесть данных каталога Keepa ---');
+  if (latestBrandExport) {
+    const exportDate = new Date(latestBrandExport.createdAt);
+    console.log(`- Последняя выгрузка бренда (KeepaExport #${latestBrandExport.id}): ${exportDate.toLocaleString('ru-RU')}`);
+    
+    if (isInLatestBrandExport) {
+      console.log(`\x1b[32m✅ [АКТУАЛЬНО]\x1b[0m Товар входит в последнюю выгрузку бренда от ${exportDate.toLocaleString('ru-RU')}.`);
+    } else {
+      console.log(`\x1b[31m⚠️ [ВНИМАНИЕ: ТОВАР НЕ ВОШЕЛ В ПОСЛЕДНЮЮ ВЫГРУЗКУ БРЕНДА]\x1b[0m`);
+      console.log(`\x1b[33mТовар отсутствовал в выборке Keepa от ${exportDate.toLocaleString('ru-RU')} (вероятно, BSR превысил лимит строк или товар временно недоступен)!\x1b[0m`);
+    }
+  }
+
+  if (latestKeepaSnapshot) {
+    const snapDate = new Date(latestKeepaSnapshot.createdAt);
+    const ageHours = (Date.now() - snapDate.getTime()) / (1000 * 60 * 60);
+    const isStale = ageHours > 48 || (latestBrandExport && !isInLatestBrandExport);
+
+    if (isStale) {
+      console.log(`\x1b[31m[СНАПШОТ УСТАРЕЛ]\x1b[0m Дата снапшота товара: \x1b[31m${snapDate.toLocaleString('ru-RU')}\x1b[0m (${Math.round(ageHours)} ч. назад)`);
+      console.log('\x1b[33mЦена и BSR в базе данных неактуальны! Обязательно проверьте карточку на Amazon вручную.\x1b[0m');
+    } else {
+      console.log(`\x1b[32m[СНАПШОТ СВЕЖИЙ]\x1b[0m Дата снапшота товара: \x1b[32m${snapDate.toLocaleString('ru-RU')}\x1b[0m (${Math.round(ageHours)} ч. назад)`);
+    }
+    console.log(`- Цена Buy Box в снапшоте: ${latestKeepaSnapshot.buyBoxCurrent ? latestKeepaSnapshot.buyBoxCurrent + ' €' : 'нет'}`);
+    console.log(`- Цена Amazon в снапшоте: ${latestKeepaSnapshot.amazonCurrent ? latestKeepaSnapshot.amazonCurrent + ' €' : 'нет'}`);
+    console.log(`- Цена New в снапшоте: ${latestKeepaSnapshot.newCurrent ? latestKeepaSnapshot.newCurrent + ' €' : 'нет'}`);
+    console.log(`- BSR в снапшоте: ${latestKeepaSnapshot.salesRankCurrent || 'нет'}`);
+    console.log('');
+  } else {
+    console.log('\x1b[31m[НЕТ СНАПШОТОВ]\x1b[0m Снапшотов Keepa по данному товару в базе нет.\x1b[0m\n');
   }
 
   console.log('=== Завершено ===\n');

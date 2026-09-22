@@ -174,6 +174,20 @@ async function main() {
           }
         });
         newAsinsCount++;
+
+        // Автоматически ставим новый добавленный ASIN каталога в очередь сбора данных Keepa (приоритет 50)
+        await prisma.requestProductQueue.upsert({
+          where: { asin: asinCode },
+          update: {
+            priority: 50,
+            addedAt: new Date()
+          },
+          create: {
+            asin: asinCode,
+            priority: 50,
+            addedAt: new Date()
+          }
+        }).catch(() => {});
       }
       
       parsedAsinIds.add(currentAsin.id);

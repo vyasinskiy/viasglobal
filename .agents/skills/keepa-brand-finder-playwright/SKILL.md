@@ -64,4 +64,5 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-bra
    - Скачивается файл `.xlsx` в директорию `keepa/exports/`.
 3. **Сохранение в БД**:
    - Скрипт сразу запускает `scripts/parse-keepa.ts` с полученным файлом.
-   - Заполняются таблицы `Brand`, `Manufacturer`, `Seller`, `ASIN`, `ASINSnapshot` и `KeepaExport`.
+   - Заполняются таблицы `Brand`, `Manufacturer`, `Seller`, `ASIN`, `ProductFinder` и `KeepaExport`.
+   - Все новые ASIN бренда автоматически ставятся в очередь `RequestProductQueue` с приоритетом 50 для последующего сбора точных характеристик и метрик.

@@ -21,6 +21,7 @@ import { Pool } from 'pg';
 import * as xlsx from 'xlsx';
 import * as path from 'path';
 import * as fs from 'fs';
+import { execSync } from 'child_process';
 import * as dotenv from 'dotenv';
 
 // Загружаем переменные окружения
@@ -173,9 +174,11 @@ async function main() {
     return;
   }
 
-  // 4. Поиск совпадений с ASIN в базе данных
+  // 4. Поиск совпадений с ASIN в базе данных и добавление в очередь анализа
   let matchedAsinsCount = 0;
   let savedSnapshotsCount = 0;
+  let queuedAsinsCount = 0;
+  const unmatchedEans: string[] = [];
 
   for (const item of priceItems) {
     // Ищем ASIN в БД:
@@ -187,13 +190,14 @@ async function main() {
         }
       },
       orderBy: { createdAt: 'desc' },
-      select: { asinId: true }
+      select: { asinId: true, asin: { select: { code: true } } }
     });
 
     let asinId = matchingSnapshot?.asinId || null;
+    let asinCode = matchingSnapshot?.asin?.code || null;
 
-    // Если нашли привязанный ASIN, связываем его с дистрибьютором
-    if (asinId) {
+    // Если нашли привязанный ASIN, связываем его с дистрибьютором и ставим в очередь с максимальным приоритетом
+    if (asinId && asinCode) {
       matchedAsinsCount++;
       await prisma.aSIN.update({
         where: { id: asinId },
@@ -203,6 +207,24 @@ async function main() {
           }
         }
       }).catch(() => {});
+
+      // Добавляем или обновляем приоритет товара в очереди запросов Keepa на абсолютный максимум (999999)
+      await prisma.requestProductQueue.upsert({
+        where: { asin: asinCode },
+        update: {
+          priority: 999999, // Абсолютный максимум (товар от прямого дистрибьютора с известной оптовой ценой)
+          addedAt: new Date()
+        },
+        create: {
+          asin: asinCode,
+          priority: 999999,
+          addedAt: new Date()
+        }
+      }).catch(() => {});
+      queuedAsinsCount++;
+    } else {
+      // Сохраняем EAN, которого еще нет в таблице ASIN
+      unmatchedEans.push(item.ean);
     }
 
     // Сохраняем снапшот цены
@@ -218,9 +240,27 @@ async function main() {
     savedSnapshotsCount++;
   }
 
-  console.log(`\n Успешно завершено!`);
+  // Если есть EAN, не найденные в нашей базе ASIN (товары еще не заведены на Amazon или не спарсены),
+  // сохраняем их в файл для дальнейшего анализа незаведенных позиций (потенциал монопольного Buy Box)
+  if (unmatchedEans.length > 0) {
+    const uniqueUnmatched = Array.from(new Set(unmatchedEans));
+    const distributorSlug = distributorNameArg.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const outDir = path.resolve(process.cwd(), `../other/distributor_screening/${distributorSlug}`);
+    
+    if (!fs.existsSync(outDir)) {
+      fs.mkdirSync(outDir, { recursive: true });
+    }
+
+    const eansFilePath = path.join(outDir, `${distributorSlug}_unmatched_eans.txt`);
+    fs.writeFileSync(eansFilePath, uniqueUnmatched.join('\n'), 'utf-8');
+    console.log(`\n📋 Список несопоставленных EAN (${uniqueUnmatched.length} шт.) сохранен в: ${eansFilePath}`);
+    console.log(`💡 Эти товары отсутствуют в каталоге Amazon и являются потенциальными кандидатами на создание новых карточек с монопольным Buy Box.`);
+  }
+
+  console.log(`\n✅ Успешно завершено!`);
   console.log(`- Всего сохранено снапшотов цен: ${savedSnapshotsCount}`);
   console.log(`- Сопоставлено с товарами ASIN в БД: ${matchedAsinsCount}`);
+  console.log(`- Добавлено в очередь Keepa (RequestProductQueue с наивысшим приоритетом 999999): ${queuedAsinsCount}`);
   console.log(`- Коэффициент налога (IVA+RE): ${SPAIN_TAX_COEFFICIENT}`);
 }
 
