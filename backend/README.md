@@ -13,19 +13,25 @@
 1. **`AsinView`** — для удобной выборки ASIN со штрихкодом производителя EAN (`asin`, `ean`, `brand`, `seller`, `buyBoxPrice`, `maxBuyPrice`).
 2. **`PrivateLabelView`** — для просмотра подтвержденных связок бренд-продавец с подробными заметками анализа (`notes`).
 3. **`CandidatesProductsView`** — для сводной группировки товаров по производителям, брендам, продавцам, кодам EAN (`eans`), дистрибьюторам (`distributors`) и отбора кандидатов под оптовую закупку (Wholesale).
-4. **`ContractedProductsView`** — поштучный вывод топ-товаров брендов в работе (`BrandStatus = 'CONTRACTED'`) с расчетом чистой оптовой цены закупки (`netPrice`), себестоимости с налогами (`grossPrice` / `costPrice`), комиссий Amazon (`amazonFees`), чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %).
+4. **`ContractedFilteredProductsView`** и **`ContractedAllProductsView`** — поштучный вывод товаров брендов в работе (`BrandStatus = 'CONTRACTED'`) с расчетом чистой оптовой цены закупки (`netPrice`), себестоимости с налогами (`grossPrice` / `costPrice`), комиссий Amazon (`amazonFees`), чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %):
+   - `ContractedFilteredProductsView`: со строгими оптовыми фильтрами (`BSR <= 100 000`, `Amazon <= 50%`, `BuyBox >= 10 €`).
+   - `ContractedAllProductsView`: **все товары бренда в работе без фильтров**, включая новинки с `salesRank IS NULL`, товары с высоким BSR и позиции с низкой ценой.
 
 Использование в SQL:
 ```sql
 SELECT * FROM "AsinView";
 SELECT * FROM "CandidatesProductsView";
-SELECT * FROM "ContractedProductsView" ORDER BY "netProfit" DESC NULLS LAST;
+SELECT * FROM "ContractedFilteredProductsView" ORDER BY "netProfit" DESC NULLS LAST;
+SELECT * FROM "ContractedAllProductsView" ORDER BY "netProfit" DESC NULLS LAST;
 ```
 
 Использование через Prisma Client:
 ```typescript
 const asins = await prisma.asinView.findMany();
-const contractedTop = await prisma.contractedProductsView.findMany({
+const contractedFiltered = await prisma.contractedFilteredProductsView.findMany({
+  orderBy: { netProfit: 'desc' },
+});
+const contractedAll = await prisma.contractedAllProductsView.findMany({
   orderBy: { netProfit: 'desc' },
 });
 ```

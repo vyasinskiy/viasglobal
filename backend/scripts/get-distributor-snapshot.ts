@@ -125,20 +125,30 @@ async function main() {
     `;
   }
 
-  // 3. Проверка данных о контракте из ContractedProductsView (если бренд на контракте)
+  // 3. Проверка данных о контракте из ContractedAllProductsView / ContractedFilteredProductsView (если бренд на контракте)
   let contractedData: any = null;
+  let isFilteredWholesaleCandidate = false;
   if (targetAsin) {
     try {
-      const contractedRows: any[] = await prisma.$queryRaw`
-        SELECT * FROM "ContractedProductsView"
+      // Сначала ищем в полном представлении без фильтров ContractedAllProductsView
+      const allRows: any[] = await prisma.$queryRaw`
+        SELECT * FROM "ContractedAllProductsView"
         WHERE asin = ${targetAsin}
         LIMIT 1
       `;
-      if (contractedRows.length > 0) {
-        contractedData = contractedRows[0];
+      if (allRows.length > 0) {
+        contractedData = allRows[0];
       }
+
+      // Проверяем, проходит ли товар жесткие оптовые фильтры в ContractedFilteredProductsView
+      const filteredRows: any[] = await prisma.$queryRaw`
+        SELECT "asinId" FROM "ContractedFilteredProductsView"
+        WHERE asin = ${targetAsin}
+        LIMIT 1
+      `;
+      isFilteredWholesaleCandidate = filteredRows.length > 0;
     } catch {
-      // Представление может отсутствовать или быть не применимо
+      // Представления могут отсутствовать или быть не применимы
     }
   }
 
@@ -240,13 +250,15 @@ async function main() {
 
   // Вывод аналитики контракта, если есть
   if (contractedData) {
-    console.log('--- Данные по контракту (ContractedProductsView) ---');
+    console.log('--- Данные по контракту (ContractedAllProductsView) ---');
+    console.log(`- Проходит оптовые фильтры (ContractedFilteredProductsView): ${isFilteredWholesaleCandidate ? '✅ ДА' : '⚠️ НЕТ (товар вне стандартных оптовых рамок)'}`);
     console.log(`- Актуальная цена Buy Box: ${contractedData.buyBoxPrice ? contractedData.buyBoxPrice.toFixed(2) + ' €' : 'нет'}`);
     console.log(`- Оптовая цена закупки (netPrice): ${contractedData.netPrice ? contractedData.netPrice.toFixed(2) + ' €' : (contractedData.costPrice ? (contractedData.costPrice / 1.262).toFixed(2) + ' €' : 'нет')}`);
     console.log(`- Себестоимость с налогами (grossPrice): ${contractedData.grossPrice ? contractedData.grossPrice.toFixed(2) + ' €' : (contractedData.costPrice ? contractedData.costPrice.toFixed(2) + ' €' : 'нет')}`);
     console.log(`- Чистая прибыль (Net Profit): ${contractedData.netProfit ? contractedData.netProfit.toFixed(2) + ' €' : 'нет'}`);
     console.log(`- ROI: ${contractedData.roiPercent ? contractedData.roiPercent.toFixed(1) + '%' : 'нет'}`);
     console.log(`- Маржинальность: ${contractedData.marginPercent ? contractedData.marginPercent.toFixed(1) + '%' : 'нет'}`);
+    console.log(`- Рейтинг продаж (Sales Rank / BSR): ${contractedData.salesRank !== null ? contractedData.salesRank : 'нет (новинка)'}`);
     console.log('');
   } else if (keepaData) {
     console.log('--- Данные Keepa (KeepaApiProcessedData) ---');

@@ -94,32 +94,34 @@ async function main() {
   for (let i = 0; i < 30; i++) {
     await page.waitForTimeout(2000);
 
-    // Если появилось модальное окно "Search result" — закрываем его (крестик или клавиша Escape)
-    const hasModal = await page.locator('text="Search result"').isVisible().catch(() => false);
-    if (hasModal) {
-      console.log('Обнаружено модальное окно "Search result". Нажимаем Escape для закрытия...');
-      await page.keyboard.press('Escape');
+    // Если появилось модальное окно "Search result" — закрываем его
+    const modalVisible = await page.evaluate(() => {
+      // Ищем модальное окно с "Search result"
+      const dialogs = Array.from(document.querySelectorAll('.ui-dialog, .modal, [role="dialog"]'));
+      const target = dialogs.find((m) => m.textContent?.includes('Search result') || m.textContent?.includes('failed to load'));
+      if (target) {
+        // Пробуем нажать на крестик
+        const closeBtn = target.querySelector('i, img, button, [class*="close"], [class*="times"]') as HTMLElement;
+        if (closeBtn) closeBtn.click();
+        target.remove(); // гарантированно убираем из DOM только модалку
+        return true;
+      }
+      return false;
+    });
+
+    if (modalVisible) {
+      console.log('Обнаружено и закрыто модальное окно "Search result"!');
       await page.waitForTimeout(1000);
-      
-      // На случай если Escape не закрыл — кликаем по оранжево-красному крестику в правом верхнем углу окна
-      const closeIcon = page.locator('div:has-text("Search result") i, .fa-times, .fa-times-circle, div[style*="border-radius: 50%"]').last();
-      if (await closeIcon.isVisible().catch(() => false)) {
-        await closeIcon.click().catch(() => {});
-      }
     }
 
-    // Проверяем наличие кнопки Export в верхнем тулбаре (рядом с "Import List", "Configure Columns")
-    const exportElements = await page.locator(':is(span, div, button, a):has-text("Export")').all();
-    let foundExport = null;
-    for (const el of exportElements) {
-      const txt = (await el.innerText().catch(() => '')).trim();
-      if (txt === 'Export' && await el.isVisible().catch(() => false)) {
-        foundExport = el;
-        break;
-      }
-    }
+    // Проверяем наличие кнопки Export в верхнем тулбаре
+    const isExportVisible = await page.evaluate(() => {
+      const els = Array.from(document.querySelectorAll('span, div, button, a'));
+      const btn = els.find(e => e.textContent?.trim() === 'Export' && !e.textContent.includes('Configure'));
+      return !!btn;
+    });
 
-    if (foundExport) {
+    if (isExportVisible) {
       console.log('Кнопка "Export" найдена в тулбаре!');
 
       // Скрываем блокирующие всплывающие окна и оверлеи Keepa (#popup3 и т.д.)
@@ -130,10 +132,51 @@ async function main() {
         });
       }).catch(() => {});
 
-      await foundExport.click({ force: true });
-      await page.waitForTimeout(1500);
-      break;
+      // Ждем завершения спиннеров/загрузки таблицы (ag-overlay-loading-center)
+      await page.waitForSelector('.ag-overlay-loading-center', { state: 'detached', timeout: 30000 }).catch(() => {});
+      await page.waitForTimeout(3000);
+
+      // Еще раз гарантированно удаляем любые всплывающие окна перед кликом
+      await page.evaluate(() => {
+        const modals = Array.from(document.querySelectorAll('.ui-dialog, .modal, [role="dialog"]')).filter(d => d.textContent?.includes('Search result') || d.textContent?.includes('failed to load'));
+        modals.forEach(m => m.remove());
+      }).catch(() => {});
+
+      console.log('Кликаем по кнопке Export в тулбаре через DOM...');
+      await page.evaluate(() => {
+        const els = Array.from(document.querySelectorAll('span, div, button, a'));
+        const btn = els.find(e => e.textContent?.trim() === 'Export' && !e.textContent.includes('Configure'));
+        if (btn) {
+            (btn as HTMLElement).click();
+        }
+      });
+      await page.waitForTimeout(3000);
+
+      // Проверяем, открылся ли диалог экспорта (#table-export-dialog или #allCh-radio)
+      const dialogVisible = await page.locator('#allCh-radio, #table-export-dialog, #exportSubmit').first().isVisible({ timeout: 5000 }).catch(() => false);
+      if (dialogVisible) {
+        console.log('Диалог экспорта успешно открылся!');
+        break;
+      } else {
+        console.log('Диалог еще не открылся, пробуем повторный клик через Playwright...');
+        const exportTrigger = page.locator(':is(span, div, button, a):text-is("Export")').first();
+        if (await exportTrigger.isVisible().catch(()=>false)) {
+            await exportTrigger.click({ force: true });
+        }
+        await page.waitForTimeout(3000);
+        break;
+      }
     }
+  }
+
+
+  // Проверяем процент квоты токенов Keepa
+  const currentQuota = await page.evaluate(() => {
+    const el = document.querySelector('#widget__bucket_quota, .bucket-quota__caption, .widget__bucket-quota');
+    return el ? el.textContent?.replace(/\s+/g, ' ').trim() : null;
+  });
+  if (currentQuota) {
+    console.log(`Текущая квота токенов Keepa: ${currentQuota}`);
   }
 
   // В диалоге экспорта активируем радиокнопку All active columns (#allCh-radio)
@@ -143,26 +186,44 @@ async function main() {
     console.log('Выбрана опция: All active columns (#allCh-radio)');
   }
 
+  // Проверяем предупреждения о нехватке токенов в диалоге экспорта
+  const dialogWarning = await page.evaluate(() => {
+    const dialog = document.querySelector('#table-export-dialog, .ui-dialog, .modal');
+    if (!dialog) return null;
+    return dialog.textContent?.replace(/\s+/g, ' ').trim() || '';
+  });
+  if (dialogWarning) {
+    console.log(`Содержимое диалога экспорта: "${dialogWarning.slice(0, 150)}..."`);
+  }
+
   // Ожидаем скачивание при нажатии на экспорт
   console.log('Подтверждаем экспорт файла Excel...');
-  const dialogBtn = page.locator('#exportSubmit, button:has-text("EXPORT"), input[value*="EXPORT"], .button--primary:has-text("EXPORT")').first();
+  const dialogBtn = page.locator('#exportSubmit, button:has-text("EXPORT"), input[value*="EXPORT"], .button--primary:has-text("EXPORT"), button:has-text("Export")').first();
   await dialogBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
 
-  const [download] = await Promise.all([
-    page.waitForEvent('download', { timeout: 60000 }),
-    dialogBtn.click({ force: true }),
-  ]);
+  try {
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 90000 }),
+      dialogBtn.click({ force: true }),
+    ]);
 
-  // Сохраняем файл
-  fs.mkdirSync(path.dirname(resolvedOutputPath), { recursive: true });
-  await download.saveAs(resolvedOutputPath);
-  console.log(`Файл успешно сохранен: ${resolvedOutputPath}`);
+    // Сохраняем файл
+    fs.mkdirSync(path.dirname(resolvedOutputPath), { recursive: true });
+    await download.saveAs(resolvedOutputPath);
+    console.log(`Файл успешно сохранен: ${resolvedOutputPath}`);
 
-  // Обновляем сессию на случай обновления токенов
-  await context.storageState({ path: storageStatePath });
-
-  await browser.close();
+    // Обновляем сессию на случай обновления токенов
+    await context.storageState({ path: storageStatePath });
+  } catch (err: any) {
+    const errScreenshot = path.resolve(process.cwd(), 'temp_export_timeout.png');
+    await page.screenshot({ path: errScreenshot, fullPage: true }).catch(() => {});
+    console.error(`Скриншот ошибки сохранен в: ${errScreenshot}`);
+    throw err;
+  } finally {
+    await browser.close();
+  }
   console.log('Готово!');
+
 }
 
 main().catch((err) => {
