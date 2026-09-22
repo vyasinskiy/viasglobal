@@ -10,6 +10,9 @@
 --   p_include_vat_on_fees BOOLEAN DEFAULT TRUE - Учитывать ли 21% НДС на комиссии в расходах (для режима Recargo = TRUE, для SL с вычетом = FALSE)
 -- ==============================================================================
 
+DROP VIEW IF EXISTS public."ContractedAllProductsView" CASCADE;
+DROP FUNCTION IF EXISTS public.get_contracted_all_products(boolean) CASCADE;
+
 CREATE OR REPLACE FUNCTION public.get_contracted_all_products(
     p_include_vat_on_fees BOOLEAN DEFAULT TRUE
 )
