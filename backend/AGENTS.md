@@ -25,8 +25,9 @@
    - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `eans`, `distributors`, `brandId`, `sellerId`.
 
 4. **`ContractedProductsView`**:
-   - Назначение: поштучный вывод товаров брендов, находящихся в работе (`BrandStatus = 'CONTRACTED'`), с расчетом чистой оптовой цены дистрибьютора (`netPrice`), себестоимости закупки с налогами (`grossPrice` / `costPrice`), комиссий Amazon, чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %). Отсортирован по убыванию чистой прибыли.
-   - Поля: `asinId`, `asin`, `ean`, `title`, `brand`, `distributor`, `netPrice`, `grossPrice`, `costPrice`, `buyBoxPrice`, `fbaFee`, `referralFee`, `amazonFees`, `netProfit`, `roiPercent`, `marginPercent`, `salesRank`.
+   - Назначение: поштучный вывод товаров брендов, находящихся в работе (`BrandStatus = 'CONTRACTED'`), с расчетом чистой оптовой цены дистрибьютора (`netPrice`), себестоимости закупки с налогами (`grossPrice` / `costPrice`), комиссий Amazon (`amazonFees`), НДС на комиссии Amazon (`vatOnFees`: 21% IVA при авто-реперкуссии в Modelo 309, учитываемого в расходах на спецрежиме Autónomo Recargo de Equivalencia), чистой расчетной прибыли (`netProfit`), ROI (%) и маржинальности (Margin %). Отсортирован по убыванию чистой прибыли.
+   - Поля: `asinId`, `asin`, `ean`, `title`, `brand`, `distributor`, `netPrice`, `grossPrice`, `costPrice`, `buyBoxPrice`, `fbaFee`, `referralFee`, `amazonFees`, `vatOnFees`, `netProfit`, `roiPercent`, `marginPercent`, `salesRank`.
+   - **Параметр переключения режима налогообложения**: SQL-функция `get_contracted_products(p_max_bsr, p_max_amazon_buybox, p_include_vat_on_fees)` принимает флаг `p_include_vat_on_fees` (по умолчанию `TRUE` для режима Recargo de Equivalencia). При переходе на юридическое лицо (SL / Sociedad Limitada) или общий режим с вычетом НДС флаг переключается в `FALSE`, и `vatOnFees` перестает вычитаться из чистой прибыли.
 
 5. **`DistributorPriceSnapshot`**:
    - Назначение: хранение истории оптовых цен из прайс-листов поставщиков со связкой по `asinId` и `ean`.

@@ -129,11 +129,25 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
   - `AsinView.sql`
   - `CandidatesProductsView.sql`
   - `PrivateLabelView.sql`
+  - `ContractedProductsView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `calculate_max_buy_price.sql`
   - `get_asin_filter_reason.sql`
   - `check_brand_seller_dominance.sql`
   - `check_probable_private_label.sql`
+  - `get_contracted_products.sql`
+
+## Расчет расходов и маржинальности товаров в работе (`ContractedProductsView`)
+
+Представление `ContractedProductsView` и функция `get_contracted_products` поштучно анализируют товары брендов со статусом `CONTRACTED`:
+- `netPrice` — оптовая цена дистрибьютора без налогов.
+- `grossPrice` / `costPrice` — себестоимость закупки с налогами (для испанского Autónomo: 21% IVA + 5.2% Recargo de Equivalencia = `netPrice * 1.262`).
+- `amazonFees` — чистые комиссии площадки Amazon (`fbaFee` + `referralFee`).
+- `vatOnFees` — 21% НДС на комиссии Amazon.
+- **Учет налогового режима (Recargo vs SL)**:
+  - На спецрежиме торговли **Recargo de Equivalencia** предприниматель не имеет права на вычет НДС (Deducción de IVA). При покупке услуг у Amazon Services Europe S.à r.l. (Люксембург) по правилу авто-реперкуссии (Inversión del sujeto pasivo) этот НДС декларируется через Modelo 309 и уплачивается в бюджет Испании без права возврата, становясь прямым расходом. Поэтому по умолчанию `p_include_vat_on_fees = TRUE`, и `vatOnFees` вычитается из прибыли:
+    $$\text{netProfit} = \text{buyBoxPrice} - \text{amazonFees} - \text{vatOnFees} - \text{grossPrice}$$
+  - При переходе на юридическое лицо (**SL / Sociedad Limitada**) или общую систему с правом зачета НДС параметр `p_include_vat_on_fees` выставляется в `FALSE`, НДС на комиссии перестает уменьшать прибыль и принимается к вычету.
 
 **Рабочий процесс внесения изменений:**
 1. Правки вносятся напрямую в эталонный файл в `backend/prisma/sql/`.

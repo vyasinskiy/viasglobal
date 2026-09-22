@@ -1,16 +1,11 @@
--- ==============================================================================
--- Функция: get_contracted_products
--- Назначение: Возвращает поштучный список товаров брендов со статусом CONTRACTED
---             с расчетом себестоимости закупки (costPrice / grossPrice), комиссий Amazon,
---             НДС на комиссии (vatOnFees 21% для режима Recargo de Equivalencia),
---             чистой прибыли (netProfit), ROI (%) и маржинальности (margin %).
---             Результат отсортирован по убыванию потенциальной прибыли.
--- Параметры:
---   p_max_bsr INT DEFAULT 100000            - Максимальный Sales Rank (BSR)
---   p_max_amazon_buybox FLOAT DEFAULT 0.50  - Доля нахождения Amazon в BuyBox (до 50%)
---   p_include_vat_on_fees BOOLEAN DEFAULT TRUE - Учитывать ли 21% НДС на комиссии в расходах (для режима Recargo = TRUE, для SL с вычетом = FALSE)
--- ==============================================================================
+-- Drop view first to allow updating the function return type
+DROP VIEW IF EXISTS public."ContractedProductsView";
 
+-- Drop existing function to change return type and signature
+DROP FUNCTION IF EXISTS public.get_contracted_products(INT, FLOAT);
+DROP FUNCTION IF EXISTS public.get_contracted_products(INT, FLOAT, BOOLEAN);
+
+-- Create updated function with netPrice, grossPrice and vatOnFees (21% IVA on Amazon Fees for Recargo de Equivalencia)
 CREATE OR REPLACE FUNCTION public.get_contracted_products(
     p_max_bsr INT DEFAULT 100000,
     p_max_amazon_buybox FLOAT DEFAULT 0.50,
@@ -177,3 +172,7 @@ BEGIN
         f.calc_sales_rank ASC;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+-- Recreate view ContractedProductsView (по умолчанию p_include_vat_on_fees = true для режима Recargo)
+CREATE OR REPLACE VIEW public."ContractedProductsView" AS
+SELECT * FROM public.get_contracted_products();

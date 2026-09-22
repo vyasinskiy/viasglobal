@@ -239,6 +239,34 @@ async function main() {
       console.log('Меню выбора строк (.tool__row) не потребовало переключения (малое количество результатов).');
     }
 
+    // Ожидание стабилизации таблицы (Анти-0 rows экспорт)
+    console.log('Ожидание стабилизации данных в таблице Keepa...');
+    let tableReady = false;
+    for (let waitSec = 0; waitSec < 35; waitSec++) {
+      await page.waitForTimeout(1000);
+      const state = await page.evaluate(() => {
+        const overlay = document.querySelector('.ag-overlay-loading-center, .ag-loading-panel, .ag-loading');
+        const rows = document.querySelectorAll('.ag-center-cols-container .ag-row, .ag-row');
+        const summary = document.querySelector('.ag-paging-row-summary-panel')?.textContent?.trim() || '';
+        const r0 = document.querySelector('.ag-row[row-index="0"]');
+        const r0Text = r0 ? (r0.textContent || '').trim() : '';
+        const isSkeleton = /^[\s\-0–—_]+$/.test(r0Text) || r0Text.includes('- 0 - -') || r0Text.includes('-0--');
+        const hasRealData = r0Text.length > 15 && !isSkeleton;
+        return { summary, rowsCount: rows.length, hasOverlay: !!overlay, hasRealData, r0Snippet: r0Text.slice(0, 50) };
+      });
+
+      if (state.hasRealData && !state.hasOverlay && state.rowsCount > 0) {
+        console.log(`Таблица готова: "${state.summary}" (строк в DOM: ${state.rowsCount}, первый товар: "${state.r0Snippet}")`);
+        tableReady = true;
+        await page.waitForTimeout(3000);
+        break;
+      }
+    }
+
+    if (!tableReady) {
+      console.warn('Предупреждение: Таблица не подтвердила полную стабильность за 35с, пробуем продолжить.');
+    }
+
     // Ожидаем появление кнопки "Export" в верхней панели результатов (.tool__export)
     let foundExport = false;
     for (let attempt = 0; attempt < 30; attempt++) {
@@ -267,53 +295,63 @@ async function main() {
       throw new Error(`Кнопка "Export" не появилась. Возможно, у бренда "${brandName}" нет активных товаров в выборке.`);
     }
 
-    // Ожидаем скачивание файла
-    console.log('Подтверждаем экспорт (5000 строк) и ожидаем загрузку файла Excel...');
-    const downloadPromise = page.waitForEvent('download', { timeout: 60000 });
-
-    // В диалоге экспорта нажимаем кнопку "Export" (#exportSubmit)
-    const dialogBtn = page.locator('#exportSubmit, button:has-text("Export"), input[value*="EXPORT"]').first();
-    if (await dialogBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await dialogBtn.click({ force: true });
+    // Проверяем текущий процент квоты в интерфейсе Keepa
+    const currentQuota = await page.evaluate(() => {
+      const el = document.querySelector('#widget__bucket_quota, .bucket-quota__caption, .widget__bucket-quota');
+      return el ? el.textContent?.replace(/\s+/g, ' ').trim() : null;
+    });
+    if (currentQuota) {
+      console.log(`Текущая квота токенов Keepa: ${currentQuota}`);
     }
 
-    const download = await downloadPromise;
+    // В диалоге экспорта активируем радиокнопку All active columns (#allCh-radio)
+    const allColumnsRadio = page.locator('#allCh-radio');
+    if (await allColumnsRadio.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await allColumnsRadio.check({ force: true });
+      console.log('Выбрана опция: All active columns (#allCh-radio)');
+    }
+
+    // Проверяем, нет ли блокировки из-за квоты в диалоге экспорта
+    const quotaWarning = await page.evaluate(() => {
+      const dialog = document.querySelector('#table-export-dialog, .ui-dialog, .modal');
+      if (!dialog) return null;
+      const text = dialog.textContent || '';
+      const match = text.match(/(quota|tokens?|limit|insufficient|not enough|wait|refill)[^.\n]*/i);
+      const hasExhausted = /exhausted|0%|no tokens|limit reached|exceeded|insufficient/i.test(text);
+      return { text: match ? match[0] : null, hasExhausted };
+    });
+
+    if (quotaWarning?.hasExhausted) {
+      console.error(`\n⚠️ ВНИМАНИЕ: Квота Keepa исчерпана (${currentQuota || '0%'})!`);
+      console.error(`Сообщение Keepa: "${quotaWarning.text}"`);
+      throw new Error(`Квота Keepa исчерпана (${currentQuota}). Необходимо подождать восстановления токенов.`);
+    }
+
+    // Ожидаем скачивание файла через Promise.all
+    console.log('Подтверждаем экспорт (All active columns) и ожидаем загрузку файла Excel...');
+    const dialogBtn = page.locator('#exportSubmit, button:has-text("Export"), input[value*="EXPORT"]').first();
+    await dialogBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 60000 }),
+      dialogBtn.click({ force: true }),
+    ]);
 
     // Сохраняем файл выгрузки
     fs.mkdirSync(path.dirname(targetOutputFile), { recursive: true });
     await download.saveAs(targetOutputFile);
-    console.log(`\n Файл выгрузки каталога бренда успешно сохранен: ${targetOutputFile}`);
+    console.log(`\n✅ Файл выгрузки каталога бренда успешно сохранен: ${targetOutputFile}`);
 
     // Обновляем состояние сессии
     await context.storageState({ path: storageStatePath });
 
   } finally {
+    // Гарантированно полностью закрываем браузер ДО фазы импорта в БД
     await browser.close();
+    console.log('Браузер Playwright успешно закрыт.');
   }
 
-  // Если флаг --no-parse не передан, сразу запускаем парсинг в БД
-  if (!noParse) {
-    console.log('\n=============================================================');
-    console.log('Запуск автоматического сохранения выгрузки в базу данных...');
-    console.log('=============================================================\n');
-
-    const parseScriptPath = path.join(backendDir, 'scripts/parse-keepa.ts');
-    try {
-      execSync(`npx tsx "${parseScriptPath}" "${targetOutputFile}"`, {
-        cwd: backendDir,
-        stdio: 'inherit',
-        env: process.env,
-      });
-      console.log('\n Данные каталога бренда успешно сохранены в базе данных!');
-    } catch (parseErr: any) {
-      console.error('\n Ошибка при парсинге файла в БД:', parseErr.message);
-      process.exit(1);
-    }
-  } else {
-    console.log('\nФлаг --no-parse активен. Парсинг в базу данных пропущен.');
-    console.log(`Для ручного парсинга запустите:`);
-    console.log(`  cd backend && npx tsx scripts/parse-keepa.ts "${targetOutputFile}"`);
-  }
+  console.log(`\nВыгрузка завершена. Файл готов: ${targetOutputFile}`);
 }
 
 main().catch((err) => {

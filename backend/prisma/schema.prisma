@@ -369,8 +369,9 @@ view ContractedProductsView {
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
-  amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral)
-  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - grossPrice
+  amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral без НДС)
+  vatOnFees     Float?  /// 21% НДС на комиссии Amazon (включается в расходы на режиме Recargo de Equivalencia)
+  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - vatOnFees - grossPrice
   roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / grossPrice) * 100
   marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
