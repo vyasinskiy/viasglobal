@@ -401,21 +401,20 @@ view ContractedFilteredProductsView {
 
 /// Сводное представление ВСЕХ товаров брендов в работе БЕЗ ФИЛЬТРОВ (без ограничений по BSR, цене и Amazon)
 view ContractedAllProductsView {
-  asinId        Int     @unique /// ID товара в таблице ASIN
-  asin          String  /// Код ASIN товара на Amazon
+  asin          String  @unique /// Код ASIN товара на Amazon
   ean           String? /// Штрихкод EAN товара
+  netPrice      Float?  /// Чистая оптовая цена закупки дистрибьютора без НДС (в евро)
+  grossPrice    Float?  /// Себестоимость закупки с испанскими налогами (в евро, 21% IVA + 5.2% RE)
+  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - vatOnFees - grossPrice
   title         String? /// Название товара
   brand         String? /// Название бренда
   distributor   String? /// Название поставщика/дистрибьютора
-  netPrice      Float?  /// Чистая оптовая цена закупки дистрибьютора без НДС (в евро)
-  grossPrice    Float?  /// Себестоимость закупки с испанскими налогами (в евро, 21% IVA + 5.2% RE)
   costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
   amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral без НДС)
   vatOnFees     Float?  /// 21% НДС на комиссии Amazon (включается в расходы на режиме Recargo de Equivalencia)
-  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - vatOnFees - grossPrice
   roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / grossPrice) * 100
   marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
