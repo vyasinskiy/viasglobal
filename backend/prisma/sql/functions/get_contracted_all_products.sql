@@ -1,13 +1,6 @@
+
 -- ==============================================================================
 -- Функция: get_contracted_all_products
--- Назначение: Возвращает поштучный список ВСЕХ товаров брендов со статусом CONTRACTED
---             без каких-либо фильтров по BSR, цене или доле присутствия Amazon.
---             Рассчитывает себестоимость закупки (costPrice / grossPrice), комиссии Amazon,
---             НДС на комиссии (vatOnFees 21% для режима Recargo de Equivalencia),
---             чистую прибыль (netProfit), ROI (%) и маржинальность (margin %).
---             Результат отсортирован по убыванию потенциальной прибыли.
--- Параметры:
---   p_include_vat_on_fees BOOLEAN DEFAULT TRUE - Учитывать ли 21% НДС на комиссии в расходах (для режима Recargo = TRUE, для SL с вычетом = FALSE)
 -- ==============================================================================
 
 CREATE OR REPLACE FUNCTION public.get_contracted_all_products(
@@ -16,26 +9,30 @@ CREATE OR REPLACE FUNCTION public.get_contracted_all_products(
 RETURNS TABLE (
     "asin" TEXT,
     "ean" TEXT,
+    "salesRank" INT,
+    "netProfitPerMinBoxOrder" FLOAT,
+    "netProfitPerUnit" FLOAT,
+    "minBoxOrderGross" FLOAT,
+    "minBoxOrderNetto" FLOAT,
+    "minBoxOrder" INT,
+    "unitsPerBox" INT,
     "netPrice" FLOAT,
     "grossPrice" FLOAT,
-    "netProfit" FLOAT,
+    "costPrice" FLOAT,
     "title" TEXT,
     "brand" TEXT,
     "distributor" TEXT,
-    "costPrice" FLOAT,
     "buyBoxPrice" FLOAT,
     "fbaFee" FLOAT,
     "referralFee" FLOAT,
     "amazonFees" FLOAT,
     "vatOnFees" FLOAT,
     "roiPercent" FLOAT,
-    "marginPercent" FLOAT,
-    "salesRank" INT
+    "marginPercent" FLOAT
 ) AS $$
 BEGIN
     RETURN QUERY
     WITH latest_snapshots AS (
-        -- Получаем самый свежий снапшот ProductFinder для каждого ASIN
         SELECT DISTINCT ON (snap."asinId")
             snap."asinId",
             snap."title",
@@ -51,11 +48,12 @@ BEGIN
         ORDER BY snap."asinId", snap."createdAt" DESC
     ),
     latest_distributor_prices AS (
-        -- Получаем самый свежий снапшот цены поставщика для каждого ASIN
         SELECT DISTINCT ON (dp."asinId")
             dp."asinId",
             dp."priceNetto",
             dp."costPrice",
+            dp."unitsPerBox",
+            dp."minBoxOrder",
             d.name AS "distributorName"
         FROM "DistributorPriceSnapshot" dp
         JOIN "Distributor" d ON dp."distributorId" = d.id
@@ -70,6 +68,10 @@ BEGIN
             s."title"::TEXT AS calc_title,
             b.name::TEXT AS calc_brand,
             COALESCE(dp."distributorName", d_rel.name, '')::TEXT AS calc_distributor,
+            dp."unitsPerBox"::INT AS calc_units_per_box,
+            dp."minBoxOrder"::INT AS calc_min_box_order,
+            (dp."costPrice" * COALESCE(dp."minBoxOrder", dp."unitsPerBox", 1))::FLOAT AS calc_min_box_order_gross,
+            (dp."priceNetto" * COALESCE(dp."minBoxOrder", dp."unitsPerBox", 1))::FLOAT AS calc_min_box_order_netto,
             dp."priceNetto"::FLOAT AS calc_price_netto,
             dp."costPrice"::FLOAT AS calc_cost_price,
             LEAST(s."buyBoxCurrent", s."newCurrent")::FLOAT AS calc_buy_box_price,
@@ -97,65 +99,68 @@ BEGIN
         SELECT
             c.*,
             (COALESCE(c.calc_fba_fee, 0) + COALESCE(c.calc_referral_fee, 0))::FLOAT AS base_amazon_fees,
-            -- НДС на комиссии Amazon (21% IVA при авто-реперкуссии в Modelo 309 на режиме Recargo)
             ROUND(((COALESCE(c.calc_fba_fee, 0) + COALESCE(c.calc_referral_fee, 0)) * 0.21)::numeric, 2)::FLOAT AS calc_vat_on_fees
         FROM calc c
+    ),
+    profit_calc AS (
+        SELECT
+            f.*,
+            CASE 
+                WHEN f.calc_cost_price IS NOT NULL AND f.calc_buy_box_price IS NOT NULL 
+                THEN ROUND((
+                    f.calc_buy_box_price 
+                    - f.base_amazon_fees 
+                    - (CASE WHEN p_include_vat_on_fees THEN f.calc_vat_on_fees ELSE 0 END)
+                    - f.calc_cost_price
+                )::numeric, 2)::FLOAT
+                ELSE NULL
+            END AS calc_net_profit_per_unit
+        FROM fees_calc f
     )
     SELECT
-        f.calc_asin AS "asin",
-        f.calc_ean AS "ean",
-        f.calc_price_netto AS "netPrice",
-        f.calc_cost_price AS "grossPrice",
-        -- Чистая расчетная прибыль на единицу:
-        -- BuyBox - Amazon Fees - (VAT on fees, если режим Recargo) - Закупка с налогами
+        pc.calc_asin AS "asin",
+        pc.calc_ean AS "ean",
+        pc.calc_sales_rank AS "salesRank",
+        (pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1))::FLOAT AS "netProfitPerMinBoxOrder",
+        pc.calc_net_profit_per_unit AS "netProfitPerUnit",
+        pc.calc_min_box_order_gross AS "minBoxOrderGross",
+        pc.calc_min_box_order_netto AS "minBoxOrderNetto",
+        pc.calc_min_box_order AS "minBoxOrder",
+        pc.calc_units_per_box AS "unitsPerBox",
+        pc.calc_price_netto AS "netPrice",
+        pc.calc_cost_price AS "grossPrice",
+        pc.calc_cost_price AS "costPrice",
+        pc.calc_title AS "title",
+        pc.calc_brand AS "brand",
+        pc.calc_distributor AS "distributor",
+        pc.calc_buy_box_price AS "buyBoxPrice",
+        pc.calc_fba_fee AS "fbaFee",
+        pc.calc_referral_fee AS "referralFee",
+        pc.base_amazon_fees AS "amazonFees",
+        pc.calc_vat_on_fees AS "vatOnFees",
         CASE 
-            WHEN f.calc_cost_price IS NOT NULL AND f.calc_buy_box_price IS NOT NULL 
+            WHEN pc.calc_cost_price IS NOT NULL AND pc.calc_cost_price > 0 AND pc.calc_buy_box_price IS NOT NULL
             THEN ROUND((
-                f.calc_buy_box_price 
-                - f.base_amazon_fees 
-                - (CASE WHEN p_include_vat_on_fees THEN f.calc_vat_on_fees ELSE 0 END)
-                - f.calc_cost_price
-            )::numeric, 2)::FLOAT
-            ELSE NULL
-        END AS "netProfit",
-        f.calc_title AS "title",
-        f.calc_brand AS "brand",
-        f.calc_distributor AS "distributor",
-        f.calc_cost_price AS "costPrice",
-        f.calc_buy_box_price AS "buyBoxPrice",
-        f.calc_fba_fee AS "fbaFee",
-        f.calc_referral_fee AS "referralFee",
-        -- Суммарные комиссии Amazon (чистые комиссии без НДС)
-        f.base_amazon_fees AS "amazonFees",
-        -- 21% НДС на комиссии Amazon
-        f.calc_vat_on_fees AS "vatOnFees",
-        -- Рентабельность ROI (%): (Net Profit / Gross Price) * 100
-        CASE 
-            WHEN f.calc_cost_price IS NOT NULL AND f.calc_cost_price > 0 AND f.calc_buy_box_price IS NOT NULL
-            THEN ROUND((
-                (f.calc_buy_box_price 
-                - f.base_amazon_fees 
-                - (CASE WHEN p_include_vat_on_fees THEN f.calc_vat_on_fees ELSE 0 END)
-                - f.calc_cost_price) / f.calc_cost_price * 100.0
+                (pc.calc_buy_box_price 
+                - pc.base_amazon_fees 
+                - (CASE WHEN p_include_vat_on_fees THEN pc.calc_vat_on_fees ELSE 0 END)
+                - pc.calc_cost_price) / pc.calc_cost_price * 100.0
             )::numeric, 2)::FLOAT
             ELSE NULL
         END AS "roiPercent",
-        -- Маржинальность Margin (%): (Net Profit / Buy Box Price) * 100
         CASE 
-            WHEN f.calc_cost_price IS NOT NULL AND f.calc_buy_box_price IS NOT NULL AND f.calc_buy_box_price > 0
+            WHEN pc.calc_cost_price IS NOT NULL AND pc.calc_buy_box_price IS NOT NULL AND pc.calc_buy_box_price > 0
             THEN ROUND((
-                (f.calc_buy_box_price 
-                - f.base_amazon_fees 
-                - (CASE WHEN p_include_vat_on_fees THEN f.calc_vat_on_fees ELSE 0 END)
-                - f.calc_cost_price) / f.calc_buy_box_price * 100.0
+                (pc.calc_buy_box_price 
+                - pc.base_amazon_fees 
+                - (CASE WHEN p_include_vat_on_fees THEN pc.calc_vat_on_fees ELSE 0 END)
+                - pc.calc_cost_price) / pc.calc_buy_box_price * 100.0
             )::numeric, 2)::FLOAT
             ELSE NULL
-        END AS "marginPercent",
-        f.calc_sales_rank AS "salesRank"
-    FROM fees_calc f
+        END AS "marginPercent"
+    FROM profit_calc pc
     ORDER BY 
-        -- Сортировка: сначала товары с максимальной чистой прибылью, затем по BSR
-        "netProfit" DESC NULLS LAST,
-        f.calc_sales_rank ASC NULLS LAST;
+        "netProfitPerMinBoxOrder" DESC NULLS LAST,
+        pc.calc_sales_rank ASC NULLS LAST;
 END;
 $$ LANGUAGE plpgsql STABLE;

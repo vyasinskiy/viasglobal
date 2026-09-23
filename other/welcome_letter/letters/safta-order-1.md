@@ -12,15 +12,11 @@ Por favor, prepáranos una factura proforma para las siguientes referencias:
 
 - **EAN:** 8412688671793
 - **Producto:** Safta K-POP DEMON HUNTERS CHIBI - Fiambrera / Portameriendas
-- **Cantidad:** 10 unidades
+- **Cantidad:** 30 unidades (1 caja estándar)
 
 - **EAN:** 8412688670376
 - **Producto:** Safta K-POP DEMON HUNTERS CHIBI - Mochila Escolar Básica
-- **Cantidad:** 10 unidades
-
-- **EAN:** 8412688652242
-- **Producto:** Safta F.C. BARCELONA 1ª EQUIPACIÓN 26/27 - Bloc de Notas A5
-- **Cantidad:** 10 unidades
+- **Cantidad:** 20 unidades (1 caja estándar)
 
 Por otro lado, hemos estado analizando el catálogo con mucho interés y nos ha llamado la atención que no aparecen los carros para mochilas. De hecho, los vemos a diario en las calles y en los colegios, y sabemos que a los niños les encantan, por lo que es un artículo indispensable. ¿Sería tan amable de indicarnos si la tarifa que recibimos corresponde únicamente a una colección específica? Nos encantaría tener la oportunidad de consultar el catálogo completo para valorar la posibilidad de incluir estos artículos y ampliar así nuestro pedido inicial. Muchas gracias por su atención y ayuda.
 

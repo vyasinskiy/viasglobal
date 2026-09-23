@@ -21,18 +21,18 @@
 ```sql
 SELECT * FROM "AsinView";
 SELECT * FROM "CandidatesProductsView";
-SELECT * FROM "ContractedFilteredProductsView" ORDER BY "netProfit" DESC NULLS LAST;
-SELECT * FROM "ContractedAllProductsView" ORDER BY "netProfit" DESC NULLS LAST;
+SELECT * FROM "ContractedFilteredProductsView" ORDER BY "netProfitPerUnit" DESC NULLS LAST;
+SELECT * FROM "ContractedAllProductsView" ORDER BY "netProfitPerUnit" DESC NULLS LAST;
 ```
 
 Использование через Prisma Client:
 ```typescript
 const asins = await prisma.asinView.findMany();
 const contractedFiltered = await prisma.contractedFilteredProductsView.findMany({
-  orderBy: { netProfit: 'desc' },
+  orderBy: { netProfitPerUnit: 'desc' },
 });
 const contractedAll = await prisma.contractedAllProductsView.findMany({
-  orderBy: { netProfit: 'desc' },
+  orderBy: { netProfitPerUnit: 'desc' },
 });
 ```
 

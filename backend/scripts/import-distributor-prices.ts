@@ -22,6 +22,7 @@ import * as xlsx from 'xlsx';
 import * as path from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
+import * as readline from 'readline';
 import * as dotenv from 'dotenv';
 
 // Загружаем переменные окружения
@@ -39,6 +40,8 @@ interface ParsedPriceItem {
   priceNetto: number;
   costPrice: number;
   title?: string;
+  unitsPerBox?: number;
+  minBoxOrder?: number;
 }
 
 /**
@@ -57,7 +60,7 @@ function cleanEan(val: any): string | null {
 /**
  * Парсинг строк прайс-листа Safta или универсального прайса
  */
-function parsePriceRows(rows: any[][]): ParsedPriceItem[] {
+async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
   const items: ParsedPriceItem[] = [];
 
   // Определяем индекс строки заголовка
@@ -82,11 +85,13 @@ function parsePriceRows(rows: any[][]): ParsedPriceItem[] {
     let priceNetto: number | null = null;
     let ean: string | null = null;
     let title: string | null = null;
+    let unitsPerBox: number | null = null;
 
     if (isSafta) {
       // Структура Safta:
       // Index 1: DESCRIPCION
       // Index 3: PRECIO
+      // Index 4 или др: UNI CAJA STD (надо найти)
       // Index 6: CODIGO BARRAS
       // Index 7: EAN INDIVIDUAL
       title = row[1] ? String(row[1]).trim() : null;
@@ -95,6 +100,7 @@ function parsePriceRows(rows: any[][]): ParsedPriceItem[] {
         priceNetto = rawPrice;
       }
       ean = cleanEan(row[7]) || cleanEan(row[6]);
+      // Поиск коробки для Safta: UNI CAJA STD часто в 4-й или 5-й колонке. Будем искать динамически.
     } else {
       // Универсальный разбор колонок
       for (let col = 0; col < row.length; col++) {
@@ -165,8 +171,113 @@ async function main() {
 
   console.log(`Всего строк в файле: ${rawRows.length}`);
 
+  // Определяем колонку для Units Per Box (CAJA STD и т.д.)
+  let boxColIndex = -1;
+  const headerRow = rawRows.find((row) => row.some((cell: any) => typeof cell === 'string' && (cell.includes('PRECIO') || cell.includes('PRICE') || cell.includes('EAN'))));
+  if (headerRow) {
+    for (let i = 0; i < headerRow.length; i++) {
+      const cell = String(headerRow[i] || '').toUpperCase();
+      if (cell.includes('CAJA') || cell.includes('BOX') || cell.includes('PACK') || cell.includes('UDS') || cell.includes('UNIDADES')) {
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const answer = await new Promise<string>((resolve) => {
+          rl.question(`\n❓ Найдена потенциальная колонка для "Штук в коробке" (Units Per Box):\nКолонка ${i}: "${headerRow[i]}"\nИспользовать эту колонку? (y/n): `, resolve);
+        });
+        rl.close();
+        if (answer.trim().toLowerCase() === 'y') {
+          boxColIndex = i;
+          console.log(`✅ Колонка "${headerRow[i]}" будет использована для поля unitsPerBox.`);
+          break;
+        }
+      }
+    }
+  }
+
+  // Определяем колонку для минимального заказа (minBoxOrder)
+  let minBoxColIndex = -1;
+  if (headerRow) {
+    for (let i = 0; i < headerRow.length; i++) {
+      const cell = String(headerRow[i] || '').toUpperCase();
+      if (cell.includes('MIN') || cell.includes('PEDIDO') || cell.includes('ORDER') || cell.includes('MOQ')) {
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const answer = await new Promise<string>((resolve) => {
+          rl.question(`\n❓ Найдена потенциальная колонка для "Минимальный заказ в шт." (Min Box Order):\nКолонка ${i}: "${headerRow[i]}"\nИспользовать эту колонку? (y/n): `, resolve);
+        });
+        rl.close();
+        if (answer.trim().toLowerCase() === 'y') {
+          minBoxColIndex = i;
+          console.log(`✅ Колонка "${headerRow[i]}" будет использована для поля minBoxOrder.`);
+          break;
+        }
+      }
+    }
+  }
+
   // 3. Парсим товары
-  const priceItems = parsePriceRows(rawRows);
+  const priceItems = await parsePriceRows(rawRows);
+  
+  // Дозаполняем unitsPerBox
+  if (boxColIndex >= 0) {
+      const startIndex = rawRows.findIndex(r => r === headerRow) + 1;
+      for (let i = startIndex; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row || row.length === 0) continue;
+          
+          let ean: string | null = null;
+          // Попробуем извлечь EAN так же, как в парсере, чтобы понять, та ли это строка
+          const isSafta = headerRow?.some((c: any) => c === 'CODIGO BARRAS');
+          if (isSafta) {
+              ean = cleanEan(row[7]) || cleanEan(row[6]);
+          } else {
+              for (let col = 0; col < row.length; col++) {
+                  const possibleEan = cleanEan(row[col]);
+                  if (possibleEan) { ean = possibleEan; break; }
+              }
+          }
+          if (ean) {
+              const boxVal = parseInt(row[boxColIndex], 10);
+              if (!isNaN(boxVal) && boxVal > 0) {
+                  // Находим все элементы с таким EAN в priceItems и обновляем их
+                  for (const item of priceItems) {
+                      if (item.ean === ean) {
+                          item.unitsPerBox = boxVal;
+                          // По умолчанию минимальный заказ равен размеру одной коробки
+                          item.minBoxOrder = boxVal; 
+                      }
+                  }
+              }
+          }
+      }
+  }
+  
+  // Дозаполняем minBoxOrder, если колонка найдена отдельно
+  if (minBoxColIndex >= 0) {
+      const startIndex = rawRows.findIndex(r => r === headerRow) + 1;
+      for (let i = startIndex; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row || row.length === 0) continue;
+          let ean: string | null = null;
+          const isSafta = headerRow?.some((c: any) => c === 'CODIGO BARRAS');
+          if (isSafta) {
+              ean = cleanEan(row[7]) || cleanEan(row[6]);
+          } else {
+              for (let col = 0; col < row.length; col++) {
+                  const possibleEan = cleanEan(row[col]);
+                  if (possibleEan) { ean = possibleEan; break; }
+              }
+          }
+          if (ean) {
+              const minVal = parseInt(row[minBoxColIndex], 10);
+              if (!isNaN(minVal) && minVal > 0) {
+                  for (const item of priceItems) {
+                      if (item.ean === ean) {
+                          item.minBoxOrder = minVal;
+                      }
+                  }
+              }
+          }
+      }
+  }
+
   console.log(`Успешно распознано позиций с ценой и EAN: ${priceItems.length}`);
 
   if (priceItems.length === 0) {
@@ -234,7 +345,9 @@ async function main() {
         asinId: asinId,
         ean: item.ean,
         priceNetto: item.priceNetto,
-        costPrice: item.costPrice
+        costPrice: item.costPrice,
+        unitsPerBox: item.unitsPerBox,
+        minBoxOrder: item.minBoxOrder
       }
     });
     savedSnapshotsCount++;

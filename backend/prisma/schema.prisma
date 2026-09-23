@@ -122,6 +122,8 @@ model DistributorPriceSnapshot {
   ean           String?     /// Штрихкод EAN товара из прайс-листа (для автосопоставления)
   priceNetto    Float       /// Оптовая цена закупки без НДС (в евро)
   costPrice     Float       /// Себестоимость с испанскими налогами (priceNetto * 1.262: 21% IVA + 5.2% Recargo de Equivalencia)
+  unitsPerBox   Int?        /// Количество штук в заводской упаковке (коробке)
+  minBoxOrder   Int?        /// Минимальный заказ в штуках (или коробках, если кратно)
   createdAt     DateTime    @default(now()) /// Дата и время загрузки прайс-листа
 
   distributor   Distributor @relation(fields: [distributorId], references: [id])
@@ -357,67 +359,79 @@ view KeepaExportView {
 
 /// Сводное представление товаров брендов в работе с расчетом потенциальной маржинальности (синоним для обратной совместимости)
 view ContractedProductsView {
-  asinId        Int     @unique /// ID товара в таблице ASIN
-  asin          String  /// Код ASIN товара на Amazon
-  ean           String? /// Штрихкод EAN товара
+  asinId        Int?    /// Внутренний ID товара в таблице ASIN
+  asin          String? /// ASIN товара
+  ean           String? /// EAN/штрихкод товара
+  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
+  minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
+  minBoxOrder   Int?    /// Минимальный заказ
+  unitsPerBox   Int?    /// Количество штук в заводской упаковке
+  netPrice      Float?  /// Цена закупки нетто (без налогов)
+  grossPrice    Float?  /// Цена закупки брутто (с налогами)
+  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   title         String? /// Название товара
   brand         String? /// Название бренда
   distributor   String? /// Название поставщика/дистрибьютора
-  netPrice      Float?  /// Чистая оптовая цена закупки дистрибьютора без НДС (в евро)
-  grossPrice    Float?  /// Себестоимость закупки с испанскими налогами (в евро, 21% IVA + 5.2% RE)
-  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
   amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral без НДС)
   vatOnFees     Float?  /// 21% НДС на комиссии Amazon (включается в расходы на режиме Recargo de Equivalencia)
-  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - vatOnFees - grossPrice
-  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / grossPrice) * 100
-  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
-  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfitPerUnit / grossPrice) * 100
+  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfitPerUnit / buyBoxPrice) * 100
+  minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
 }
 
 /// Сводное представление товаров брендов в работе С ФИЛЬТРАМИ (BSR <= 100k, Amazon <= 50%, BuyBox >= 10€)
 view ContractedFilteredProductsView {
-  asinId        Int     @unique /// ID товара в таблице ASIN
-  asin          String  /// Код ASIN товара на Amazon
-  ean           String? /// Штрихкод EAN товара
+  asinId        Int?    /// Внутренний ID товара в таблице ASIN
+  asin          String? /// ASIN товара
+  ean           String? /// EAN/штрихкод товара
+  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
+  minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
+  minBoxOrder   Int?    /// Минимальный заказ
+  unitsPerBox   Int?    /// Количество штук в заводской упаковке
+  netPrice      Float?  /// Цена закупки нетто (без налогов)
+  grossPrice    Float?  /// Цена закупки брутто (с налогами)
+  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   title         String? /// Название товара
   brand         String? /// Название бренда
   distributor   String? /// Название поставщика/дистрибьютора
-  netPrice      Float?  /// Чистая оптовая цена закупки дистрибьютора без НДС (в евро)
-  grossPrice    Float?  /// Себестоимость закупки с испанскими налогами (в евро, 21% IVA + 5.2% RE)
-  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
   amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral без НДС)
   vatOnFees     Float?  /// 21% НДС на комиссии Amazon (включается в расходы на режиме Recargo de Equivalencia)
-  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - vatOnFees - grossPrice
-  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / grossPrice) * 100
-  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
-  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfitPerUnit / grossPrice) * 100
+  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfitPerUnit / buyBoxPrice) * 100
+  minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
 }
 
 /// Сводное представление ВСЕХ товаров брендов в работе БЕЗ ФИЛЬТРОВ (без ограничений по BSR, цене и Amazon)
 view ContractedAllProductsView {
-  asin          String  @unique /// Код ASIN товара на Amazon
-  ean           String? /// Штрихкод EAN товара
-  netPrice      Float?  /// Чистая оптовая цена закупки дистрибьютора без НДС (в евро)
-  grossPrice    Float?  /// Себестоимость закупки с испанскими налогами (в евро, 21% IVA + 5.2% RE)
-  netProfit     Float?  /// Чистая расчетная прибыль на единицу (€) = buyBoxPrice - amazonFees - vatOnFees - grossPrice
+  asin          String? /// ASIN товара
+  ean           String? /// EAN/штрихкод товара
+  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
+  minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
+  minBoxOrder   Int?    /// Минимальный заказ
+  unitsPerBox   Int?    /// Количество штук в заводской упаковке
+  netPrice      Float?  /// Цена закупки нетто (без налогов)
+  grossPrice    Float?  /// Цена закупки брутто (с налогами)
+  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   title         String? /// Название товара
   brand         String? /// Название бренда
   distributor   String? /// Название поставщика/дистрибьютора
-  costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
   amazonFees    Float?  /// Суммарные комиссии Amazon (FBA + Referral без НДС)
   vatOnFees     Float?  /// 21% НДС на комиссии Amazon (включается в расходы на режиме Recargo de Equivalencia)
-  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfit / grossPrice) * 100
-  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfit / buyBoxPrice) * 100
-  salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfitPerUnit / grossPrice) * 100
+  marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfitPerUnit / buyBoxPrice) * 100
+  minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
 }
 
 model KeepaExport {
