@@ -218,11 +218,19 @@ async function main() {
         if (await option5000.isVisible({ timeout: 3000 }).catch(() => false)) {
           await option5000.click();
           console.log('Успешно выбран лимит: 5000 строк!');
-          await page.waitForTimeout(2000); // Даем таблице время перестроиться
         }
       } else {
         console.log('Лимит 5000 строк уже активен.');
       }
+    }
+
+    console.log('Ожидание стабилизации данных в таблице Keepa...');
+    try {
+      await page.waitForSelector('.ag-overlay-loading-center', { state: 'detached', timeout: 35000 });
+      await page.waitForSelector('.ag-row', { state: 'visible', timeout: 10000 });
+      await page.waitForTimeout(4000); // Гарантированная пауза по правилам AGENTS.md
+    } catch (e) {
+      console.log('Предупреждение: Таблица не подтвердила полную стабильность за 35с, пробуем продолжить.');
     }
 
     // Ожидаем появление кнопки "Export" в верхней панели результатов (.tool__export)
@@ -253,6 +261,13 @@ async function main() {
     // Ожидаем скачивание файла
     console.log('Подтверждаем экспорт (5000 строк) и ожидаем загрузку файла Excel...');
     const downloadPromise = page.waitForEvent('download', { timeout: 60000 });
+
+    // Выбираем "All active columns"
+    const allColsRadio = page.locator('#allCh-radio');
+    if (await allColsRadio.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await allColsRadio.check().catch(() => {});
+      console.log('Выбрана опция: All active columns (#allCh-radio)');
+    }
 
     // В диалоге экспорта нажимаем кнопку "Export" (#exportSubmit)
     const dialogBtn = page.locator('#exportSubmit, button:has-text("Export"), input[value*="EXPORT"]').first();
