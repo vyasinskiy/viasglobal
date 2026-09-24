@@ -23,7 +23,7 @@ Ibarsos 12166
 Castellón, España
 Teléfono: +34 641 064 851
 
-Quedamos a la espera de la factura proforma para proceder con el pago.
+Quedamos a la espera de la confirmación del pedido y de la factura correspondiente para su cobro mediante el mandato SEPA adjunto.
 
 Un saludo cordial,
 
