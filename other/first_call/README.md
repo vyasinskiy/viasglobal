@@ -4,7 +4,7 @@
 
 ## Структура раздела
 - [`scripts_en.md`](file:///Users/usuario/code/viasglobal/other/first_call/scripts_en.md) — готовые сценарии разговора на английском языке с переводом и отработкой каверзных вопросов (Amazon, физический магазин, НДС).
-- [`letters/`](file:///Users/usuario/code/viasglobal/other/first_call/letters) — папка с готовыми текстами ответов на проверочные опросники дистрибьюторов (например, `de_bondt_response.md`). Содержит исключительно чистый текст письма на английском в формате Plain Text (без Markdown-разметки и спецсимволов) для безопасного копирования (Ctrl+A / Ctrl+C) без артефактов.
+- `contractors/<company-name>/first_call_response.md` — файлы с готовыми текстами ответов на проверочные опросники дистрибьюторов (например, `contractors/de_bondt/first_call_response.md`). Содержит исключительно чистый текст письма на английском в формате Plain Text (без Markdown-разметки и спецсимволов) для безопасного копирования (Ctrl+A / Ctrl+C) без артефактов.
 - [Бизнес-процесс](file:///Users/usuario/code/viasglobal/docs/business_processes/distributor_first_call.md) — полный формализованный регламент квалификации и звонков.
 
 ---

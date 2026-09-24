@@ -4,7 +4,7 @@
 
 ## Структура файлов
 - [`template.md`](file:///Users/usuario/code/viasglobal/other/welcome_letter/template.md) — шаблон письма на английском языке с плейсхолдерами для заполнения.
-- [`letters/`](file:///Users/usuario/code/viasglobal/other/welcome_letter/letters) — папка для сохранения готовых сформированных писем по названиям компаний (например, `letters/jerry-fabrics.md`).
+- `contractors/<company-name>/welcome_letter.md` — файл для сохранения готовых сформированных писем по названиям компаний (например, `contractors/jerry-fabrics/welcome_letter.md`).
 - [`attachments/`](file:///Users/usuario/code/viasglobal/other/welcome_letter/attachments) — официальные документы компании (Autónomo Испания), карточка предприятия и выписки для отправки поставщикам.
 
 ## Плейсхолдеры для подстановки
