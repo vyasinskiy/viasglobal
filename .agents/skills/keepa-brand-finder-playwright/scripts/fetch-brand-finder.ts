@@ -217,32 +217,16 @@ async function main() {
 
     console.log('Ожидание формирования результатов поиска...');
 
-    // Обязательно переключаем лимит отображения таблицы на 5000 строк согласно правилам проекта
-    console.log('Проверяем и переключаем лимит отображения таблицы на 5000 строк...');
-    const rowMenuTrigger = page.locator('.tool__row .trigger, .tool__row').first();
-    if (await rowMenuTrigger.isVisible({ timeout: 15000 }).catch(() => false)) {
-      const currentRowsText = (await rowMenuTrigger.innerText().catch(() => '')).trim();
-      if (!currentRowsText.includes('5000 rows')) {
-        console.log(`Текущий лимит таблицы: "${currentRowsText}". Переключаем на 5000 rows...`);
-        await rowMenuTrigger.click();
-        await page.waitForTimeout(500);
-        const option5000 = page.locator('#tool-row-menu li[data-value="5000"], .mdc-menu li[data-value="5000"]').first();
-        if (await option5000.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await option5000.click();
-          console.log('Успешно выбран лимит: 5000 строк!');
-          await page.waitForTimeout(2500); // Ожидаем перестройки таблицы
-        }
-      } else {
-        console.log('Лимит 5000 строк уже активен.');
-      }
-    } else {
-      console.log('Меню выбора строк (.tool__row) не потребовало переключения (малое количество результатов).');
-    }
-
+    // ПРОПУСК: Не переключаем на 5000 строк для гигантских брендов, чтобы не вешать Keepa
+    // console.log('Проверяем и переключаем лимит отображения таблицы на 5000 строк...');
+    // const rowMenuTrigger = page.locator('.tool__row .trigger, .tool__row').first();
+    // if (await rowMenuTrigger.isVisible({ timeout: 15000 }).catch(() => false)) {
+    // ...
+    // }
     // Ожидание стабилизации таблицы (Анти-0 rows экспорт)
     console.log('Ожидание стабилизации данных в таблице Keepa...');
     let tableReady = false;
-    for (let waitSec = 0; waitSec < 35; waitSec++) {
+    for (let waitSec = 0; waitSec < 90; waitSec++) {
       await page.waitForTimeout(1000);
       const state = await page.evaluate(() => {
         const overlay = document.querySelector('.ag-overlay-loading-center, .ag-loading-panel, .ag-loading');
