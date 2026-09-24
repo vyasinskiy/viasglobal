@@ -10,10 +10,6 @@ Tras revisar los precios, nos gustaría realizar ya nuestro primer pedido de pru
 
 Por favor, prepáranos una factura proforma para las siguientes referencias:
 
-- **EAN:** 8412688671793
-- **Producto:** Safta K-POP DEMON HUNTERS CHIBI - Fiambrera / Portameriendas
-- **Cantidad:** 30 unidades (1 caja estándar)
-
 - **EAN:** 8412688670376
 - **Producto:** Safta K-POP DEMON HUNTERS CHIBI - Mochila Escolar Básica
 - **Cantidad:** 20 unidades (1 caja estándar)
