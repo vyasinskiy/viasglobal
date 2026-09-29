@@ -124,9 +124,9 @@ BEGIN
         (pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1))::FLOAT AS "netProfitPerMinBoxOrder",
         CASE 
             WHEN pc.calc_min_box_order_gross IS NOT NULL 
-             AND pc.calc_net_profit_per_unit IS NOT NULL 
-             AND pc.calc_net_profit_per_unit > 0
-            THEN ROUND((pc.calc_min_box_order_gross / (pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1)))::numeric, 2)::FLOAT
+             AND pc.calc_min_box_order_gross > 0
+             AND pc.calc_net_profit_per_unit IS NOT NULL
+            THEN ROUND((pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1) / pc.calc_min_box_order_gross)::numeric, 4)::FLOAT
             ELSE NULL
         END AS "profitCoefficient",
         pc.calc_min_box_order_gross AS "minBoxOrderGross",

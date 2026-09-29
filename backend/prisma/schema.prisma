@@ -415,7 +415,7 @@ view ContractedAllProductsView {
   ean            String? /// EAN/штрихкод товара
   salesRank      Int?    /// Текущий рейтинг продаж BSR на Amazon
   netProfitPerMinBoxOrder Float? /// Чистая прибыль с минимальной партии
-  profitCoefficient Float? /// Коэффициент прибыли = minBoxOrderGross / netProfitPerMinBoxOrder
+  profitCoefficient Float? /// Коэффициент прибыли = netProfitPerMinBoxOrder / minBoxOrderGross
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
   title          String? /// Название товара
   netProfitPerUnit Float? /// Чистая прибыль с одной штуки
