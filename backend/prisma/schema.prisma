@@ -417,13 +417,13 @@ view ContractedAllProductsView {
   netProfitPerMinBoxOrder Float? /// Чистая прибыль с минимальной партии
   profitCoefficient Float? /// Коэффициент прибыли = netProfitPerMinBoxOrder / minBoxOrderGross
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
+  grossPrice     Float?  /// Цена закупки брутто (с налогами)
   title          String? /// Название товара
   netProfitPerUnit Float? /// Чистая прибыль с одной штуки
   minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
   minBoxOrder    Int?    /// Минимальный заказ
   unitsPerBox    Int?    /// Количество штук в заводской упаковке
   netPrice       Float?  /// Цена закупки нетто (без налогов)
-  grossPrice     Float?  /// Цена закупки брутто (с налогами)
   costPrice      Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   brand          String? /// Название бренда
   distributor    String? /// Название поставщика/дистрибьютора
