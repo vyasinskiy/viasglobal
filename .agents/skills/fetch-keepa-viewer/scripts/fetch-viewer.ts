@@ -9,6 +9,77 @@ import { chromium } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Извлекает EAN-коды из текста диалога Keepa о ненайденных товарах.
+ * Keepa показывает диалог с текстом вроде:
+ * "The following codes could not be found: 8412688065790, 8412688486472..."
+ */
+function extractEansFromDialog(dialogText: string): string[] {
+  const eans: string[] = [];
+  // Ищем все 12-14 значные числа в тексте
+  const matches = dialogText.match(/\b\d{12,14}\b/g);
+  if (matches) {
+    for (const m of matches) {
+      eans.push(m);
+    }
+  }
+  return eans;
+}
+
+/**
+ * Закрывает блокирующие диалоги Keepa (ненайденные EAN, Search result).
+ * Возвращает список извлеченных EAN из диалога "ненайденные коды", если такой был.
+ */
+async function closeBlockingDialogs(page: any): Promise<string[]> {
+  const notFoundEans: string[] = [];
+
+  const result = await page.evaluate(() => {
+    const dialogs = Array.from(document.querySelectorAll('.ui-dialog, .modal, [role="dialog"]'));
+    let foundEansText = '';
+    let closed = false;
+
+    for (const dialog of dialogs) {
+      const text = dialog.textContent || '';
+
+      // Диалог с ненайденными кодами: "could not be found", "not found", "failed to load"
+      if (
+        text.includes('could not be found') ||
+        text.includes('not found') ||
+        text.includes('failed to load') ||
+        text.includes('Search result')
+      ) {
+        foundEansText = text;
+
+        // Закрываем диалог: ищем кнопку OK, Close, крестик
+        const closeBtn = dialog.querySelector(
+          'button, input[type="button"], i, img, [class*="close"], [class*="times"], .ui-dialog-titlebar-close'
+        ) as HTMLElement;
+        if (closeBtn) {
+          closeBtn.click();
+        } else {
+          // Последняя надежда — удалить DOM-элемент
+          dialog.remove();
+        }
+        closed = true;
+      }
+    }
+
+    return { closed, text: foundEansText };
+  });
+
+  if (result.closed && result.text) {
+    const eans = extractEansFromDialog(result.text);
+    if (eans.length > 0) {
+      console.log(`Обнаружен диалог с ${eans.length} ненайденными EAN кодами, диалог закрыт.`);
+      notFoundEans.push(...eans);
+    } else {
+      console.log('Блокирующий диалог обнаружен и закрыт (EAN не извлечены из текста).');
+    }
+  }
+
+  return notFoundEans;
+}
+
 async function main() {
   const eansFile = process.argv[2];
   const outputFile = process.argv[3];
@@ -44,6 +115,9 @@ async function main() {
   const rawCodes = fs.readFileSync(resolvedEansPath, 'utf-8');
   const codes = rawCodes.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
   console.log(`Загружено кодов для выгрузки: ${codes.length}`);
+
+  // Все ненайденные EAN, собранные на разных этапах
+  const allNotFoundEans: Set<string> = new Set();
 
   // Запуск браузера с сохраненной сессией
   const browser = await chromium.launch({
@@ -89,30 +163,15 @@ async function main() {
   await loadButton.click();
 
   console.log('Ожидание формирования таблицы с товарами...');
-  
+
   // Ждем пока таблица товаров начнет загружаться (до 60 секунд)
+  let exportClicked = false;
   for (let i = 0; i < 30; i++) {
     await page.waitForTimeout(2000);
 
-    // Если появилось модальное окно "Search result" — закрываем его
-    const modalVisible = await page.evaluate(() => {
-      // Ищем модальное окно с "Search result"
-      const dialogs = Array.from(document.querySelectorAll('.ui-dialog, .modal, [role="dialog"]'));
-      const target = dialogs.find((m) => m.textContent?.includes('Search result') || m.textContent?.includes('failed to load'));
-      if (target) {
-        // Пробуем нажать на крестик
-        const closeBtn = target.querySelector('i, img, button, [class*="close"], [class*="times"]') as HTMLElement;
-        if (closeBtn) closeBtn.click();
-        target.remove(); // гарантированно убираем из DOM только модалку
-        return true;
-      }
-      return false;
-    });
-
-    if (modalVisible) {
-      console.log('Обнаружено и закрыто модальное окно "Search result"!');
-      await page.waitForTimeout(1000);
-    }
+    // Закрываем блокирующие диалоги (ненайденные EAN, Search result)
+    const notFoundEans = await closeBlockingDialogs(page);
+    notFoundEans.forEach((ean) => allNotFoundEans.add(ean));
 
     // Проверяем наличие кнопки Export в верхнем тулбаре
     const isExportVisible = await page.evaluate(() => {
@@ -127,7 +186,7 @@ async function main() {
       // Скрываем блокирующие всплывающие окна и оверлеи Keepa (#popup3 и т.д.)
       await page.keyboard.press('Escape');
       await page.evaluate(() => {
-        document.querySelectorAll('#popup3, .popup, [id^="popup"]:not(#table-export-dialog), .modal, .ui-widget-overlay').forEach((el) => {
+        document.querySelectorAll('#popup3, .popup, [id^="popup"]:not(#table-export-dialog), .ui-widget-overlay').forEach((el) => {
           (el as HTMLElement).style.display = 'none';
         });
       }).catch(() => {});
@@ -136,39 +195,60 @@ async function main() {
       await page.waitForSelector('.ag-overlay-loading-center', { state: 'detached', timeout: 30000 }).catch(() => {});
       await page.waitForTimeout(3000);
 
-      // Еще раз гарантированно удаляем любые всплывающие окна перед кликом
-      await page.evaluate(() => {
-        const modals = Array.from(document.querySelectorAll('.ui-dialog, .modal, [role="dialog"]')).filter(d => d.textContent?.includes('Search result') || d.textContent?.includes('failed to load'));
-        modals.forEach(m => m.remove());
-      }).catch(() => {});
+      // Закрываем диалоги, которые могли появиться во время загрузки
+      const lateEans = await closeBlockingDialogs(page);
+      lateEans.forEach((ean) => allNotFoundEans.add(ean));
 
       console.log('Кликаем по кнопке Export в тулбаре через DOM...');
       await page.evaluate(() => {
         const els = Array.from(document.querySelectorAll('span, div, button, a'));
         const btn = els.find(e => e.textContent?.trim() === 'Export' && !e.textContent.includes('Configure'));
         if (btn) {
-            (btn as HTMLElement).click();
+          (btn as HTMLElement).click();
         }
       });
       await page.waitForTimeout(3000);
+
+      // После клика по Export мог появиться диалог с ненайденными EAN поверх диалога экспорта
+      const postExportEans = await closeBlockingDialogs(page);
+      postExportEans.forEach((ean) => allNotFoundEans.add(ean));
 
       // Проверяем, открылся ли диалог экспорта (#table-export-dialog или #allCh-radio)
       const dialogVisible = await page.locator('#allCh-radio, #table-export-dialog, #exportSubmit').first().isVisible({ timeout: 5000 }).catch(() => false);
       if (dialogVisible) {
         console.log('Диалог экспорта успешно открылся!');
+        exportClicked = true;
         break;
       } else {
         console.log('Диалог еще не открылся, пробуем повторный клик через Playwright...');
+        // Еще раз чистим диалоги перед повторным кликом
+        const retryEans = await closeBlockingDialogs(page);
+        retryEans.forEach((ean) => allNotFoundEans.add(ean));
+
         const exportTrigger = page.locator(':is(span, div, button, a):text-is("Export")').first();
-        if (await exportTrigger.isVisible().catch(()=>false)) {
-            await exportTrigger.click({ force: true });
+        if (await exportTrigger.isVisible().catch(() => false)) {
+          await exportTrigger.click({ force: true });
         }
         await page.waitForTimeout(3000);
+
+        // Проверяем снова
+        const retryDialogVisible = await page.locator('#allCh-radio, #table-export-dialog, #exportSubmit').first().isVisible({ timeout: 5000 }).catch(() => false);
+        if (retryDialogVisible) {
+          console.log('Диалог экспорта успешно открылся (со второй попытки)!');
+          exportClicked = true;
+        }
         break;
       }
     }
   }
 
+  if (!exportClicked) {
+    console.error('Не удалось открыть диалог экспорта.');
+    const errScreenshot = path.resolve(process.cwd(), 'temp_export_timeout.png');
+    await page.screenshot({ path: errScreenshot, fullPage: true }).catch(() => {});
+    await browser.close();
+    process.exit(1);
+  }
 
   // Проверяем процент квоты токенов Keepa
   const currentQuota = await page.evaluate(() => {
@@ -196,16 +276,91 @@ async function main() {
     console.log(`Содержимое диалога экспорта: "${dialogWarning.slice(0, 150)}..."`);
   }
 
+  // Финальная чистка диалогов перед нажатием EXPORT
+  const finalEans = await closeBlockingDialogs(page);
+  finalEans.forEach((ean) => allNotFoundEans.add(ean));
+
   // Ожидаем скачивание при нажатии на экспорт
   console.log('Подтверждаем экспорт файла Excel...');
-  const dialogBtn = page.locator('#exportSubmit, button:has-text("EXPORT"), input[value*="EXPORT"], .button--primary:has-text("EXPORT"), button:has-text("Export")').first();
-  await dialogBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
+  // Поиск кнопки экспорта в диалоге через все возможные селекторы
+  let exportBtnClicked = false;
+  const clickExportBtn = async () => {
+    // Способ 1: Playwright локаторы с force click
+    const selectors = [
+      '#exportSubmit',
+      'button:has-text("EXPORT")',
+      'input[value*="EXPORT"]',
+      '.button--primary:has-text("EXPORT")',
+      'button:has-text("Export")',
+      'button:has-text("export")',
+      '[type="submit"]',
+    ];
+    for (const sel of selectors) {
+      try {
+        const btn = page.locator(sel).first();
+        if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          console.log(`Найдена кнопка экспорта: ${sel}`);
+          await btn.click({ force: true });
+          exportBtnClicked = true;
+          return;
+        }
+      } catch {}
+    }
+
+    // Способ 2: JavaScript поиск по тексту внутри диалога экспорта (#table-export-dialog)
+    const jsClicked = await page.evaluate(() => {
+      // Ищем ТОЛЬКО в диалоге экспорта, не в других модалках
+      const exportDialog = document.querySelector('#table-export-dialog');
+      if (!exportDialog) return false;
+      const allButtons = exportDialog.querySelectorAll('button, input[type="submit"], input[type="button"], a.button');
+      for (const btn of allButtons) {
+        const text = (btn.textContent || '').toLowerCase();
+        const value = ((btn as HTMLInputElement).value || '').toLowerCase();
+        if (text.includes('export') || value.includes('export')) {
+          (btn as HTMLElement).click();
+          return true;
+        }
+      }
+      return false;
+    });
+    if (jsClicked) {
+      console.log('Кнопка экспорта найдена и нажата через JavaScript в диалоге экспорта');
+      exportBtnClicked = true;
+      return;
+    }
+
+    // Способ 3: последняя попытка — ищем любой submit/primary button именно в #table-export-dialog
+    const fallbackClicked = await page.evaluate(() => {
+      const exportDialog = document.querySelector('#table-export-dialog');
+      if (!exportDialog) return false;
+      const submitBtns = exportDialog.querySelectorAll('button[type="submit"], input[type="submit"], .button--primary, button.primary, .btn-primary');
+      for (const btn of submitBtns) {
+        (btn as HTMLElement).click();
+        return true;
+      }
+      // Последняя надежда — любой button в exportDialog
+      const anyBtn = exportDialog.querySelector('button, input[type="button"]');
+      if (anyBtn) {
+        (anyBtn as HTMLElement).click();
+        return true;
+      }
+      return false;
+    });
+    if (fallbackClicked) console.log('Экспорт запущен через fallback (submit/primary кнопка в диалоге экспорта)');
+  };
+
+  await clickExportBtn();
+
+  if (!exportBtnClicked) {
+    const errScreenshot = path.resolve(process.cwd(), 'temp_export_timeout.png');
+    await page.screenshot({ path: errScreenshot, fullPage: true }).catch(() => {});
+    console.error(`Скриншот ошибки сохранен в: ${errScreenshot}`);
+    throw new Error('Не удалось найти кнопку экспорта в диалоге');
+  }
 
   try {
-    const [download] = await Promise.all([
-      page.waitForEvent('download', { timeout: 90000 }),
-      dialogBtn.click({ force: true }),
-    ]);
+    const download = await page.waitForEvent('download', { timeout: 90000 });
 
     // Сохраняем файл
     fs.mkdirSync(path.dirname(resolvedOutputPath), { recursive: true });
@@ -222,8 +377,16 @@ async function main() {
   } finally {
     await browser.close();
   }
-  console.log('Готово!');
 
+  // Сохраняем ненайденные EAN в файл рядом с выгрузкой
+  if (allNotFoundEans.size > 0) {
+    const notFoundPath = resolvedOutputPath.replace(/\.xlsx$/i, '_not_found_eans.txt');
+    fs.writeFileSync(notFoundPath, Array.from(allNotFoundEans).join('\n'), 'utf-8');
+    console.log(`Ненайденные EAN (${allNotFoundEans.size} шт.) сохранены в: ${notFoundPath}`);
+    console.log('Эти товары отсутствуют на Amazon и являются кандидатами на создание новых карточек.');
+  }
+
+  console.log('Готово!');
 }
 
 main().catch((err) => {
