@@ -14,7 +14,9 @@ import {
   FormControl,
   InputLabel,
   SelectChangeEvent,
-  CircularProgress,
+  Card,
+  CardContent,
+  Skeleton,
 } from '@mui/material';
 import {
   School,
@@ -164,10 +166,19 @@ function App() {
               minHeight={0}
               p={3}
             >
-              <CircularProgress />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Loading languages...
-              </Typography>
+              <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center' }}>
+                <CardContent>
+                  <Skeleton variant="text" width="55%" sx={{ fontSize: '1.5rem', mb: 2 }} />
+                  <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
+                  <Skeleton variant="text" width="100%" sx={{ mb: 1 }} />
+                  <Skeleton variant="text" width="100%" sx={{ mb: 3 }} />
+                  <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1, mb: 2 }} />
+                  <Box display="flex" justifyContent="center" gap={1}>
+                    <Skeleton variant="rectangular" width={140} height={40} sx={{ borderRadius: '20px' }} />
+                    <Skeleton variant="rectangular" width={160} height={40} sx={{ borderRadius: '20px' }} />
+                  </Box>
+                </CardContent>
+              </Card>
             </Box>
           ) : (
             <>

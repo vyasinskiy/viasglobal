@@ -20,7 +20,7 @@ import {
   Box,
   Alert,
   Typography,
-  CircularProgress,
+  Skeleton,
 } from '@mui/material';
 import {
   Edit,
@@ -130,12 +130,16 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
 
   if (loading) {
     return (
-      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" p={4}>
-        <CircularProgress />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Loading words...
-        </Typography>
-      </Box>
+      <Paper>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Skeleton variant="text" width={200} sx={{ fontSize: '1.25rem' }} />
+          <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: '20px' }} />
+        </Box>
+        <Skeleton variant="rectangular" height={48} sx={{ mb: 1, borderRadius: 1 }} />
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} variant="rectangular" height={56} sx={{ mb: 1, borderRadius: 1 }} />
+        ))}
+      </Paper>
     );
   }
 

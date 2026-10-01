@@ -18,7 +18,7 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
-  CircularProgress,
+  Skeleton,
   useMediaQuery,
 } from '@mui/material';
 import {
@@ -208,12 +208,15 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   if (loading && !currentWord) {
     return (
-      <Card sx={{ minWidth: 400, textAlign: 'center', p: 4 }}>
-        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" p={2}>
-          <CircularProgress />
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Loading word...
-          </Typography>
+      <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center', p: 4 }}>
+        <Skeleton variant="text" width="55%" sx={{ fontSize: '1.5rem', mb: 2 }} />
+        <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
+        <Skeleton variant="text" width="100%" sx={{ mb: 1 }} />
+        <Skeleton variant="text" width="100%" sx={{ mb: 3 }} />
+        <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1, mb: 2 }} />
+        <Box display="flex" justifyContent="center" gap={1}>
+          <Skeleton variant="rectangular" width={140} height={40} sx={{ borderRadius: '20px' }} />
+          <Skeleton variant="rectangular" width={160} height={40} sx={{ borderRadius: '20px' }} />
         </Box>
       </Card>
     );
@@ -221,7 +224,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   if (error && !currentWord) {
     return (
-      <Card sx={{ minWidth: 400, textAlign: 'center', p: 4 }}>
+      <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center', p: 4 }}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
@@ -234,7 +237,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   if (!currentWord) {
     return (
-      <Card sx={{ minWidth: 400, textAlign: 'center', p: 4 }}>
+      <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center', p: 4 }}>
         <Typography variant="h6" gutterBottom>
           No words available for study
         </Typography>
@@ -250,7 +253,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   return (
     <>
-      <Card sx={{ minWidth: 400, maxWidth: 600 }}>
+      <Card sx={{ width: { xs: '100%', sm: 800 } }}>
         <CardContent sx={{ paddingTop: isMobile ? 0 : 1, paddingBottom: isMobile ? '14px !important' : 1 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h5" component="div">

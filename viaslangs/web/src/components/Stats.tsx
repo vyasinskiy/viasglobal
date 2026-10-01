@@ -6,7 +6,7 @@ import {
   CardContent,
   Typography,
   Box,
-  CircularProgress,
+  Skeleton,
   Alert,
   Button,
   Dialog,
@@ -204,8 +204,25 @@ const handleCopyTodayWordsJson = async () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={4}>
-        <CircularProgress />
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Skeleton variant="text" width={220} sx={{ fontSize: '1.5rem' }} />
+          <Box display="flex" gap={1}>
+            <Skeleton variant="rectangular" width={170} height={40} sx={{ borderRadius: '20px' }} />
+            <Skeleton variant="rectangular" width={130} height={40} sx={{ borderRadius: '20px' }} />
+          </Box>
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} sx={{ height: '100%' }}>
+              <CardContent>
+                <Skeleton variant="text" width="45%" />
+                <Skeleton variant="text" width="30%" sx={{ fontSize: '2rem' }} />
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+        <Skeleton variant="rectangular" height={20} sx={{ mt: 3, borderRadius: 1 }} />
       </Box>
     );
   }
@@ -274,9 +291,8 @@ const handleCopyTodayWordsJson = async () => {
             disabled={jsonLoading}
           >
             {jsonLoading ? (
-              <Box display="flex" alignItems="center" gap={1}>
-                <CircularProgress size={18} />
-                Fetching...
+              <Box sx={{ minWidth: 130, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Skeleton variant="text" width={120} sx={{ fontSize: '0.875rem' }} />
               </Box>
             ) : (
               'Today Correct Words'
