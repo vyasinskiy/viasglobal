@@ -1,0 +1,121 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ vars.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Create ECR repository if not exists
+      run: |
+        aws ecr describe-repositories --repository-names vy-langs || \
+        aws ecr create-repository --repository-name vy-langs
+
+    - name: Apply ECR lifecycle policy
+      run: |
+        aws ecr put-lifecycle-policy \
+          --repository-name vy-langs \
+          --lifecycle-policy-text file://ecr-lifecycle-policy.json
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and push Docker image
+      env:
+        ECR_REPOSITORY: vy-langs
+        IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
+      run: |
+        docker build \
+          --build-arg REACT_APP_BACKEND_URL=http://${{ vars.EC2_HOST }}:${{ vars.BACKEND_PORT }} \
+          -t $ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Prepare variables for deployment
+      # $GITHUB_ENV - special file, all variables saved to github_env will be available on next pipeline steps
+      id: vars
+      run: | # ECR_REGISTRY is taken from output of the step login-ecr (not from repository vars)
+        echo "IMAGE_TAG=${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}" >> $GITHUB_ENV
+        echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
+
+    - name: Create SSH key from base64
+      run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        echo "${{ vars.EC2_SSH_KEY_BASE64 }}" | base64 -d > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        
+        # Проверяем ключ
+        echo "SSH key info:"
+        ssh-keygen -l -f ~/.ssh/deploy_key || echo "Key format check completed"
+
+    - name: Deploy on EC2
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ vars.EC2_USERNAME }}@${{ vars.EC2_HOST }} << 'EOF'
+          export AWS_ACCESS_KEY_ID=${{ vars.AWS_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ vars.AWS_SECRET_ACCESS_KEY }}
+          export AWS_REGION=${{ vars.AWS_REGION }}
+          export ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          export IMAGE_TAG=${{ env.IMAGE_TAG }}
+          cd /home/ubuntu/vy-langs/
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+          
+          echo "Pulling image $ECR_REGISTRY/vy-langs:$IMAGE_TAG ..."
+          docker pull "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
+
+          docker stop vy-langs || true
+          docker rm vy-langs || true
+
+          echo "Starting container..."
+          docker run -d --restart=always --name vy-langs \
+            -p '${{ vars.BACKEND_PORT }}':'${{ vars.BACKEND_PORT }}' \
+            -e NODE_ENV='${{ vars.NODE_ENV }}' \
+            -e BACKEND_PORT='${{ vars.BACKEND_PORT }}' \
+            -e DATABASE_URL='${{ vars.DATABASE_URL }}' \
+            "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
+
+          sleep 5
+
+          echo "Checking container status..."
+          CONTAINER_ID=$(docker ps -q -f name=^/vy-langs$)
+
+          if [ -z "$CONTAINER_ID" ]; then
+            echo "Container vy-langs is not running"
+            docker logs vy-langs || true
+            exit 1
+          fi
+
+          STATUS=$(docker inspect --format='{{.State.Status}}' "$CONTAINER_ID")
+
+          if [ "$STATUS" != "running" ]; then
+            echo "Container stopped with status '$STATUS'"
+            docker logs "$CONTAINER_ID"
+            exit 1
+          fi
+
+          echo "Container is running successfully"
+
+          # Apply migrations
+          docker exec "$CONTAINER_ID" npx prisma migrate deploy
+          docker system prune -af --volumes
+        EOF
+
+    - name: Cleanup
+      run: |
+        rm ~/.ssh/deploy_key

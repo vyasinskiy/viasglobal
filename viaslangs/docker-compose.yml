@@ -1,0 +1,39 @@
+name: vy-langs
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vy-langs-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vyuser
+      POSTGRES_PASSWORD: vy-langs-password
+      POSTGRES_DB: vy_langs_db
+    volumes:
+      - vy_langs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vyuser -d vy_langs_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      args:
+        REACT_APP_BACKEND_URL: http://100.92.50.18:4000
+    container_name: vy-langs-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://vyuser:vy-langs-password@db:5432/vy_langs_db
+      BACKEND_PORT: 4000
+    ports:
+      - "4000:4000"
+    command: >
+      sh -c "cd server && npx prisma db push && cd .. && node server/index.js"
+
+volumes:
+  vy_langs_pgdata:

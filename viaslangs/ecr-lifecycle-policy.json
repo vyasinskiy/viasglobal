@@ -1,0 +1,42 @@
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+            "description": "Keep only one untagged image, expire all others",
+            "selection": {
+                "tagStatus": "untagged",
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        },
+        {
+            "rulePriority": 2,
+            "description": "Keep last 2 production images",
+            "selection": {
+                "tagStatus": "tagged",
+                "tagPrefixList": ["production"],
+                "countType": "imageCountMoreThan",
+                "countNumber": 2
+            },
+            "action": {
+                "type": "expire"
+            }
+        },
+        {
+            "rulePriority": 3,
+            "description": "Keep last 2 test images",
+            "selection": {
+                "tagStatus": "tagged",
+                "tagPrefixList": ["test"],
+                "countType": "imageCountMoreThan",
+                "countNumber": 2
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+} 

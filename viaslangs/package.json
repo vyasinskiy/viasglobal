@@ -1,0 +1,14 @@
+{
+  "name": "english-words-app",
+  "version": "1.0.0",
+  "description": "Приложение для повторения английских слов",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "install:all": "npm install --prefix client && npm install --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

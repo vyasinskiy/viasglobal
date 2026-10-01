@@ -1,0 +1,23 @@
+name: vy-langs
+
+services:
+  backend:
+    build:
+      context: .
+      args:
+        REACT_APP_BACKEND_URL: http://100.92.50.18:4000
+    container_name: vy-langs-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://vyuser:vy-langs-password@backend-db-1:5432/vy_langs_db
+      BACKEND_PORT: 4000
+    ports:
+      - "4000:4000"
+    command: >
+      sh -c "cd server && npx prisma db push && cd .. && node server/index.js"
+    networks:
+      - backend_default
+
+networks:
+  backend_default:
+    external: true
