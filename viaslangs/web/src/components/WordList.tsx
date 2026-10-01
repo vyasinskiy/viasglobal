@@ -20,6 +20,7 @@ import {
   Box,
   Alert,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import {
   Edit,
@@ -128,7 +129,14 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
   };
 
   if (loading) {
-    return <Typography>Loading words...</Typography>;
+    return (
+      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" p={4}>
+        <CircularProgress />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Loading words...
+        </Typography>
+      </Box>
+    );
   }
 
   if (error) {

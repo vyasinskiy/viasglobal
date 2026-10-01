@@ -9,14 +9,12 @@ import {
   Box,
   Tabs,
   Tab,
-  CssBaseline,
-  ThemeProvider,
-  createTheme,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   SelectChangeEvent,
+  CircularProgress,
 } from '@mui/material';
 import {
   School,
@@ -31,17 +29,6 @@ import { StatsComponent } from './components/Stats';
 import { Language } from '../lib/types';
 import { languagesApi } from './services/api';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
-
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -51,15 +38,21 @@ interface TabPanelProps {
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
+  if (value !== index) {
+    return null;
+  }
+
   return (
     <div
       role="tabpanel"
-      hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
+      style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+        {children}
+      </Box>
     </div>
   );
 }
@@ -118,115 +111,151 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static">
-          <Toolbar>
-            <Translate sx={{ mr: 1 }} />
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              VY - Langs learning application
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 160, color: 'inherit' }}>
-              <InputLabel id="language-select-label" sx={{ color: 'inherit' }}>
-                Language
-              </InputLabel>
-              <Select
-                labelId="language-select-label"
-                id="language-select"
-                value={selectedLanguageId ? String(selectedLanguageId) : ''}
-                onChange={handleLanguageChange}
-                label="Language"
-                disabled={languageError || languages.length === 0}
-                sx={{
-                  color: 'inherit',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.5)' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
-                  '& .MuiSvgIcon-root': { color: 'inherit' },
-                }}
-              >
-                {languages.map((lang) => (
-                  <MenuItem key={lang.id} value={String(lang.id)}>
-                    {lang.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Toolbar>
-        </AppBar>
-
-        <Container>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-              value={tabValue} 
-              onChange={handleTabChange} 
-              aria-label="app tabs"
-              variant="scrollable"
-              scrollButtons="auto"
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', flexGrow: 1 }}>
+      <AppBar
+        position="sticky"
+        color="inherit"
+        sx={{
+          borderBottom: '1px solid rgba(148,163,184,0.2)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+          bgcolor: 'rgba(15, 23, 42, 0.95)',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        <Toolbar>
+          <Translate sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 800, color: 'text.primary' }}>
+            VY - Langs learning application
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel id="language-select-label">Language</InputLabel>
+            <Select
+              labelId="language-select-label"
+              id="language-select"
+              value={selectedLanguageId ? String(selectedLanguageId) : ''}
+              onChange={handleLanguageChange}
+              label="Language"
+              disabled={languageError || languages.length === 0}
+              sx={{
+                borderRadius: '20px',
+                minHeight: 40,
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+              }}
             >
-              <Tab 
-                icon={<School />} 
-                label="Study" 
-                iconPosition="start"
-              />
-              <Tab 
-                icon={<Favorite />} 
-                label="Favorites" 
-                iconPosition="start"
-              />
-              <Tab 
-                icon={<List />} 
-                label="Words List" 
-                iconPosition="start"
-              />
-              <Tab 
-                icon={<BarChart />} 
-                label="Statistics" 
-                iconPosition="start"
-              />
-            </Tabs>
-          </Box>
+              {languages.map((lang) => (
+                <MenuItem key={lang.id} value={String(lang.id)}>
+                  {lang.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Toolbar>
+      </AppBar>
 
-          <TabPanel value={tabValue} index={0}>
-            <Box display="flex" justifyContent="center" marginTop="-16px">
-              <StudyCard 
-                key={`study-${selectedLanguageId}-${wordsUpdated}`}
-                onWordCompleted={handleWordCompleted}
-                favoriteOnly={false}
-                languageId={selectedLanguageId}
-              />
+        <Container sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+          {selectedLanguageId === undefined && !languageError ? (
+            <Box
+              display="flex"
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              flexGrow={1}
+              minHeight={0}
+              p={3}
+            >
+              <CircularProgress />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                Loading languages...
+              </Typography>
             </Box>
-          </TabPanel>
+          ) : (
+            <>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs 
+                  value={tabValue} 
+                  onChange={handleTabChange} 
+                  aria-label="app tabs"
+                  variant="scrollable"
+                  scrollButtons="auto"
+                >
+                  <Tab 
+                    icon={<School />} 
+                    label="Study" 
+                    iconPosition="start"
+                  />
+                  <Tab 
+                    icon={<Favorite />} 
+                    label="Favorites" 
+                    iconPosition="start"
+                  />
+                  <Tab 
+                    icon={<List />} 
+                    label="Words List" 
+                    iconPosition="start"
+                  />
+                  <Tab 
+                    icon={<BarChart />} 
+                    label="Statistics" 
+                    iconPosition="start"
+                  />
+                </Tabs>
+              </Box>
 
-          <TabPanel value={tabValue} index={1}>
-            <Box display="flex" justifyContent="center">
-              <StudyCard 
-                key={`favorites-${selectedLanguageId}-${wordsUpdated}`}
-                onWordCompleted={handleWordCompleted}
-                favoriteOnly={true}
-                languageId={selectedLanguageId}
-              />
-            </Box>
-          </TabPanel>
+              <TabPanel value={tabValue} index={0}>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="center"
+                  flexGrow={1}
+                  minHeight={0}
+                >
+                  <StudyCard 
+                    key={`study-${selectedLanguageId}-${wordsUpdated}`}
+                    onWordCompleted={handleWordCompleted}
+                    favoriteOnly={false}
+                    languageId={selectedLanguageId}
+                  />
+                </Box>
+              </TabPanel>
 
-          <TabPanel value={tabValue} index={2}>
-            <WordList 
-              key={`list-${selectedLanguageId}`}
-              onWordUpdated={handleWordUpdated} 
-              languageId={selectedLanguageId}
-            />
-          </TabPanel>
+              <TabPanel value={tabValue} index={1}>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="center"
+                  flexGrow={1}
+                  minHeight={0}
+                >
+                  <StudyCard 
+                    key={`favorites-${selectedLanguageId}-${wordsUpdated}`}
+                    onWordCompleted={handleWordCompleted}
+                    favoriteOnly={true}
+                    languageId={selectedLanguageId}
+                  />
+                </Box>
+              </TabPanel>
 
-          <TabPanel value={tabValue} index={3}>
-            <StatsComponent 
-              key={`stats-${selectedLanguageId}`}
-              languageId={selectedLanguageId}
-            />
-          </TabPanel>
+              <TabPanel value={tabValue} index={2}>
+                <WordList 
+                  key={`list-${selectedLanguageId}`}
+                  onWordUpdated={handleWordUpdated} 
+                  languageId={selectedLanguageId}
+                />
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={3}>
+                <StatsComponent 
+                  key={`stats-${selectedLanguageId}`}
+                  languageId={selectedLanguageId}
+                />
+              </TabPanel>
+            </>
+          )}
         </Container>
       </Box>
-
-    </ThemeProvider>
   );
 }
 

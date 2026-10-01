@@ -227,7 +227,7 @@ const handleCopyTodayWordsJson = async () => {
       title: 'Total Words',
       value: stats.totalWords,
       icon: <Book color="primary" />,
-      color: '#1976d2',
+      color: '#FF9900',
     },
     {
       title: 'Learned Words',
@@ -245,7 +245,7 @@ const handleCopyTodayWordsJson = async () => {
       title: 'Total Answers',
       value: stats.totalAnswers,
       icon: <Psychology color="info" />,
-      color: '#0288d1',
+      color: '#2563EB',
     },
     {
       title: 'Correct Answers',
@@ -257,7 +257,7 @@ const handleCopyTodayWordsJson = async () => {
       title: 'Accuracy',
       value: `${stats.accuracy}%`,
       icon: <TrendingUp color="warning" />,
-      color: '#ed6c02',
+      color: '#E68A00',
     },
   ];
 
@@ -322,7 +322,7 @@ const handleCopyTodayWordsJson = async () => {
                 sx={{
                   width: '100%',
                   height: 20,
-                  backgroundColor: '#e0e0e0',
+                  backgroundColor: '#334155',
                   borderRadius: 1,
                   overflow: 'hidden',
                 }}
@@ -331,7 +331,7 @@ const handleCopyTodayWordsJson = async () => {
                   sx={{
                     width: `${(stats.learnedWords / stats.totalWords) * 100}%`,
                     height: '100%',
-                    backgroundColor: '#4caf50',
+                    backgroundColor: '#FF9900',
                     transition: 'width 0.3s ease',
                   }}
                 />

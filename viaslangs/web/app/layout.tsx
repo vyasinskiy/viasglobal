@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import ThemeRegistry from "../src/theme/ThemeRegistry";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "VY-Langs",
@@ -12,9 +19,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body style={{ margin: 0 }}>
-        <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
+    <html lang="en" className={`${inter.variable}`}>
+      <body style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <ThemeRegistry>
+          <main style={{ flexGrow: 1, width: "100%" }}>
+            {children}
+          </main>
+        </ThemeRegistry>
       </body>
     </html>
   );

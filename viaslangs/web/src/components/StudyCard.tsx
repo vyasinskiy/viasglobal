@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
+  CircularProgress,
   useMediaQuery,
 } from '@mui/material';
 import {
@@ -208,7 +209,12 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   if (loading && !currentWord) {
     return (
       <Card sx={{ minWidth: 400, textAlign: 'center', p: 4 }}>
-        <Typography>Loading...</Typography>
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" p={2}>
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Loading word...
+          </Typography>
+        </Box>
       </Card>
     );
   }
@@ -313,7 +319,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               label="Enter word in the selected language"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              disabled={loading || result?.isCorrect || isExampleRevealed || isAnswerRevealed}
+              disabled={loading || result?.isCorrect || isAnswerRevealed}
               inputRef={inputRef}
               sx={{ mb: 2 }}
               autoComplete="off"
@@ -330,7 +336,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             {isExampleRevealed && (
               <Box mb={2}>
                 <Alert icon={<Info />} severity="info">
-                  Example revealed. Input is locked. Click Next to continue.
+                  Example revealed.
                 </Alert>
               </Box>
             )}
@@ -373,7 +379,6 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               <Button
                 type="button"
                 variant="text"
-                color="secondary"
                 fullWidth={!isMobile}
                 onClick={() => setIsAnswerRevealed(true)}
                 disabled={
@@ -381,7 +386,13 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                     result && !result.isCorrect && !result.isPartial && !result.isSynonym
                   )
                 }
-                sx={isMobile ? { flex: 1 } : undefined}
+                sx={{
+                  ...(isMobile ? { flex: 1 } : undefined),
+                  '&.Mui-disabled': {
+                    color: 'rgba(244, 246, 248, 0.85)',
+                    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                  },
+                }}
               >
                 Show Answer
               </Button>
@@ -394,11 +405,16 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                   loading ||
                   !answer.trim() ||
                   result?.isCorrect ||
-                  isExampleRevealed ||
                   isAnswerRevealed ||
                   Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)
                 }
-                sx={isMobile ? { flex: 1 } : undefined}
+                sx={{
+                  ...(isMobile ? { flex: 1 } : undefined),
+                  '&.Mui-disabled': {
+                    color: 'rgba(244, 246, 248, 0.85)',
+                    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                  },
+                }}
               >
                 {loading ? 'Checking...' : 'Check Answer'}
               </Button>
@@ -419,7 +435,12 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                   }
                   loadNextWord(true);
                 }}
-                sx={isMobile ? { flex: 1 } : undefined}
+                sx={{
+                  ...(isMobile ? { flex: 1 } : undefined),
+                  '&.Mui-disabled': {
+                    color: 'rgba(244, 246, 248, 0.85)',
+                  },
+                }}
               >
                 Next
               </Button>
