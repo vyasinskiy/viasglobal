@@ -8,7 +8,11 @@ const WORD_SELECT = `
   SELECT w.id, w.language_id AS "languageId", w.english, w.russian,
          w.example_en AS "exampleEn", w.example_ru AS "exampleRu",
          w.created_at AS "createdAt", w.updated_at AS "updatedAt",
-         w.is_favorite AS "isFavorite"
+         w.is_favorite AS "isFavorite",
+         COALESCE((
+           SELECT array_agg(wt.tag_id ORDER BY wt.tag_id)
+           FROM vy_word_tags wt WHERE wt.word_id = w.id
+         ), '{}') AS "tagIds"
   FROM vy_words w
 `;
 
@@ -18,6 +22,7 @@ export async function GET(req: Request) {
     const favoriteOnly = searchParams.get("favoriteOnly") === "true";
     const excludeId = searchParams.get("excludeId");
     const languageId = searchParams.get("languageId");
+    const tagId = searchParams.get("tagId");
 
     const params: unknown[] = [];
     const conditions: string[] = [];
@@ -28,6 +33,12 @@ export async function GET(req: Request) {
     if (languageId) {
       params.push(parseInt(languageId));
       conditions.push(`w.language_id = $${params.length}`);
+    }
+    if (tagId) {
+      params.push(parseInt(tagId));
+      conditions.push(
+        `w.id IN (SELECT word_id FROM vy_word_tags WHERE tag_id = $${params.length})`
+      );
     }
 
     const whereComplete = [

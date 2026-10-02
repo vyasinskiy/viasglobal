@@ -21,6 +21,10 @@ import {
   Alert,
   Typography,
   Skeleton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Edit,
@@ -29,15 +33,17 @@ import {
   FavoriteBorder,
   Add,
 } from '@mui/icons-material';
-import { Word, CreateWordRequest } from '../../lib/types';
+import { Word, Tag, CreateWordRequest } from '../../lib/types';
 import { wordsApi } from '../services/api';
 
 interface WordListProps {
   onWordUpdated: () => void;
   languageId?: number;
+  tagId?: number;
+  tags?: Tag[];
 }
 
-export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId }) => {
+export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId, tagId, tags = [] }) => {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,18 +56,19 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
     exampleEn: '',
     exampleRu: '',
   });
+  const [formTagId, setFormTagId] = useState<number | undefined>(undefined);
 
   const loadWords = useCallback(async () => {
     try {
       setLoading(true);
-      const wordsData = await wordsApi.getAll(languageId);
+      const wordsData = await wordsApi.getAll(languageId, tagId);
       setWords(wordsData);
     } catch (err: unknown) {
       setError('Failed to load words');
     } finally {
       setLoading(false);
     }
-  }, [languageId]);
+  }, [languageId, tagId]);
 
   useEffect(() => {
     loadWords();
@@ -75,6 +82,7 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
       exampleEn: word.exampleEn,
       exampleRu: word.exampleRu,
     });
+    setFormTagId(word.tagIds?.[0]);
     setEditDialogOpen(true);
   };
 
@@ -86,15 +94,17 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
       exampleEn: '',
       exampleRu: '',
     });
+    setFormTagId(undefined);
     setAddDialogOpen(true);
   };
 
   const handleSave = async () => {
     try {
+      const tagIds = formTagId ? [formTagId] : [];
       if (editingWord) {
-        await wordsApi.update(editingWord.id, formData);
+        await wordsApi.update(editingWord.id, { ...formData, tagIds });
       } else {
-        await wordsApi.create({ ...formData, languageId });
+        await wordsApi.create({ ...formData, languageId, tagIds });
       }
       
       setEditDialogOpen(false);
@@ -173,6 +183,7 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
               <TableCell>Example</TableCell>
               <TableCell>Example (RU)</TableCell>
               <TableCell>Favorite</TableCell>
+              <TableCell>Tag</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -197,6 +208,11 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
                       {word.isFavorite ? <Favorite color="primary" /> : <FavoriteBorder />}
                     </IconButton>
                   </Tooltip>
+                </TableCell>
+                <TableCell sx={{ maxWidth: 180 }}>
+                  <Typography variant="body2" noWrap>
+                    {word.tagIds?.map((id) => tags.find((t) => t.id === id)?.name).filter(Boolean).join(', ') || '—'}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Tooltip title="Edit">
@@ -234,6 +250,27 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
             onChange={(e) => setFormData({ ...formData, russian: e.target.value })}
             margin="normal"
           />
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="word-tag-select">Tag (optional)</InputLabel>
+            <Select
+              labelId="word-tag-select"
+              id="word-tag-select"
+              value={formTagId ? String(formTagId) : ''}
+              onChange={(e) =>
+                setFormTagId(e.target.value ? Number(e.target.value) : undefined)
+              }
+              label="Tag (optional)"
+            >
+              <MenuItem value="">
+                No tag
+              </MenuItem>
+              {tags.map((tag) => (
+                <MenuItem key={tag.id} value={String(tag.id)}>
+                  {tag.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             label="Example"
@@ -277,6 +314,27 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId })
             onChange={(e) => setFormData({ ...formData, russian: e.target.value })}
             margin="normal"
           />
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="word-tag-select">Tag (optional)</InputLabel>
+            <Select
+              labelId="word-tag-select"
+              id="word-tag-select"
+              value={formTagId ? String(formTagId) : ''}
+              onChange={(e) =>
+                setFormTagId(e.target.value ? Number(e.target.value) : undefined)
+              }
+              label="Tag (optional)"
+            >
+              <MenuItem value="">
+                No tag
+              </MenuItem>
+              {tags.map((tag) => (
+                <MenuItem key={tag.id} value={String(tag.id)}>
+                  {tag.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             label="Example"

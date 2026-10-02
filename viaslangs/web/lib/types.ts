@@ -10,6 +10,14 @@ export interface Language {
   name: string;
 }
 
+export interface Tag {
+  id: number;
+  languageId: number;
+  name: string;
+  createdAt: string;
+  wordCount?: number;
+}
+
 export interface Word {
   id: number;
   languageId: number;
@@ -20,6 +28,7 @@ export interface Word {
   createdAt: string;
   updatedAt: string;
   isFavorite: boolean;
+  tagIds: number[];
 }
 
 export interface StudyWordResponse {
@@ -42,6 +51,7 @@ export interface CreateWordRequest {
   russian: string;
   exampleEn: string;
   exampleRu: string;
+  tagIds?: number[];
 }
 
 export interface UpdateWordRequest {
@@ -51,6 +61,7 @@ export interface UpdateWordRequest {
   exampleEn?: string;
   exampleRu?: string;
   isFavorite?: boolean;
+  tagIds?: number[];
 }
 
 export interface CheckAnswerRequest {

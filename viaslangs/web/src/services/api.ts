@@ -1,6 +1,7 @@
 import {
   Word,
   Language,
+  Tag,
   CreateWordRequest,
   UpdateWordRequest,
   CheckAnswerRequest,
@@ -52,10 +53,27 @@ export const languagesApi = {
   },
 };
 
-export const wordsApi = {
-  getAll: async (languageId?: number): Promise<Word[]> => {
+export const tagsApi = {
+  getAll: async (languageId?: number): Promise<Tag[]> => {
     const params = new URLSearchParams();
     if (languageId) params.set("languageId", String(languageId));
+    const data = await request<Tag[]>(`/api/tags?${params.toString()}`);
+    return data || [];
+  },
+
+  create: async (languageId: number, name: string): Promise<Tag> => {
+    return request<Tag>("/api/tags", {
+      method: "POST",
+      body: JSON.stringify({ languageId, name }),
+    });
+  },
+};
+
+export const wordsApi = {
+  getAll: async (languageId?: number, tagId?: number): Promise<Word[]> => {
+    const params = new URLSearchParams();
+    if (languageId) params.set("languageId", String(languageId));
+    if (tagId) params.set("tagId", String(tagId));
     const data = await request<Word[]>(`/api/words?${params.toString()}`);
     return data || [];
   },
@@ -67,12 +85,14 @@ export const wordsApi = {
   getStudyWord: async (
     favoriteOnly: boolean = false,
     excludeId?: number,
-    languageId?: number
+    languageId?: number,
+    tagId?: number
   ): Promise<StudyWordResponse> => {
     const params = new URLSearchParams();
     params.set("favoriteOnly", String(favoriteOnly));
     if (excludeId) params.set("excludeId", String(excludeId));
     if (languageId) params.set("languageId", String(languageId));
+    if (tagId) params.set("tagId", String(tagId));
 
     try {
       return await request<StudyWordResponse>(`/api/words/study?${params.toString()}`);
@@ -85,9 +105,10 @@ export const wordsApi = {
     }
   },
 
-  getFavorites: async (languageId?: number): Promise<Word[]> => {
+  getFavorites: async (languageId?: number, tagId?: number): Promise<Word[]> => {
     const params = new URLSearchParams();
     if (languageId) params.set("languageId", String(languageId));
+    if (tagId) params.set("tagId", String(tagId));
     const data = await request<Word[]>(`/api/words/favorites?${params.toString()}`);
     return data || [];
   },

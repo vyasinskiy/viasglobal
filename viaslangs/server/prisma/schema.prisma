@@ -13,8 +13,9 @@ model Language {
   name  String
 
   words Word[]
+  tags  Tag[]
 
-  @@map("languages")
+  @@map("vy_languages")
 }
 
 model Word {
@@ -30,9 +31,36 @@ model Word {
 
   language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
   answers     Answer[]
+  tags        WordTag[]
 
   @@index([languageId])
-  @@map("words")
+  @@map("vy_words")
+}
+
+model Tag {
+  id         Int      @id @default(autoincrement())
+  languageId Int
+  name       String
+  createdAt  DateTime @default(now())
+
+  language   Language  @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  words      WordTag[]
+
+  @@unique([languageId, name])
+  @@index([languageId])
+  @@map("vy_tags")
+}
+
+model WordTag {
+  wordId Int
+  tagId  Int
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([wordId, tagId])
+  @@index([tagId])
+  @@map("vy_word_tags")
 }
 
 model Answer {
@@ -45,5 +73,5 @@ model Answer {
   
   word      Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
   
-  @@map("answers")
+  @@map("vy_answers")
 }

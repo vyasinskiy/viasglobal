@@ -37,12 +37,14 @@ interface StudyCardProps {
   onWordCompleted: () => void;
   favoriteOnly?: boolean;
   languageId?: number;
+  tagId?: number;
 }
 
 export const StudyCard: React.FC<StudyCardProps> = ({
   onWordCompleted,
   favoriteOnly = false,
-  languageId
+  languageId,
+  tagId,
 }) => {
   const theme = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -87,7 +89,8 @@ export const StudyCard: React.FC<StudyCardProps> = ({
       const studyWordResponse = await wordsApi.getStudyWord(
         favoriteOnly,
         excludeCurrent && currentWordRef.current ? currentWordRef.current.id : undefined,
-        languageId
+        languageId,
+        tagId
       );
       setCurrentWord(studyWordResponse.word);
       setAnswer('');
@@ -106,7 +109,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [favoriteOnly, languageId]);
+  }, [favoriteOnly, languageId, tagId]);
 
   useEffect(() => {
     if (shouldFocusInput) {

@@ -8,7 +8,11 @@ const WORD_SELECT = `
   SELECT w.id, w.language_id AS "languageId", w.english, w.russian,
          w.example_en AS "exampleEn", w.example_ru AS "exampleRu",
          w.created_at AS "createdAt", w.updated_at AS "updatedAt",
-         w.is_favorite AS "isFavorite"
+         w.is_favorite AS "isFavorite",
+         COALESCE((
+           SELECT array_agg(wt.tag_id ORDER BY wt.tag_id)
+           FROM vy_word_tags wt WHERE wt.word_id = w.id
+         ), '{}') AS "tagIds"
   FROM vy_words w
 `;
 
@@ -82,18 +86,32 @@ export async function PUT(
       updates.push(`${col} = $${paramsArr.length}`);
     }
 
-    if (updates.length === 0) {
+    if (updates.length === 0 && !Array.isArray(body.tagIds)) {
       return NextResponse.json({
         success: false,
         error: "No valid fields to update",
       });
     }
 
-    paramsArr.push(wordId);
-    const result = await pool.query(
-      `${WORD_SELECT} WHERE w.id = $${paramsArr.length} RETURNING *`,
-      paramsArr
-    );
+    if (updates.length > 0) {
+      paramsArr.push(wordId);
+      await pool.query(
+        `UPDATE vy_words SET ${updates.join(", ")} WHERE id = $${paramsArr.length}`,
+        paramsArr
+      );
+    }
+
+    if (Array.isArray(body.tagIds)) {
+      await pool.query(`DELETE FROM vy_word_tags WHERE word_id = $1`, [wordId]);
+      for (const tagId of body.tagIds) {
+        await pool.query(
+          `INSERT INTO vy_word_tags (word_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [wordId, tagId]
+        );
+      }
+    }
+
+    const result = await pool.query(`${WORD_SELECT} WHERE w.id = $1`, [wordId]);
 
     return NextResponse.json({ success: true, data: result.rows[0] });
   } catch (error) {

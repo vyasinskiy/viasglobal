@@ -28,8 +28,8 @@ import {
 import { StudyCard } from './components/StudyCard';
 import { WordList } from './components/WordList';
 import { StatsComponent } from './components/Stats';
-import { Language } from '../lib/types';
-import { languagesApi } from './services/api';
+import { Language, Tag } from '../lib/types';
+import { languagesApi, tagsApi } from './services/api';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,6 +67,9 @@ function App() {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState<number | undefined>(undefined);
   const [languageError, setLanguageError] = useState(false);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTagId, setSelectedTagId] = useState<number | undefined>(undefined);
+  const [tagsLoading, setTagsLoading] = useState(false);
 
   useEffect(() => {
     const savedLanguageId = sessionStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -103,6 +106,23 @@ function App() {
     }
     setWordsUpdated(prev => prev + 1);
   };
+
+  const handleTagChange = (event: SelectChangeEvent<string>) => {
+    const newTagId = event.target.value ? Number(event.target.value) : undefined;
+    setSelectedTagId(newTagId);
+    setWordsUpdated(prev => prev + 1);
+  };
+
+  useEffect(() => {
+    if (selectedLanguageId === undefined) return;
+    setTagsLoading(true);
+    setSelectedTagId(undefined);
+    tagsApi
+      .getAll(selectedLanguageId)
+      .then((loadedTags) => setTags(loadedTags || []))
+      .catch(() => setTags([]))
+      .finally(() => setTagsLoading(false));
+  }, [selectedLanguageId]);
 
   const handleWordCompleted = () => {
     setWordsUpdated(prev => prev + 1);
@@ -151,6 +171,37 @@ function App() {
                 </MenuItem>
               ))}
             </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 220, ml: 1 }}>
+            <InputLabel id="tag-select-label">Tag (pack)</InputLabel>
+            {tagsLoading ? (
+              <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: '20px' }} />
+            ) : (
+              <Select
+                labelId="tag-select-label"
+                id="tag-select"
+                value={selectedTagId ? String(selectedTagId) : ''}
+                onChange={handleTagChange}
+                label="Tag (pack)"
+                disabled={selectedLanguageId === undefined || tags.length === 0}
+                sx={{
+                  borderRadius: '20px',
+                  minHeight: 40,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+                }}
+              >
+                <MenuItem value="">
+                  All words
+                </MenuItem>
+                {tags.map((tag) => (
+                  <MenuItem key={tag.id} value={String(tag.id)}>
+                    {tag.name}
+                    {tag.wordCount ? ` (${tag.wordCount})` : ''}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
           </FormControl>
         </Toolbar>
       </AppBar>
@@ -223,10 +274,11 @@ function App() {
                   minHeight={0}
                 >
                   <StudyCard 
-                    key={`study-${selectedLanguageId}-${wordsUpdated}`}
+                    key={`study-${selectedLanguageId}-${selectedTagId}-${wordsUpdated}`}
                     onWordCompleted={handleWordCompleted}
                     favoriteOnly={false}
                     languageId={selectedLanguageId}
+                    tagId={selectedTagId}
                   />
                 </Box>
               </TabPanel>
@@ -241,19 +293,22 @@ function App() {
                   minHeight={0}
                 >
                   <StudyCard 
-                    key={`favorites-${selectedLanguageId}-${wordsUpdated}`}
+                    key={`favorites-${selectedLanguageId}-${selectedTagId}-${wordsUpdated}`}
                     onWordCompleted={handleWordCompleted}
                     favoriteOnly={true}
                     languageId={selectedLanguageId}
+                    tagId={selectedTagId}
                   />
                 </Box>
               </TabPanel>
 
               <TabPanel value={tabValue} index={2}>
                 <WordList 
-                  key={`list-${selectedLanguageId}`}
+                  key={`list-${selectedLanguageId}-${selectedTagId}`}
                   onWordUpdated={handleWordUpdated} 
                   languageId={selectedLanguageId}
+                  tagId={selectedTagId}
+                  tags={tags}
                 />
               </TabPanel>
 
