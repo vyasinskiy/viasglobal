@@ -17,6 +17,8 @@ import {
   Card,
   CardContent,
   Skeleton,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   School,
@@ -24,6 +26,7 @@ import {
   Favorite,
   BarChart,
   Translate,
+  ExitToApp,
 } from '@mui/icons-material';
 import { StudyCard } from './components/StudyCard';
 import { WordList } from './components/WordList';
@@ -59,7 +62,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const LANGUAGE_STORAGE_KEY = 'vy-langs-selected-language';
+const LANGUAGE_STORAGE_KEY = 'vias-langs-selected-language';
 
 function App() {
   const [tabValue, setTabValue] = useState(0);
@@ -132,6 +135,15 @@ function App() {
     setWordsUpdated(prev => prev + 1);
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err: unknown) {
+      // ignore network errors — still redirect
+    }
+    window.location.href = '/login';
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', flexGrow: 1 }}>
       <AppBar
@@ -147,7 +159,7 @@ function App() {
         <Toolbar>
           <Translate sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 800, color: 'text.primary' }}>
-            VY - Langs learning application
+            VIAS - Langs learning application
           </Typography>
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel id="language-select-label">Language</InputLabel>
@@ -203,6 +215,11 @@ function App() {
               </Select>
             )}
           </FormControl>
+          <Tooltip title="Log out">
+            <IconButton onClick={handleLogout} color="inherit" sx={{ ml: 1 }}>
+              <ExitToApp />
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 

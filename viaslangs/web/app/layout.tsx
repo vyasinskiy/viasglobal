@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VY-Langs",
-  description: "VY - Langs learning application",
+  title: "VIAS-Langs",
+  description: "VIAS - Langs learning application",
 };
 
 export default function RootLayout({

@@ -1,9 +1,9 @@
 import { Pool } from "pg";
 
-const globalForPg = globalThis as unknown as { vyLangsPool?: Pool };
+const globalForPg = globalThis as unknown as { viasLangsPool?: Pool };
 
 export const pool =
-  globalForPg.vyLangsPool ??
+  globalForPg.viasLangsPool ??
   new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl:
@@ -14,7 +14,7 @@ export const pool =
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPg.vyLangsPool = pool;
+  globalForPg.viasLangsPool = pool;
 }
 
 export function toSnakeCase(obj: Record<string, unknown>): Record<string, unknown> {
