@@ -1,0 +1,14 @@
+.PHONY: deploy logs stop restart
+
+deploy:
+	@bash deploy.sh
+
+logs:
+	@docker compose logs -f hermes
+
+stop:
+	@docker compose down
+
+restart:
+	@docker compose restart hermes
+

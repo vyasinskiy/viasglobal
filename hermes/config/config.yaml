@@ -1,0 +1,46 @@
+# Конфигурация платформы Hermes Agent
+agent:
+  name: "ViasGlobal Assistant"
+  system_prompt_file: "config/prompt.txt"
+
+# LLM провайдер через OpenRouter
+model:
+  provider: "openrouter"
+  name: "deepseek/deepseek-chat"
+  temperature: 0.1
+  base_url: "https://openrouter.ai/api/v1"
+
+# Шлюзы сообщений
+platforms:
+  telegram:
+    enabled: true
+    token_env: "TELEGRAM_BOT_TOKEN"
+    allowed_users:
+      - 743866013 # ID владельца (Vitalii Iasinskii)
+
+# Инструменты взаимодействия с сервисами
+tools:
+  - name: "rent_get_tenants"
+    description: "Получить актуальный список арендаторов, квартир и сумм аренды"
+    module: "tools.rent_tools"
+    function: "get_tenants"
+
+  - name: "rent_get_invoices"
+    description: "Получить последние квитанции и начисления по ЖКХ"
+    module: "tools.rent_tools"
+    function: "get_latest_invoices"
+
+  - name: "rent_record_payment"
+    description: "Внести подтвержденный платеж аренды или коммуналки в базу данных (требуется подтверждение владельца)"
+    module: "tools.rent_tools"
+    function: "record_payment"
+
+  - name: "wholesale_search_brands"
+    description: "Найти бренды в базе данных оптовых поставок Amazon"
+    module: "tools.backend_tools"
+    function: "search_brands"
+
+  - name: "wholesale_get_distributors"
+    description: "Получить список дистрибьюторов и поставщиков"
+    module: "tools.backend_tools"
+    function: "get_distributors"

@@ -7,6 +7,9 @@ import { AdminInteractionService } from '../admin/admin-interaction.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { Apartment } from '../admin/types';
 import { formatMeterSubmissionMessage, getMeterSubmissionButtons } from './telegram-bot.controller';
+import { AiAgentService } from '../ai-agent/ai-agent.service';
+import { SpeechToTextService } from '../ai-agent/speech-to-text.service';
+import { DraftStorageService } from '../ai-agent/draft-storage.service';
 
 export interface MyContext extends Context {
   match?: RegExpExecArray;
@@ -50,7 +53,10 @@ export class TelegramBotInteractionService implements OnModuleInit {
   constructor(
     @Inject('ACCOUNTANT_SERVICE') private readonly accountantClient: ClientProxy,
     private readonly adminInteractionService: AdminInteractionService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly aiAgentService: AiAgentService,
+    private readonly speechToTextService: SpeechToTextService,
+    private readonly draftStorageService: DraftStorageService,
   ) { }
 
   onModuleInit() {
@@ -116,6 +122,13 @@ export class TelegramBotInteractionService implements OnModuleInit {
     this.bot.action('payment_amount_default', (ctx) => this.handlePaymentAmountDefault(ctx));
     this.bot.action('skip_payment_photo', (ctx) => this.handleSkipPaymentPhotoAction(ctx));
     this.bot.action('cancel_payment_flow', (ctx) => this.handleCancelPaymentFlow(ctx));
+
+    // Обработчик голосовых сообщений для финансового AI-ассистента
+    this.bot.on('voice', (ctx) => this.handleVoiceMessage(ctx));
+
+    // Обработчики подтверждения и отмены проектов платежей от AI
+    this.bot.action(/^ai_pay_confirm_([a-zA-Z0-9-]+)$/, (ctx) => this.handleAiPayConfirm(ctx));
+    this.bot.action(/^ai_pay_cancel_([a-zA-Z0-9-]+)$/, (ctx) => this.handleAiPayCancel(ctx));
 
     // Handle channel posts for commands manually
     this.bot.on('channel_post', async (ctx, next) => {
@@ -659,12 +672,38 @@ export class TelegramBotInteractionService implements OnModuleInit {
       }
     }
 
+    // Если нет активного пошагового визарда, проверяем, не администратор ли отправляет финансовый комментарий
+    if (ctx.from) {
+      const fromId = ctx.from.id.toString();
+      const isSuperAdmin = fromId === config.SUPER_ADMIN_TELEGRAM_ID;
+      let isAdmin = isSuperAdmin;
+      if (!isAdmin) {
+        try {
+          const user = await this.prisma.user.findUnique({
+            where: { telegramId: BigInt(ctx.from.id) },
+          });
+          if (user?.role === 'admin') {
+            isAdmin = true;
+          }
+        } catch {
+          // Игнорируем ошибку чтения пользователя
+        }
+      }
+
+      if (isAdmin && this.aiAgentService.isConfigured()) {
+        const textMsg = (ctx.message as { text?: string }).text;
+        if (textMsg && !textMsg.startsWith('/')) {
+          return this.processAiInput(ctx, textMsg);
+        }
+      }
+    }
+
     return next();
   }
 
   private async handlePhotoMessage(ctx: MyContext) {
     if (ctx.session?.state === 'awaiting_payment_photo') {
-      const message = ctx.message as any;
+      const message = ctx.message as { photo?: Array<{ file_id: string }> };
       const photo = message.photo?.[message.photo.length - 1];
       if (!photo) {
         return ctx.reply('Пожалуйста, отправьте фотографию чека или нажмите кнопку «Пропустить чек».');
@@ -673,8 +712,11 @@ export class TelegramBotInteractionService implements OnModuleInit {
     }
 
     if (ctx.session?.state === 'awaiting_photo') {
-      const message = ctx.message as any;
-      const photo = message.photo[message.photo.length - 1];
+      const message = ctx.message as { photo?: Array<{ file_id: string }> };
+      const photo = message.photo?.[message.photo.length - 1];
+      if (!photo) {
+        return ctx.reply('Пожалуйста, отправьте фото чека.');
+      }
       const amount = ctx.session.amount;
       const targetTelegramId = ctx.session.paymentTargetTelegramId || ctx.from!.id;
 
@@ -709,8 +751,32 @@ export class TelegramBotInteractionService implements OnModuleInit {
       return;
     }
 
-    // Photo received outside payment flow -> Offer attaching to an event
-    const message = ctx.message as any;
+    // Если прислано фото с комментарием от администратора вне визардов, анализируем как чек оплаты
+    const message = ctx.message as { photo?: Array<{ file_id: string }>; caption?: string };
+    if (message?.photo && message.photo.length > 0 && message.caption && ctx.from) {
+      const fromId = ctx.from.id.toString();
+      const isSuperAdmin = fromId === config.SUPER_ADMIN_TELEGRAM_ID;
+      let isAdmin = isSuperAdmin;
+      if (!isAdmin) {
+        try {
+          const user = await this.prisma.user.findUnique({
+            where: { telegramId: BigInt(ctx.from.id) },
+          });
+          if (user?.role === 'admin') {
+            isAdmin = true;
+          }
+        } catch {
+          // Игнорируем
+        }
+      }
+
+      if (isAdmin && this.aiAgentService.isConfigured()) {
+        const photo = message.photo[message.photo.length - 1];
+        return this.processAiInput(ctx, message.caption, photo.file_id);
+      }
+    }
+
+    // Фото получено вне процесса оплаты -> предлагаем прикрепить к событию
     if (message?.photo && message.photo.length > 0) {
       const photo = message.photo[message.photo.length - 1];
       ctx.session = ctx.session || {};
@@ -729,6 +795,245 @@ export class TelegramBotInteractionService implements OnModuleInit {
         }
       );
     }
+  }
+
+  /**
+   * Обработка голосовых сообщений от администратора для финансового учета
+   */
+  private async handleVoiceMessage(ctx: MyContext) {
+    if (!ctx.from) return;
+    const fromId = ctx.from.id.toString();
+    const isSuperAdmin = fromId === config.SUPER_ADMIN_TELEGRAM_ID;
+    let isAdmin = isSuperAdmin;
+    if (!isAdmin) {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { telegramId: BigInt(ctx.from.id) },
+        });
+        if (user?.role === 'admin') isAdmin = true;
+      } catch {
+        // Игнорируем
+      }
+    }
+
+    if (!isAdmin) {
+      return ctx.reply('⚠️ Голосовой ввод доступен только администраторам системы.');
+    }
+
+    if (!this.speechToTextService.isConfigured()) {
+      return ctx.reply('⚠️ Распознавание речи не настроено. Укажите GROQ_API_KEY или OPENAI_API_KEY в файле конфигурации (.env).');
+    }
+
+    const message = ctx.message as { voice?: { file_id: string } };
+    const voice = message.voice;
+    if (!voice?.file_id) return;
+
+    await ctx.sendChatAction('record_voice');
+    const statusMsg = await ctx.reply('🎧 Слушаю и расшифровываю голосовое сообщение...');
+
+    try {
+      // 1. Получаем прямую ссылку на голосовой файл в Telegram
+      const fileLink = await ctx.telegram.getFileLink(voice.file_id);
+      // 2. Скачиваем аудиофайл
+      const response = await fetch(fileLink.href);
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // 3. Выполняем транскрипцию через Whisper
+      const transcribedText = await this.speechToTextService.transcribe(buffer, 'voice.ogg');
+
+      // 4. Оповещаем пользователя об успешной расшифровке
+      await ctx.telegram.editMessageText(
+        ctx.chat!.id,
+        statusMsg.message_id,
+        undefined,
+        `🗣 <b>Распознанный текст:</b> <i>«${transcribedText}»</i>\n\n🤖 Анализирую финансовую операцию...`,
+        { parse_mode: 'HTML' },
+      );
+
+      // 5. Передаем расшифрованный текст в AI-ассистент
+      return this.processAiInput(ctx, transcribedText, undefined, statusMsg.message_id);
+    } catch (error) {
+      this.logger.error(`Ошибка обработки голосового сообщения: ${String(error)}`);
+      return ctx.telegram.editMessageText(
+        ctx.chat!.id,
+        statusMsg.message_id,
+        undefined,
+        `❌ Ошибка распознавания речи: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  /**
+   * Общий метод обработки финансового текста (из голоса, чата или подписи к фото)
+   */
+  private async processAiInput(
+    ctx: MyContext,
+    text: string,
+    photoFileId?: string,
+    existingStatusMsgId?: number,
+  ) {
+    let progressMsgId = existingStatusMsgId;
+    if (!progressMsgId) {
+      await ctx.sendChatAction('typing');
+      const progress = await ctx.reply('🤖 Анализирую финансовую операцию...');
+      progressMsgId = progress.message_id;
+    }
+
+    try {
+      const draft = await this.aiAgentService.parsePaymentMessage(text, photoFileId);
+
+      if (draft.status === 'ready' && draft.tenantId && draft.totalAmount > 0) {
+        const typeLabels: Record<string, string> = {
+          RENT: 'Оплата аренды',
+          UTILITIES: 'Оплата ЖКУ (коммуналка)',
+          COMBINED: 'Комбинированный платеж (аренда + ЖКУ)',
+          DEPOSIT: 'Залог / Депозит',
+          OTHER: 'Прочий платеж',
+        };
+        const typeLabel = typeLabels[draft.paymentType] || draft.paymentType;
+
+        let subPaymentsDetails = '';
+        if (draft.subPayments && draft.subPayments.length > 0) {
+          subPaymentsDetails =
+            '\n<b>Детализация:</b>\n' +
+            draft.subPayments
+              .map(
+                (sp) =>
+                  `  • ${sp.type === 'RENT' ? '🏠 Аренда' : '💡 ЖКУ'}: ${sp.amount.toLocaleString('ru-RU')} ₽ (${sp.description})`,
+              )
+              .join('\n');
+        }
+
+        const photoNote = draft.photoFileId ? '\n🧾 <b>Чек:</b> Прикреплен к платежу 📸' : '';
+
+        const cardText =
+          `🤖 <b>Предложение платежа от AI</b>\n\n` +
+          `👤 <b>Арендатор:</b> ${draft.tenantName || 'Не указан'}\n` +
+          `📍 <b>Квартира:</b> ${draft.apartmentAddress || 'Не указан'}\n` +
+          `💰 <b>Сумма:</b> ${draft.totalAmount.toLocaleString('ru-RU')} ₽\n` +
+          `🏦 <b>Банк:</b> ${draft.bank}\n` +
+          `📅 <b>Дата:</b> ${draft.paymentDate}\n` +
+          `🏷 <b>Назначение:</b> ${typeLabel}` +
+          photoNote +
+          `${subPaymentsDetails}\n\n` +
+          `📝 <b>Комментарий:</b> <code>${draft.comment}</code>\n\n` +
+          `💬 <i>«${draft.summaryText}»</i>`;
+
+        const keyboard = Markup.inlineKeyboard([
+          [
+            Markup.button.callback('✅ Подтвердить и внести в БД', `ai_pay_confirm_${draft.id}`),
+            Markup.button.callback('❌ Отклонить', `ai_pay_cancel_${draft.id}`),
+          ],
+        ]);
+
+        return ctx.telegram.editMessageText(
+          ctx.chat!.id,
+          progressMsgId,
+          undefined,
+          cardText,
+          { parse_mode: 'HTML', ...keyboard },
+        );
+      } else {
+        // Требуется уточнение жильца или параметров
+        let candidatesList = '';
+        if (draft.clarificationCandidates && draft.clarificationCandidates.length > 0) {
+          candidatesList =
+            '\n\n<b>Возможные жильцы:</b>\n' +
+            draft.clarificationCandidates
+              .map((c) => `  • ${c.name} (${c.apartment})`)
+              .join('\n');
+        }
+
+        const question = draft.clarificationQuestion || 'Не удалось однозначно определить жильца или сумму.';
+        const clarifyText =
+          `⚠️ <b>Требуется уточнение платежа</b>\n\n` +
+          `❓ ${question}\n\n` +
+          `💰 <b>Распознанная сумма:</b> ${draft.totalAmount > 0 ? draft.totalAmount.toLocaleString('ru-RU') + ' ₽' : 'Не определена'}\n` +
+          `🏦 <b>Банк:</b> ${draft.bank}` +
+          candidatesList;
+
+        return ctx.telegram.editMessageText(
+          ctx.chat!.id,
+          progressMsgId,
+          undefined,
+          clarifyText,
+          { parse_mode: 'HTML' },
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Ошибка обработки сообщения через AI: ${String(error)}`);
+      return ctx.telegram.editMessageText(
+        ctx.chat!.id,
+        progressMsgId,
+        undefined,
+        `❌ Не удалось обработать сообщение: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  /**
+   * Подтверждение сохранения проекта платежа от AI в базу данных
+   */
+  private async handleAiPayConfirm(ctx: MyContext) {
+    const match = (ctx as unknown as { match: RegExpExecArray }).match;
+    const draftId = match?.[1];
+    if (!draftId) return;
+
+    const draft = this.draftStorageService.getDraft(draftId);
+    if (!draft) {
+      return ctx.answerCbQuery('⚠️ Срок действия предложения истек или оно уже было сохранено.', { show_alert: true });
+    }
+
+    if (!draft.tenantId || !draft.totalAmount) {
+      return ctx.answerCbQuery('⚠️ В проекте не указан арендатор или сумма.', { show_alert: true });
+    }
+
+    await ctx.answerCbQuery('Сохраняю платеж в систему...');
+
+    try {
+      const paymentDate = draft.paymentDate ? new Date(draft.paymentDate) : new Date();
+
+      await firstValueFrom(
+        this.accountantClient.send('create_payment', {
+          tenantId: draft.tenantId,
+          amount: draft.totalAmount,
+          comment: draft.comment,
+          receiptPhotoId: draft.photoFileId,
+          createdAt: isNaN(paymentDate.getTime()) ? new Date().toISOString() : paymentDate.toISOString(),
+          status: 'confirmed',
+        }),
+      );
+
+      // Удаляем черновик из памяти после успешного сохранения
+      this.draftStorageService.deleteDraft(draftId);
+
+      const successCard =
+        `✅ <b>Платеж успешно подтвержден и внесен в систему!</b>\n\n` +
+        `👤 <b>Арендатор:</b> ${draft.tenantName} (${draft.apartmentAddress})\n` +
+        `💰 <b>Сумма:</b> ${draft.totalAmount.toLocaleString('ru-RU')} ₽\n` +
+        `🏦 <b>Банк:</b> ${draft.bank}\n` +
+        `📅 <b>Дата:</b> ${draft.paymentDate}\n` +
+        `📝 <b>Запись в БД:</b> <code>${draft.comment}</code>`;
+
+      await ctx.editMessageText(successCard, { parse_mode: 'HTML' });
+    } catch (error) {
+      this.logger.error(`Ошибка при сохранении платежа AI: ${String(error)}`);
+      await ctx.reply(`❌ Ошибка сохранения платежа: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Отклонение проекта платежа от AI
+   */
+  private async handleAiPayCancel(ctx: MyContext) {
+    const match = (ctx as unknown as { match: RegExpExecArray }).match;
+    const draftId = match?.[1];
+    if (draftId) {
+      this.draftStorageService.deleteDraft(draftId);
+    }
+    await ctx.answerCbQuery('Отклонено');
+    await ctx.editMessageText('❌ <b>Внесение платежа отклонено.</b>', { parse_mode: 'HTML' });
   }
 
   private async handleSkipReceiptPhotoAction(ctx: any) {

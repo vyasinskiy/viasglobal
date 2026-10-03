@@ -13,6 +13,11 @@ const schema = z.object({
   WATCHER_QUEUE: z.string().default('watcher_queue'),
   SUPER_ADMIN_TELEGRAM_ID: z.string().optional(),
   TZ: z.string().default('Europe/Madrid'),
+  // Ключи API для финансового AI-ассистента (STT + LLM)
+  DEEPSEEK_API_KEY: z.string().optional(),
+  DEEPSEEK_BASE_URL: z.string().default('https://api.deepseek.com'),
+  OPENAI_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
 });
 
 const raw = schema.parse(process.env);

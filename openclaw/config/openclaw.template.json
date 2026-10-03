@@ -1,0 +1,77 @@
+{
+  "env": {
+    "vars": {
+      "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/deepseek/deepseek-chat"
+      },
+      "models": {
+        "openrouter/deepseek/deepseek-chat": {}
+      },
+      "modelPolicy": {
+        "allow": [
+          "openrouter/deepseek/deepseek-chat"
+        ]
+      }
+    },
+    "entries": {
+      "main": {}
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "${TELEGRAM_ALLOWED_USERS}"
+      ],
+      "groupAllowFrom": [
+        "${TELEGRAM_ALLOWED_USERS}"
+      ]
+    }
+  },
+  "commands": {
+    "ownerAllowFrom": [
+      "telegram:${TELEGRAM_ALLOWED_USERS}"
+    ]
+  },
+  "gateway": {
+    "mode": "local",
+    "port": 18789,
+    "bind": "auto",
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    },
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789"
+      ]
+    }
+  },
+  "memory": {
+    "search": {
+      "enabled": false
+    }
+  },
+  "meta": {
+    "migrations": {
+      "modelPolicyAllowlist": true,
+      "utilityModelSeparation": true
+    },
+    "lastTouchedVersion": "2026.9.8"
+  },
+  "plugins": {
+    "entries": {
+      "openrouter": {
+        "enabled": true
+      }
+    }
+  }
+}

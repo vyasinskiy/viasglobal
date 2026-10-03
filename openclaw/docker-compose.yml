@@ -1,0 +1,25 @@
+services:
+  openclaw:
+    image: openclaw/openclaw:latest
+    container_name: viasglobal-openclaw
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/home/node/.openclaw
+    ports:
+      - "18789:18789"
+    networks:
+      - openclaw-network
+      - accruals-network
+      - backend-network
+
+networks:
+  openclaw-network:
+    driver: bridge
+  accruals-network:
+    name: infra_accruals-network
+    external: true
+  backend-network:
+    name: backend_default
+    external: true

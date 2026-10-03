@@ -23,3 +23,44 @@ deploy-master:
 	ssh huawei@100.92.50.18 "cd ~/viasglobal && make redeploy-back"
 	@echo "Применение миграций базы данных внутри контейнера..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && docker compose exec -T backend sh scripts/deploy-db.sh"
+
+deploy-rent:
+	@echo "Синхронизация файлов проекта rent на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'postgres-data' --exclude '.next' --exclude '.playwright-browsers' --exclude 'backups' ./rent/ huawei@100.92.50.18:~/viasglobal/rent/
+	@echo "Запуск развертывания проекта rent на сервере..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent && make deploy"
+
+
+redeploy-rent-bot:
+	@echo "Синхронизация telegram-bot на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.env' ./rent/apps/telegram-bot/ huawei@100.92.50.18:~/viasglobal/rent/apps/telegram-bot/
+	@echo "Пересборка и перезапуск контейнера accruals-telegram-bot на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build telegram-bot"
+
+deploy-hermes:
+	@echo "Синхронизация файлов Hermes на сервер Huawei..."
+	rsync -avz --exclude 'data' --exclude '__pycache__' ./hermes/ huawei@100.92.50.18:~/viasglobal/hermes/
+	@echo "Развертывание сервиса viasglobal-hermes на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/hermes && make deploy"
+
+redeploy-hermes:
+	@echo "Синхронизация обновлений Hermes на сервер Huawei..."
+	rsync -avz --exclude 'data' --exclude '__pycache__' ./hermes/ huawei@100.92.50.18:~/viasglobal/hermes/
+	@echo "Перезапуск контейнера viasglobal-hermes..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/hermes && docker compose up -d --build hermes"
+
+deploy-openclaw:
+	@echo "Синхронизация документации на сервер Huawei..."
+	rsync -avz ./docs/ huawei@100.92.50.18:~/viasglobal/docs/
+	@echo "Синхронизация файлов OpenClaw на сервер Huawei..."
+	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
+	@echo "Развертывание сервиса viasglobal-openclaw на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && bash deploy.sh"
+
+redeploy-openclaw:
+	@echo "Синхронизация обновлений OpenClaw на сервер Huawei..."
+	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
+	@echo "Перезапуск контейнера viasglobal-openclaw..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && docker compose up -d --build openclaw"
+
+

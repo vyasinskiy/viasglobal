@@ -3,12 +3,19 @@ import { AccountantService } from './accountant.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { S3StorageService } from '../s3/s3-storage.service';
 import { ClientProxy } from '@nestjs/microservices';
+import { MeterSubmissionService } from '../meter-submission/meter-submission.service';
+import { EventsService } from '../events/events.service';
 import { of } from 'rxjs';
 
 describe('AccountantService', () => {
   let service: AccountantService;
   let prisma: PrismaService;
   let notificationsClient: ClientProxy;
+
+  const mockMeterSubmission = {};
+  const mockEvents = {
+    createScheduledEvent: jest.fn(),
+  };
 
   const mockPrisma = {
     apartment: {
@@ -52,6 +59,8 @@ describe('AccountantService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: S3StorageService, useValue: mockS3 },
         { provide: 'NOTIFICATIONS_SERVICE', useValue: mockNotifications },
+        { provide: MeterSubmissionService, useValue: mockMeterSubmission },
+        { provide: EventsService, useValue: mockEvents },
       ],
     }).compile();
 

@@ -16,6 +16,7 @@ The system consists of three main services communicating via RabbitMQ:
     *   Telegram Bot interface for tenants and administrators.
     *   **Tenants**: Registration, payment submission (with photo receipts), debt status, and invoice viewing.
     *   **Admins**: User management (approval/deletion), payment confirmation, and apartment linking.
+    *   **Financial AI Assistant**: Automatic parsing of voice notes, text messages, and receipt photos from the owner using Whisper (STT) and DeepSeek-V3 (LLM) to extract tenant, apartment, bank, and split rent/utility payments with interactive confirmation. See [docs/ai-financial-assistant.md](file:///Users/usuario/code/viasglobal/rent/docs/ai-financial-assistant.md).
 
 3.  **Watcher Service (`apps/watcher`)**:
     *   Automated scraper built with Playwright.

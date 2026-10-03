@@ -121,25 +121,20 @@ describe('MeterSubmissionService', () => {
     });
   });
 
-  describe('ensureEventsExistForCurrentMonth', () => {
-    it('should create events for accounts with their custom meterSubmissionDay', async () => {
+  describe('processMeterSubmissionTrigger', () => {
+    it('should process general event and find or create meter submission events', async () => {
       mockPrisma.account.findMany.mockResolvedValueOnce([
-        { id: 1, externalId: 'acc-1', meterSubmissionDay: 15 },
-        { id: 2, externalId: 'acc-2', meterSubmissionDay: 25 },
+        { id: 1, externalId: 'acc-1', apartment: { address: 'ул. Тестовая, 1', tenants: [] } },
       ]);
-      mockPrisma.meterSubmissionEvent.findUnique.mockResolvedValue(null);
+      mockPrisma.meterSubmissionEvent.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.meterSubmissionEvent.create.mockResolvedValueOnce({
+        id: 10,
+        accountId: 1,
+        account: { apartment: { address: 'ул. Тестовая, 1', tenants: [] } },
+      });
 
-      // await service.ensureEventsExistForCurrentMonth();
-
-      expect(mockPrisma.meterSubmissionEvent.create).toHaveBeenCalledTimes(2);
-      expect(mockPrisma.meterSubmissionEvent.create).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({
-          data: expect.objectContaining({
-            accountId: 1
-          })
-        })
-      );
+      await service.processMeterSubmissionTrigger({ id: 1, targetType: 'general' }, { id: 2 }, false);
+      expect(mockPrisma.meterSubmissionEvent.create).toHaveBeenCalled();
     });
   });
 });

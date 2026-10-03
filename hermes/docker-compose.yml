@@ -1,0 +1,29 @@
+services:
+  hermes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: viasglobal-hermes:latest
+    container_name: viasglobal-hermes
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./tools:/app/tools
+    networks:
+      - hermes-network
+      - accruals-network
+      - backend-network
+
+networks:
+  hermes-network:
+    driver: bridge
+
+  accruals-network:
+    name: infra_accruals-network
+    external: true
+  backend-network:
+    name: backend_default
+    external: true
