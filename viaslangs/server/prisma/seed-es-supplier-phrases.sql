@@ -23,7 +23,16 @@ FROM (VALUES
     ('retraso', 'задержка, опоздание', 'Cualquier retraso en la entrega puede afectar negativamente a nuestras ventas.', 'Любая задержка в поставке может негативно сказаться на наших продажах.'),
     ('los plazos acordados', 'согласованные сроки', 'Es imprescindible respetar los plazos acordados para no retrasar el lanzamiento.', 'Крайне важно соблюдать согласованные сроки, чтобы не задержать запуск.'),
     ('el importe restante', 'оставшаяся сумма, остаток суммы', 'Abonaremos el importe restante una vez comprobada la calidad de los productos.', 'Мы выплатим оставшуюся сумму после того, как проверим качество продукции.'),
-    ('tras la entrega', 'после поставки, после доставки', 'Disponemos de un plazo de siete días tras la entrega para notificar cualquier incidencia.', 'У нас есть 7 дней после поставки, чтобы заявить о любых инцидентах.')
+    ('tras la entrega', 'после поставки, после доставки', 'Disponemos de un plazo de siete días tras la entrega para notificar cualquier incidencia.', 'У нас есть 7 дней после поставки, чтобы заявить о любых инцидентах.'),
+    ('el embalaje', 'упаковка', 'El embalaje debe ser lo suficientemente resistente para soportar el transporte internacional.', 'Упаковка должна быть достаточно прочной, чтобы выдержать международную транспортировку.'),
+    ('el responsable', 'ответственный, руководитель', 'Pásenos el contacto del responsable del departamento de compras.', 'Передайте нам контакт ответственного лица отдела закупок.'),
+    ('respetar', 'соблюдать', 'Ambas partes deben respetar las condiciones pactadas en el contrato.', 'Обе стороны должны соблюдать условия, согласованные в контракте.'),
+    ('retrasar', 'задерживать, откладывать', 'La falta de materias primas puede retrasar la producción varios días.', 'Нехватка сырья может задержать производство на несколько дней.'),
+    ('el lanzamiento', 'запуск, старт продаж', 'Estamos preparando el lanzamiento de una nueva línea de productos en Amazon.', 'Мы готовим запуск новой линейки продуктов на Amazon.'),
+    ('estamos dispuestos', 'мы готовы, готовы', 'Estamos dispuestos a negociar un contrato de suministro a largo plazo.', 'Мы готовы обсудить долгосрочный контракт на поставку.'),
+    ('ya que', 'так как, поскольку', 'Necesitamos la confirmación hoy, ya que debemos planificar la logística semanal.', 'Нам нужно подтверждение сегодня, так как мы должны спланировать недельную логистику.'),
+    ('resistente', 'прочный, устойчивый, стойкий', 'Utilizamos cajas de cartón resistente para proteger los productos frágiles.', 'Мы используем коробки из прочного картона для защиты хрупких товаров.'),
+    ('soportar', 'выдерживать, переносить', 'Los palets deben soportar un peso máximo de mil kilogramos.', 'Паллеты должны выдерживать максимальный вес в тысячу килограммов.')
 ) AS v(english, russian, example_en, example_ru)
 CROSS JOIN vy_languages l
 WHERE l.code = 'es'
@@ -58,6 +67,30 @@ WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
     'retraso',
     'los plazos acordados',
     'el importe restante',
-    'tras la entrega'
+    'tras la entrega',
+    'el embalaje',
+    'el responsable',
+    'respetar',
+    'retrasar',
+    'el lanzamiento',
+    'estamos dispuestos',
+    'ya que',
+    'resistente',
+    'soportar'
   )
+ON CONFLICT DO NOTHING;
+
+-- 4. Привязка слов-глаголов к тегу «Глаголы» согласно правилу множественного тегирования
+INSERT INTO vy_word_tags (word_id, tag_id)
+SELECT w.id, t.id
+FROM vy_words w
+CROSS JOIN (
+  SELECT t.id
+  FROM vy_tags t
+  JOIN vy_languages l ON l.id = t.language_id
+  WHERE t.name = 'Глаголы'
+    AND l.code = 'es'
+) t
+WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
+  AND lower(w.english) IN ('respetar', 'retrasar', 'soportar')
 ON CONFLICT DO NOTHING;
