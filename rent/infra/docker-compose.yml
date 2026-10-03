@@ -1,0 +1,161 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: accruals-rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    networks:
+      - accruals-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: accruals-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-kvartplata_watcher}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - accruals-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ${POSTGRES_DB:-kvartplata_watcher}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  visual-browser:
+    image: lscr.io/linuxserver/chromium:latest
+    container_name: accruals-visual-browser
+    profiles:
+      - manual
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ${WATCHER_PATH:-../apps/watcher}/data/browser-profile:/config
+    ports:
+      - '3002:3000'
+    networks:
+      - accruals-network
+    restart: unless-stopped
+
+  watcher:
+    image: accruals-watcher:latest
+    build:
+      context: ${WATCHER_PATH:-../apps/watcher}
+      dockerfile: Dockerfile
+    container_name: accruals-watcher
+    restart: unless-stopped
+    ports:
+      - '4500:4500'
+    env_file:
+      - ${WATCHER_PATH:-../apps/watcher}/.env
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      ACCOUNTANT_API_URL: http://accountant:3005
+      BROWSER_WS_ENDPOINT: ""
+      BROWSER_PROFILE_PATH: "/app/data/browser-profile/.config/chromium"
+      IS_DOCKER: "true"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/watcher_db
+      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/watcher_db
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      accountant:
+        condition: service_started
+    volumes:
+      - ${WATCHER_PATH:-../apps/watcher}/data:/app/data
+      - ./logs/watcher:/app/logs
+    networks:
+      - accruals-network
+
+  accountant:
+    image: accruals-accountant:latest
+    build:
+      context: ${ACCOUNTANT_PATH:-../apps/accountant}
+      dockerfile: Dockerfile
+    container_name: accruals-accountant
+    restart: unless-stopped
+    ports:
+      - '3005:3005'
+    env_file:
+      - ${ACCOUNTANT_PATH:-../apps/accountant}/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/accountant_db
+      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/accountant_db
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      SUPER_ADMIN_TELEGRAM_ID: ${SUPER_ADMIN_TELEGRAM_ID}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - ./logs/accountant:/app/logs
+    networks:
+      - accruals-network
+
+  admin-ui:
+    image: accruals-admin-ui:latest
+    build:
+      context: ${ADMIN_UI_PATH:-../apps/admin-ui}
+      dockerfile: Dockerfile
+    container_name: accruals-admin-ui
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - ${ADMIN_UI_PATH:-../apps/admin-ui}/.env
+      - ${TELEGRAM_BOT_PATH:-../apps/telegram-bot}/.env
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      PORT: 3000
+      ACCOUNTANT_API_URL: http://accountant:3005
+      WATCHER_API_URL: http://watcher:4500
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      accountant:
+        condition: service_started
+    networks:
+      - accruals-network
+  telegram-bot:
+    image: accruals-telegram-bot:latest
+    build:
+      context: ${TELEGRAM_BOT_PATH:-../apps/telegram-bot}
+      dockerfile: Dockerfile
+    container_name: accruals-telegram-bot
+    restart: unless-stopped
+    env_file:
+      - ${TELEGRAM_BOT_PATH:-../apps/telegram-bot}/.env
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      TELEGRAM_BOT_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/telegram_bot_db
+      SUPER_ADMIN_TELEGRAM_ID: ${SUPER_ADMIN_TELEGRAM_ID}
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      accountant:
+        condition: service_started
+    volumes:
+      - ./logs/telegram-bot:/app/logs
+    networks:
+      - accruals-network
+
+networks:
+  accruals-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
