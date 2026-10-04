@@ -7,14 +7,14 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/deepseek/deepseek-chat"
+        "primary": "openrouter/xiaomi/mimo-v2.6-flash"
       },
       "models": {
-        "openrouter/deepseek/deepseek-chat": {}
+        "openrouter/xiaomi/mimo-v2.6-flash": {}
       },
       "modelPolicy": {
         "allow": [
-          "openrouter/deepseek/deepseek-chat"
+          "openrouter/xiaomi/mimo-v2.6-flash"
         ]
       }
     },

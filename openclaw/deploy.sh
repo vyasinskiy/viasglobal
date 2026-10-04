@@ -26,6 +26,8 @@ sed \
   -e "s|\${TELEGRAM_BOT_TOKEN}|${TELEGRAM_BOT_TOKEN}|g" \
   -e "s|\${TELEGRAM_ALLOWED_USERS}|${TELEGRAM_ALLOWED_USERS:-743866013}|g" \
   config/openclaw.template.json > data/openclaw.json
+cp -f data/openclaw.json data/openclaw.json.last-good
+rm -f data/openclaw.json.bak* data/openclaw.json.clobbered*
 
 # 5. Синхронизируем документацию сервисов и инструкции в workspace OpenClaw
 echo "📚 Копирование документации по сервисам и инструкций в workspace..."
@@ -52,7 +54,7 @@ chmod -R 777 data
 
 # 8. Запуск контейнера OpenClaw
 echo "📦 Запуск контейнера viasglobal-openclaw..."
-docker compose up -d
+docker compose up -d --force-recreate
 
 echo "✅ Сервис viasglobal-openclaw успешно запущен!"
 docker compose ps

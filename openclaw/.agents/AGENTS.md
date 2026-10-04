@@ -5,7 +5,7 @@
 ## 1. Архитектура и стек
 - **Платформа**: OpenClaw (Node.js).
 - **Docker-образ**: `openclaw/openclaw:latest`.
-- **LLM Провайдер**: OpenRouter API (`deepseek/deepseek-chat`).
+- **LLM Провайдер**: OpenRouter API (`xiaomi/mimo-v2.6-flash`).
 - **Канал связи**: Персональный Telegram-бот владельца (канал `channels.telegram` с фильтром `allowFrom` и `ownerAllowFrom`).
 - **Связь с сервисами**: Сети Docker `infra_accruals-network` и `backend_default`.
 
