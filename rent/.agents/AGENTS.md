@@ -47,5 +47,6 @@
 - **Маршрутизация**: Осуществляется через Cloudflare Tunnel (аккаунт `Info@viasglobal.es`, Account ID `ac8ad485b5af13d1cfdf0e7b1adfdb12`, Tunnel ID `fad800a3-f97e-4b41-8f24-df8168b1211b`).
 - **Служба туннеля**: Route опубликован как `rent.viasglobal.es` -> `http://100.92.50.18:3000` (Tailscale IP сервера хоста к порту контейнера `accruals-admin-ui`).
 - **Защита паролем**: Вся панель закрыта единым паролем (таким же, как `viaslangs`, переменная `ADMIN_PASSWORD` в `apps/admin-ui/.env`). Неавторизованные пользователи автоматически редиректятся на `/login`, а прямые вызовы к API без куки `vias_rent_session` возвращают `401 Unauthorized`.
+- **Порядок миграций БД (`accountant_db`)**: Таблицы событий создаются в миграции `20260721095400_add_scheduled_events`. Миграция добавления полей напоминаний `20260721101500_add_reminder_schedule_fields` строго следует после нее.
 
 
