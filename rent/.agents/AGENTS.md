@@ -46,5 +46,6 @@
 - **Домен панели администратора**: `https://rent.viasglobal.es`
 - **Маршрутизация**: Осуществляется через Cloudflare Tunnel (аккаунт `Info@viasglobal.es`, Account ID `ac8ad485b5af13d1cfdf0e7b1adfdb12`, Tunnel ID `fad800a3-f97e-4b41-8f24-df8168b1211b`).
 - **Служба туннеля**: Route опубликован как `rent.viasglobal.es` -> `http://100.92.50.18:3000` (Tailscale IP сервера хоста к порту контейнера `accruals-admin-ui`).
+- **Защита паролем**: Вся панель закрыта единым паролем (таким же, как `viaslangs`, переменная `ADMIN_PASSWORD` в `apps/admin-ui/.env`). Неавторизованные пользователи автоматически редиректятся на `/login`, а прямые вызовы к API без куки `vias_rent_session` возвращают `401 Unauthorized`.
 
 

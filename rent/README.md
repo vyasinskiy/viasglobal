@@ -52,7 +52,7 @@ Here is the network configuration and port assignments for all components of the
 
 | Service | Container Name | Internal Port | Host Port | Public Domain / URL | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Admin UI** | `accruals-admin-ui` | 3000 | `3000` | `https://rent.viasglobal.es` | Web administration dashboard (MUI) |
+| **Admin UI** | `accruals-admin-ui` | 3000 | `3000` | `https://rent.viasglobal.es` | Web administration dashboard (MUI, закрыта авторизацией по паролю) |
 | **Accountant Service** | `accruals-accountant` | 3005 | `3005` | Внутренний | Core HTTP REST API and microservice logic |
 | **Watcher Service** | `accruals-watcher` | 4500 | `4500` | Внутренний | Playwright scraping control interface |
 | **RabbitMQ** | `accruals-rabbitmq` | 5672, 15672 | `5672`, `15672` | Внутренний | AMQP broker & Management Console UI |
