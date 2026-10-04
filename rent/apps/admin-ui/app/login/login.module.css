@@ -1,0 +1,92 @@
+/* rent/apps/admin-ui/app/login/login.module.css */
+/* Стили для страницы авторизации администратора */
+
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 24px;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 420px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  padding: 36px 32px;
+  text-align: center;
+}
+
+.brandHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.brandIcon {
+  color: #3b82f6;
+  font-size: 2rem !important;
+}
+
+.brandTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 24px 0;
+}
+
+.errorAlert {
+  margin-bottom: 20px;
+  text-align: left;
+  border-radius: 8px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.inputField {
+  width: 100%;
+}
+
+.submitButton {
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 10px;
+  background-color: #2563eb !important;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.submitButton:hover {
+  background-color: #1d4ed8 !important;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
+}
+
+.submitButton:disabled {
+  background-color: #94a3b8 !important;
+  color: #f1f5f9 !important;
+}
+
+.footerNote {
+  margin-top: 24px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}

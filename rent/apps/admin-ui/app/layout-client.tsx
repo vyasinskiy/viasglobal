@@ -49,8 +49,13 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     { text: 'Сканирование', path: '/scanning', icon: <SyncIcon className={styles.menuIcon} /> },
   ];
 
-  const handleLogout = () => {
-    // Clear cookies and push to login page
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Игнорируем сетевые сбои при выходе
+    }
+    document.cookie = 'vias_rent_session=; Path=/; Max-Age=0;';
     document.cookie = 'auth=; Path=/; Max-Age=0;';
     router.push('/login');
   };
