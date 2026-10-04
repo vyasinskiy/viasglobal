@@ -128,4 +128,30 @@ Administrator can dynamically register or unregister groups/channels as publicat
 * **Add a Feed**: Add the bot to the desired group/channel and send `/register_feed` in the group/channel chat. The bot will validate that this is not a private chat, and automatically register the chat in the `publication_channels` table with `type: "feed"`.
 * **Remove a Feed**: Send `/unregister_feed` inside the registered group/channel. The bot will remove it from the list of publication feeds.
 
+## Watcher Session Management & Troubleshooting
+
+### Session Expiration & Detection
+The Watcher service interacts with `квартплата.онлайн` using a saved Playwright session (`/app/data/storage-state.json`). When authentication cookies expire:
+1. The portal redirects requests from `/new-web/` to the public landing page (`https://квартплата.онлайн/`).
+2. The `checkIsLoginRequired` utility detects this redirection and triggers `needsLogin: true`.
+3. If the internal API returns HTML instead of JSON, `ExpiredSessionError` is thrown.
+4. The scan finishes with status `needs_login`, sending an alert to Telegram (`🔑 Требуется авторизация`) instead of reporting false `✅ Успешно`.
+
+### Manual Session Renewal
+To log in manually and renew expired cookies:
+1. Start the visual browser container on the server:
+   ```bash
+   docker compose --profile manual up -d visual-browser
+   ```
+2. Open `http://100.92.50.18:3002` via Tailscale and complete phone/SMS/captcha login to `квартплата.онлайн`.
+3. Save the active session:
+   ```bash
+   docker exec accruals-watcher npm run bootstrap
+   ```
+4. Stop the visual browser container:
+   ```bash
+   docker compose --profile manual stop visual-browser
+   ```
+
+
 

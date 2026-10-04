@@ -239,4 +239,28 @@ describe('ScrapingService', () => {
       uploadedToS3: false,
     }));
   });
+
+  it('должен устанавливать статус needs_login, если адаптер вернул needsLogin: true', async () => {
+    // Мокируем результат работы адаптера с флагом истекшей сессии
+    jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
+      apartments: [],
+      accounts: [],
+      accruals: [],
+      invoices: [],
+      needsLogin: true,
+      degraded: false,
+      message: 'Сессия авторизации истекла. Требуется ручной вход.',
+    });
+
+    mockAccountantClientService.findApartments.mockResolvedValue([]);
+
+    // Вызываем сканирование сервиса
+    const summary = await service.scan({ trigger: 'manual' });
+
+    // Проверяем, что в результирующей сводке выставлен статус needs_login и флаг needsLogin
+    expect(summary.status).toBe('needs_login');
+    expect(summary.needsLogin).toBe(true);
+    expect(summary.message).toContain('Сессия авторизации истекла');
+  });
 });
+

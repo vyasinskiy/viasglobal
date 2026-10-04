@@ -7,7 +7,7 @@ import parser from 'cron-parser';
 import { AccountantClientService } from '../../common/services/accountant-client.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { config } from '../../config';
-import type { AccrualSnapshot, ApartmentSnapshot, AccountSnapshot, InvoiceSnapshot, ScanSummary } from '../../types';
+import type { AccrualSnapshot, ApartmentSnapshot, AccountSnapshot, InvoiceSnapshot, RunStatus, ScanSummary } from '../../types';
 import { KvartplataAdapter } from './adapter';
 import { ManualScanDto } from './dto/manual-scan.dto';
 import { printSwaggerUrl } from '../../common/utils/swagger';
@@ -284,11 +284,20 @@ export class ScrapingService implements OnApplicationBootstrap {
       }
       log(`${blue}-----------------------------${reset}`);
 
+      // Определяем статус сессии: если требуется вход, устанавливаем 'needs_login'
+      let runStatus: RunStatus = 'success';
+      if (needsLogin) {
+        runStatus = 'needs_login';
+      } else if (degraded || uploadErrors.length > 0) {
+        runStatus = 'warning';
+      }
+
+      // Сохраняем сводку сессии сканирования в базу данных
       const summary = await this.finalize(runId, {
         startedAt: startedAt.toISOString(),
         finishedAt: new Date().toISOString(),
         trigger,
-        status: (degraded || uploadErrors.length > 0) ? 'warning' : 'success',
+        status: runStatus,
         message,
         apartmentsScanned: apartments.length,
         accrualsObserved: accruals.length,

@@ -1,7 +1,69 @@
 import fs from 'node:fs';
-import type { BrowserContext, Page } from 'playwright';
+// Импортируем строгие типы Playwright без использования any
+import type { Browser, BrowserContext, Page } from 'playwright';
 import { config } from '../../config';
 import type { AccrualSnapshot, ApartmentSnapshot, AccountSnapshot, InvoiceSnapshot, ScanResult } from '../../types';
+
+/**
+ * Ошибка, выбрасываемая при обнаружении истекшей или недействительной сессии авторизации
+ */
+export class ExpiredSessionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ExpiredSessionError';
+  }
+}
+
+/**
+ * Проверяет, требуется ли авторизация на портале kvartplata.online.
+ * Проверка учитывает редиректы на промо-лендинг, наличие кнопок входа
+ * и предотвращает ложноположительные срабатывания от маркетинговых текстов.
+ *
+ * @param currentUrl Текущий URL страницы после навигации
+ * @param bodyText Текстовое содержимое страницы (body)
+ * @returns true, если сессия отсутствует или истекла и требуется вход
+ */
+export function checkIsLoginRequired(currentUrl: string, bodyText: string): boolean {
+  const urlLower = (currentUrl || '').toLowerCase();
+
+  // 1. Проверяем URL: если произошел редирект с /new-web/ на корень сайта или страницу входа
+  const isInsidePersonalCabinet = urlLower.includes('/new-web/');
+  const isExplicitLoginUrl = urlLower.includes('/login') || urlLower.includes('/auth');
+
+  if (!isInsidePersonalCabinet || isExplicitLoginUrl) {
+    // Пользователь был перенаправлен за пределы личного кабинета — требуется авторизация
+    return true;
+  }
+
+  const textLower = (bodyText || '').toLowerCase();
+
+  // 2. Проверяем наличие явных ключевых слов, требующих входа (кнопка "Войти", форма авторизации, капча)
+  const hasSessionRequiredKeyword = config.sessionRequiredKeywords.some((keyword) => {
+    const k = keyword.trim().toLowerCase();
+    if (!k) return false;
+    return textLower.includes(k);
+  });
+
+  if (hasSessionRequiredKeyword) {
+    // На странице присутствуют элементы авторизации или капчи
+    return true;
+  }
+
+  // 3. Проверяем наличие ключевых слов готовности личного кабинета (например, "Начисления", "Лицевой счет")
+  const hasReadySignal = config.accountReadyTextList.some((keyword) => {
+    const k = keyword.trim().toLowerCase();
+    if (!k) return false;
+    return textLower.includes(k);
+  });
+
+  if (!hasReadySignal) {
+    // На странице нет признаков данных кабинета — страница не готова к парсингу
+    return true;
+  }
+
+  // Страница находится внутри /new-web/, не содержит элементов входа и содержит данные кабинета
+  return false;
+}
 
 export class KvartplataAdapter {
   async bootstrap(): Promise<void> {
@@ -39,7 +101,8 @@ export class KvartplataAdapter {
   ): Promise<ScanResult> {
     const { chromium } = await import('playwright');
     
-    let browser: any;
+    // Браузер строго типизирован без использования any
+    let browser: Browser | null = null;
     let context: BrowserContext;
     
     if (config.BROWSER_PROFILE_PATH && !config.BROWSER_WS_ENDPOINT) {
@@ -79,12 +142,25 @@ export class KvartplataAdapter {
       }
 
       const warnings: string[] = [];
-      const apartmentPayload = await this.fetchJson(page, config.endpoints.apartments).catch((error) => {
+      let apartmentPayload: unknown = null;
+      try {
+        // Запрашиваем список квартир через внутренний API портала
+        apartmentPayload = await this.fetchJson(page, config.endpoints.apartments);
+      } catch (error) {
+        // Если API вернул HTML или ошибку авторизации — прерываем сканирование и запрашиваем логин
+        if (error instanceof ExpiredSessionError) {
+          log(`Обнаружена истекшая сессия при запросе квартир: ${error.message}`);
+          return {
+            apartments: [],
+            accounts: [],
+            accruals: [],
+            invoices: [],
+            needsLogin: true,
+            degraded: false,
+            message: 'Сессия авторизации истекла (API вернул HTML вместо JSON). Требуется повторный вход в личный кабинет.'
+          };
+        }
         warnings.push(error instanceof Error ? error.message : String(error));
-        return null;
-      });
-      const rawApartments = apartmentPayload ? extractApartments(apartmentPayload) : [];
-      if (!apartmentPayload) {
         return {
           apartments: [],
           accounts: [],
@@ -95,6 +171,7 @@ export class KvartplataAdapter {
           message: warnings.join(' ')
         };
       }
+      const rawApartments = apartmentPayload ? extractApartments(apartmentPayload) : [];
       log(`Apartments discovered from /new-web/apartments: ${rawApartments.length}`);
 
       const selectedApartments = filters.apartmentExternalIds?.length
@@ -182,7 +259,8 @@ export class KvartplataAdapter {
 
   async downloadInvoice(url: string): Promise<Buffer> {
     const { chromium } = await import('playwright');
-    let browser: any = null;
+    // Браузер строго типизирован без использования any
+    let browser: Browser | null = null;
     let context: BrowserContext;
 
     if (config.BROWSER_PROFILE_PATH && !config.BROWSER_WS_ENDPOINT) {
@@ -225,32 +303,48 @@ export class KvartplataAdapter {
     params: Record<string, string> = {},
     pathParams: Record<string, string> = {}
   ): Promise<unknown> {
+    // Формируем полный URL с учетом подстановки параметров пути
     const url = new URL(applyPathParams(endpoint, pathParams), config.API_BASE_URL);
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
     }
 
+    // Выполняем сетевой запрос из контекста страницы Playwright с куками сессии
     const response = await page.request.get(url.toString(), {
       headers: { accept: 'application/json, text/plain, */*' }
     });
 
     if (!response.ok()) {
+      // Статусы 401 и 403 свидетельствуют об истекшей сессии
+      if (response.status() === 401 || response.status() === 403) {
+        throw new ExpiredSessionError(`Kvartplata API ${endpoint} вернул статус ${response.status()}. Сессия авторизации истекла.`);
+      }
       throw new Error(`Kvartplata API ${endpoint} failed with ${response.status()}`);
     }
 
     const text = await response.text();
+    const trimmed = text.trim().toLowerCase();
+
+    // Проверяем, не вернул ли сервер HTML-документ вместо ожидаемого JSON (например, редирект на SPA лендинг)
+    if (trimmed.startsWith('<!doctype') || trimmed.startsWith('<html') || trimmed.includes('<body')) {
+      throw new ExpiredSessionError(`Kvartplata API ${endpoint} вернул HTML-разметку вместо JSON. Сессия авторизации истекла.`);
+    }
+
     try {
+      // Парсим JSON ответ
       return JSON.parse(text);
-    } catch {
-      return text;
+    } catch (parseError) {
+      throw new Error(`Не удалось распарсить JSON из ответа API ${endpoint}: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
     }
   }
 
-  private async isLoginRequired(page: Page): Promise<boolean> {
-    const bodyText = (await page.textContent('body'))?.toLowerCase() ?? '';
-    const hasReadySignal = config.accountReadyTextList.some((keyword) => bodyText.includes(keyword.toLowerCase()));
-    if (hasReadySignal) return false;
-    return config.sessionRequiredKeywords.some((keyword) => bodyText.includes(keyword));
+  public async isLoginRequired(page: Page): Promise<boolean> {
+    // Извлекаем текущий URL страницы после навигации и возможных редиректов
+    const currentUrl = page.url();
+    // Извлекаем текстовое содержимое страницы для анализа ключевых слов
+    const bodyText = (await page.textContent('body')) ?? '';
+    // Выполняем проверку необходимости авторизации
+    return checkIsLoginRequired(currentUrl, bodyText);
   }
 }
 
