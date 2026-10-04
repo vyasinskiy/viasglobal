@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     const wordResult = await client.query(
-      `SELECT id, language_id, english, russian FROM vy_words WHERE id = $1`,
+      `SELECT id, language_id, english, russian, base_word_id FROM vy_words WHERE id = $1`,
       [wordId]
     );
     const word = wordResult.rows[0];
@@ -96,6 +96,29 @@ export async function POST(req: Request) {
        VALUES ($1, $2, $3, $4)`,
       [wordId, userAnswer, isCorrect, isSynonym]
     );
+
+    // Автозачёт всех 6 форм глагола при изучении конкретного времени (Pretérito Indefinido / Imperfecto)
+    if (isCorrect && word.base_word_id) {
+      await client.query(
+        `INSERT INTO vy_answers (word_id, answer, is_correct)
+         SELECT DISTINCT w2.id, w2.english, true
+         FROM vy_words w2
+         JOIN vy_word_tags wt2 ON wt2.word_id = w2.id
+         WHERE w2.base_word_id = $1
+           AND w2.id != $2
+           AND wt2.tag_id IN (
+             SELECT t.id
+             FROM vy_word_tags wt
+             JOIN vy_tags t ON t.id = wt.tag_id
+             WHERE wt.word_id = $2
+               AND t.name IN ('Pretérito Indefinido', 'Pretérito Imperfecto')
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM vy_answers a WHERE a.word_id = w2.id AND a.is_correct = true
+           )`,
+        [word.base_word_id, wordId]
+      );
+    }
 
     if (isSynonym && synonymWord) {
       const existingCorrect = await client.query(

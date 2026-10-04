@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 const WORD_SELECT = `
   SELECT w.id, w.language_id AS "languageId", w.english, w.russian,
          w.example_en AS "exampleEn", w.example_ru AS "exampleRu",
+         w.base_word_id AS "baseWordId",
          w.created_at AS "createdAt", w.updated_at AS "updatedAt",
          w.is_favorite AS "isFavorite",
          COALESCE((

@@ -25,6 +25,7 @@ export interface Word {
   russian: string;
   exampleEn: string;
   exampleRu: string;
+  baseWordId?: number | null;
   createdAt: string;
   updatedAt: string;
   isFavorite: boolean;
@@ -51,6 +52,7 @@ export interface CreateWordRequest {
   russian: string;
   exampleEn: string;
   exampleRu: string;
+  baseWordId?: number | null;
   tagIds?: number[];
 }
 
@@ -60,6 +62,7 @@ export interface UpdateWordRequest {
   russian?: string;
   exampleEn?: string;
   exampleRu?: string;
+  baseWordId?: number | null;
   isFavorite?: boolean;
   tagIds?: number[];
 }

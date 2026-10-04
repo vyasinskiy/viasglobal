@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 const WORD_SELECT = `
   SELECT w.id, w.language_id AS "languageId", w.english, w.russian,
          w.example_en AS "exampleEn", w.example_ru AS "exampleRu",
+         w.base_word_id AS "baseWordId",
          w.created_at AS "createdAt", w.updated_at AS "updatedAt",
          w.is_favorite AS "isFavorite",
          COALESCE((
@@ -57,7 +58,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as CreateWordRequest;
-    const { english, russian, exampleEn, exampleRu, languageId, tagIds } = body;
+    const { english, russian, exampleEn, exampleRu, languageId, baseWordId, tagIds } = body;
 
     if (!english || !russian || !exampleEn || !exampleRu) {
       return NextResponse.json(
@@ -82,8 +83,8 @@ export async function POST(req: Request) {
     }
 
     const result = await pool.query(
-      `INSERT INTO vy_words (language_id, english, russian, example_en, example_ru)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO vy_words (language_id, english, russian, example_en, example_ru, base_word_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
       [
         targetLanguageId,
@@ -91,6 +92,7 @@ export async function POST(req: Request) {
         russian.trim(),
         exampleEn.trim(),
         exampleRu.trim(),
+        baseWordId || null,
       ]
     );
 

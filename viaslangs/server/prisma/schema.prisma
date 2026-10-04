@@ -25,15 +25,19 @@ model Word {
   russian     String
   exampleEn   String
   exampleRu   String
+  baseWordId  Int?     @map("base_word_id")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isFavorite  Boolean  @default(false)
 
   language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  baseWord    Word?    @relation("WordToForms", fields: [baseWordId], references: [id], onDelete: Cascade)
+  forms       Word[]   @relation("WordToForms")
   answers     Answer[]
   tags        WordTag[]
 
   @@index([languageId])
+  @@index([baseWordId])
   @@map("vy_words")
 }
 
