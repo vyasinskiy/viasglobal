@@ -247,7 +247,7 @@ export default function NotificationsPage() {
                 filteredSystemEvents.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>{row.id}</TableCell>
-                    <TableCell style={{ fontWeight: 600, color: '#4f46e5' }}>{row.type}</TableCell>
+                    <TableCell style={{ fontWeight: 600, color: '#2563eb' }}>{row.type}</TableCell>
                     <TableCell style={{ color: '#64748b' }}>{formatDate(row.date)}</TableCell>
                     <TableCell>
                       {row.status === 'success' || row.status === 'confirmed' ? (

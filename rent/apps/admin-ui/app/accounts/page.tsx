@@ -185,14 +185,14 @@ export default function AccountsPage() {
                   </TableCell>
                   <TableCell>{row.meterSubmissionDay}-е число</TableCell>
                   <TableCell style={{ color: '#475569' }}>{row.apartment?.address || '—'}</TableCell>
-                  <TableCell style={{ color: '#4f46e5', fontWeight: 600 }}>
+                  <TableCell style={{ color: '#2563eb', fontWeight: 600 }}>
                     {row._count?.invoices ?? 0} шт.
                   </TableCell>
                   <TableCell style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
                       <button
                         className={styles.downloadLink}
-                        style={{ padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none', border: 'none', cursor: 'pointer', backgroundColor: '#4f46e5', color: '#fff' }}
+                        style={{ padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none', border: 'none', cursor: 'pointer', backgroundColor: '#2563eb', color: '#fff' }}
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/invoices?create=true&accountId=${row.id}`);
@@ -290,7 +290,7 @@ export default function AccountsPage() {
           <Button onClick={() => setEditAccount(null)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
             Отмена
           </Button>
-          <Button onClick={handleSaveEdit} variant="contained" style={{ textTransform: 'none', backgroundColor: '#4f46e5' }}>
+          <Button onClick={handleSaveEdit} variant="contained" style={{ textTransform: 'none', backgroundColor: '#2563eb' }}>
             Сохранить
           </Button>
         </DialogActions>

@@ -490,7 +490,7 @@ export default React.memo(function CreateEditEventModal({
         <Button onClick={onClose} variant="outlined" disabled={isSubmitting} style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
           Отмена
         </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting} style={{ textTransform: 'none', backgroundColor: '#4f46e5' }}>
+        <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting} style={{ textTransform: 'none', backgroundColor: '#2563eb' }}>
           {isSubmitting ? 'Сохранение...' : (eventToEdit ? 'Сохранить изменения' : 'Создать событие')}
         </Button>
       </DialogActions>

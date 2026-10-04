@@ -144,7 +144,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
             onClick={() => router.push(`/events?create=true&tenantId=${tenant.id}`)}
             variant="outlined"
             startIcon={<EventIcon />}
-            style={{ borderColor: '#4f46e5', color: '#4f46e5', textTransform: 'none', fontWeight: 600 }}
+            style={{ borderColor: '#2563eb', color: '#2563eb', textTransform: 'none', fontWeight: 600 }}
           >
             Создать событие
           </Button>
@@ -152,7 +152,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
             onClick={handleEditClick}
             variant="contained"
             startIcon={<EditIcon />}
-            style={{ backgroundColor: '#4f46e5', color: '#fff', textTransform: 'none', fontWeight: 600 }}
+            style={{ backgroundColor: '#2563eb', color: '#fff', textTransform: 'none', fontWeight: 600 }}
           >
             Изменить
           </Button>
@@ -176,7 +176,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
               <span style={{ fontSize: '0.875rem', color: '#64748b', display: 'block' }}>Арендная ставка</span>
-              <strong style={{ fontSize: '1.25rem', color: '#4f46e5' }}>
+              <strong style={{ fontSize: '1.25rem', color: '#2563eb' }}>
                 {tenant.rentAmount ? `${Number(tenant.rentAmount).toLocaleString('ru-RU')} руб. / мес.` : 'Не указана'}
               </strong>
             </div>
@@ -265,7 +265,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
               fullWidth
               startIcon={<PaymentIcon />}
               style={{
-                backgroundColor: '#4f46e5',
+                backgroundColor: '#2563eb',
                 color: '#fff',
                 textTransform: 'none',
                 padding: '12px',
@@ -288,7 +288,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
               fullWidth
               startIcon={<AccountBalanceIcon />}
               style={{
-                color: '#4f46e5',
+                color: '#2563eb',
                 borderColor: '#c7d2fe',
                 textTransform: 'none',
                 padding: '12px',
@@ -425,7 +425,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
             <Button onClick={() => setFormOpen(false)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
               Отмена
             </Button>
-            <Button type="submit" variant="contained" style={{ textTransform: 'none', backgroundColor: '#4f46e5' }}>
+            <Button type="submit" variant="contained" style={{ textTransform: 'none', backgroundColor: '#2563eb' }}>
               Сохранить изменения
             </Button>
           </DialogActions>

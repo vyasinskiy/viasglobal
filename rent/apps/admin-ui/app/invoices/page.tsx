@@ -343,7 +343,7 @@ export default function InvoicesPage() {
 
           <button
             className={styles.downloadLink}
-            style={{ padding: '9px 16px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', backgroundColor: '#4f46e5', color: '#fff', fontWeight: 600 }}
+            style={{ padding: '9px 16px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600 }}
             onClick={handleOpenAddModal}
           >
             <AddIcon style={{ fontSize: '1.2rem' }} />

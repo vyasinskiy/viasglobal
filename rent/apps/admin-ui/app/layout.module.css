@@ -66,13 +66,13 @@
 }
 
 .activeMenuLink {
-  background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%);
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 .activeMenuLink:hover {
-  background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%);
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
 }
 
@@ -116,8 +116,8 @@
 }
 
 .userBadge {
-  background-color: #e0e7ff;
-  color: #4338ca;
+  background-color: #dbeafe;
+  color: #1d4ed8;
   padding: 6px 12px;
   border-radius: 9999px;
   font-size: 0.75rem;

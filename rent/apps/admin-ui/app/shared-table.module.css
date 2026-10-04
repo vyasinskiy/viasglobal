@@ -38,8 +38,8 @@
 }
 
 .searchInput:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .activeFilterBadge {
@@ -157,7 +157,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #4f46e5;
+  background-color: #2563eb;
   color: #ffffff;
   text-decoration: none;
   padding: 6px 12px;
@@ -168,7 +168,7 @@
 }
 
 .downloadLink:hover {
-  background-color: #4338ca;
+  background-color: #1d4ed8;
 }
 
 .disabledLink {

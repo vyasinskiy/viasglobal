@@ -145,7 +145,7 @@ export default function EventsPage() {
 
         <button
           className={styles.downloadLink}
-          style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', backgroundColor: '#4f46e5', color: '#fff', fontWeight: 600, borderRadius: '8px' }}
+          style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600, borderRadius: '8px' }}
           onClick={handleCreateClick}
         >
           <AddIcon style={{ fontSize: '1.2rem' }} />

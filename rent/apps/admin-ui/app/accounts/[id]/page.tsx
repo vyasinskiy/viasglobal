@@ -116,7 +116,7 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
           onClick={handleEditClick}
           variant="contained"
           startIcon={<EditIcon />}
-          style={{ backgroundColor: '#4f46e5', textTransform: 'none', fontWeight: 600 }}
+          style={{ backgroundColor: '#2563eb', textTransform: 'none', fontWeight: 600 }}
         >
           Редактировать
         </Button>
@@ -153,12 +153,12 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a' }}>
-              <ReceiptLongIcon style={{ color: '#4f46e5' }} />
+              <ReceiptLongIcon style={{ color: '#2563eb' }} />
               Последние начисления
             </h3>
             <Button
               onClick={() => router.push(`/invoices?accountId=${account.id}`)}
-              style={{ textTransform: 'none', color: '#4f46e5', fontWeight: 600 }}
+              style={{ textTransform: 'none', color: '#2563eb', fontWeight: 600 }}
             >
               Все начисления →
             </Button>
@@ -217,7 +217,7 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
             </h3>
             <Button
               onClick={() => router.push(`/payments?accountId=${account.id}`)}
-              style={{ textTransform: 'none', color: '#4f46e5', fontWeight: 600 }}
+              style={{ textTransform: 'none', color: '#2563eb', fontWeight: 600 }}
             >
               Все оплаты →
             </Button>
@@ -278,7 +278,7 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
           <Button onClick={() => setEditOpen(false)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
             Отмена
           </Button>
-          <Button onClick={handleSaveEdit} variant="contained" style={{ textTransform: 'none', backgroundColor: '#4f46e5' }}>
+          <Button onClick={handleSaveEdit} variant="contained" style={{ textTransform: 'none', backgroundColor: '#2563eb' }}>
             Сохранить
           </Button>
         </DialogActions>

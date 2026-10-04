@@ -128,7 +128,7 @@ export default function ScanningPage() {
               fontSize: '0.875rem', 
               borderRadius: '8px', 
               cursor: isScraperBusy || triggering ? 'not-allowed' : 'pointer',
-              backgroundColor: isScraperBusy || triggering ? '#94a3b8' : '#4f46e5',
+              backgroundColor: isScraperBusy || triggering ? '#94a3b8' : '#2563eb',
               border: 'none',
               pointerEvents: isScraperBusy || triggering ? 'none' : 'auto'
             }}
@@ -140,7 +140,7 @@ export default function ScanningPage() {
           </button>
 
           {isScraperBusy && (
-            <span style={{ fontSize: '0.875rem', color: '#4f46e5', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.875rem', color: '#2563eb', fontWeight: 600 }}>
               Парсер занят, история логов обновляется автоматически...
             </span>
           )}
@@ -186,7 +186,7 @@ export default function ScanningPage() {
                     <TableCell style={{ fontWeight: 600, textAlign: 'center' }}>
                       {row.apartmentsScanned}
                     </TableCell>
-                    <TableCell style={{ fontWeight: 600, color: '#4f46e5', textAlign: 'center' }}>
+                    <TableCell style={{ fontWeight: 600, color: '#2563eb', textAlign: 'center' }}>
                       {row.newAccruals} / {row.newInvoices}
                     </TableCell>
                     <TableCell style={{ color: '#475569', fontSize: '0.8rem', maxWidth: '250px', wordBreak: 'break-word' }}>

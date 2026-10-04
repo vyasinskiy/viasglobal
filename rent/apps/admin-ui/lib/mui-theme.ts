@@ -4,15 +4,15 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#4f46e5', // indigo-600
-      light: '#818cf8',
-      dark: '#3730a3',
+      main: '#2563eb', // blue-600
+      light: '#60a5fa',
+      dark: '#1d4ed8',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#06b6d4', // cyan-500
-      light: '#67e8f9',
-      dark: '#0891b2',
+      main: '#0284c7', // sky-600
+      light: '#38bdf8',
+      dark: '#0369a1',
       contrastText: '#ffffff',
     },
     background: {

@@ -251,7 +251,7 @@ export default function TenantsPage() {
                   <TableCell>
                     {row.rentPaymentDay ? `${row.rentPaymentDay}-е число` : '—'}
                   </TableCell>
-                  <TableCell style={{ fontWeight: 600, color: '#4f46e5' }}>
+                  <TableCell style={{ fontWeight: 600, color: '#2563eb' }}>
                     {row.rentAmount ? `${Number(row.rentAmount).toFixed(2)} руб.` : '—'}
                   </TableCell>
                   <TableCell>{renderStatus(row.status)}</TableCell>
@@ -381,7 +381,7 @@ export default function TenantsPage() {
             <Button onClick={() => setFormOpen(false)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
               Отмена
             </Button>
-            <Button type="submit" variant="contained" style={{ textTransform: 'none', backgroundColor: '#4f46e5' }}>
+            <Button type="submit" variant="contained" style={{ textTransform: 'none', backgroundColor: '#2563eb' }}>
               {editingTenant ? 'Сохранить изменения' : 'Добавить арендатора'}
             </Button>
           </DialogActions>

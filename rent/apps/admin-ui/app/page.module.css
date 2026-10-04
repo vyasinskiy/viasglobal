@@ -7,11 +7,11 @@
 }
 
 .welcomeSection {
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   padding: 32px;
   border-radius: 16px;
   color: #ffffff;
-  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
 }
 
 .welcomeTitle {
@@ -22,7 +22,7 @@
 
 .welcomeSubtitle {
   font-size: 1rem;
-  color: #e0e7ff;
+  color: #dbeafe;
   margin: 0;
 }
 

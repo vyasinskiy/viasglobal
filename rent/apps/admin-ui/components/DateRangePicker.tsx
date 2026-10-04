@@ -109,7 +109,7 @@ export default function DateRangePicker({ fromMonth, toMonth, onChange, onReset 
         aria-describedby={id}
         variant="outlined"
         onClick={handleClick}
-        startIcon={<CalendarTodayIcon style={{ fontSize: '1rem', color: hasFilter ? '#4f46e5' : '#64748b' }} />}
+        startIcon={<CalendarTodayIcon style={{ fontSize: '1rem', color: hasFilter ? '#2563eb' : '#64748b' }} />}
         style={{
           backgroundColor: hasFilter ? '#e0e7ff' : '#fff',
           borderColor: hasFilter ? '#818cf8' : '#cbd5e1',
@@ -261,7 +261,7 @@ export default function DateRangePicker({ fromMonth, toMonth, onChange, onReset 
               variant="contained"
               size="small"
               startIcon={<CheckIcon />}
-              style={{ backgroundColor: '#4f46e5', textTransform: 'none', fontWeight: 600 }}
+              style={{ backgroundColor: '#2563eb', textTransform: 'none', fontWeight: 600 }}
             >
               Применить
             </Button>

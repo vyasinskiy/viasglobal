@@ -549,7 +549,7 @@ export default function PaymentsPage() {
               type="submit"
               variant="contained"
               disabled={isSubmittingAdd}
-              style={{ textTransform: 'none', backgroundColor: '#4f46e5' }}
+              style={{ textTransform: 'none', backgroundColor: '#2563eb' }}
             >
               {isSubmittingAdd ? 'Сохранение...' : 'Создать платеж'}
             </Button>

@@ -132,7 +132,7 @@ export default function ApartmentsPage() {
                   <TableCell style={{ color: '#64748b', fontSize: '0.8rem' }}>{row.externalId}</TableCell>
                   <TableCell style={{ fontWeight: 500 }}>{row.address || '—'}</TableCell>
                   <TableCell>{row.organization || '—'}</TableCell>
-                  <TableCell style={{ fontWeight: 600, color: '#4f46e5' }}>
+                  <TableCell style={{ fontWeight: 600, color: '#2563eb' }}>
                     {row._count?.accounts ?? 0} шт.
                   </TableCell>
                   <TableCell style={{ color: '#64748b' }}>{formatDate(row.firstSeenAt)}</TableCell>
