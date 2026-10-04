@@ -80,3 +80,18 @@ ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && docker compose -f docker-com
 ```bash
 docker compose -f docker-compose.standby.yml up -d --build
 ```
+
+---
+
+## 4. Публикация веб-интерфейсов через Cloudflare Tunnel
+
+Для безопасного внешнего доступа к веб-интерфейсам кластера (без открытия портов на роутере и без белого статического IP) используется **Cloudflare Tunnel** (`cloudflared`).
+
+### Конфигурация туннеля:
+- **Контейнер**: `cloudflared` (на сервере Huawei).
+- **Сетевое окружение**: Контейнер подключен к Docker-сетям `bridge` и `infra_accruals-network`.
+- **Токен авторизации Cloudflare**: Сохранен в файле окружения `rent/infra/.env` в переменной `CLOUDFLARE_API_TOKEN`. Шаблон указан в `rent/infra/.env.example`.
+- **Маршрутизация поддоменов**:
+  - `portainer.viasglobal.es` -> `http://172.17.0.1:9000` (панель управления Docker контейнерами).
+  - `rent.viasglobal.es` -> `http://accruals-admin-ui:3000` (веб-панель управления учетом аренды и начислений).
+
