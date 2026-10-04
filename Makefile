@@ -37,6 +37,24 @@ redeploy-rent-bot:
 	@echo "Пересборка и перезапуск контейнера accruals-telegram-bot на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build telegram-bot"
 
+redeploy-rent-watcher:
+	@echo "Синхронизация watcher на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.env' --exclude '.playwright-browsers' --exclude 'data' ./rent/apps/watcher/ huawei@100.92.50.18:~/viasglobal/rent/apps/watcher/
+	rsync -avz ./rent/.agents/ huawei@100.92.50.18:~/viasglobal/rent/.agents/
+	rsync -avz ./rent/README.md huawei@100.92.50.18:~/viasglobal/rent/
+	@echo "Пересборка и перезапуск контейнера accruals-watcher на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build watcher"
+
+redeploy-rent-admin:
+	@echo "Синхронизация admin-ui на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.next' --exclude '.env' ./rent/apps/admin-ui/ huawei@100.92.50.18:~/viasglobal/rent/apps/admin-ui/
+	@echo "Пересборка и перезапуск контейнера accruals-admin-ui на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build admin-ui"
+
+redeploy-rent-services: redeploy-rent-watcher redeploy-rent-admin redeploy-rent-bot
+	@echo "Все сервисы rent успешно обновлены и перезапущены!"
+
+
 deploy-hermes:
 	@echo "Синхронизация файлов Hermes на сервер Huawei..."
 	rsync -avz --exclude 'data' --exclude '__pycache__' ./hermes/ huawei@100.92.50.18:~/viasglobal/hermes/

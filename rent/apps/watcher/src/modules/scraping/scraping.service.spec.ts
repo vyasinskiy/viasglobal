@@ -240,8 +240,9 @@ describe('ScrapingService', () => {
     }));
   });
 
-  it('должен устанавливать статус needs_login, если адаптер вернул needsLogin: true', async () => {
-    // Мокируем результат работы адаптера с флагом истекшей сессии
+  it('должен устанавливать статус needs_login, возвращать ошибку и сохранять её в БД при needsLogin: true', async () => {
+    // Мокируем результат работы адаптера с флагом истекшей сессии и ошибкой
+    const errorMessage = 'Сессия авторизации истекла. Требуется ручной вход.';
     jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
       apartments: [],
       accounts: [],
@@ -249,7 +250,9 @@ describe('ScrapingService', () => {
       invoices: [],
       needsLogin: true,
       degraded: false,
-      message: 'Сессия авторизации истекла. Требуется ручной вход.',
+      message: errorMessage,
+      error: errorMessage,
+      errors: [errorMessage]
     });
 
     mockAccountantClientService.findApartments.mockResolvedValue([]);
@@ -257,10 +260,47 @@ describe('ScrapingService', () => {
     // Вызываем сканирование сервиса
     const summary = await service.scan({ trigger: 'manual' });
 
-    // Проверяем, что в результирующей сводке выставлен статус needs_login и флаг needsLogin
+    // Проверяем, что в результирующей сводке выставлен статус needs_login, флаг needsLogin и поля ошибок
     expect(summary.status).toBe('needs_login');
     expect(summary.needsLogin).toBe(true);
     expect(summary.message).toContain('Сессия авторизации истекла');
+    expect(summary.error).toBe(errorMessage);
+    expect(summary.errors).toEqual([errorMessage]);
+
+    // Проверяем, что в базу данных передан проблемный статус и JSON с ошибкой
+    expect(mockPrismaService.run.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'needs_login',
+        needsLogin: true,
+        message: expect.stringContaining(errorMessage),
+        summaryJson: expect.stringContaining(errorMessage)
+      })
+    }));
+  });
+
+  it('должен перехватывать исключение сканирования, возвращать статус error и сохранять ошибку в БД', async () => {
+    const fatalError = new Error('Фатальный сбой подключения к kvartplata.online');
+    jest.spyOn(KvartplataAdapter.prototype, 'scan').mockRejectedValue(fatalError);
+
+    mockAccountantClientService.findApartments.mockResolvedValue([]);
+
+    // Запускаем сканирование
+    const summary = await service.scan({ trigger: 'manual' });
+
+    // Проверяем, что статус сводки стал error с детальным описанием сбоя
+    expect(summary.status).toBe('error');
+    expect(summary.error).toBe(fatalError.message);
+    expect(summary.errors).toEqual([fatalError.message]);
+    expect(summary.message).toContain('Фатальный сбой подключения');
+
+    // Проверяем сохранение проблемного запуска в БД
+    expect(mockPrismaService.run.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'error',
+        message: expect.stringContaining(fatalError.message),
+        summaryJson: expect.stringContaining(fatalError.message)
+      })
+    }));
   });
 });
 

@@ -358,17 +358,28 @@ export class AdminInteractionService {
         // Trigger scan in watcher
         const summary = await firstValueFrom(this.watcherClient.send('run_scan', {}));
         
-        const statusEmoji = summary.status === 'success' ? '✅' : (summary.status === 'warning' ? '⚠️' : '❌');
+        // Определяем эмодзи статуса с учетом 'needs_login' и 'warning'
+        const statusEmoji = summary.status === 'success' 
+          ? '✅' 
+          : (summary.status === 'warning' 
+            ? '⚠️' 
+            : (summary.status === 'needs_login' ? '🔑' : '❌'));
         let message = `${statusEmoji} <b>Сканирование завершено</b>\n` +
           `Статус: <code>${summary.status}</code>\n` +
-          `Сообщение: ${summary.message}\n\n` +
-          `📊 <b>Итоги:</b>\n` +
+          `Сообщение: ${summary.message}\n`;
+
+        // Если есть детальное описание ошибки, выводим его для наглядного анализа
+        if (summary.error && !summary.message?.includes(summary.error)) {
+          message += `⚠️ <b>Ошибка:</b> ${summary.error}\n`;
+        }
+
+        message += `\n📊 <b>Итоги:</b>\n` +
           `🏢 Квартир: ${summary.apartmentsScanned} (новых: ${summary.newApartments})\n` +
           `📝 Начислений: ${summary.accrualsObserved} (новых: ${summary.newAccruals})\n` +
           `📄 Инвойсов: ${summary.invoicesObserved} (новых: ${summary.newInvoices})`;
           
         if (summary.needsLogin) {
-            message += '\n\n🔑 <b>Требуется повторная авторизация!</b>';
+          message += '\n\n🔑 <b>Требуется повторная авторизация!</b>\nЗапустите сессию visual-browser для входа по SMS.';
         }
 
         // Fetch apartments to find ones with debt

@@ -130,6 +130,7 @@ export class KvartplataAdapter {
       await page.waitForTimeout(config.WAIT_AFTER_NAV_MS);
 
       if (await this.isLoginRequired(page)) {
+        const errorDesc = 'SessionExpired: Сохраненная сессия отсутствует или истекла (обнаружен редирект или форма авторизации).';
         return {
           apartments: [],
           accounts: [],
@@ -137,7 +138,9 @@ export class KvartplataAdapter {
           invoices: [],
           needsLogin: true,
           degraded: false,
-          message: 'Saved session is missing or expired; manual bootstrap is required.'
+          message: 'Saved session is missing or expired; manual bootstrap is required.',
+          error: errorDesc,
+          errors: [errorDesc]
         };
       }
 
@@ -157,10 +160,13 @@ export class KvartplataAdapter {
             invoices: [],
             needsLogin: true,
             degraded: false,
-            message: 'Сессия авторизации истекла (API вернул HTML вместо JSON). Требуется повторный вход в личный кабинет.'
+            message: 'Сессия авторизации истекла (API вернул HTML вместо JSON). Требуется повторный вход в личный кабинет.',
+            error: error.message,
+            errors: [error.message]
           };
         }
-        warnings.push(error instanceof Error ? error.message : String(error));
+        const errText = error instanceof Error ? error.message : String(error);
+        warnings.push(errText);
         return {
           apartments: [],
           accounts: [],
@@ -168,7 +174,9 @@ export class KvartplataAdapter {
           invoices: [],
           needsLogin: false,
           degraded: true,
-          message: warnings.join(' ')
+          message: warnings.join(' '),
+          error: errText,
+          errors: warnings
         };
       }
       const rawApartments = apartmentPayload ? extractApartments(apartmentPayload) : [];
@@ -246,7 +254,9 @@ export class KvartplataAdapter {
         degraded: warnings.length > 0,
         message: warnings.length
           ? `Scanned ${selectedApartments.length} apartment(s), ${accountSnapshots.length} account(s). Warnings: ${warnings.join(' ')}`
-          : `Scanned ${selectedApartments.length} apartment(s), ${accountSnapshots.length} account(s).`
+          : `Scanned ${selectedApartments.length} apartment(s), ${accountSnapshots.length} account(s).`,
+        error: warnings.length > 0 ? warnings.join('; ') : undefined,
+        errors: warnings.length > 0 ? warnings : undefined
       };
     } finally {
       if (browser) {

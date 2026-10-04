@@ -23,8 +23,10 @@ interface ScraperRun {
   startedAt: string;
   finishedAt: string | null;
   trigger: string;
-  status: string; // started, completed, failed
+  status: string; // 'success' | 'warning' | 'needs_login' | 'error' | 'started' | 'completed' | 'failed'
   message: string | null;
+  error?: string;
+  errors?: string[];
   apartmentsScanned: number;
   accrualsObserved: number;
   invoicesObserved: number;
@@ -32,6 +34,7 @@ interface ScraperRun {
   newAccruals: number;
   newInvoices: number;
   needsLogin: boolean;
+  summaryJson?: string;
 }
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
@@ -39,9 +42,11 @@ const fetcher = (url: string) => axios.get(url).then(res => res.data);
 export default function ScanningPage() {
   const [triggering, setTriggering] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [lastRunResult, setLastRunResult] = useState<ScraperRun | null>(null);
 
-  // Poll scraper runs history every 4 seconds
-  const { data: runs, error, mutate, isLoading } = useSWR<ScraperRun[]>(
+  // Опрос истории запусков парсера каждые 4 секунды
+  const { data: runs, mutate, isLoading } = useSWR<ScraperRun[]>(
     '/api/watcher/runs', 
     fetcher, 
     { refreshInterval: 4000 }
@@ -50,13 +55,28 @@ export default function ScanningPage() {
   const handleStartScan = async () => {
     setTriggering(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
+    setLastRunResult(null);
     try {
-      await axios.post('/api/watcher/scan', { force: true });
-      // Instantly mutate to get updated status
+      // Отправляем запрос на запуск сканирования и получаем подробный ответ с ошибками
+      const res = await axios.post('/api/watcher/scan', { force: true });
+      const data: ScraperRun = res.data;
+      setLastRunResult(data);
+
+      if (data.status === 'needs_login') {
+        setErrorMsg(data.error || data.message || 'Требуется авторизация в личный кабинет kvartplata.online');
+      } else if (data.status === 'error' || data.status === 'failed') {
+        setErrorMsg(data.error || data.message || 'Ошибка выполнения сканирования');
+      } else if (data.status === 'warning') {
+        setErrorMsg(`Сканирование завершено с предупреждениями: ${data.error || data.message}`);
+      } else {
+        setSuccessMsg(`Сканирование успешно завершено. Квартир: ${data.apartmentsScanned}, начислений: ${data.accrualsObserved}, инвойсов: ${data.invoicesObserved}`);
+      }
+
       mutate();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Ошибка связи с парсером';
-      setErrorMsg('Не удалось запустить сканирование. Убедитесь, что контейнер watcher работает на порту 4500.');
+      setErrorMsg(`Не удалось запустить сканирование: ${msg}. Убедитесь, что контейнер watcher запущен на порту 4500.`);
     } finally {
       setTriggering(false);
     }
@@ -80,14 +100,28 @@ export default function ScanningPage() {
 
   const renderRunStatus = (status: string) => {
     switch (status) {
+      case 'success':
       case 'completed':
         return (
           <span className={styles.statusConfirmed}>
             <CheckCircleIcon style={{ fontSize: '0.9rem', marginRight: '4px', verticalAlign: 'middle' }} />
-            Завершено
+            Успешно
+          </span>
+        );
+      case 'needs_login':
+        return (
+          <span className={styles.statusRejected} style={{ backgroundColor: '#fef3c7', color: '#b45309' }}>
+            🔑 Требуется вход
+          </span>
+        );
+      case 'warning':
+        return (
+          <span className={styles.statusPending} style={{ backgroundColor: '#fff7ed', color: '#c2410c' }}>
+            ⚠️ Предупреждение
           </span>
         );
       case 'failed':
+      case 'error':
         return (
           <span className={styles.statusRejected}>
             <ErrorIcon style={{ fontSize: '0.9rem', marginRight: '4px', verticalAlign: 'middle' }} />
@@ -146,9 +180,40 @@ export default function ScanningPage() {
           )}
         </div>
 
+        {/* Информационные плашки результатов для немедленного анализа */}
         {errorMsg && (
-          <div style={{ color: '#ef4444', fontSize: '0.875rem', fontWeight: 500, marginTop: '16px' }}>
-            {errorMsg}
+          <div style={{ 
+            backgroundColor: lastRunResult?.status === 'needs_login' ? '#fef3c7' : '#fee2e2',
+            color: lastRunResult?.status === 'needs_login' ? '#92400e' : '#991b1b',
+            border: `1px solid ${lastRunResult?.status === 'needs_login' ? '#fde68a' : '#fecaca'}`,
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginTop: '16px',
+            fontSize: '0.875rem'
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: '4px' }}>
+              {lastRunResult?.status === 'needs_login' ? '🔑 Проблема с авторизацией' : '❌ Ошибка при сканировании'}
+            </div>
+            <div>{errorMsg}</div>
+            {lastRunResult?.status === 'needs_login' && (
+              <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#78350f' }}>
+                💡 <b>Решение:</b> запустите контейнер <code>visual-browser</code> на сервере (порт 3002), залогиньтесь по SMS и сохраните сессию через <code>docker exec accruals-watcher npm run bootstrap</code>.
+              </div>
+            )}
+          </div>
+        )}
+
+        {successMsg && (
+          <div style={{ 
+            backgroundColor: '#dcfce7',
+            color: '#166534',
+            border: '1px solid #bbf7d0',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginTop: '16px',
+            fontSize: '0.875rem'
+          }}>
+            <span style={{ fontWeight: 600 }}>✅ {successMsg}</span>
           </div>
         )}
       </div>
@@ -169,31 +234,40 @@ export default function ScanningPage() {
                 <TableCell style={{ fontWeight: 'bold' }}>Конец</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Сканировано квартир</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Новых счетов / PDF</TableCell>
-                <TableCell style={{ fontWeight: 'bold' }}>Сообщение</TableCell>
+                <TableCell style={{ fontWeight: 'bold' }}>Сообщение / Ошибка</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {runs && runs.length > 0 ? (
-                runs.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell style={{ fontWeight: 500 }}>
-                      {row.trigger === 'manual' ? 'Вручную (Админ)' : row.trigger === 'cron' ? 'Планировщик (Cron)' : row.trigger}
-                    </TableCell>
-                    <TableCell>{renderRunStatus(row.status)}</TableCell>
-                    <TableCell style={{ color: '#64748b' }}>{formatDate(row.startedAt)}</TableCell>
-                    <TableCell style={{ color: '#64748b' }}>{formatDate(row.finishedAt)}</TableCell>
-                    <TableCell style={{ fontWeight: 600, textAlign: 'center' }}>
-                      {row.apartmentsScanned}
-                    </TableCell>
-                    <TableCell style={{ fontWeight: 600, color: '#2563eb', textAlign: 'center' }}>
-                      {row.newAccruals} / {row.newInvoices}
-                    </TableCell>
-                    <TableCell style={{ color: '#475569', fontSize: '0.8rem', maxWidth: '250px', wordBreak: 'break-word' }}>
-                      {row.message || '—'}
-                    </TableCell>
-                  </TableRow>
-                ))
+                runs.map((row) => {
+                  const isProblematic = row.status === 'needs_login' || row.status === 'error' || row.status === 'failed' || row.status === 'warning';
+                  return (
+                    <TableRow key={row.id} style={{ backgroundColor: isProblematic ? '#fffbfb' : 'inherit' }}>
+                      <TableCell>{row.id}</TableCell>
+                      <TableCell style={{ fontWeight: 500 }}>
+                        {row.trigger === 'manual' ? 'Вручную (Админ)' : row.trigger === 'cron' ? 'Планировщик (Cron)' : row.trigger}
+                      </TableCell>
+                      <TableCell>{renderRunStatus(row.status)}</TableCell>
+                      <TableCell style={{ color: '#64748b' }}>{formatDate(row.startedAt)}</TableCell>
+                      <TableCell style={{ color: '#64748b' }}>{formatDate(row.finishedAt)}</TableCell>
+                      <TableCell style={{ fontWeight: 600, textAlign: 'center' }}>
+                        {row.apartmentsScanned}
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, color: '#2563eb', textAlign: 'center' }}>
+                        {row.newAccruals} / {row.newInvoices}
+                      </TableCell>
+                      <TableCell style={{ 
+                        color: isProblematic ? '#b91c1c' : '#475569', 
+                        fontSize: '0.8rem', 
+                        maxWidth: '280px', 
+                        wordBreak: 'break-word',
+                        fontWeight: isProblematic ? 500 : 400
+                      }}>
+                        {row.message || '—'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} align="center">

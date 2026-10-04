@@ -47,6 +47,8 @@ export interface ScanResult {
   needsLogin: boolean;
   degraded: boolean;
   message: string;
+  error?: string;
+  errors?: string[];
 }
 
 export interface ScanSummary {
@@ -55,6 +57,8 @@ export interface ScanSummary {
   trigger: 'manual' | 'cron';
   status: RunStatus;
   message: string;
+  error?: string;
+  errors?: string[];
   apartmentsScanned: number;
   accrualsObserved: number;
   invoicesObserved: number;

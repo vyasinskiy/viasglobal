@@ -111,16 +111,22 @@ export class ScrapingService implements OnApplicationBootstrap {
       let needsLogin = false;
       let degraded = false;
       let message = 'No data discovered.';
+      // Переменные для сбора детальной информации об ошибках
+      let scanError: string | undefined = undefined;
+      let scanErrors: string[] | undefined = undefined;
 
       if (!fs.existsSync(config.storageStatePath)) {
         needsLogin = true;
         message = 'No saved Playwright storage state found. Run npm run bootstrap first.';
+        scanError = message;
+        scanErrors = [message];
         log(message);
       } else {
         try {
+          // Запускаем парсинг через Playwright адаптер
           const scan = await this.adapter.scan({
             apartmentExternalIds: hasExplicitApartmentFilter && dbApartments.length
-              ? dbApartments.map((item: any) => item.externalId)
+              ? dbApartments.map((item: { externalId: string }) => item.externalId)
               : undefined,
             log
           });
@@ -131,21 +137,28 @@ export class ScrapingService implements OnApplicationBootstrap {
           needsLogin = scan.needsLogin;
           degraded = scan.degraded;
           message = scan.message;
+          scanError = scan.error;
+          scanErrors = scan.errors;
           log(message);
         } catch (error) {
           degraded = true;
           message = error instanceof Error ? error.message : String(error);
+          scanError = message;
+          scanErrors = [message];
           log(`Live scan failed: ${message}`);
         }
       }
 
       if (needsLogin) {
+        // Завершаем сессию со статусом needs_login и сохраняем подробную ошибку
         const summary = await this.finalize(runId, {
           startedAt: startedAt.toISOString(),
           finishedAt: new Date().toISOString(),
           trigger,
           status: 'needs_login',
           message,
+          error: scanError || message,
+          errors: scanErrors || (scanError ? [scanError] : [message]),
           apartmentsScanned: 0,
           accrualsObserved: 0,
           invoicesObserved: 0,
@@ -284,13 +297,28 @@ export class ScrapingService implements OnApplicationBootstrap {
       }
       log(`${blue}-----------------------------${reset}`);
 
-      // Определяем статус сессии: если требуется вход, устанавливаем 'needs_login'
+      // Определяем статус сессии:
+      // 1. Если требуется вход -> 'needs_login'
+      // 2. Если произошла ошибка парсинга и данные не получены -> 'error'
+      // 3. Если сканирование прошло частично или есть ошибки загрузки отдельных инвойсов -> 'warning'
+      // 4. В остальных случаях -> 'success'
       let runStatus: RunStatus = 'success';
       if (needsLogin) {
         runStatus = 'needs_login';
+      } else if (scanError && apartments.length === 0) {
+        runStatus = 'error';
       } else if (degraded || uploadErrors.length > 0) {
         runStatus = 'warning';
       }
+
+      // Собираем все ошибки для передачи в ответе и сохранения в базу данных
+      const combinedErrors: string[] = [
+        ...(scanErrors || []),
+        ...uploadErrors
+      ];
+      const combinedError: string | undefined = combinedErrors.length > 0
+        ? combinedErrors.join('; ')
+        : scanError;
 
       // Сохраняем сводку сессии сканирования в базу данных
       const summary = await this.finalize(runId, {
@@ -299,6 +327,8 @@ export class ScrapingService implements OnApplicationBootstrap {
         trigger,
         status: runStatus,
         message,
+        error: combinedError,
+        errors: combinedErrors.length > 0 ? combinedErrors : undefined,
         apartmentsScanned: apartments.length,
         accrualsObserved: accruals.length,
         invoicesObserved: invoices.length,
@@ -317,12 +347,15 @@ export class ScrapingService implements OnApplicationBootstrap {
 
       try {
         if (runId !== undefined) {
+          // Сохраняем критическую ошибку в базу данных
           const finalSummary = await this.finalize(runId, {
             startedAt: startedAt.toISOString(),
             finishedAt: new Date().toISOString(),
             trigger,
             status: 'error',
-            message,
+            message: `Ошибка выполнения сканирования: ${message}`,
+            error: message,
+            errors: [message],
             apartmentsScanned: 0,
             accrualsObserved: 0,
             invoicesObserved: 0,
@@ -350,13 +383,18 @@ export class ScrapingService implements OnApplicationBootstrap {
   }
 
   private async finalize(runId: number, summary: ScanSummary): Promise<ScanSummary> {
+    // Формируем детальное сообщение, включая текст ошибки для наглядности в БД
+    const finalMessage = summary.error && !summary.message.includes(summary.error)
+      ? `${summary.message} | ${summary.error}`
+      : summary.message;
+
     await this.prisma.run.update({
       where: { id: runId },
       data: {
         finishedAt: new Date(summary.finishedAt),
         trigger: summary.trigger,
         status: summary.status,
-        message: summary.message,
+        message: finalMessage,
         apartmentsScanned: summary.apartmentsScanned,
         accrualsObserved: summary.accrualsObserved,
         invoicesObserved: summary.invoicesObserved,

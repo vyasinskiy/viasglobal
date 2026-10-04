@@ -412,6 +412,8 @@ export class TelegramBotController {
     trigger: 'manual' | 'cron';
     status: 'success' | 'warning' | 'needs_login' | 'error';
     message: string;
+    error?: string;
+    errors?: string[];
     apartmentsScanned: number;
     accrualsObserved: number;
     invoicesObserved: number;
@@ -454,8 +456,18 @@ export class TelegramBotController {
       `💵 <b>Начисления:</b> ${data.accrualsObserved} (новых: ${data.newAccruals})\n` +
       `📄 <b>Квитанции:</b> ${data.invoicesObserved} (новых: ${data.newInvoices})\n`;
 
-    if (data.message) {
+    // Выводим сообщение и подробную ошибку, если она присутствует
+    if (data.error && data.message && !data.message.includes(data.error)) {
+      message += `\n💬 <b>Сообщение:</b> ${data.message}\n`;
+      message += `⚠️ <b>Ошибка:</b> ${data.error}`;
+    } else if (data.error) {
+      message += `\n⚠️ <b>Ошибка:</b> ${data.error}`;
+    } else if (data.message) {
       message += `\n💬 <b>Сообщение:</b> ${data.message}`;
+    }
+
+    if (data.needsLogin) {
+      message += '\n\n🔑 <b>Требуется авторизация:</b> запустите <code>visual-browser</code> и обновите сессию по SMS.';
     }
 
     await this.notifyAdmins(message, `scan_completed (status: ${data.status})`);
