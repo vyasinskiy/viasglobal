@@ -58,7 +58,7 @@ export default function LoginPage() {
           <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
             <Translate sx={{ mr: 1, color: 'primary.main' }} />
             <Typography variant="h5" component="div" fontWeight={800}>
-              VIAS - Langs
+              Viasglobal Langs
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>

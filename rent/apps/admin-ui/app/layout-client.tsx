@@ -73,7 +73,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.logoArea}>
-          <span className={styles.logoText}>Accruals Admin</span>
+          <span className={styles.logoText}>Viasglobal Rent</span>
         </div>
         <nav className={styles.menuList}>
           {menuItems.map((item) => {

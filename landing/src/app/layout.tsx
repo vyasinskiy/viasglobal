@@ -11,6 +11,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${COMPANY_DOMAIN}`),
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

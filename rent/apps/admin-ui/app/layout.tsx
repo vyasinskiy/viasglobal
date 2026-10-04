@@ -1,11 +1,19 @@
 import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
 import './globals.css';
 import MuiProvider from '../lib/mui-provider';
 import LayoutClient from './layout-client';
 
-export const metadata = {
-  title: 'Accruals Admin',
-  description: 'Admin panel for managing payments and events',
+export const metadata: Metadata = {
+  title: 'Viasglobal Rent',
+  description: 'Система учета аренды, коммунальных начислений и платежей',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -59,7 +59,7 @@ export default function LoginPage() {
         <CardContent>
           <div className={styles.brandHeader}>
             <LockOutlinedIcon className={styles.brandIcon} />
-            <h1 className={styles.brandTitle}>Accruals Admin</h1>
+            <h1 className={styles.brandTitle}>Viasglobal Rent</h1>
           </div>
           <Typography className={styles.subtitle}>
             Система учета коммунальных начислений и аренды. Введите пароль для входа.
