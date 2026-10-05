@@ -155,6 +155,36 @@ export class AccountantService {
       },
     });
 
+    // Пошаговая синхронизация: если в accruals есть начисленная сумма (accruedAmount),
+    // сразу обновляем соответствующую квитанцию (invoice), если у нее еще нет суммы
+    let accruedAmountNum = 0;
+    if (data.rawJson) {
+      try {
+        const parsed = typeof data.rawJson === 'string' ? JSON.parse(data.rawJson) : data.rawJson;
+        if (parsed.accrual?.accruedAmount !== undefined) {
+          accruedAmountNum = Number(parsed.accrual.accruedAmount) || 0;
+        }
+      } catch {}
+    }
+    if (accruedAmountNum === 0 && data.amountText) {
+      const match = String(data.amountText).match(/accruedAmount=([0-9.]+)/);
+      if (match && match[1]) {
+        accruedAmountNum = Number(match[1]) || 0;
+      }
+    }
+    if (accruedAmountNum > 0) {
+      await this.prisma.invoice.updateMany({
+        where: {
+          accountExternalId: data.accountExternalId,
+          periodId: data.periodId,
+          OR: [{ amount: null }, { amount: 0 }]
+        },
+        data: {
+          amount: accruedAmountNum
+        }
+      });
+    }
+
     if (!existing) {
       const activeTenant = account.apartment?.tenants?.[0];
       const tenant = activeTenant ? {
@@ -212,6 +242,41 @@ export class AccountantService {
     // We don't want to revert it to false if it's already true in DB.
     const shouldUpdateUploaded = data.uploadedToS3 === true || (existing ? existing.uploadedToS3 : false);
 
+    // Если сумма в событии квитанции не указана или равна 0, ищем связанное начисление в таблице accruals
+    let resolvedAmount = data.amount;
+    if (!resolvedAmount || Number(resolvedAmount) === 0) {
+      const relatedAccrual = await this.prisma.accrual.findUnique({
+        where: {
+          accountExternalId_periodId: {
+            accountExternalId: data.accountExternalId,
+            periodId: data.periodId,
+          },
+        },
+        select: { rawJson: true, amountText: true },
+      });
+      if (relatedAccrual) {
+        if (relatedAccrual.rawJson) {
+          try {
+            const parsed = typeof relatedAccrual.rawJson === 'string' ? JSON.parse(relatedAccrual.rawJson) : relatedAccrual.rawJson;
+            if (parsed.accrual?.accruedAmount !== undefined) {
+              resolvedAmount = Number(parsed.accrual.accruedAmount) || 0;
+            }
+          } catch {}
+        }
+        if ((!resolvedAmount || Number(resolvedAmount) === 0) && relatedAccrual.amountText) {
+          const match = String(relatedAccrual.amountText).match(/accruedAmount=([0-9.]+)/);
+          if (match && match[1]) {
+            resolvedAmount = Number(match[1]) || 0;
+          }
+        }
+      }
+    }
+
+    // При обновлении не затираем уже существующую положительную сумму нулем
+    const finalAmount = (resolvedAmount && Number(resolvedAmount) > 0)
+      ? resolvedAmount
+      : (existing && existing.amount && Number(existing.amount) > 0 ? existing.amount : resolvedAmount);
+
     const result = await this.prisma.invoice.upsert({
       where: {
         accountExternalId_periodId: {
@@ -223,7 +288,7 @@ export class AccountantService {
         accountExternalId: data.accountExternalId,
         periodId: data.periodId,
         periodLabel: data.periodLabel,
-        amount: data.amount,
+        amount: finalAmount,
         invoiceUrl: data.invoiceUrl,
         utilitiesUrl: data.utilitiesUrl,
         localFilePath: data.localFilePath,
@@ -235,7 +300,7 @@ export class AccountantService {
         lastSeenAt: new Date(),
       },
       update: {
-        amount: data.amount,
+        amount: finalAmount,
         invoiceUrl: data.invoiceUrl,
         utilitiesUrl: data.utilitiesUrl,
         localFilePath: data.localFilePath,
@@ -590,6 +655,60 @@ export class AccountantService {
       orderBy: [{ periodId: 'desc' }],
       ...(filters.take ? { take: Number(filters.take) } : {})
     });
+
+    // Для квитанций ЖКУ с нулевой или пустой суммой подтягиваем начисленную сумму из таблицы accruals
+    const zeroUtilityInvoices = results.filter(
+      inv => inv.invoiceType === 'utility' && (!inv.amount || Number(inv.amount) === 0) && inv.accountExternalId && inv.periodId
+    );
+
+    if (zeroUtilityInvoices.length > 0) {
+      const orConditions = zeroUtilityInvoices.map(inv => ({
+        accountExternalId: inv.accountExternalId as string,
+        periodId: inv.periodId
+      }));
+
+      const accruals = await this.prisma.accrual.findMany({
+        where: { OR: orConditions },
+        select: {
+          accountExternalId: true,
+          periodId: true,
+          rawJson: true,
+          amountText: true,
+        }
+      });
+
+      const accrualMap = new Map<string, number>();
+      for (const acc of accruals) {
+        let amt = 0;
+        if (acc.rawJson) {
+          try {
+            const parsed = typeof acc.rawJson === 'string' ? JSON.parse(acc.rawJson) : acc.rawJson;
+            if (parsed.accrual?.accruedAmount !== undefined) {
+              amt = Number(parsed.accrual.accruedAmount) || 0;
+            }
+          } catch {}
+        }
+        if (amt === 0 && acc.amountText) {
+          const match = String(acc.amountText).match(/accruedAmount=([0-9.]+)/);
+          if (match && match[1]) {
+            amt = Number(match[1]) || 0;
+          }
+        }
+        if (amt > 0) {
+          accrualMap.set(`${acc.accountExternalId}_${acc.periodId}`, amt);
+        }
+      }
+
+      for (const inv of results) {
+        if (inv.invoiceType === 'utility' && (!inv.amount || Number(inv.amount) === 0) && inv.accountExternalId && inv.periodId) {
+          const matchedAmt = accrualMap.get(`${inv.accountExternalId}_${inv.periodId}`);
+          if (matchedAmt) {
+            (inv as any).amount = matchedAmt;
+          }
+        }
+      }
+    }
+
     return this.serialize(results);
   }
 

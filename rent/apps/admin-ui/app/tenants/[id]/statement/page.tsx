@@ -128,18 +128,48 @@ export default function TenantStatementPage({ params }: { params: { id: string }
       }
     };
 
-    // 1. Rent Accruals: use real rent invoices from DB (fallback to synthetic generation)
+    // Функция преобразования идентификатора периода аренды (например, '2026-08')
+    // в дату расчетного дня аренды в том же месяце (например, 20.08.2026)
+    const getRentPeriodDate = (periodId: string, day: number = 1): string => {
+      const clean = (periodId || '').replace(/[^0-9]/g, '');
+      if (clean.length >= 6) {
+        const year = Number(clean.slice(0, 4));
+        const month = Number(clean.slice(4, 6));
+        const targetDay = Math.min(Math.max(day, 1), 28);
+        return new Date(Date.UTC(year, month - 1, targetDay, 12, 0, 0)).toISOString();
+      }
+      return new Date().toISOString();
+    };
+
+    // Функция вычисления даты выставления счета за коммунальные услуги (ЖКУ):
+    // счет за расчетный месяц всегда выставляется 1-го числа СЛЕДУЮЩЕГО месяца (за июль -> 01.08, за август -> 01.09)
+    const getUtilityInvoiceDate = (periodId: string): string => {
+      const clean = (periodId || '').replace(/[^0-9]/g, '');
+      if (clean.length >= 6) {
+        const year = Number(clean.slice(0, 4));
+        const month = Number(clean.slice(4, 6)); // 1..12
+        // В объекте Date передача month без вычитания 1 дает ровно 1-е число следующего календарного месяца
+        return new Date(Date.UTC(year, month, 1, 12, 0, 0)).toISOString();
+      }
+      return new Date().toISOString();
+    };
+
+    // 1. Арендные начисления: берем реальные счета аренды из БД (с фоллбэком на автогенерацию)
     const rentInvoices = invoices ? invoices.filter(inv =>
       inv.invoiceType === 'rent' &&
       (inv.tenantId === Number(tenantId) || inv.tenant?.id === Number(tenantId))
     ) : [];
 
+    const rentDay = tenant.rentPaymentDay || 1;
+
     if (rentInvoices.length > 0) {
       rentInvoices.forEach(inv => {
+        const cleanPeriod = (inv.periodId || '').replace('-', '');
         items.push({
           id: `rent-${inv.id}`,
-          date: inv.firstSeenAt,
-          periodId: (inv.periodId || '').replace('-', ''),
+          // Дата начисления аренды формируется из месяца периода и расчетного дня арендодателя
+          date: getRentPeriodDate(cleanPeriod, rentDay),
+          periodId: cleanPeriod,
           type: 'rent',
           description: `Начисление аренды за ${monthNameOf(inv.periodLabel || inv.periodId)}`,
           chargeAmount: Number(inv.amount || 0),
@@ -148,9 +178,8 @@ export default function TenantStatementPage({ params }: { params: { id: string }
       });
     } else if (tenant.rentAmount && Number(tenant.rentAmount) > 0) {
       const rentAmount = Number(tenant.rentAmount);
-      const rentDay = tenant.rentPaymentDay || 1;
       const startDate = new Date(tenant.rentStartDate || tenant.createdAt || '2026-01-01');
-      const endDate = new Date(); // Current date
+      const endDate = new Date(); // Текущая дата
 
       const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
 
@@ -176,25 +205,32 @@ export default function TenantStatementPage({ params }: { params: { id: string }
       }
     }
 
-    // 2. Add Utility Invoices
+    // 2. Коммунальные начисления (ЖКУ)
     if (invoices && tenant.apartmentId) {
       const apartmentInvoices = invoices.filter(inv => inv.account?.apartmentId === tenant.apartmentId);
       apartmentInvoices.forEach(inv => {
         const amount = Number(inv.amount || 0);
-        const label = inv.account?.customLabel || inv.account?.accountLabel || `ЛС ${inv.accountExternalId}`;
+        const cleanPeriod = (inv.periodId || '').replace(/[^0-9]/g, '');
+        // Извлекаем номер счета, чтобы различать начисления при нескольких ЛС в одной квартире
+        const accNum = inv.account?.accountNumber || inv.accountExternalId;
+        const custom = inv.account?.customLabel;
+        const label = custom || inv.account?.accountLabel || `ЛС ${accNum}`;
+        const accSuffix = accNum ? ` (ЛС: ${accNum})` : '';
+
         items.push({
           id: `utility-${inv.id}`,
-          date: inv.firstSeenAt,
-          periodId: inv.periodId || '202601',
+          // Дата коммунального счета: 1-е число месяца, следующего за расчетным периодом
+          date: getUtilityInvoiceDate(cleanPeriod),
+          periodId: cleanPeriod || '202601',
           type: 'utility',
-          description: `Коммунальные услуги: ${label} (Период: ${inv.periodLabel})`,
+          description: `Коммунальные услуги: ${label}${accSuffix} (Период: ${inv.periodLabel})`,
           chargeAmount: amount,
           paymentAmount: 0
         });
       });
     }
 
-    // 3. Add Payments
+    // 3. Платежи от арендатора
     if (payments) {
       payments.forEach(pay => {
         const payDate = new Date(pay.createdAt);
@@ -203,7 +239,7 @@ export default function TenantStatementPage({ params }: { params: { id: string }
         const periodId = `${year}${month}`;
         const amount = Number(pay.amount || 0);
 
-        // Only count confirmed or unconfirmed payments towards ledger
+        // Учитываем подтвержденные платежи в балансе
         const isEffective = pay.status !== 'rejected';
 
         items.push({
@@ -211,37 +247,41 @@ export default function TenantStatementPage({ params }: { params: { id: string }
           date: pay.createdAt,
           periodId,
           type: 'payment',
-          description: `Платеж от арендатора (Статус: ${pay.status === 'confirmed' ? 'Подтвержден' : pay.status === 'rejected' ? 'Отклонен' : 'Ожидает'})${pay.comment ? ' — ' + pay.comment : ''}`,
+          description: `Платеж от арендатора (Статус: ${pay.status === 'confirmed' ? 'Подтвержден' : pay.status === 'rejected' ? 'Отклонен' : 'Ожидает'})${pay.comment ? ' - ' + pay.comment : ''}`,
           chargeAmount: 0,
           paymentAmount: isEffective ? amount : 0
         });
       });
     }
 
-    // Sort chronologically ascending
+    // Сортируем хронологически по возрастанию для корректного пошагового расчета баланса
     items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    // Calculate running balance
+    // Расчет нарастающего баланса
     let running = 0;
-    return items.map(item => {
+    const ledger = items.map(item => {
       running += (item.paymentAmount - item.chargeAmount);
       return {
         ...item,
         runningBalance: running
       };
     });
+
+    // Разворачиваем список, чтобы самые свежие операции отображались вверху таблицы
+    return ledger.slice().reverse();
   }, [tenant, payments, invoices]);
 
-  // Filter statement items by month range [fromMonth, toMonth]
+  // Фильтрация выписки по выбранному диапазону месяцев [fromMonth, toMonth]
   const filteredItems = useMemo(() => {
     return statementItems.filter(item => {
+      const itemPeriod = (item.periodId || '').replace(/[^0-9]/g, '');
       if (fromMonth) {
-        const formattedFrom = fromMonth.replace('-', '');
-        if (item.periodId < formattedFrom) return false;
+        const formattedFrom = fromMonth.replace(/[^0-9]/g, '');
+        if (itemPeriod < formattedFrom) return false;
       }
       if (toMonth) {
-        const formattedTo = toMonth.replace('-', '');
-        if (item.periodId > formattedTo) return false;
+        const formattedTo = toMonth.replace(/[^0-9]/g, '');
+        if (itemPeriod > formattedTo) return false;
       }
       return true;
     });
@@ -392,17 +432,17 @@ export default function TenantStatementPage({ params }: { params: { id: string }
                   <TableCell style={{ color: '#64748b', fontWeight: 500, whiteSpace: 'nowrap' }}>
                     {formatDate(row.date)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell style={{ whiteSpace: 'nowrap' }}>
                     {row.type === 'rent' ? (
-                      <span className={styles.statusPending} style={{ backgroundColor: '#e0e7ff', color: '#3730a3' }}>
-                        Арендная плата
+                      <span className={styles.statusPending} style={{ backgroundColor: '#e0e7ff', color: '#3730a3', whiteSpace: 'nowrap' }}>
+                        Аренда
                       </span>
                     ) : row.type === 'utility' ? (
-                      <span className={styles.statusPending} style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+                      <span className={styles.statusPending} style={{ backgroundColor: '#fef3c7', color: '#92400e', whiteSpace: 'nowrap' }}>
                         Коммуналка
                       </span>
                     ) : (
-                      <span className={styles.statusConfirmed} style={{ backgroundColor: '#d1fae5', color: '#065f46' }}>
+                      <span className={styles.statusConfirmed} style={{ backgroundColor: '#d1fae5', color: '#065f46', whiteSpace: 'nowrap' }}>
                         Оплата
                       </span>
                     )}
