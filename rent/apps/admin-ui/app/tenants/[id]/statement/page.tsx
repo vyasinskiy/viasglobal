@@ -29,6 +29,7 @@ interface Tenant {
   apartmentId: number | null;
   rentPaymentDay: number | null;
   rentAmount: string | number | null;
+  rentStartDate: string | null;
   status: string;
   createdAt: string;
   user: {
@@ -57,17 +58,22 @@ interface Payment {
 
 interface Invoice {
   id: number;
-  accountId: number;
-  accountExternalId: string;
+  accountId: number | null;
+  accountExternalId: string | null;
   periodId: string;
   periodLabel: string;
   amount: string | number | null;
+  invoiceType?: string | null;
+  tenantId?: number | null;
   firstSeenAt: string;
   account?: {
     apartmentId: number | null;
     accountNumber: string | null;
     accountLabel: string | null;
     customLabel: string | null;
+  } | null;
+  tenant?: {
+    id: number;
   } | null;
 }
 
@@ -112,11 +118,38 @@ export default function TenantStatementPage({ params }: { params: { id: string }
 
     const items: StatementItem[] = [];
 
-    // 1. Generate Rent Accruals
-    if (tenant.rentAmount && Number(tenant.rentAmount) > 0) {
+    const monthNameOf = (ym: string) => {
+      try {
+        const [y, m] = String(ym).split('-');
+        const d = new Date(Number(y), Number(m) - 1, 1);
+        return d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+      } catch {
+        return ym;
+      }
+    };
+
+    // 1. Rent Accruals: use real rent invoices from DB (fallback to synthetic generation)
+    const rentInvoices = invoices ? invoices.filter(inv =>
+      inv.invoiceType === 'rent' &&
+      (inv.tenantId === Number(tenantId) || inv.tenant?.id === Number(tenantId))
+    ) : [];
+
+    if (rentInvoices.length > 0) {
+      rentInvoices.forEach(inv => {
+        items.push({
+          id: `rent-${inv.id}`,
+          date: inv.firstSeenAt,
+          periodId: (inv.periodId || '').replace('-', ''),
+          type: 'rent',
+          description: `Начисление аренды за ${monthNameOf(inv.periodLabel || inv.periodId)}`,
+          chargeAmount: Number(inv.amount || 0),
+          paymentAmount: 0
+        });
+      });
+    } else if (tenant.rentAmount && Number(tenant.rentAmount) > 0) {
       const rentAmount = Number(tenant.rentAmount);
       const rentDay = tenant.rentPaymentDay || 1;
-      const startDate = new Date(tenant.createdAt || '2026-01-01');
+      const startDate = new Date(tenant.rentStartDate || tenant.createdAt || '2026-01-01');
       const endDate = new Date(); // Current date
 
       const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
