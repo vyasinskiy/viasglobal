@@ -450,11 +450,11 @@ export default function InvoicesPage() {
                     {row.invoiceType === 'rent' ? (
                       <span className={styles.statusConfirmed}>Начислен</span>
                     ) : row.uploadedToS3 ? (
-                      <span className={styles.statusConfirmed}>Загружен в S3</span>
+                      <span className={styles.statusConfirmed}>Загружен</span>
                     ) : row.invoiceUrl || row.available ? (
                       <span className={styles.statusConfirmed}>Доступен</span>
                     ) : (
-                      <span className={styles.statusPending}>Локально / Ожидает</span>
+                      <span className={styles.statusPending}>Ожидает</span>
                     )}
                   </TableCell>
                   <TableCell style={{ color: '#64748b' }}>{formatDate(row.firstSeenAt)}</TableCell>
