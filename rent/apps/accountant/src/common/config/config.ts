@@ -6,7 +6,7 @@ const configSchema = z.object({
   DATABASE_URL: z.string(),
   RABBITMQ_URL: z.string().default('amqp://localhost:5672'),
   ACCOUNTANT_QUEUE: z.string().default('accountant_queue'),
-  S3_ENABLED: z.coerce.boolean().default(false),
+  S3_ENABLED: z.preprocess((val) => val === 'true' || val === true || val === '1', z.boolean()).default(false),
   S3_BUCKET: z.string().default(''),
   S3_REGION: z.string().default(''),
   S3_ACCESS_KEY_ID: z.string().default(''),
