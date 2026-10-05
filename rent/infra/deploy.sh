@@ -68,4 +68,8 @@ echo "✅ Database backup created successfully!"
 echo "🚀 Starting application services..."
 WATCHER_PATH=$WATCHER_PATH ACCOUNTANT_PATH=$ACCOUNTANT_PATH TELEGRAM_BOT_PATH=$TELEGRAM_BOT_PATH ADMIN_UI_PATH=$ADMIN_UI_PATH docker compose up -d
 
+# 7. Подготавливаем контейнер визуального браузера (будет запускаться динамически при необходимости)
+echo "🌐 Preparing visual-browser container (manual profile)..."
+WATCHER_PATH=$WATCHER_PATH docker compose --profile manual create visual-browser || true
+
 echo "✅ System is up and running!"

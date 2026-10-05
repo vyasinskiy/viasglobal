@@ -42,6 +42,9 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Moscow
+      - CUSTOM_USER=${ADMIN_USER:-admin}
+      - PASSWORD=${ADMIN_PASSWORD:-viasglobal}
+      - CHROME_CLI=https://xn--80aaaf3bi1ahsd.xn--80asehdb/login
     volumes:
       - ${WATCHER_PATH:-../apps/watcher}/data/browser-profile:/config
     ports:
@@ -66,6 +69,8 @@ services:
       ACCOUNTANT_API_URL: http://accountant:3005
       BROWSER_WS_ENDPOINT: ""
       BROWSER_PROFILE_PATH: "/app/data/browser-profile/.config/chromium"
+      BROWSER_PUBLIC_URL: ${BROWSER_PUBLIC_URL:-https://browser.viasglobal.es}
+      VISUAL_BROWSER_CONTAINER: accruals-visual-browser
       IS_DOCKER: "true"
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/watcher_db
       DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/watcher_db
@@ -77,6 +82,7 @@ services:
     volumes:
       - ${WATCHER_PATH:-../apps/watcher}/data:/app/data
       - ./logs/watcher:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - accruals-network
 

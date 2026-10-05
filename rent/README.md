@@ -56,8 +56,7 @@ Here is the network configuration and port assignments for all components of the
 | **Accountant Service** | `accruals-accountant` | 3005 | `3005` | Внутренний | Core HTTP REST API and microservice logic |
 | **Watcher Service** | `accruals-watcher` | 4500 | `4500` | Внутренний | Playwright scraping control interface |
 | **RabbitMQ** | `accruals-rabbitmq` | 5672, 15672 | `5672`, `15672` | Внутренний | AMQP broker & Management Console UI |
-| **PostgreSQL** | `accruals-postgres` | 5432 | `5432` | Внутренний | System databases (`accountant_db`, `watcher_db`, `telegram_bot_db`) |
-| **Visual Browser** | `accruals-visual-browser` | 3000 | `3002` | Внутренний | VNC-based Chromium display for scraper debugging |
+| **Visual Browser** | `accruals-visual-browser` | 3000 | `3002` | `https://browser.viasglobal.es` | Удаленный Chromium с веб-доступом (KasmVNC) для авторизации в 1 клик |
 | **Telegram Bot** | `accruals-telegram-bot` | None | None | - | Long-running message daemon (no incoming TCP ports mapped) |
 
 ## Getting Started
@@ -131,27 +130,25 @@ Administrator can dynamically register or unregister groups/channels as publicat
 ## Watcher Session Management & Troubleshooting
 
 ### Session Expiration & Detection
-The Watcher service interacts with `квартплата.онлайн` using a saved Playwright session (`/app/data/storage-state.json`). When authentication cookies expire:
-1. The portal redirects requests from `/new-web/` to the public landing page (`https://квартплата.онлайн/`).
+The Watcher service interacts with `квартплата.онлайн` using persistent browser session data and Playwright storage state (`/app/data/storage-state.json`).
+* **Active Cabinet Domain**: `https://лк.квартплата.онлайн/` (`https://xn--j1ab.xn--80aaaf3bi1ahsd.xn--80asehdb/`)
+* **Login Domain**: `https://квартплата.онлайн/login` (`https://xn--80aaaf3bi1ahsd.xn--80asehdb/login`)
+
+When authentication cookies expire:
+1. The portal redirects requests to the public landing page (`https://квартплата.онлайн/`).
 2. The `checkIsLoginRequired` utility detects this redirection and triggers `needsLogin: true`.
 3. If the internal API returns HTML instead of JSON, `ExpiredSessionError` is thrown.
-4. The scan finishes with status `needs_login`, sending an alert to Telegram (`🔑 Требуется авторизация`) instead of reporting false `✅ Успешно`.
+4. The scan finishes with status `needs_login`, sending an alert to Telegram (`🔑 Требуется авторизация`) and automatically launching the visual browser container.
 
-### Manual Session Renewal
-To log in manually and renew expired cookies:
-1. Start the visual browser container on the server:
-   ```bash
-   docker compose --profile manual up -d visual-browser
-   ```
-2. Open `http://100.92.50.18:3002` via Tailscale and complete phone/SMS/captcha login to `квартплата.онлайн`.
-3. Save the active session:
-   ```bash
-   docker exec accruals-watcher npm run bootstrap
-   ```
-4. Stop the visual browser container:
-   ```bash
-   docker compose --profile manual stop visual-browser
-   ```
+### 1-Click Session Renewal via Telegram
+When authorization is required:
+1. The Telegram bot sends a message with buttons:
+   * `[ 🌐 Открыть браузер ]` -> `https://browser.viasglobal.es`
+   * `[ ✅ Я вошел в кабинет ]`
+2. The administrator clicks `🌐 Открыть браузер`, enters phone and SMS code in the remote Chromium window.
+3. Upon seeing their apartments, the administrator returns to Telegram and clicks `✅ Я вошел в кабинет`.
+4. The bot stops the visual browser container (ensuring clean flush of session cookies to disk), automatically verifies the session via a live control scan, and confirms successful renewal.
+5. In addition, the command `/browser` and the `🔑 Браузер ЖКХ` button in the admin menu can start the browser on demand at any time.
 
 
 

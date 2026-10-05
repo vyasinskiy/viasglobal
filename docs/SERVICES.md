@@ -34,6 +34,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | **RabbitMQ** | `accruals-rabbitmq` | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
 | **PostgreSQL** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |
 | **Telegram Bot Rent** | `accruals-telegram-bot`| - | - | Бот арендаторов и администраторов аренды |
+| **Visual Browser** | `accruals-visual-browser` | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
 | **Hermes Agent** | `viasglobal-hermes` | - | - | Голосовой AI-ассистент с локальным STT Whisper |
 | **OpenClaw Agent** | `viasglobal-openclaw` | `18789` | `18789` | Автономный AI-ассистент в Telegram |
 
@@ -259,6 +260,54 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
       "newAccruals": 0,
       "newInvoices": 0,
       "needsLogin": true
+    }
+    ```
+
+- **`POST /scraping/browser/start`**
+  - **Описание**: Динамический запуск контейнера удаленного визуального браузера (`accruals-visual-browser`) для прохождения двухфакторной авторизации владельцем в 1 клик. Возвращает публичный URL для перехода.
+  - **Пример запроса**:
+    ```bash
+    curl -s -X POST http://accruals-watcher:4500/scraping/browser/start
+    ```
+  - **Пример ответа**:
+    ```json
+    {
+      "success": true,
+      "status": "started",
+      "browserUrl": "https://browser.viasglobal.es",
+      "message": "Удаленный браузер успешно запущен. Перейдите по ссылке для авторизации."
+    }
+    ```
+
+- **`POST /scraping/browser/stop`**
+  - **Описание**: Остановка контейнера удаленного браузера после завершения ручного входа для освобождения блокировки профиля сессии Playwright.
+  - **Пример запроса**:
+    ```bash
+    curl -s -X POST http://accruals-watcher:4500/scraping/browser/stop
+    ```
+  - **Пример ответа**:
+    ```json
+    {
+      "success": true,
+      "status": "stopped",
+      "browserUrl": "https://browser.viasglobal.es",
+      "message": "Удаленный браузер успешно остановлен, профиль сессии освобожден."
+    }
+    ```
+
+- **`GET /scraping/browser/status`**
+  - **Описание**: Проверка текущего состояния контейнера удаленного браузера (запущен/остановлен).
+  - **Пример запроса**:
+    ```bash
+    curl -s http://accruals-watcher:4500/scraping/browser/status
+    ```
+  - **Пример ответа**:
+    ```json
+    {
+      "isRunning": false,
+      "status": "stopped",
+      "browserUrl": "https://browser.viasglobal.es",
+      "message": "Удаленный виртуальный браузер остановлен."
     }
     ```
 

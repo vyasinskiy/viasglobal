@@ -1,16 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ScrapingController } from './scraping.controller';
 import { ScrapingService } from './scraping.service';
+import { BrowserManagerService } from './browser-manager.service';
 import { ScanSummary } from '../../types';
 
 describe('ScrapingController (HTTP эндпоинты сканирования)', () => {
   let controller: ScrapingController;
   let service: jest.Mocked<Partial<ScrapingService>>;
+  let browserManager: jest.Mocked<Partial<BrowserManagerService>>;
 
   beforeEach(async () => {
     // Мокируем методы сервиса сканирования для изоляции контроллера
     service = {
       scan: jest.fn(),
+      getStatus: jest.fn(),
+    };
+
+    // Мокируем сервис управления удаленным браузером
+    browserManager = {
+      startBrowser: jest.fn(),
+      stopBrowser: jest.fn(),
       getStatus: jest.fn(),
     };
 
@@ -20,6 +29,10 @@ describe('ScrapingController (HTTP эндпоинты сканирования)'
         {
           provide: ScrapingService,
           useValue: service,
+        },
+        {
+          provide: BrowserManagerService,
+          useValue: browserManager,
         },
       ],
     }).compile();
@@ -172,6 +185,60 @@ describe('ScrapingController (HTTP эндпоинты сканирования)'
       expect(runs[0].status).toBe('success');
       expect(runs[1].status).toBe('needs_login');
       expect(runs[1].summaryJson).toContain('Сессия авторизации истекла');
+    });
+  });
+
+  describe('Управление удаленным браузером (Browser Manager)', () => {
+    it('POST /scraping/browser/start должен возвращать ссылку на удаленный браузер', async () => {
+      const mockStartResponse = {
+        success: true,
+        status: 'started' as const,
+        browserUrl: 'https://browser.viasglobal.es',
+        message: 'Удаленный браузер успешно запущен.',
+      };
+
+      (browserManager.startBrowser as jest.Mock).mockResolvedValue(mockStartResponse);
+
+      const result = await controller.startBrowser();
+
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.browserUrl).toBe('https://browser.viasglobal.es');
+      expect(result.status).toBe('started');
+    });
+
+    it('POST /scraping/browser/stop должен останавливать удаленный браузер', async () => {
+      const mockStopResponse = {
+        success: true,
+        status: 'stopped' as const,
+        browserUrl: 'https://browser.viasglobal.es',
+        message: 'Удаленный браузер успешно остановлен.',
+      };
+
+      (browserManager.stopBrowser as jest.Mock).mockResolvedValue(mockStopResponse);
+
+      const result = await controller.stopBrowser();
+
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.status).toBe('stopped');
+    });
+
+    it('GET /scraping/browser/status должен возвращать текущий статус контейнера', async () => {
+      const mockStatusResponse = {
+        isRunning: true,
+        status: 'running' as const,
+        browserUrl: 'https://browser.viasglobal.es',
+        message: 'Удаленный виртуальный браузер активен.',
+      };
+
+      (browserManager.getStatus as jest.Mock).mockResolvedValue(mockStatusResponse);
+
+      const result = await controller.getBrowserStatus();
+
+      expect(result).toBeDefined();
+      expect(result.isRunning).toBe(true);
+      expect(result.status).toBe('running');
     });
   });
 });

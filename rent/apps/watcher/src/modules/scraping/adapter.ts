@@ -26,11 +26,23 @@ export class ExpiredSessionError extends Error {
 export function checkIsLoginRequired(currentUrl: string, bodyText: string): boolean {
   const urlLower = (currentUrl || '').toLowerCase();
 
-  // 1. Проверяем URL: если произошел редирект с /new-web/ на корень сайта или страницу входа
-  const isInsidePersonalCabinet = urlLower.includes('/new-web/');
-  const isExplicitLoginUrl = urlLower.includes('/login') || urlLower.includes('/auth');
+  // 1. Проверяем URL: если произошел редирект на промо-корень сайта или страницу входа
+  const isPersonalCabinetHost =
+    urlLower.includes('/new-web/') ||
+    urlLower.includes('xn--j1ab') || // лк.квартплата.онлайн
+    urlLower.includes('xn--new--o5df') || // new-лк.квартплата.онлайн
+    urlLower.includes('lk.kvartplata.online') ||
+    /\/\d+/.test(urlLower); // путь с ID Л/С, например /378621
 
-  if (!isInsidePersonalCabinet || isExplicitLoginUrl) {
+  const isExplicitLoginUrl =
+    urlLower.includes('/login') ||
+    urlLower.includes('/auth') ||
+    urlLower === 'https://xn--80aaaf3bi1ahsd.xn--80asehdb/' ||
+    urlLower === 'https://kvartplata.online/' ||
+    urlLower === 'http://xn--80aaaf3bi1ahsd.xn--80asehdb/' ||
+    urlLower === 'http://kvartplata.online/';
+
+  if (!isPersonalCabinetHost || isExplicitLoginUrl) {
     // Пользователь был перенаправлен за пределы личного кабинета — требуется авторизация
     return true;
   }
@@ -49,11 +61,27 @@ export function checkIsLoginRequired(currentUrl: string, bodyText: string): bool
     return true;
   }
 
-  // 3. Проверяем наличие ключевых слов готовности личного кабинета (например, "Начисления", "Лицевой счет")
-  const hasReadySignal = config.accountReadyTextList.some((keyword) => {
-    const k = keyword.trim().toLowerCase();
-    if (!k) return false;
-    return textLower.includes(k);
+  // 3. Проверяем наличие ключевых слов готовности личного кабинета (например, "Начисления", "Лицевой счет", "Баланс", "Помещения", "Счётчики")
+  const defaultSignals = [
+    'начисления',
+    'квитанция',
+    'лицевой счет',
+    'личный кабинет',
+    'помещения',
+    'баланс',
+    'лицевые счета',
+    'счётчики',
+    'счетчики',
+    'платежи',
+    'заявки',
+    'магазин',
+    'главная',
+    'выйти'
+  ];
+  const allSignals = [...config.accountReadyTextList.map((x) => x.trim().toLowerCase()), ...defaultSignals];
+  const hasReadySignal = allSignals.some((keyword) => {
+    if (!keyword) return false;
+    return textLower.includes(keyword);
   });
 
   if (!hasReadySignal) {
@@ -61,7 +89,7 @@ export function checkIsLoginRequired(currentUrl: string, bodyText: string): bool
     return true;
   }
 
-  // Страница находится внутри /new-web/, не содержит элементов входа и содержит данные кабинета
+  // Страница находится внутри личного кабинета, не содержит элементов входа и содержит данные кабинета
   return false;
 }
 
@@ -127,7 +155,7 @@ export class KvartplataAdapter {
 
     try {
       await page.goto(config.ACCOUNT_PAGE_URL, { waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(config.WAIT_AFTER_NAV_MS);
+      await page.waitForTimeout(Math.max(config.WAIT_AFTER_NAV_MS, 3000));
 
       if (await this.isLoginRequired(page)) {
         const errorDesc = 'SessionExpired: Сохраненная сессия отсутствует или истекла (обнаружен редирект или форма авторизации).';
@@ -243,6 +271,14 @@ export class KvartplataAdapter {
           warnings.push(`Apartment ${apartment.externalId}: ${errorMessage}`);
           log(`Apartment ${apartment.externalId} failed: ${errorMessage}`);
         }
+      }
+
+      // Автоматически сохраняем подтвержденную сессию в storage-state.json для надежности
+      try {
+        await context.storageState({ path: config.storageStatePath });
+        log('Снимок сессии Playwright успешно сохранен в storage-state.json');
+      } catch (saveErr) {
+        log(`Не удалось сохранить storageState: ${saveErr instanceof Error ? saveErr.message : String(saveErr)}`);
       }
 
       return {

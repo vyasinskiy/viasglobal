@@ -13,7 +13,8 @@ export class TelegramBotController {
   constructor(
     private readonly botService: TelegramBotNotificationService,
     private readonly prisma: PrismaService,
-    @Inject('ACCOUNTANT_SERVICE') private readonly accountantClient: ClientProxy
+    @Inject('ACCOUNTANT_SERVICE') private readonly accountantClient: ClientProxy,
+    @Inject('WATCHER_SERVICE') private readonly watcherClient: ClientProxy
   ) {}
 
   @EventPattern('payment_created')
@@ -466,11 +467,30 @@ export class TelegramBotController {
       message += `\n💬 <b>Сообщение:</b> ${data.message}`;
     }
 
+    let extraNotificationMarkup: object | undefined;
+
     if (data.needsLogin) {
-      message += '\n\n🔑 <b>Требуется авторизация:</b> запустите <code>visual-browser</code> и обновите сессию по SMS.';
+      try {
+        const browserRes = await firstValueFrom(
+          this.watcherClient.send<{ browserUrl?: string }>('start_browser', {})
+        );
+        const browserUrl = browserRes?.browserUrl || 'https://browser.viasglobal.es';
+        message += '\n\n🔑 <b>Требуется авторизация в личном кабинете ЖКХ:</b>\n' +
+          'Удаленный браузер автоматически запущен на сервере.\n' +
+          'Нажмите кнопку ниже, подтвердите вход (SMS/пароль) и нажмите <b>«✅ Я вошел в кабинет»</b>.';
+        extraNotificationMarkup = Markup.inlineKeyboard([
+          [
+            Markup.button.url('🌐 Открыть браузер', browserUrl),
+            Markup.button.callback('✅ Я вошел в кабинет', 'confirm_browser_auth')
+          ]
+        ]);
+      } catch (browserErr) {
+        this.logger.error('Не удалось автоматически запустить удаленный браузер при scan_completed', browserErr);
+        message += '\n\n🔑 <b>Требуется авторизация:</b> запустите <code>visual-browser</code> и обновите сессию по SMS.';
+      }
     }
 
-    await this.notifyAdmins(message, `scan_completed (status: ${data.status})`);
+    await this.notifyAdmins(message, `scan_completed (status: ${data.status})`, extraNotificationMarkup);
   }
 
   @EventPattern('scheduled_event_triggered')

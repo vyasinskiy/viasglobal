@@ -153,6 +153,30 @@ describe('Логика извлечения данных KvartplataAdapter', () 
       expect(needsLogin).toBe(false);
     });
 
+    it('должен подтверждать валидность сессии на новом домене лк.квартплата.онлайн с ID аккаунта', () => {
+      // Новый URL авторизованного личного кабинета с номером Л/С
+      const currentUrl = 'https://xn--j1ab.xn--80aaaf3bi1ahsd.xn--80asehdb/378621';
+      // Контент страницы авторизованного пользователя (баланс, помещения, лицевые счета)
+      const bodyText = 'Квартплата Онлайн. Баланс -107 218. Помещения Краснодар Лукьяненко. Лицевые счета.';
+
+      // Проверяем сессию
+      const needsLogin = checkIsLoginRequired(currentUrl, bodyText);
+      // Авторизация не требуется, сессия активна
+      expect(needsLogin).toBe(false);
+    });
+
+    it('должен подтверждать валидность сессии по навигационным элементам меню кабинета (Счётчики, Платежи, Заявки, Магазин)', () => {
+      // URL корня личного кабинета
+      const currentUrl = 'https://xn--j1ab.xn--80aaaf3bi1ahsd.xn--80asehdb/';
+      // Меню навигации личного кабинета
+      const bodyText = 'Главная Счётчики Платежи Заявки Магазин';
+
+      // Проверяем сессию
+      const needsLogin = checkIsLoginRequired(currentUrl, bodyText);
+      // Авторизация не требуется, сессия активна
+      expect(needsLogin).toBe(false);
+    });
+
     it('должен требовать авторизацию, если страница пустая или не содержит сигналов готовности', () => {
       // Пустая страница или ошибка рендеринга
       const currentUrl = 'https://new.kvartplata.online/new-web/apartments';

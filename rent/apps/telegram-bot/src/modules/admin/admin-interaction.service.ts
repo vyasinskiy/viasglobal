@@ -378,8 +378,26 @@ export class AdminInteractionService {
           `📝 Начислений: ${summary.accrualsObserved} (новых: ${summary.newAccruals})\n` +
           `📄 Инвойсов: ${summary.invoicesObserved} (новых: ${summary.newInvoices})`;
           
+        const buttons = [];
+
+        // Если сессия истекла, автоматически запускаем удаленный браузер и предлагаем кнопку входа
         if (summary.needsLogin) {
-          message += '\n\n🔑 <b>Требуется повторная авторизация!</b>\nЗапустите сессию visual-browser для входа по SMS.';
+          try {
+            const browserRes = await firstValueFrom(
+              this.watcherClient.send<{ browserUrl?: string }>('start_browser', {})
+            );
+            const browserUrl = browserRes?.browserUrl || 'https://browser.viasglobal.es';
+            message += '\n\n🔑 <b>Требуется повторная авторизация!</b>\n' +
+              'Удаленный браузер автоматически запущен на сервере.\n' +
+              'Нажмите кнопку ниже, подтвердите вход (SMS/пароль) и нажмите <b>«✅ Я вошел в кабинет»</b>.';
+            buttons.push([
+              Markup.button.url('🌐 Открыть браузер', browserUrl),
+              Markup.button.callback('✅ Я вошел в кабинет', 'confirm_browser_auth')
+            ]);
+          } catch (browserErr) {
+            this.logger.error('Не удалось автоматически запустить удаленный браузер', browserErr);
+            message += '\n\n🔑 <b>Требуется повторная авторизация!</b>\nЗапустите сессию visual-browser для входа по SMS.';
+          }
         }
 
         // Fetch apartments to find ones with debt
@@ -389,7 +407,6 @@ export class AdminInteractionService {
           return balance < -0.01; // Small threshold for floating point
         });
 
-        const buttons = [];
         if (withDebt.length > 0) {
           message += '\n\n🔴 <b>Обнаружена задолженность:</b>';
           for (const apt of withDebt) {
@@ -397,7 +414,7 @@ export class AdminInteractionService {
              message += `\n• ${apt.address}: <b>${Math.abs(balance).toFixed(2)}</b>`;
              buttons.push([Markup.button.callback(`🏠 ${apt.address || apt.externalId}`, `admin_apt_menu_${apt.id}`)]);
           }
-        } else {
+        } else if (!summary.needsLogin) {
           message += '\n\n🟢 Задолженностей не обнаружено.';
         }
 
@@ -408,6 +425,88 @@ export class AdminInteractionService {
       } catch (e) {
         this.logger.error('Failed to run scan', e);
         await ctx.reply('❌ Ошибка при запуске сканирования. Проверьте логи сервиса watcher.');
+      }
+    });
+
+    // Обработчик ручного запуска удаленного браузера по команде /browser или кнопке
+    const handleManualBrowserLaunch = async (ctx: Context) => {
+      try {
+        await ctx.reply('🚀 Запускаю удаленный браузер на сервере...');
+        const browserRes = await firstValueFrom(
+          this.watcherClient.send<{ browserUrl?: string; message?: string }>('start_browser', {})
+        );
+        const browserUrl = browserRes?.browserUrl || 'https://browser.viasglobal.es';
+
+        await ctx.reply(
+          '🌐 <b>Удаленный браузер готов к работе!</b>\n\n' +
+          '1. Перейдите по ссылке ниже.\n' +
+          '2. Войдите в личный кабинет квартплаты (по SMS или паролю).\n' +
+          '3. После успешного входа вернитесь сюда и нажмите кнопку <b>«✅ Я вошел в кабинет»</b>:',
+          {
+            parse_mode: 'HTML',
+            ...Markup.inlineKeyboard([
+              [
+                Markup.button.url('🌐 Открыть браузер', browserUrl),
+                Markup.button.callback('✅ Я вошел в кабинет', 'confirm_browser_auth')
+              ]
+            ])
+          }
+        );
+      } catch (error) {
+        this.logger.error('Ошибка при запуске браузера администратором', error);
+        await ctx.reply('❌ Не удалось запустить удаленный браузер. Проверьте статус сервиса watcher.');
+      }
+    };
+
+    bot.command('browser', handleManualBrowserLaunch);
+    bot.hears('🔑 Браузер ЖКХ', handleManualBrowserLaunch);
+
+    // Действие: Подтверждение авторизации в браузере и запуск боевого сканирования
+    bot.action('confirm_browser_auth', async (ctx) => {
+      try {
+        await ctx.answerCbQuery('Проверяю сессию...');
+        await ctx.reply('⏳ Останавливаю удаленный браузер и запускаю контрольное сканирование начислений...');
+
+        // 1. Останавливаем контейнер браузера для снятия блокировки профиля
+        await firstValueFrom(this.watcherClient.send('stop_browser', {}));
+
+        // 2. Запускаем сканирование для проверки валидности сохраненной сессии
+        const summary = await firstValueFrom(this.watcherClient.send('run_scan', {}));
+
+        if (summary.needsLogin) {
+          // Если сессия все еще недействительна, снова стартуем браузер и просим повторить
+          const browserRes = await firstValueFrom(
+            this.watcherClient.send<{ browserUrl?: string }>('start_browser', {})
+          );
+          const browserUrl = browserRes?.browserUrl || 'https://browser.viasglobal.es';
+
+          await ctx.reply(
+            '⚠️ <b>Авторизация еще не завершена.</b>\n' +
+            'Сессия не обнаружена. Браузер снова открыт на сервере. Пожалуйста, выполните вход до конца и нажмите кнопку снова:',
+            {
+              parse_mode: 'HTML',
+              ...Markup.inlineKeyboard([
+                [
+                  Markup.button.url('🌐 Открыть браузер', browserUrl),
+                  Markup.button.callback('✅ Я вошел в кабинет', 'confirm_browser_auth')
+                ]
+              ])
+            }
+          );
+        } else {
+          // Сессия успешно подхвачена
+          await ctx.reply(
+            `🎉 <b>Авторизация успешно подтверждена!</b>\n\n` +
+            `🏢 Квартир обработано: <b>${summary.apartmentsScanned}</b>\n` +
+            `📝 Начислений найдено: <b>${summary.accrualsObserved}</b>\n` +
+            `📄 Квитанций получено: <b>${summary.invoicesObserved}</b>\n\n` +
+            `Сессия надежно сохранена. Регулярный сбор начислений продолжит работу по расписанию!`,
+            { parse_mode: 'HTML' }
+          );
+        }
+      } catch (e) {
+        this.logger.error('Failed to confirm browser auth', e);
+        await ctx.reply('❌ Ошибка при подтверждении авторизации. Попробуйте еще раз.');
       }
     });
 

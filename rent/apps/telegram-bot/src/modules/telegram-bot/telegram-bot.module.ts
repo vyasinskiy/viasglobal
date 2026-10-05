@@ -23,6 +23,17 @@ import { config } from '../../common/config/config';
           },
         },
       },
+      {
+        name: 'WATCHER_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: [config.RABBITMQ_URL],
+          queue: config.WATCHER_QUEUE,
+          queueOptions: {
+            durable: true,
+          },
+        },
+      },
     ]),
   ],
   providers: [TelegramBotNotificationService, TelegramBotInteractionService],
