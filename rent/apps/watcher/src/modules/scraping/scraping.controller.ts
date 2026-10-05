@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ScrapingService } from './scraping.service';
 import { BrowserManagerService } from './browser-manager.service';
 import { ManualScanDto } from './dto/manual-scan.dto';
@@ -14,6 +14,7 @@ export class ScrapingController {
   ) {
     this.scan = this.scan.bind(this);
     this.getRuns = this.getRuns.bind(this);
+    this.getRunById = this.getRunById.bind(this);
     this.startBrowser = this.startBrowser.bind(this);
     this.stopBrowser = this.stopBrowser.bind(this);
     this.getBrowserStatus = this.getBrowserStatus.bind(this);
@@ -32,6 +33,13 @@ export class ScrapingController {
   @ApiOperation({ summary: 'История последних запусков сканирования' })
   getRuns() {
     return this.scrapingService.getStatus();
+  }
+
+  @Get('runs/:id')
+  @ApiOperation({ summary: 'Детальная информация о конкретном запуске сканирования по ID' })
+  @ApiParam({ name: 'id', description: 'Числовой ID запуска сканирования', type: Number })
+  getRunById(@Param('id', ParseIntPipe) id: number) {
+    return this.scrapingService.getRunById(id);
   }
 
   @Post('browser/start')

@@ -186,6 +186,33 @@ describe('ScrapingController (HTTP эндпоинты сканирования)'
       expect(runs[1].status).toBe('needs_login');
       expect(runs[1].summaryJson).toContain('Сессия авторизации истекла');
     });
+
+    it('GET /scraping/runs/:id должен возвращать детали конкретного запуска', async () => {
+      const mockRun = {
+        id: 101,
+        startedAt: new Date('2026-10-04T19:00:00.000Z'),
+        finishedAt: new Date('2026-10-04T19:00:10.000Z'),
+        trigger: 'manual',
+        status: 'success',
+        message: 'Scanned 3 apartment(s)',
+        apartmentsScanned: 3,
+        accrualsObserved: 3,
+        invoicesObserved: 3,
+        newApartments: 0,
+        newAccruals: 0,
+        newInvoices: 0,
+        needsLogin: false,
+        summaryJson: JSON.stringify({ status: 'success' }),
+      };
+
+      (service.getRunById as jest.Mock) = jest.fn().mockResolvedValue(mockRun);
+
+      const run = await controller.getRunById(101);
+
+      expect(run).toBeDefined();
+      expect(run.id).toBe(101);
+      expect(run.status).toBe('success');
+    });
   });
 
   describe('Управление удаленным браузером (Browser Manager)', () => {

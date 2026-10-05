@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { lastValueFrom } from 'rxjs';
-import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Cron } from '@nestjs/schedule';
 import parser from 'cron-parser';
@@ -375,11 +375,32 @@ export class ScrapingService implements OnApplicationBootstrap {
     }
   }
 
+  /**
+   * Получение истории последних 20 запусков сканирования
+   */
   async getStatus() {
     return this.prisma.run.findMany({
       orderBy: { id: 'desc' },
       take: 20,
     });
+  }
+
+  /**
+   * Получение детальной информации о конкретном запуске сканирования по его ID
+   * @param id Числовой идентификатор запуска
+   */
+  async getRunById(id: number) {
+    // Ищем запись о запуске в базе данных по уникальному ID
+    const run = await this.prisma.run.findUnique({
+      where: { id: Number(id) },
+    });
+
+    // Если запуск с таким ID не существует, выбрасываем ошибку 404
+    if (!run) {
+      throw new NotFoundException(`Запуск сканирования с ID ${id} не найден`);
+    }
+
+    return run;
   }
 
   private async finalize(runId: number, summary: ScanSummary): Promise<ScanSummary> {

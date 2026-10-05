@@ -257,6 +257,13 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
     curl -s http://accruals-watcher:4500/scraping/runs
     ```
 
+- **`GET /scraping/runs/:id`**
+  - **Описание**: Получить детальные результаты и полный JSON-диагностики конкретной сессии сканирования по ее ID.
+  - **Пример**:
+    ```bash
+    curl -s http://accruals-watcher:4500/scraping/runs/16
+    ```
+
 - **`POST /scraping/scan`**
   - **Описание**: Ручной запуск Playwright-парсера для сбора свежих начислений и скачивания PDF квитанций. При ошибках возвращает детализированный статус (`needs_login`, `warning`, `error`) с полями `error` и `errors` и фиксирует запуск в базе данных `watcher_db.runs`.
   - **Пример запроса**:

@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import axios from 'axios';
 import styles from '../shared-table.module.css';
@@ -17,6 +18,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 interface ScraperRun {
   id: number;
@@ -40,10 +42,32 @@ interface ScraperRun {
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
 
 export default function ScanningPage() {
+  const router = useRouter();
   const [triggering, setTriggering] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [lastRunResult, setLastRunResult] = useState<ScraperRun | null>(null);
+  // Набор ID строк, у которых развернут полный текст ошибки
+  const [expandedRowIds, setExpandedRowIds] = useState<Set<number>>(new Set());
+
+  // Переход на детальную страницу конкретного запуска
+  const handleRowClick = (id: number) => {
+    router.push(`/scanning/${id}`);
+  };
+
+  // Переключение сворачивания/разворачивания длинного текста сообщения
+  const toggleRowExpand = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    setExpandedRowIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   // Опрос истории запусков парсера каждые 4 секунды
   const { data: runs, mutate, isLoading } = useSWR<ScraperRun[]>(
@@ -235,14 +259,23 @@ export default function ScanningPage() {
                 <TableCell style={{ fontWeight: 'bold' }}>Сканировано квартир</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Новых счетов / PDF</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Сообщение / Ошибка</TableCell>
+                <TableCell style={{ fontWeight: 'bold', textAlign: 'center' }}>Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {runs && runs.length > 0 ? (
                 runs.map((row) => {
                   const isProblematic = row.status === 'needs_login' || row.status === 'error' || row.status === 'failed' || row.status === 'warning';
+                  const isExpanded = expandedRowIds.has(row.id);
+                  const isLongMsg = (row.message?.length ?? 0) > 110;
+
                   return (
-                    <TableRow key={row.id} style={{ backgroundColor: isProblematic ? '#fffbfb' : 'inherit' }}>
+                    <TableRow 
+                      key={row.id} 
+                      className={styles.interactiveRow}
+                      style={{ backgroundColor: isProblematic ? '#fffbfb' : 'inherit', cursor: 'pointer' }}
+                      onClick={() => handleRowClick(row.id)}
+                    >
                       <TableCell>{row.id}</TableCell>
                       <TableCell style={{ fontWeight: 500 }}>
                         {row.trigger === 'manual' ? 'Вручную (Админ)' : row.trigger === 'cron' ? 'Планировщик (Cron)' : row.trigger}
@@ -256,21 +289,61 @@ export default function ScanningPage() {
                       <TableCell style={{ fontWeight: 600, color: '#2563eb', textAlign: 'center' }}>
                         {row.newAccruals} / {row.newInvoices}
                       </TableCell>
+                      {/* Компактное отображение сообщения об ошибке с переключателем Развернуть / Свернуть */}
                       <TableCell style={{ 
                         color: isProblematic ? '#b91c1c' : '#475569', 
                         fontSize: '0.8rem', 
-                        maxWidth: '280px', 
+                        maxWidth: '320px', 
                         wordBreak: 'break-word',
                         fontWeight: isProblematic ? 500 : 400
                       }}>
-                        {row.message || '—'}
+                        {row.message ? (
+                          <div>
+                            <span>
+                              {isExpanded || !isLongMsg ? row.message : `${row.message.slice(0, 110)}...`}
+                            </span>
+                            {isLongMsg && (
+                              <button
+                                type="button"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#2563eb',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  padding: '2px 0 0 6px',
+                                  fontSize: '0.75rem',
+                                  textDecoration: 'underline',
+                                  display: 'inline-block'
+                                }}
+                                onClick={(e) => toggleRowExpand(e, row.id)}
+                              >
+                                {isExpanded ? 'Свернуть' : 'Развернуть'}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      {/* Кнопка перехода к подробной странице сканирования */}
+                      <TableCell style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className={styles.downloadLink}
+                          style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                          onClick={() => handleRowClick(row.id)}
+                          title="Открыть детальные результаты сканирования"
+                        >
+                          <VisibilityIcon style={{ fontSize: '0.95rem' }} />
+                          Детали
+                        </button>
                       </TableCell>
                     </TableRow>
                   );
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <div className={styles.emptyState}>
                       {isLoading ? 'Загрузка истории запусков...' : 'Запуски парсера не обнаружены'}
                     </div>
