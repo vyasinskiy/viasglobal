@@ -159,6 +159,28 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 - **`GET /accountant/invoices`**
   - **Описание**: Список квитанций с прикрепленными PDF файлами в S3 хранилище.
 
+- **`GET /accountant/invoices/upload-url?accountExternalId=...&periodLabel=...`**
+  - **Описание**: Генерация URL для загрузки PDF файла квитанции. При включенном S3 возвращает предподписанный S3 PUT URL; при локальном режиме возвращает ссылку на эндпоинт `upload-raw`.
+  - **Пример запроса**:
+    ```bash
+    curl -s "http://accruals-accountant:3005/accountant/invoices/upload-url?accountExternalId=7751294&periodLabel=202609"
+    ```
+
+- **`PUT /accountant/invoices/upload-raw?key=...`**
+  - **Описание**: Прием бинарного потока PDF квитанции и сохранение на локальный диск в директорию `data/uploads/`.
+  - **Пример запроса**:
+    ```bash
+    curl -X PUT "http://accruals-accountant:3005/accountant/invoices/upload-raw?key=586194-202609.pdf" \
+      -H "Content-Type: application/pdf" --data-binary @invoice.pdf
+    ```
+
+- **`GET /accountant/invoices/download/:key`**
+  - **Описание**: Скачивание локально сохраненного PDF файла квитанции.
+  - **Пример запроса**:
+    ```bash
+    curl -s "http://accruals-accountant:3005/accountant/invoices/download/586194-202609.pdf" -o invoice.pdf
+    ```
+
 - **`GET /accountant/invoices/:id`**
   - **Описание**: Данные квитанции по ID.
 

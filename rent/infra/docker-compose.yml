@@ -108,6 +108,7 @@ services:
       rabbitmq:
         condition: service_started
     volumes:
+      - ${ACCOUNTANT_PATH:-../apps/accountant}/data:/app/data
       - ./logs/accountant:/app/logs
     networks:
       - accruals-network

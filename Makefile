@@ -48,13 +48,20 @@ redeploy-rent-watcher:
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose --profile manual create visual-browser || true"
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build watcher"
 
+redeploy-rent-accountant:
+	@echo "Синхронизация accountant на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.env' ./rent/apps/accountant/ huawei@100.92.50.18:~/viasglobal/rent/apps/accountant/
+	rsync -avz --exclude 'backups' --exclude '.env' ./rent/infra/ huawei@100.92.50.18:~/viasglobal/rent/infra/
+	@echo "Пересборка и перезапуск контейнера accruals-accountant на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build accountant"
+
 redeploy-rent-admin:
 	@echo "Синхронизация admin-ui на сервер Huawei..."
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.next' --exclude '.env' ./rent/apps/admin-ui/ huawei@100.92.50.18:~/viasglobal/rent/apps/admin-ui/
 	@echo "Пересборка и перезапуск контейнера accruals-admin-ui на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build admin-ui"
 
-redeploy-rent-services: redeploy-rent-watcher redeploy-rent-admin redeploy-rent-bot
+redeploy-rent-services: redeploy-rent-accountant redeploy-rent-watcher redeploy-rent-admin redeploy-rent-bot
 	@echo "Все сервисы rent успешно обновлены и перезапущены!"
 
 

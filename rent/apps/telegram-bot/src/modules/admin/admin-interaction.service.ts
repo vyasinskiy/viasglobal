@@ -580,11 +580,27 @@ export class AdminInteractionService {
         // 1. Send description message
         await ctx.reply(`📄 <b>Инвойс за ${invoice.periodLabel}</b>`, { parse_mode: 'HTML' });
 
-        // 2. Send the document itself (NO CAPTION for easy forwarding)
-        await ctx.replyWithDocument({
+        // Подготавливаем документ: если ссылка внутренняя (Docker сеть), скачиваем буфер файла
+        const filename = `${invoice.periodLabel}_${invoice.accountExternalId}.pdf`;
+        let docPayload: { url: string; filename: string } | { source: Buffer; filename: string } = {
           url: downloadUrl,
-          filename: `${invoice.periodLabel}_${invoice.accountExternalId}.pdf`
-        });
+          filename
+        };
+
+        if (downloadUrl.startsWith('http://accountant:') || downloadUrl.startsWith('http://localhost:')) {
+          try {
+            const resp = await fetch(downloadUrl);
+            if (resp.ok) {
+              const buffer = Buffer.from(await resp.arrayBuffer());
+              docPayload = { source: buffer, filename };
+            }
+          } catch (fetchErr) {
+            this.logger.warn(`Не удалось предварительно скачать файл инвойса: ${fetchErr}`);
+          }
+        }
+
+        // 2. Send the document itself (NO CAPTION for easy forwarding)
+        await ctx.replyWithDocument(docPayload as any);
 
         await ctx.answerCbQuery();
       } catch (e) {
@@ -663,10 +679,25 @@ export class AdminInteractionService {
         // 2. Send invoices afterwards
         for (const inv of invoicesToSend) {
             await ctx.reply(`📄 Инвойс: ${inv.displayName} (${inv.periodLabel})`);
-            await ctx.replyWithDocument({
-                url: inv.url,
-                filename: inv.filename
-            });
+
+            let docPayload: { url: string; filename: string } | { source: Buffer; filename: string } = {
+              url: inv.url,
+              filename: inv.filename
+            };
+
+            if (inv.url.startsWith('http://accountant:') || inv.url.startsWith('http://localhost:')) {
+              try {
+                const resp = await fetch(inv.url);
+                if (resp.ok) {
+                  const buffer = Buffer.from(await resp.arrayBuffer());
+                  docPayload = { source: buffer, filename: inv.filename };
+                }
+              } catch (fetchErr) {
+                this.logger.warn(`Не удалось предварительно скачать файл инвойса: ${fetchErr}`);
+              }
+            }
+
+            await ctx.replyWithDocument(docPayload as any);
         }
 
         await ctx.answerCbQuery('Проверка завершена');

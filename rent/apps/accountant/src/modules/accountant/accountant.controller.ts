@@ -1,7 +1,22 @@
-import { Controller, Get, Query, Param, ParseIntPipe, NotFoundException, Res, Logger, Post, Body, Delete, Put } from '@nestjs/common';
+import fs from 'node:fs';
+import path from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Controller, Get, Query, Param, ParseIntPipe, NotFoundException, Res, Req, Logger, Post, Body, Delete, Put, BadRequestException } from '@nestjs/common';
 import { EventPattern, Payload, MessagePattern } from '@nestjs/microservices';
 import { AccountantService } from './accountant.service';
 import { S3StorageService } from '../s3/s3-storage.service';
+
+// Интерфейс входящего HTTP-запроса Express
+interface CustomRequest extends IncomingMessage {
+  body?: unknown;
+}
+
+// Интерфейс исходящего HTTP-ответа Express
+interface CustomResponse extends ServerResponse {
+  status(code: number): this;
+  json(body: unknown): this;
+  sendFile(filePath: string): void;
+}
 
 @Controller('accountant')
 export class AccountantController {
@@ -149,21 +164,79 @@ export class AccountantController {
     return this.accountantService.findApartmentById(id);
   }
 
-  @Get('invoices/:id')
-  async findInvoice(@Param('id', ParseIntPipe) id: number) {
-    return this.accountantService.findInvoiceById(id);
+  // Прием бинарного содержимого квитанции при локальном хранении
+  @Put('invoices/upload-raw')
+  async uploadInvoiceRaw(
+    @Query('key') key: string,
+    @Req() req: CustomRequest,
+    @Res() res: CustomResponse
+  ) {
+    if (!key) {
+      throw new BadRequestException('Параметр query "key" обязателен для загрузки квитанции');
+    }
+    // Защита от Path Traversal: извлекаем безопасное имя файла
+    const cleanKey = path.basename(key);
+    const uploadDir = path.join(process.cwd(), 'data', 'uploads');
+    fs.mkdirSync(uploadDir, { recursive: true });
+    const fullPath = path.join(uploadDir, cleanKey);
+
+    // Если body-parser уже считал тело в виде Buffer
+    if (Buffer.isBuffer(req.body)) {
+      fs.writeFileSync(fullPath, req.body);
+      return res.status(200).json({ success: true, key: cleanKey });
+    }
+
+    // Иначе считываем бинарный поток данных из request stream
+    await new Promise<void>((resolve, reject) => {
+      const writeStream = fs.createWriteStream(fullPath);
+      req.pipe(writeStream);
+      writeStream.on('finish', () => resolve());
+      writeStream.on('error', (err: unknown) => reject(err));
+      req.on('error', (err: unknown) => reject(err));
+    });
+
+    return res.status(200).json({ success: true, key: cleanKey });
   }
 
-  @Post('invoices')
-  async createManualInvoice(@Body() body: { accountId: number; period: string; amount: number; comment: string }) {
-    return this.accountantService.createManualInvoice(body);
+  // Скачивание бинарного файла квитанции при локальном хранении
+  @Get('invoices/download/:key')
+  async downloadInvoiceRaw(
+    @Param('key') key: string,
+    @Res() res: CustomResponse
+  ) {
+    const cleanKey = path.basename(key);
+    const uploadDir = path.join(process.cwd(), 'data', 'uploads');
+    const fullPath = path.join(uploadDir, cleanKey);
+
+    if (!fs.existsSync(fullPath)) {
+      throw new NotFoundException(`Файл квитанции ${cleanKey} не найден на диске`);
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${cleanKey}"`);
+    return res.sendFile(fullPath);
   }
 
+  // Получение предподписанного S3 URL или локального URL для загрузки квитанции
+  // Важно: статический роут 'invoices/upload-url' должен объявляться ДО параметризованного 'invoices/:id',
+  // чтобы Express не пытался распарсить строку 'upload-url' как числовой идентификатор :id
   @Get('invoices/upload-url')
   async getUploadUrl(@Query('accountExternalId') accountExternalId: string, @Query('periodLabel') periodLabel: string) {
     const key = this.s3Storage.buildInvoiceKey(accountExternalId, periodLabel);
     const url = this.s3Storage.getSignedUploadUrl(key);
     return { url, key };
+  }
+
+  // Получение квитанции по ее числовому идентификатору
+  @Get('invoices/:id')
+  async findInvoice(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.findInvoiceById(id);
+  }
+
+  // Ручное создание квитанции бухгалтером
+  @Post('invoices')
+  async createManualInvoice(@Body() body: { accountId: number; period: string; amount: number; comment: string }) {
+    return this.accountantService.createManualInvoice(body);
   }
 
   @Get('payments')

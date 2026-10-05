@@ -634,7 +634,7 @@ export class AccountantService {
     const storageKey = parsedRaw?.s3Key as string || (isS3Key(invoice.localFilePath) ? invoice.localFilePath : null);
     
     let downloadUrl: string | null = null;
-    if (storageKey && this.s3Storage.isEnabled()) {
+    if (storageKey) {
       downloadUrl = this.s3Storage.getSignedDownloadUrl(storageKey);
     } else if (invoice.invoiceUrl) {
       downloadUrl = invoice.invoiceUrl;
@@ -702,7 +702,7 @@ export class AccountantService {
 
     const parsedRaw = safeJsonParse<Record<string, unknown>>(invoice.rawJson);
     const storageKey = parsedRaw?.s3Key as string || (isS3Key(invoice.localFilePath) ? invoice.localFilePath : null);
-    const downloadUrl = storageKey && this.s3Storage.isEnabled() ? this.s3Storage.getSignedDownloadUrl(storageKey) : null;
+    const downloadUrl = storageKey ? this.s3Storage.getSignedDownloadUrl(storageKey) : null;
 
     return this.serialize({ account, invoice, storageKey, downloadUrl });
   }

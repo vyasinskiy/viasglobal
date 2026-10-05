@@ -33,17 +33,27 @@ export class S3StorageService {
     return prefix ? `${prefix}/${path}` : path;
   }
 
+  // Формирует ссылку для скачивания квитанции (подписанный S3 URL или локальный эндпоинт)
   getSignedDownloadUrl(key: string, ttlSeconds = config.S3_SIGNED_URL_TTL): string {
     if (!this.isEnabled()) {
-      return '';
+      // Локальный режим: возвращаем URL скачивания с сервиса accountant
+      const apiBaseUrl = process.env.API_BASE_URL || 'http://accountant:3005';
+      return `${apiBaseUrl}/accountant/invoices/download/${encodeURIComponent(key)}`;
     }
     return this.getSignedUrl('GET', key, ttlSeconds);
   }
 
+  // Формирует ссылку для загрузки квитанции (подписанный PUT S3 URL или локальный эндпоинт upload-raw)
   getSignedUploadUrl(key: string, ttlSeconds = 600): string {
+    if (!this.isEnabled()) {
+      // Локальный режим: возвращаем URL загрузки на сервис accountant
+      const apiBaseUrl = process.env.API_BASE_URL || 'http://accountant:3005';
+      return `${apiBaseUrl}/accountant/invoices/upload-raw?key=${encodeURIComponent(key)}`;
+    }
     return this.getSignedUrl('PUT', key, ttlSeconds, 'application/octet-stream');
   }
 
+  // Сохраняет буфер файла в S3 или локальную директорию data/uploads
   async uploadBuffer(key: string, buffer: Buffer, contentType = 'application/octet-stream'): Promise<string> {
     if (this.isEnabled()) {
       const uploadUrl = this.getSignedUploadUrl(key);
@@ -59,7 +69,7 @@ export class S3StorageService {
       }
       return key;
     }
-    // Fallback if S3 is not configured: save locally
+    // Локальное сохранение на диск
     const fs = await import('node:fs');
     const path = await import('node:path');
     const localDir = path.join(process.cwd(), 'data', 'uploads');
