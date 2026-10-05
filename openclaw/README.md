@@ -39,12 +39,13 @@ viasglobal/openclaw/
         └── AGENTS.md               # Инструкции агента по вызовам API
 ```
 
-## Развертывание
+## Развертывание и обновление
+
+> **Важно**: при любом изменении `docs/SERVICES.md` всегда запускайте `make redeploy-openclaw`, чтобы актуализировать файл `SERVICES.md` в контейнере агента.
 
 ### 1. Из корня репозитория:
-```bash
-make deploy-openclaw
-```
+- Полное развертывание: `make deploy-openclaw`
+- Быстрое обновление реестра сервисов и кода: `make redeploy-openclaw`
 
 ### 2. Прямо на сервере Huawei:
 ```bash

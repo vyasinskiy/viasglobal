@@ -86,9 +86,11 @@ deploy-openclaw:
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && bash deploy.sh"
 
 redeploy-openclaw:
-	@echo "Синхронизация обновлений OpenClaw на сервер Huawei..."
+	@echo "Синхронизация документации на сервер Huawei..."
+	rsync -avz ./docs/ huawei@100.92.50.18:~/viasglobal/docs/
+	@echo "Синхронизация файлов OpenClaw на сервер Huawei..."
 	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
-	@echo "Перезапуск контейнера viasglobal-openclaw..."
-	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && docker compose up -d --build openclaw"
+	@echo "Развертывание и перезапуск сервиса viasglobal-openclaw..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && bash deploy.sh"
 
 

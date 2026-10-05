@@ -13,5 +13,5 @@
 - Конфигурация генерируется скриптом `deploy.sh` из шаблона `config/openclaw.template.json` в `data/openclaw.json`.
 - Токены и секреты хранятся строго в `.env` и никогда не коммитятся в git.
 - Скрипт `deploy.sh` автоматически копирует глобальный реестр сервисов `docs/SERVICES.md` и инструкции `config/workspace/AGENTS.md` в рабочий каталог агента `data/workspace/`. Это позволяет OpenClaw владеть полной информацией обо всех сервисах кластера, их URL и эндпоинтах.
-- При любых изменениях в микросервисах необходимо обновить `docs/SERVICES.md` и выполнить деплой OpenClaw (`make deploy-openclaw`), чтобы агент получил актуальные схемы API.
+- При любых изменениях в микросервисах или эндпоинтах необходимо синхронно обновить `docs/SERVICES.md` и **обязательно** выполнить деплой/перезапуск OpenClaw (`make redeploy-openclaw` или `make deploy-openclaw`). Так как OpenClaw является главным связующим звеном между сервисами и опирается на этот файл при вызовах API, без деплоя он не увидит новых эндпоинтов.
 - Поддерживать в актуальном состоянии оба файла: [README.md](file:///Users/usuario/code/viasglobal/openclaw/README.md) и [AGENTS.md](file:///Users/usuario/code/viasglobal/openclaw/.agents/AGENTS.md).
