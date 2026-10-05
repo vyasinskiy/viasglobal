@@ -30,6 +30,7 @@ interface Tenant {
   apartmentId: number | null;
   rentPaymentDay: number | null;
   rentAmount: string | number | null;
+  rentStartDate: string | null;
   status: string;
   createdAt: string;
   user: {
@@ -65,6 +66,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
   const [formApartmentId, setFormApartmentId] = React.useState<string>('');
   const [formRentPaymentDay, setFormRentPaymentDay] = React.useState<string>('20');
   const [formRentAmount, setFormRentAmount] = React.useState<string>('');
+  const [formRentStartDate, setFormRentStartDate] = React.useState<string>('');
   const [formStatus, setFormStatus] = React.useState<string>('active');
 
   const handleEditClick = () => {
@@ -73,6 +75,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
     setFormApartmentId(tenant.apartmentId ? String(tenant.apartmentId) : '');
     setFormRentPaymentDay(tenant.rentPaymentDay ? String(tenant.rentPaymentDay) : '20');
     setFormRentAmount(tenant.rentAmount ? String(tenant.rentAmount) : '');
+    setFormRentStartDate(tenant.rentStartDate ? tenant.rentStartDate.slice(0, 16) : '');
     setFormStatus(tenant.status || 'active');
     setFormOpen(true);
   };
@@ -89,6 +92,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
       apartmentId: formApartmentId ? parseInt(formApartmentId, 10) : null,
       rentPaymentDay: formRentPaymentDay ? parseInt(formRentPaymentDay, 10) : null,
       rentAmount: formRentAmount ? parseFloat(formRentAmount) : null,
+      rentStartDate: formRentStartDate ? new Date(formRentStartDate).toISOString() : null,
       status: formStatus,
     };
 
@@ -141,6 +145,14 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button
+            onClick={() => router.push(`/payments?create=true&userId=${tenant.userId}`)}
+            variant="contained"
+            startIcon={<PaymentIcon />}
+            style={{ backgroundColor: '#2563eb', color: '#fff', textTransform: 'none', fontWeight: 600 }}
+          >
+            Добавить платеж
+          </Button>
+          <Button
             onClick={() => router.push(`/events?create=true&tenantId=${tenant.id}`)}
             variant="outlined"
             startIcon={<EventIcon />}
@@ -150,9 +162,9 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
           </Button>
           <Button
             onClick={handleEditClick}
-            variant="contained"
+            variant="outlined"
             startIcon={<EditIcon />}
-            style={{ backgroundColor: '#2563eb', color: '#fff', textTransform: 'none', fontWeight: 600 }}
+            style={{ borderColor: '#cbd5e1', color: '#334155', textTransform: 'none', fontWeight: 600 }}
           >
             Изменить
           </Button>
@@ -185,6 +197,13 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
               <span style={{ fontSize: '0.875rem', color: '#64748b', display: 'block' }}>Расчетный день аренды</span>
               <strong style={{ fontSize: '1.25rem', color: '#0f172a' }}>
                 {tenant.rentPaymentDay ? `${tenant.rentPaymentDay}-е число месяца` : 'Не указан'}
+              </strong>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '0.875rem', color: '#64748b', display: 'block' }}>Начало аренды (начисление с)</span>
+              <strong style={{ fontSize: '1.1rem', color: '#334155', fontWeight: 500 }}>
+                {tenant.rentStartDate ? formatDate(tenant.rentStartDate) : 'Не задано'}
               </strong>
             </div>
 
@@ -274,6 +293,23 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
               }}
             >
               Показать платежи
+            </Button>
+
+            <Button
+              onClick={() => router.push(`/payments?create=true&userId=${tenant.userId}`)}
+              variant="contained"
+              fullWidth
+              startIcon={<PaymentIcon />}
+              style={{
+                backgroundColor: '#10b981',
+                color: '#fff',
+                textTransform: 'none',
+                padding: '12px',
+                fontWeight: 600,
+                fontSize: '0.95rem'
+              }}
+            >
+              Добавить платеж
             </Button>
 
             <Button
@@ -404,6 +440,16 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
               value={formRentPaymentDay}
               onChange={(e) => setFormRentPaymentDay(e.target.value)}
               inputProps={{ min: "1", max: "31" }}
+            />
+
+            <TextField
+              label="Дата создания арендатора (начала аренды)"
+              type="datetime-local"
+              fullWidth
+              variant="outlined"
+              value={formRentStartDate}
+              onChange={(e) => setFormRentStartDate(e.target.value)}
+              helperText="С этой даты арендатору будет начисляться аренда каждый месяц."
             />
 
             <FormControl fullWidth variant="outlined">

@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -78,6 +78,7 @@ export default function PaymentsPage() {
   const searchParams = useSearchParams();
   const userIdParam = searchParams.get('userId');
   const bankIdParam = searchParams.get('bankId');
+  const createParam = searchParams.get('create');
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   
@@ -113,6 +114,21 @@ export default function PaymentsPage() {
     resetAddForm();
     setAddOpen(true);
   };
+
+  useEffect(() => {
+    if (createParam !== 'true' || addOpen || !tenants) return;
+    const presetTenant = userIdParam
+      ? tenants.find(t => String(t.userId) === userIdParam)
+      : null;
+    resetAddForm();
+    if (presetTenant) {
+      setAddTenantId(String(presetTenant.id));
+    }
+    if (bankIdParam) {
+      setAddBankId(bankIdParam);
+    }
+    setAddOpen(true);
+  }, [createParam, userIdParam, bankIdParam, addOpen, tenants]);
 
   const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -376,12 +376,12 @@ export class AccountantController {
   }
 
   @Post('tenants')
-  async createTenant(@Body() body: { name: string; apartmentId?: number; rentPaymentDay?: number; rentAmount?: number }) {
+  async createTenant(@Body() body: { name: string; apartmentId?: number; rentPaymentDay?: number; rentAmount?: number; rentStartDate?: string | Date | null }) {
     return this.accountantService.createTenant(body);
   }
 
   @Put('tenants/:id')
-  async updateTenant(@Param('id', ParseIntPipe) id: number, @Body() body: { name?: string; apartmentId?: number | null; rentPaymentDay?: number | null; rentAmount?: number | null; status?: string }) {
+  async updateTenant(@Param('id', ParseIntPipe) id: number, @Body() body: { name?: string; apartmentId?: number | null; rentPaymentDay?: number | null; rentAmount?: number | null; status?: string; rentStartDate?: string | Date | null }) {
     return this.accountantService.updateTenant(id, body);
   }
 

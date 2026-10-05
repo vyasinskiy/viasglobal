@@ -46,11 +46,12 @@ interface AccountItem {
 
 interface Invoice {
   id: number;
-  accountId: number;
-  accountExternalId: string;
+  accountId: number | null;
+  accountExternalId: string | null;
   periodId: string;
   periodLabel: string;
   amount: string | number | null;
+  invoiceType?: string | null;
   invoiceUrl: string | null;
   available: boolean;
   uploadedToS3: boolean;
@@ -60,6 +61,16 @@ interface Invoice {
     accountNumber: string | null;
     accountLabel: string | null;
     customLabel: string | null;
+    apartment?: {
+      id: number;
+      address: string | null;
+    } | null;
+  } | null;
+  tenant?: {
+    id: number;
+    user?: {
+      name: string | null;
+    } | null;
     apartment?: {
       id: number;
       address: string | null;
@@ -156,10 +167,12 @@ export default function InvoicesPage() {
         const periodIdMatch = item.periodId?.toLowerCase().includes(search.toLowerCase());
         const periodLabelMatch = item.periodLabel?.toLowerCase().includes(search.toLowerCase());
         const accountNumMatch = (item.account?.accountNumber || item.accountExternalId)?.toLowerCase().includes(search.toLowerCase()) ?? false;
-        const addressMatch = item.account?.apartment?.address?.toLowerCase().includes(search.toLowerCase()) ?? false;
+        const addressMatch = (item.account?.apartment?.address || item.tenant?.apartment?.address)?.toLowerCase().includes(search.toLowerCase()) ?? false;
         const labelMatch = (item.account?.customLabel || item.account?.accountLabel)?.toLowerCase().includes(search.toLowerCase()) ?? false;
+        const tenantNameMatch = item.tenant?.user?.name?.toLowerCase().includes(search.toLowerCase()) ?? false;
+        const rentLabelMatch = item.invoiceType === 'rent' ? 'арендный платеж'.includes(search.toLowerCase()) : false;
         const commentMatch = item.parsedComment.toLowerCase().includes(search.toLowerCase());
-        if (!periodIdMatch && !periodLabelMatch && !accountNumMatch && !addressMatch && !labelMatch && !commentMatch) {
+        if (!periodIdMatch && !periodLabelMatch && !accountNumMatch && !addressMatch && !labelMatch && !commentMatch && !tenantNameMatch && !rentLabelMatch) {
           return false;
         }
       }
@@ -398,14 +411,24 @@ export default function InvoicesPage() {
                     </TableCell>
                     <TableCell>{row.id}</TableCell>
                   <TableCell style={{ fontWeight: 500, color: '#1e293b', maxWidth: '200px' }}>
-                    {row.account?.apartment?.address || 'Не указана'}
+                    {row.invoiceType === 'rent'
+                      ? (row.tenant?.apartment?.address || '—')
+                      : (row.account?.apartment?.address || 'Не указана')}
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>
-                      {row.account?.accountNumber || row.accountExternalId}
-                    </div>
+                    {row.invoiceType === 'rent' ? (
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                        Арендный платеж
+                      </div>
+                    ) : (
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                        {row.account?.accountNumber || row.accountExternalId}
+                      </div>
+                    )}
                     <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                      {row.account?.customLabel || row.account?.accountLabel || '—'}
+                      {row.invoiceType === 'rent'
+                        ? (row.tenant?.user?.name || 'Арендатор')
+                        : (row.account?.customLabel || row.account?.accountLabel || '—')}
                     </div>
                   </TableCell>
                   <TableCell style={{ fontWeight: 600 }}>{row.periodLabel}</TableCell>
@@ -413,7 +436,9 @@ export default function InvoicesPage() {
                     {row.amount !== null ? `${Number(row.amount).toFixed(2)} руб.` : '—'}
                   </TableCell>
                   <TableCell style={{ color: '#334155', maxWidth: '220px', wordBreak: 'break-word' }}>
-                    {row.parsedComment ? (
+                    {row.invoiceType === 'rent' ? (
+                      <span style={{ color: '#94a3b8' }}>—</span>
+                    ) : row.parsedComment ? (
                       <span style={{ backgroundColor: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', color: '#1e293b', display: 'inline-block' }}>
                         {row.parsedComment}
                       </span>
@@ -422,7 +447,9 @@ export default function InvoicesPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {row.uploadedToS3 ? (
+                    {row.invoiceType === 'rent' ? (
+                      <span className={styles.statusConfirmed}>Начислен</span>
+                    ) : row.uploadedToS3 ? (
                       <span className={styles.statusConfirmed}>Загружен в S3</span>
                     ) : row.invoiceUrl || row.available ? (
                       <span className={styles.statusConfirmed}>Доступен</span>
@@ -433,7 +460,11 @@ export default function InvoicesPage() {
                   <TableCell style={{ color: '#64748b' }}>{formatDate(row.firstSeenAt)}</TableCell>
                   <TableCell>
                     <div className={styles.actionsCell}>
-                      {row.uploadedToS3 || row.invoiceUrl || row.available ? (
+                      {row.invoiceType === 'rent' ? (
+                        <span className={`${styles.downloadLink} ${styles.disabledLink}`}>
+                          Без PDF
+                        </span>
+                      ) : row.uploadedToS3 || row.invoiceUrl || row.available ? (
                         <a
                           href={`/api/invoices/${row.id}/download`}
                           target="_blank"

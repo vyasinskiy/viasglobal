@@ -302,7 +302,7 @@ export default function BankDetailPage({ params }: { params: { id: string } }) {
             </Button>
 
             <Button
-              onClick={() => router.push(`/payments?bankId=${bank.id}`)}
+              onClick={() => router.push(`/payments?create=true&bankId=${bank.id}`)}
               variant="outlined"
               fullWidth
               startIcon={<PaymentIcon />}
@@ -394,7 +394,7 @@ export default function BankDetailPage({ params }: { params: { id: string } }) {
                   <div className={styles.emptyState}>
                     Платежей по этому банку нет.
                     <br />
-                    <Link href={`/payments?bankId=${bank.id}`} style={{ color: '#2563eb' }}>
+                    <Link href={`/payments?create=true&bankId=${bank.id}`} style={{ color: '#2563eb' }}>
                       Добавить первым платежом
                     </Link>
                   </div>

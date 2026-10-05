@@ -583,7 +583,10 @@ export class AccountantService {
 
     const results = await this.prisma.invoice.findMany({ 
       where, 
-      include: { account: { include: { apartment: true } } }, 
+      include: { 
+        account: { include: { apartment: true } },
+        tenant: { include: { user: true, apartment: true } }
+      }, 
       orderBy: [{ periodId: 'desc' }],
       ...(filters.take ? { take: Number(filters.take) } : {})
     });
@@ -625,7 +628,10 @@ export class AccountantService {
   async findInvoiceById(id: number) {
     const invoice = await this.prisma.invoice.findUnique({
       where: { id },
-      include: { account: { include: { apartment: true } } }
+      include: {
+        account: { include: { apartment: true } },
+        tenant: { include: { user: true, apartment: true } }
+      }
     });
 
     if (!invoice) {
@@ -913,7 +919,7 @@ export class AccountantService {
     return this.serialize(results);
   }
 
-  async createTenant(data: { name: string; apartmentId?: number; rentPaymentDay?: number; rentAmount?: number }) {
+  async createTenant(data: { name: string; apartmentId?: number; rentPaymentDay?: number; rentAmount?: number; rentStartDate?: string | Date | null }) {
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
@@ -927,6 +933,7 @@ export class AccountantService {
         apartmentId: data.apartmentId || null,
         rentPaymentDay: data.rentPaymentDay || null,
         rentAmount: data.rentAmount || null,
+        rentStartDate: data.rentStartDate ? new Date(data.rentStartDate) : null,
         status: 'active',
       },
       include: { user: true, apartment: true }
@@ -946,10 +953,14 @@ export class AccountantService {
       });
     }
 
+    if (tenant.rentStartDate && tenant.rentAmount) {
+      await this.accrueRentInvoices(tenant.id);
+    }
+
     return this.serialize(tenant);
   }
 
-  async updateTenant(id: number, data: { name?: string; apartmentId?: number | null; rentPaymentDay?: number | null; rentAmount?: number | null; status?: string }) {
+  async updateTenant(id: number, data: { name?: string; apartmentId?: number | null; rentPaymentDay?: number | null; rentAmount?: number | null; status?: string; rentStartDate?: string | Date | null }) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id },
       include: { user: true }
@@ -969,12 +980,79 @@ export class AccountantService {
         apartmentId: data.apartmentId === undefined ? tenant.apartmentId : data.apartmentId,
         rentPaymentDay: data.rentPaymentDay === undefined ? tenant.rentPaymentDay : data.rentPaymentDay,
         rentAmount: data.rentAmount === undefined ? tenant.rentAmount : data.rentAmount,
+        rentStartDate: data.rentStartDate === undefined ? tenant.rentStartDate : (data.rentStartDate ? new Date(data.rentStartDate) : null),
         status: data.status === undefined ? tenant.status : data.status,
       },
       include: { user: true, apartment: true }
     });
 
+    if (updated.rentStartDate && updated.rentAmount) {
+      await this.accrueRentInvoices(updated.id);
+    }
+
     return this.serialize(updated);
+  }
+
+  async accrueRentInvoices(tenantId?: number) {
+    const where: Prisma.TenantWhereInput = tenantId ? { id: Number(tenantId) } : {};
+    const tenants = await this.prisma.tenant.findMany({ where });
+
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    let created = 0;
+
+    for (const tenant of tenants) {
+      if (!tenant.rentStartDate || !tenant.rentAmount) continue;
+
+      let year = tenant.rentStartDate.getFullYear();
+      let month = tenant.rentStartDate.getMonth();
+
+      while (true) {
+        const periodId = `${year}-${String(month + 1).padStart(2, '0')}`;
+        if (periodId > currentYm) break;
+
+        const existing = await this.prisma.invoice.findFirst({
+          where: { tenantId: tenant.id, periodId, invoiceType: 'rent' },
+        });
+
+        if (!existing) {
+          await this.prisma.invoice.create({
+            data: {
+              accountId: null,
+              accountExternalId: null,
+              periodId,
+              periodLabel: periodId,
+              amount: tenant.rentAmount,
+              invoiceType: 'rent',
+              available: false,
+              uploadedToS3: false,
+              tenantId: tenant.id,
+              firstSeenAt: new Date(),
+              lastSeenAt: new Date(),
+            },
+          });
+          created++;
+        }
+
+        month++;
+        if (month > 11) {
+          month = 0;
+          year++;
+        }
+      }
+    }
+
+    this.logger.log(`Rent invoices accrued: ${created}`);
+    return created;
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  async accrueRentInvoicesCron() {
+    try {
+      await this.accrueRentInvoices();
+    } catch (error: unknown) {
+      this.logger.error(`Failed to accrue rent invoices: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async deleteTenant(id: number) {

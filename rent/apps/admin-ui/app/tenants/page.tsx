@@ -37,6 +37,7 @@ interface Tenant {
   apartmentId: number | null;
   rentPaymentDay: number | null;
   rentAmount: string | number | null;
+  rentStartDate: string | null;
   status: string;
   createdAt: string;
   user: {
@@ -74,6 +75,7 @@ export default function TenantsPage() {
   const [formApartmentId, setFormApartmentId] = useState<string>('');
   const [formRentPaymentDay, setFormRentPaymentDay] = useState<string>('20');
   const [formRentAmount, setFormRentAmount] = useState<string>('');
+  const [formRentStartDate, setFormRentStartDate] = useState<string>('');
   const [formStatus, setFormStatus] = useState<string>('active');
 
   const filteredTenants = useMemo(() => {
@@ -96,6 +98,7 @@ export default function TenantsPage() {
     setFormApartmentId('');
     setFormRentPaymentDay('20');
     setFormRentAmount('');
+    setFormRentStartDate('');
     setFormStatus('active');
     setFormOpen(true);
   };
@@ -107,6 +110,7 @@ export default function TenantsPage() {
     setFormApartmentId(tenant.apartmentId ? String(tenant.apartmentId) : '');
     setFormRentPaymentDay(tenant.rentPaymentDay ? String(tenant.rentPaymentDay) : '20');
     setFormRentAmount(tenant.rentAmount ? String(tenant.rentAmount) : '');
+    setFormRentStartDate(tenant.rentStartDate ? tenant.rentStartDate.slice(0, 16) : '');
     setFormStatus(tenant.status);
     setFormOpen(true);
   };
@@ -124,6 +128,7 @@ export default function TenantsPage() {
       apartmentId: formApartmentId ? parseInt(formApartmentId, 10) : null,
       rentPaymentDay: formRentPaymentDay ? parseInt(formRentPaymentDay, 10) : null,
       rentAmount: formRentAmount ? parseFloat(formRentAmount) : null,
+      rentStartDate: formRentStartDate ? new Date(formRentStartDate).toISOString() : null,
       status: formStatus,
     };
 
@@ -360,6 +365,16 @@ export default function TenantsPage() {
               value={formRentPaymentDay}
               onChange={(e) => setFormRentPaymentDay(e.target.value)}
               inputProps={{ min: "1", max: "31" }}
+            />
+
+            <TextField
+              label="Дата создания арендатора (начала аренды)"
+              type="datetime-local"
+              fullWidth
+              variant="outlined"
+              value={formRentStartDate}
+              onChange={(e) => setFormRentStartDate(e.target.value)}
+              helperText="С этой даты арендатору будет начисляться аренда каждый месяц."
             />
 
             <FormControl fullWidth variant="outlined">

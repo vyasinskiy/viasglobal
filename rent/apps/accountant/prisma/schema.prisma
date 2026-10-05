@@ -44,12 +44,14 @@ model Tenant {
   apartmentId     Int?      @map("apartment_id")
   rentPaymentDay  Int?      @map("rent_payment_day")
   rentAmount      Decimal?  @db.Decimal(10, 2) @map("rent_amount")
+  rentStartDate   DateTime? @map("rent_start_date")
   status          String    @default("pending") // pending, active, rejected
   createdAt       DateTime  @default(now()) @map("created_at")
 
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   apartment       Apartment? @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   scheduledEvents ScheduledEvent[]
+  invoices        Invoice[]
 
   @@map("tenants")
 }
@@ -97,11 +99,12 @@ model Accrual {
 
 model Invoice {
   id                Int       @id @default(autoincrement())
-  accountId         Int       @map("account_id")
-  accountExternalId String    @map("account_external_id")
+  accountId         Int?      @map("account_id")
+  accountExternalId String?   @map("account_external_id")
   periodId          String    @map("period_id")
   periodLabel       String    @map("period_label")
   amount            Decimal?  @db.Decimal(10, 2)
+  invoiceType       String    @default("utility") @map("invoice_type") // utility | rent
   invoiceUrl        String?   @map("invoice_url")
   utilitiesUrl      String?   @map("utilities_url")
   localFilePath     String?   @map("local_file_path")
@@ -110,9 +113,12 @@ model Invoice {
   rawJson           String?   @map("raw_json")
   firstSeenAt       DateTime  @map("first_seen_at")
   lastSeenAt        DateTime  @map("last_seen_at")
-  account           Account              @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  tenantId          Int?      @map("tenant_id")
+  account           Account?              @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  tenant            Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([accountExternalId, periodId])
+  @@unique([tenantId, periodId], map: "invoice_tenant_period_key")
   @@index([accountId, periodLabel], map: "idx_invoices_account_period")
   @@map("invoices")
 }
