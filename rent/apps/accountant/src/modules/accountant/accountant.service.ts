@@ -508,9 +508,14 @@ export class AccountantService {
       ...(filters.address ? { address: { contains: filters.address, mode: 'insensitive' } } : {}),
       ...(filters.organization ? { organization: { contains: filters.organization, mode: 'insensitive' } } : {}),
     };
+    // Выбираем квартиры с подсчетом количества лицевых счетов (_count.accounts) и связанными данными
     const results = await this.prisma.apartment.findMany({ 
       where, 
       include: {
+        // Подсчет общего количества лицевых счетов для квартиры
+        _count: {
+          select: { accounts: true },
+        },
         tenants: {
           where: { status: 'active' },
           include: { user: true }

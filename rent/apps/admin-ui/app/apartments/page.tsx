@@ -29,6 +29,8 @@ interface Apartment {
   organization: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
+  // Массив лицевых счетов для запасного подсчета, если _count не пришел
+  accounts?: unknown[];
   _count?: {
     accounts: number;
   };
@@ -132,8 +134,9 @@ export default function ApartmentsPage() {
                   <TableCell style={{ color: '#64748b', fontSize: '0.8rem' }}>{row.externalId}</TableCell>
                   <TableCell style={{ fontWeight: 500 }}>{row.address || '—'}</TableCell>
                   <TableCell>{row.organization || '—'}</TableCell>
+                  {/* Отображаем количество лицевых счетов: берем _count.accounts или длину массива accounts */}
                   <TableCell style={{ fontWeight: 600, color: '#2563eb' }}>
-                    {row._count?.accounts ?? 0} шт.
+                    {row._count?.accounts ?? row.accounts?.length ?? 0} шт.
                   </TableCell>
                   <TableCell style={{ color: '#64748b' }}>{formatDate(row.firstSeenAt)}</TableCell>
                   <TableCell style={{ textAlign: 'center' }}>
