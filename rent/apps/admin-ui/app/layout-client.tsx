@@ -12,6 +12,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import PaymentIcon from '@mui/icons-material/Payment';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import EventIcon from '@mui/icons-material/Event';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SyncIcon from '@mui/icons-material/Sync';
@@ -45,6 +46,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     { text: 'Лицевые счета', path: '/accounts', icon: <AccountBalanceIcon className={styles.menuIcon} /> },
     { text: 'Инвойсы', path: '/invoices', icon: <ReceiptIcon className={styles.menuIcon} /> },
     { text: 'Платежи', path: '/payments', icon: <PaymentIcon className={styles.menuIcon} /> },
+    { text: 'Банки', path: '/banks', icon: <AccountBalanceWalletIcon className={styles.menuIcon} /> },
     { text: 'События', path: '/events', icon: <EventIcon className={styles.menuIcon} />, badge: pendingCount },
     { text: 'Сканирование', path: '/scanning', icon: <SyncIcon className={styles.menuIcon} /> },
   ];

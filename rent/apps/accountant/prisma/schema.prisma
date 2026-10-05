@@ -129,10 +129,23 @@ model Payment {
   confirmedAt      DateTime? @map("confirmed_at")
   confirmedBy      BigInt?  @map("confirmed_by")
   comment          String?
+  bankId           Int?     @map("bank_id")
 
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bank             Bank?    @relation(fields: [bankId], references: [id], onDelete: SetNull)
 
+  @@index([bankId], map: "idx_payments_bank_id")
   @@map("payments")
+}
+
+model Bank {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  payments  Payment[]
+
+  @@map("banks")
 }
 
 model MeterSubmissionEvent {

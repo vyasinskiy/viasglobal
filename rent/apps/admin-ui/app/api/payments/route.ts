@@ -8,12 +8,14 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const userName = searchParams.get('userName');
     const accountId = searchParams.get('accountId');
+    const bankId = searchParams.get('bankId');
 
     const params: Record<string, string> = {};
     if (userId) params.userId = userId;
     if (status) params.status = status;
     if (userName) params.userName = userName;
     if (accountId) params.accountId = accountId;
+    if (bankId) params.bankId = bankId;
 
     const { data } = await accountantClient.get('/payments', { params });
     return NextResponse.json(data);
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
     const { action, paymentId, comment } = body;
 
     if (action === 'create') {
-      const { tenantId, amount, createdAt, comment: newComment, receiptPhotoId, status: paymentStatus } = body;
+      const { tenantId, amount, createdAt, comment: newComment, receiptPhotoId, status: paymentStatus, bankId } = body;
       if (!tenantId) {
         return NextResponse.json({ error: 'Missing tenantId' }, { status: 400 });
       }
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
         comment: newComment,
         receiptPhotoId,
         status: paymentStatus || 'unconfirmed',
+        bankId: bankId ? Number(bankId) : null,
       });
       return NextResponse.json(data);
     }

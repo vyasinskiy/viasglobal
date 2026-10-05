@@ -317,6 +317,7 @@ export class AccountantService {
     comment?: string | null;
     createdAt?: string | Date;
     status?: string;
+    bankId?: number;
   }) {
     let targetUserId = data.userId;
     let targetUserName = data.userName;
@@ -350,6 +351,7 @@ export class AccountantService {
         receiptPhotoId: data.receiptPhotoId || null,
         comment: data.comment || null,
         status: data.status || 'unconfirmed',
+        bankId: data.bankId !== undefined ? Number(data.bankId) : null,
         createdAt: isNaN(paymentDate.getTime()) ? new Date() : paymentDate,
       },
     });
@@ -707,7 +709,7 @@ export class AccountantService {
     return this.serialize({ account, invoice, storageKey, downloadUrl });
   }
 
-  async findPayments(filters: { userId?: number; status?: string; userName?: string; accountId?: number } = {}) {
+  async findPayments(filters: { userId?: number; status?: string; userName?: string; accountId?: number; bankId?: number } = {}) {
     const where: Prisma.PaymentWhereInput = {};
     if (filters.userId) {
       where.userId = Number(filters.userId);
@@ -717,6 +719,9 @@ export class AccountantService {
     }
     if (filters.userName) {
       where.userName = { contains: filters.userName, mode: 'insensitive' };
+    }
+    if (filters.bankId) {
+      where.bankId = Number(filters.bankId);
     }
     if (filters.accountId) {
       const account = await this.prisma.account.findUnique({
@@ -735,6 +740,7 @@ export class AccountantService {
       where,
       include: {
         user: true,
+        bank: true,
       },
       orderBy: [{ createdAt: 'desc' }],
     });
@@ -826,6 +832,68 @@ export class AccountantService {
 
   async deletePayment(id: number) {
     return this.prisma.payment.delete({ where: { id } });
+  }
+
+  async findBanks() {
+    const results = await this.prisma.bank.findMany({
+      include: {
+        _count: { select: { payments: true } },
+      },
+      orderBy: [{ name: 'asc' }],
+    });
+    return this.serialize(results);
+  }
+
+  async findBankById(id: number) {
+    const result = await this.prisma.bank.findUnique({
+      where: { id: Number(id) },
+      include: {
+        _count: { select: { payments: true } },
+      },
+    });
+    if (!result) {
+      throw new NotFoundException(`Bank with ID ${id} not found`);
+    }
+    return this.serialize(result);
+  }
+
+  async createBank(name: string) {
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
+      throw new Error(`Bank name is required.`);
+    }
+    const result = await this.prisma.bank.create({
+      data: { name: trimmedName },
+    });
+    return this.serialize(result);
+  }
+
+  async updateBank(id: number, name: string) {
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
+      throw new Error(`Bank name is required.`);
+    }
+    const result = await this.prisma.bank.update({
+      where: { id },
+      data: { name: trimmedName },
+    });
+    return this.serialize(result);
+  }
+
+  async deleteBank(id: number) {
+    return this.prisma.bank.delete({ where: { id } });
+  }
+
+  async findPaymentsByBank(bankId: number) {
+    const results = await this.prisma.payment.findMany({
+      where: { bankId: Number(bankId) },
+      include: {
+        user: true,
+        bank: true,
+      },
+      orderBy: [{ createdAt: 'desc' }],
+    });
+    return this.serialize(results);
   }
 
   async deleteMeterSubmissionEvent(id: number) {

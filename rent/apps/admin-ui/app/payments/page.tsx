@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import useSWR from 'swr';
 import axios from 'axios';
 import styles from '../shared-table.module.css';
@@ -43,9 +44,18 @@ interface Payment {
   createdAt: string;
   confirmedAt: string | null;
   comment: string | null;
+  bank?: {
+    id: number;
+    name: string;
+  } | null;
   user?: {
     name: string | null;
   };
+}
+
+interface Bank {
+  id: number;
+  name: string;
 }
 
 interface Tenant {
@@ -67,6 +77,7 @@ export default function PaymentsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userIdParam = searchParams.get('userId');
+  const bankIdParam = searchParams.get('bankId');
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   
@@ -77,8 +88,10 @@ export default function PaymentsPage() {
 
   // Add Payment Modal states
   const { data: tenants } = useSWR<Tenant[]>('/api/tenants', fetcher);
+  const { data: banks } = useSWR<Bank[]>('/api/banks', fetcher);
   const [addOpen, setAddOpen] = useState(false);
   const [addTenantId, setAddTenantId] = useState('');
+  const [addBankId, setAddBankId] = useState('');
   const [addAmount, setAddAmount] = useState('');
   const [addDate, setAddDate] = useState('');
   const [addComment, setAddComment] = useState('');
@@ -88,6 +101,7 @@ export default function PaymentsPage() {
 
   const resetAddForm = () => {
     setAddTenantId('');
+    setAddBankId('');
     setAddAmount('');
     setAddDate(new Date().toISOString().slice(0, 16));
     setAddComment('');
@@ -132,6 +146,7 @@ export default function PaymentsPage() {
         comment: addComment || null,
         receiptPhotoId: addReceiptPreview || null,
         status: addStatus,
+        bankId: addBankId ? parseInt(addBankId, 10) : null,
       });
       setAddOpen(false);
       resetAddForm();
@@ -143,11 +158,18 @@ export default function PaymentsPage() {
     }
   };
 
-  const apiUrl = userIdParam
-    ? `/api/payments?userId=${userIdParam}`
+  const apiUrl = userIdParam || bankIdParam
+    ? `/api/payments?${new URLSearchParams({
+        ...(userIdParam ? { userId: userIdParam } : {}),
+        ...(bankIdParam ? { bankId: bankIdParam } : {}),
+      })}`
     : '/api/payments';
 
   const { data: payments, error, mutate, isLoading } = useSWR<Payment[]>(apiUrl, fetcher);
+
+  const selectedBankName = bankIdParam && banks
+    ? banks.find(b => String(b.id) === bankIdParam)?.name
+    : null;
 
   const filteredPayments = useMemo(() => {
     if (!payments) return [];
@@ -266,7 +288,16 @@ export default function PaymentsPage() {
           {userIdParam && (
             <div className={styles.activeFilterBadge}>
               <span>Показаны платежи пользователя #{userIdParam}</span>
-              <button className={styles.clearFilterBtn} onClick={() => router.push('/payments')} title="Сбросить фильтр">
+              <button className={styles.clearFilterBtn} onClick={() => router.push(bankIdParam ? `/payments?bankId=${bankIdParam}` : '/payments')} title="Сбросить фильтр">
+                <CloseIcon style={{ fontSize: '1rem' }} />
+              </button>
+            </div>
+          )}
+
+          {bankIdParam && (
+            <div className={styles.activeFilterBadge}>
+              <span>Показаны платежи банка «{selectedBankName || `#${bankIdParam}`}»</span>
+              <button className={styles.clearFilterBtn} onClick={() => router.push(userIdParam ? `/payments?userId=${userIdParam}` : '/payments')} title="Сбросить фильтр">
                 <CloseIcon style={{ fontSize: '1rem' }} />
               </button>
             </div>
@@ -297,6 +328,7 @@ export default function PaymentsPage() {
               <TableCell style={{ fontWeight: 'bold' }}>Пользователь</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Сумма</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Чек</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Банк зачисления</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Статус</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Дата отправки</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Комментарий</TableCell>
@@ -324,6 +356,15 @@ export default function PaymentsPage() {
                       />
                     ) : (
                       <span style={{ color: '#94a3b8' }}>Нет чека</span>
+                    )}
+                  </TableCell>
+                  <TableCell style={{ color: '#334155' }}>
+                    {row.bank ? (
+                      <Link href={`/banks/${row.bank.id}`} style={{ color: '#2563eb', fontWeight: 500 }}>
+                        {row.bank.name}
+                      </Link>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>—</span>
                     )}
                   </TableCell>
                   <TableCell>{renderStatus(row.status)}</TableCell>
@@ -363,7 +404,7 @@ export default function PaymentsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={9} align="center">
                   <div className={styles.emptyState}>Платежи не найдены</div>
                 </TableCell>
               </TableRow>
@@ -461,6 +502,26 @@ export default function PaymentsPage() {
                   <MenuItem key={t.id} value={String(t.id)}>
                     {t.user?.name || `Арендатор #${t.id}`}
                     {t.apartment?.address ? ` (${t.apartment.address})` : ''}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined">
+              <InputLabel id="select-bank-label">Банк зачисления</InputLabel>
+              <Select
+                labelId="select-bank-label"
+                id="select-bank"
+                value={addBankId}
+                onChange={(e) => setAddBankId(e.target.value as string)}
+                label="Банк зачисления"
+              >
+                <MenuItem value="">
+                  <em>Не выбран</em>
+                </MenuItem>
+                {banks?.map((b) => (
+                  <MenuItem key={b.id} value={String(b.id)}>
+                    {b.name}
                   </MenuItem>
                 ))}
               </Select>

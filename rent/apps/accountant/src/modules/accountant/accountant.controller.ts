@@ -240,12 +240,14 @@ export class AccountantController {
   }
 
   @Get('payments')
-  async findPayments(@Query() query: { userId?: string; status?: string; userName?: string; accountId?: string }) {
+  async findPayments(@Query() query: { userId?: string; status?: string; userName?: string; accountId?: string; bankId?: string }) {
     const userId = query.userId ? parseInt(query.userId, 10) : undefined;
     const accountId = query.accountId ? parseInt(query.accountId, 10) : undefined;
+    const bankId = query.bankId ? parseInt(query.bankId, 10) : undefined;
     return this.accountantService.findPayments({
       userId: isNaN(Number(userId)) ? undefined : userId,
       accountId: isNaN(Number(accountId)) ? undefined : accountId,
+      bankId: isNaN(Number(bankId)) ? undefined : bankId,
       status: query.status,
       userName: query.userName,
     });
@@ -261,6 +263,7 @@ export class AccountantController {
     comment?: string;
     createdAt?: string;
     status?: string;
+    bankId?: number;
   }) {
     return this.accountantService.createPayment(body);
   }
@@ -330,6 +333,36 @@ export class AccountantController {
   @Delete('payments/:id')
   async deletePayment(@Param('id', ParseIntPipe) id: number) {
     return this.accountantService.deletePayment(id);
+  }
+
+  @Get('banks')
+  async findBanks() {
+    return this.accountantService.findBanks();
+  }
+
+  @Get('banks/:id')
+  async findBankById(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.findBankById(id);
+  }
+
+  @Post('banks')
+  async createBank(@Body() body: { name: string }) {
+    return this.accountantService.createBank(body.name);
+  }
+
+  @Put('banks/:id')
+  async updateBank(@Param('id', ParseIntPipe) id: number, @Body() body: { name: string }) {
+    return this.accountantService.updateBank(id, body.name);
+  }
+
+  @Delete('banks/:id')
+  async deleteBank(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.deleteBank(id);
+  }
+
+  @Get('banks/:id/payments')
+  async findBankPayments(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.findPaymentsByBank(id);
   }
 
   @Delete('notifications/:id')
