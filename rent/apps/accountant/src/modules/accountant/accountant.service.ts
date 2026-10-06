@@ -436,14 +436,18 @@ export class AccountantService {
     let initialReceiptPhotoId: string | null = data.receiptPhotoId || null;
     let pendingDataUri: string | null = data.dataUri || null;
     let pendingReceiptUrl: string | null = data.receiptUrl || null;
-    const pendingFileBase64: string | null = data.fileBufferBase64 || null;
+    let pendingFileBase64: string | null = data.fileBufferBase64 || null;
 
     if (initialReceiptPhotoId) {
-      if (initialReceiptPhotoId.startsWith('data:')) {
-        pendingDataUri = initialReceiptPhotoId;
+      const trimmed = initialReceiptPhotoId.trim();
+      if (trimmed.startsWith('data:')) {
+        pendingDataUri = trimmed;
         initialReceiptPhotoId = null; // Не засоряем базу данных сырым Data URI Base64
-      } else if (initialReceiptPhotoId.startsWith('http://') || initialReceiptPhotoId.startsWith('https://')) {
-        pendingReceiptUrl = initialReceiptPhotoId;
+      } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        pendingReceiptUrl = trimmed;
+        initialReceiptPhotoId = null;
+      } else if (trimmed.length > 255) {
+        pendingFileBase64 = trimmed;
         initialReceiptPhotoId = null;
       }
     }
@@ -691,13 +695,45 @@ export class AccountantService {
       updateData.confirmedBy = data.confirmedAt ? BigInt(1) : null;
     }
     if (data.createdAt !== undefined) updateData.createdAt = new Date(data.createdAt);
-    if (data.receiptPhotoId !== undefined) updateData.receiptPhotoId = data.receiptPhotoId;
+
+    let pendingDataUri: string | null = null;
+    let pendingReceiptUrl: string | null = null;
+    let pendingFileBase64: string | null = null;
+
+    if (data.receiptPhotoId !== undefined) {
+      if (data.receiptPhotoId === null) {
+        updateData.receiptPhotoId = null;
+      } else {
+        const trimmed = data.receiptPhotoId.trim();
+        if (trimmed.startsWith('data:')) {
+          pendingDataUri = trimmed;
+        } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+          pendingReceiptUrl = trimmed;
+        } else if (trimmed.length > 255) {
+          pendingFileBase64 = trimmed;
+        } else {
+          updateData.receiptPhotoId = trimmed;
+        }
+      }
+    }
 
     const updated = await this.prisma.payment.update({
       where: { id: Number(paymentId) },
       data: updateData,
       include: { user: true, bank: true },
     });
+
+    if (pendingDataUri || pendingReceiptUrl || pendingFileBase64) {
+      try {
+        return await this.attachReceipt(paymentId, {
+          dataUri: pendingDataUri || undefined,
+          receiptUrl: pendingReceiptUrl || undefined,
+          fileBufferBase64: pendingFileBase64 || undefined,
+        });
+      } catch (attachErr) {
+        this.logger.warn(`Не удалось загрузить чек для платежа #${paymentId}: ${attachErr}`);
+      }
+    }
 
     return this.enrichPaymentReceiptUrl(this.serialize(updated));
   }

@@ -202,4 +202,65 @@ describe('AccountantService', () => {
         }));
     });
   });
+
+  describe('createPayment & updatePayment receipt handling', () => {
+    beforeEach(() => {
+      jest.spyOn(service, 'attachReceipt').mockResolvedValue({ id: 1, receiptPhotoId: 's3-key' } as any);
+      (mockPrisma as any).payment = {
+        create: jest.fn().mockResolvedValue({ id: 1 }),
+        update: jest.fn().mockResolvedValue({ id: 1 }),
+        findUnique: jest.fn().mockResolvedValue({ id: 1 }),
+      };
+    });
+
+    it('should intercept dataURI in createPayment', async () => {
+      await service.createPayment({
+        userId: 1,
+        amount: 100,
+        receiptPhotoId: 'data:image/jpeg;base64,12345',
+      });
+      expect((mockPrisma as any).payment.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ receiptPhotoId: null })
+      }));
+      expect(service.attachReceipt).toHaveBeenCalledWith(1, expect.objectContaining({
+        dataUri: 'data:image/jpeg;base64,12345'
+      }));
+    });
+
+    it('should intercept raw base64 (>255 chars) in createPayment', async () => {
+      const rawBase64 = 'a'.repeat(256);
+      await service.createPayment({
+        userId: 1,
+        amount: 100,
+        receiptPhotoId: rawBase64,
+      });
+      expect((mockPrisma as any).payment.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ receiptPhotoId: null })
+      }));
+      expect(service.attachReceipt).toHaveBeenCalledWith(1, expect.objectContaining({
+        fileBufferBase64: rawBase64
+      }));
+    });
+
+    it('should intercept dataURI with leading spaces in updatePayment', async () => {
+      await service.updatePayment(1, {
+        receiptPhotoId: '  data:image/png;base64,abc  ',
+      });
+      const updateCall = (mockPrisma as any).payment.update.mock.calls[0][0];
+      expect(updateCall.data.receiptPhotoId).toBeUndefined();
+      expect(service.attachReceipt).toHaveBeenCalledWith(1, expect.objectContaining({
+        dataUri: 'data:image/png;base64,abc'
+      }));
+    });
+
+    it('should allow short S3 keys directly in updatePayment', async () => {
+      await service.updatePayment(1, {
+        receiptPhotoId: 'payments/1/receipt.pdf',
+      });
+      expect((mockPrisma as any).payment.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ receiptPhotoId: 'payments/1/receipt.pdf' })
+      }));
+      expect(service.attachReceipt).not.toHaveBeenCalled();
+    });
+  });
 });
