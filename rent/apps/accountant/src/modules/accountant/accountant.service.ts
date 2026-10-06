@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Injectable, Logger, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -511,10 +510,15 @@ export class AccountantService {
       receiptPhotoId = data.telegramFileId;
     } else if (data.receiptUrl && (data.receiptUrl.startsWith('http://') || data.receiptUrl.startsWith('https://'))) {
       try {
-        const response = await axios.get(data.receiptUrl, { responseType: 'arraybuffer' });
-        const buffer = Buffer.from(response.data);
-        const isPdf = buffer.slice(0, 5).toString('utf-8').startsWith('%PDF') || data.receiptUrl.toLowerCase().endsWith('.pdf');
-        const mimeType = isPdf ? 'application/pdf' : (response.headers['content-type'] || 'image/jpeg');
+        // Скачиваем файл чека по URL через нативный fetch (Node 22)
+        const response = await fetch(data.receiptUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const isPdf = buffer.subarray(0, 5).toString('utf-8').startsWith('%PDF') || data.receiptUrl.toLowerCase().endsWith('.pdf');
+        const mimeType = isPdf ? 'application/pdf' : (response.headers.get('content-type') || 'image/jpeg');
         const fileName = isPdf ? 'receipt.pdf' : 'receipt.jpg';
         const s3Key = this.s3Storage.buildReceiptKey(payment.id, fileName);
         await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);

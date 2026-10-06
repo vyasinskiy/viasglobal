@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { json, urlencoded } from 'express';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { json, urlencoded } = require('express');
 import { AppModule } from './app.module';
 import { config } from './common/config/config';
 import { FileLogger } from './common/file-logger';
