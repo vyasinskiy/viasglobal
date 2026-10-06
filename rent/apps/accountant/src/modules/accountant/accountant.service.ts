@@ -648,14 +648,19 @@ export class AccountantService {
     return this.enrichPaymentReceiptUrl(this.serialize(updated));
   }
 
-  async confirmPayment(paymentId: number, confirmedBy: number) {
+  // Подтверждение платежа администратором с опциональным указанием банка зачисления
+  async confirmPayment(paymentId: number, confirmedBy: number, bankId?: number | null) {
+    const data: any = {
+      status: 'confirmed',
+      confirmedAt: new Date(),
+      confirmedBy: BigInt(confirmedBy),
+    };
+    if (bankId !== undefined && bankId !== null) {
+      data.bankId = Number(bankId);
+    }
     const result = await this.prisma.payment.update({
       where: { id: paymentId },
-      data: {
-        status: 'confirmed',
-        confirmedAt: new Date(),
-        confirmedBy: BigInt(confirmedBy),
-      },
+      data,
       include: { user: true, bank: true },
     });
     return this.enrichPaymentReceiptUrl(this.serialize(result));

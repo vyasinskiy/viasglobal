@@ -32,6 +32,7 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -92,6 +93,11 @@ export default function PaymentsPage() {
   const [uploadingReceiptId, setUploadingReceiptId] = useState<number | null>(null);
   const [rejectPaymentId, setRejectPaymentId] = useState<number | null>(null);
   const [rejectComment, setRejectComment] = useState('');
+
+  // Модальное окно подтверждения платежа с банком зачисления
+  const [confirmPaymentModal, setConfirmPaymentModal] = useState<Payment | null>(null);
+  const [confirmBankId, setConfirmBankId] = useState<string>('');
+  const [updatingBankId, setUpdatingBankId] = useState<number | null>(null);
 
   // Прикрепление или замена чека у платежа
   const handleAttachReceipt = async (paymentId: number, file: File) => {
@@ -249,13 +255,45 @@ export default function PaymentsPage() {
   if (isLoading) return <div className={styles.emptyState}>Загрузка платежей...</div>;
   if (error) return <div className={styles.emptyState}>Ошибка загрузки платежей.</div>;
 
-  const handleConfirm = async (paymentId: number) => {
-    if (!confirm('Вы действительно хотите подтвердить этот платеж?')) return;
+  // Быстрая смена банка зачисления прямо из строки таблицы
+  const handleBankChange = async (paymentId: number, bankId: number | null) => {
     try {
-      await axios.post('/api/payments', { action: 'confirm', paymentId });
+      setUpdatingBankId(paymentId);
+      await axios.put(`/api/payments/${paymentId}`, { bankId });
       mutate();
-    } catch (err: unknown) {
+    } catch {
+      alert('Ошибка при изменении банка зачисления.');
+    } finally {
+      setUpdatingBankId(null);
+    }
+  };
+
+  // Открытие диалога подтверждения платежа
+  const handleOpenConfirm = (payment: Payment) => {
+    setConfirmPaymentModal(payment);
+    setConfirmBankId(payment.bank?.id ? String(payment.bank.id) : '');
+  };
+
+  // Отправка подтверждения платежа с выбранным банком
+  const handleConfirmSubmit = async () => {
+    if (!confirmPaymentModal) return;
+    try {
+      await axios.post('/api/payments', {
+        action: 'confirm',
+        paymentId: confirmPaymentModal.id,
+        bankId: confirmBankId ? Number(confirmBankId) : undefined,
+      });
+      setConfirmPaymentModal(null);
+      mutate();
+    } catch {
       alert('Ошибка при подтверждении платежа.');
+    }
+  };
+
+  const handleConfirm = async (paymentId: number) => {
+    const payment = payments?.find(p => p.id === paymentId);
+    if (payment) {
+      handleOpenConfirm(payment);
     }
   };
 
@@ -413,14 +451,14 @@ export default function PaymentsPage() {
                   </TableCell>
                   <TableCell>
                     {row.receiptPhotoId ? (
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         {row.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
                           <button
                             type="button"
                             className={styles.downloadLink}
                             style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                             onClick={() => setSelectedPaymentForReceipt(row)}
-                            title="Открыть PDF чек"
+                            title="Открыть просмотр PDF чека"
                           >
                             <PictureAsPdfIcon style={{ fontSize: '1rem', color: '#dc2626' }} />
                             PDF
@@ -434,6 +472,16 @@ export default function PaymentsPage() {
                             title="Нажмите для просмотра чека"
                           />
                         )}
+                        {/* Прямая ссылка для открытия документа в новой вкладке в 1 клик */}
+                        <a
+                          href={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ color: '#64748b', display: 'inline-flex', alignItems: 'center', padding: '2px' }}
+                          title="Открыть чек в новой вкладке"
+                        >
+                          <OpenInNewIcon style={{ fontSize: '1rem' }} />
+                        </a>
                       </div>
                     ) : (
                       <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem', color: '#2563eb', fontWeight: 500 }}>
@@ -453,14 +501,33 @@ export default function PaymentsPage() {
                       </label>
                     )}
                   </TableCell>
-                  <TableCell style={{ color: '#334155' }}>
-                    {row.bank ? (
-                      <Link href={`/banks/${row.bank.id}`} style={{ color: '#2563eb', fontWeight: 500 }}>
-                        {row.bank.name}
-                      </Link>
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>—</span>
-                    )}
+                  <TableCell>
+                    {/* Выбор или изменение банка зачисления прямо в ячейке таблицы */}
+                    <select
+                      value={row.bank?.id || ''}
+                      disabled={updatingBankId === row.id}
+                      onChange={(e) => handleBankChange(row.id, e.target.value ? Number(e.target.value) : null)}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        color: row.bank ? '#1e293b' : '#64748b',
+                        backgroundColor: '#ffffff',
+                        cursor: 'pointer',
+                        maxWidth: '160px',
+                        outline: 'none',
+                      }}
+                      title="Нажмите, чтобы выбрать или изменить банк зачисления"
+                    >
+                      <option value="">— Выбрать банк —</option>
+                      {banks?.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
                   </TableCell>
                   <TableCell>{renderStatus(row.status)}</TableCell>
                   <TableCell style={{ color: '#64748b' }}>{formatDate(row.createdAt)}</TableCell>
@@ -469,17 +536,20 @@ export default function PaymentsPage() {
                   </TableCell>
                   <TableCell>
                     <div className={styles.actionsCell}>
-                      {row.status === 'unconfirmed' && (
+                      {/* Кнопки подтверждения и отклонения доступны как для unconfirmed, так и для pending */}
+                      {(row.status === 'unconfirmed' || row.status === 'pending') && (
                         <>
                           <button 
                             className={styles.confirmBtn}
-                            onClick={() => handleConfirm(row.id)}
+                            onClick={() => handleOpenConfirm(row)}
+                            title="Подтвердить платеж"
                           >
                             Подтвердить
                           </button>
                           <button 
                             className={styles.rejectBtn}
                             onClick={() => handleOpenReject(row.id)}
+                            title="Отклонить платеж"
                           >
                             Отклонить
                           </button>
@@ -511,7 +581,7 @@ export default function PaymentsPage() {
       {/* Модальное окно детального просмотра и управления чеком платежа */}
       {selectedPaymentForReceipt && selectedPaymentForReceipt.receiptPhotoId && (
         <div className={styles.modalOverlay} onClick={() => setSelectedPaymentForReceipt(null)}>
-          <div className={styles.modalContent} style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalContent} style={{ maxWidth: '880px', width: '95%' }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <span className={styles.modalTitle}>
                 Чек по платежу #{selectedPaymentForReceipt.id} ({Number(selectedPaymentForReceipt.amount).toFixed(2)} руб.)
@@ -527,39 +597,52 @@ export default function PaymentsPage() {
             </div>
             
             <div className={styles.modalBody}>
-              {/* Проверяем формат файла: если PDF, отображаем фрейм или иконку документа */}
+              {/* Проверяем формат файла: для PDF отображаем интерактивный фрейм предпросмотра */}
               {selectedPaymentForReceipt.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
-                <div style={{ textAlign: 'center', padding: '24px 0', width: '100%' }}>
-                  <PictureAsPdfIcon style={{ fontSize: '4rem', color: '#dc2626', marginBottom: '8px' }} />
-                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
-                    Документ чека в формате PDF
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-                    {selectedPaymentForReceipt.receiptPhotoId}
-                  </div>
+                <div style={{ width: '100%', height: '540px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
+                  <iframe
+                    src={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    title="Предпросмотр чека PDF"
+                  />
                 </div>
               ) : (
-                /* Для графических форматов отображаем крупное превью чека */
+                /* Для графических форматов отображаем изображение с автомасштабированием */
                 <img
                   src={selectedPaymentForReceipt.receiptUrl || `/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
                   alt="Чек об оплате крупно"
                   className={styles.largeReceiptImage}
+                  style={{ maxHeight: '540px' }}
                 />
               )}
 
               {/* Панель действий с прикрепленным чеком */}
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', width: '100%', marginTop: '8px' }}>
-                {/* Кнопка скачивания чека */}
+                {/* Кнопка открытия чека в новой вкладке браузера без принудительного скачивания */}
+                <a
+                  href={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.downloadLink}
+                  style={{ textDecoration: 'none', backgroundColor: '#2563eb' }}
+                  title="Открыть документ в соседней вкладке"
+                >
+                  <OpenInNewIcon style={{ fontSize: '1rem' }} />
+                  Открыть во вкладке
+                </a>
+
+                {/* Кнопка прямого скачивания файла чека на диск */}
                 <a
                   href={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
                   target="_blank"
                   rel="noreferrer"
                   download
                   className={styles.downloadLink}
-                  style={{ textDecoration: 'none' }}
+                  style={{ textDecoration: 'none', backgroundColor: '#475569' }}
+                  title="Скачать файл чека на компьютер"
                 >
                   <DownloadIcon style={{ fontSize: '1rem' }} />
-                  Скачать чек
+                  Скачать
                 </a>
 
                 {/* Кнопка загрузки нового файла для замены существующего чека */}
@@ -636,6 +719,64 @@ export default function PaymentsPage() {
                   onClick={handleRejectSubmit}
                 >
                   Отклонить платеж
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Диалог подтверждения платежа с выбором банка зачисления */}
+      {confirmPaymentModal && (
+        <div className={styles.modalOverlay} onClick={() => setConfirmPaymentModal(null)}>
+          <div className={styles.modalContent} style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>Подтверждение платежа #{confirmPaymentModal.id}</span>
+              <button className={styles.modalCloseBtn} onClick={() => setConfirmPaymentModal(null)}>
+                <CloseIcon />
+              </button>
+            </div>
+            <div className={styles.modalBody} style={{ alignItems: 'stretch', gap: '14px' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
+                Подтвердить получение оплаты на сумму <b style={{ color: '#0f172a' }}>{Number(confirmPaymentModal.amount).toFixed(2)} руб.</b> от пользователя <b>{confirmPaymentModal.userName || `ID: ${confirmPaymentModal.userId}`}</b>?
+              </p>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Банк зачисления
+                </label>
+                <select
+                  className={styles.searchInput}
+                  style={{ height: '40px', width: '100%', margin: 0, cursor: 'pointer' }}
+                  value={confirmBankId}
+                  onChange={(e) => setConfirmBankId(e.target.value)}
+                >
+                  <option value="">— Не указывать банк —</option>
+                  {banks?.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                  Вы можете выбрать банк зачисления сейчас или изменить его в таблице в любой момент.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  className={styles.logoutBtn}
+                  style={{ border: 'none', backgroundColor: '#f1f5f9', color: '#334155' }}
+                  onClick={() => setConfirmPaymentModal(null)}
+                >
+                  Отмена
+                </button>
+                <button
+                  className={styles.confirmBtn}
+                  style={{ padding: '8px 16px', fontSize: '0.875rem' }}
+                  onClick={handleConfirmSubmit}
+                >
+                  Подтвердить платеж
                 </button>
               </div>
             </div>

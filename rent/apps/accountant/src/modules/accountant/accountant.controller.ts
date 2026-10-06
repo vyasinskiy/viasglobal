@@ -346,9 +346,10 @@ export class AccountantController {
     return this.accountantService.createPayment(body);
   }
 
+  // Подтверждение платежа с опциональным указанием банка зачисления
   @Post('payments/confirm')
-  async confirmPaymentHttp(@Body() body: { paymentId: number; confirmedBy: number }) {
-    return this.accountantService.confirmPayment(body.paymentId, body.confirmedBy);
+  async confirmPaymentHttp(@Body() body: { paymentId: number; confirmedBy: number; bankId?: number }) {
+    return this.accountantService.confirmPayment(body.paymentId, body.confirmedBy, body.bankId);
   }
 
   @Post('payments/reject')

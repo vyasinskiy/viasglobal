@@ -55,9 +55,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'confirm') {
+      const { bankId } = body;
       const { data } = await accountantClient.post('/payments/confirm', {
         paymentId: Number(paymentId),
         confirmedBy: 1, // default admin ID or verified ID
+        bankId: bankId ? Number(bankId) : undefined,
       });
       return NextResponse.json(data);
     } else if (action === 'reject') {
