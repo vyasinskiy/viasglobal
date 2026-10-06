@@ -26,6 +26,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid Data URI format' }, { status: 400 });
     }
 
+    // Если чек уже является внешней ссылкой (HTTP/HTTPS)
+    if (fileId.startsWith('http://') || fileId.startsWith('https://')) {
+      return NextResponse.redirect(fileId);
+    }
+
+    // Если чек сохранен в S3 (содержит путь со слешем)
+    if (fileId.includes('/')) {
+      try {
+        const { accountantClient } = await import('../../../../lib/accountant-client');
+        const { data } = await accountantClient.get(`/payments/receipt/signed-url?key=${encodeURIComponent(fileId)}`);
+        if (data?.downloadUrl) {
+          return NextResponse.redirect(data.downloadUrl);
+        }
+      } catch (err: unknown) {
+        console.error('Ошибка получения подписанного URL чека из S3:', err);
+      }
+    }
+
     if (!token) {
       return NextResponse.json({ error: 'Telegram Bot Token not configured' }, { status: 500 });
     }

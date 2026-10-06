@@ -28,6 +28,10 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 
 import AddIcon from '@mui/icons-material/Add';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -40,6 +44,7 @@ interface Payment {
   userName: string | null;
   amount: string | number;
   receiptPhotoId: string | null;
+  receiptUrl?: string | null;
   status: string; // unconfirmed, confirmed, rejected
   createdAt: string;
   confirmedAt: string | null;
@@ -82,10 +87,54 @@ export default function PaymentsPage() {
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   
-  // Modal states
-  const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
+  // Модальные окна и состояния управления чеком
+  const [selectedPaymentForReceipt, setSelectedPaymentForReceipt] = useState<Payment | null>(null);
+  const [uploadingReceiptId, setUploadingReceiptId] = useState<number | null>(null);
   const [rejectPaymentId, setRejectPaymentId] = useState<number | null>(null);
   const [rejectComment, setRejectComment] = useState('');
+
+  // Прикрепление или замена чека у платежа
+  const handleAttachReceipt = async (paymentId: number, file: File) => {
+    try {
+      setUploadingReceiptId(paymentId);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const dataUri = reader.result as string;
+          await axios.post(`/api/payments/${paymentId}/receipt`, {
+            dataUri,
+            fileName: file.name,
+            mimeType: file.type,
+          });
+          mutate();
+          if (selectedPaymentForReceipt?.id === paymentId) {
+            const { data: updatedPayment } = await axios.get(`/api/payments/${paymentId}`);
+            setSelectedPaymentForReceipt(updatedPayment);
+          }
+        } catch {
+          alert('Ошибка при загрузке чека.');
+        } finally {
+          setUploadingReceiptId(null);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      alert('Ошибка при чтении файла чека.');
+      setUploadingReceiptId(null);
+    }
+  };
+
+  // Удаление прикрепленного чека у платежа
+  const handleDetachReceipt = async (paymentId: number) => {
+    if (!confirm('Вы уверены, что хотите удалить чек у этого платежа?')) return;
+    try {
+      await axios.delete(`/api/payments/${paymentId}/receipt`);
+      mutate();
+      setSelectedPaymentForReceipt(null);
+    } catch {
+      alert('Ошибка при удалении чека.');
+    }
+  };
 
   // Add Payment Modal states
   const { data: tenants } = useSWR<Tenant[]>('/api/tenants', fetcher);
@@ -364,14 +413,44 @@ export default function PaymentsPage() {
                   </TableCell>
                   <TableCell>
                     {row.receiptPhotoId ? (
-                      <img
-                        src={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
-                        alt="Чек"
-                        className={styles.receiptThumbnail}
-                        onClick={() => setSelectedReceipt(row.receiptPhotoId)}
-                      />
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        {row.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
+                          <button
+                            type="button"
+                            className={styles.downloadLink}
+                            style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                            onClick={() => setSelectedPaymentForReceipt(row)}
+                            title="Открыть PDF чек"
+                          >
+                            <PictureAsPdfIcon style={{ fontSize: '1rem', color: '#dc2626' }} />
+                            PDF
+                          </button>
+                        ) : (
+                          <img
+                            src={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
+                            alt="Чек"
+                            className={styles.receiptThumbnail}
+                            onClick={() => setSelectedPaymentForReceipt(row)}
+                            title="Нажмите для просмотра чека"
+                          />
+                        )}
+                      </div>
                     ) : (
-                      <span style={{ color: '#94a3b8' }}>Нет чека</span>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem', color: '#2563eb', fontWeight: 500 }}>
+                        <AttachFileIcon style={{ fontSize: '0.95rem' }} />
+                        {uploadingReceiptId === row.id ? 'Загрузка...' : '+ Чек'}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          style={{ display: 'none' }}
+                          disabled={uploadingReceiptId === row.id}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleAttachReceipt(row.id, file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
                     )}
                   </TableCell>
                   <TableCell style={{ color: '#334155' }}>
@@ -429,22 +508,94 @@ export default function PaymentsPage() {
         </Table>
       </TableContainer>
 
-      {/* Full Screen Image Modal */}
-      {selectedReceipt && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedReceipt(null)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+      {/* Модальное окно детального просмотра и управления чеком платежа */}
+      {selectedPaymentForReceipt && selectedPaymentForReceipt.receiptPhotoId && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedPaymentForReceipt(null)}>
+          <div className={styles.modalContent} style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <span className={styles.modalTitle}>Просмотр чека об оплате</span>
-              <button className={styles.modalCloseBtn} onClick={() => setSelectedReceipt(null)}>
+              <span className={styles.modalTitle}>
+                Чек по платежу #{selectedPaymentForReceipt.id} ({Number(selectedPaymentForReceipt.amount).toFixed(2)} руб.)
+              </span>
+              <button 
+                type="button" 
+                className={styles.modalCloseBtn} 
+                onClick={() => setSelectedPaymentForReceipt(null)}
+                title="Закрыть"
+              >
                 <CloseIcon />
               </button>
             </div>
+            
             <div className={styles.modalBody}>
-              <img
-                src={`/api/payments/receipt?fileId=${encodeURIComponent(selectedReceipt)}`}
-                alt="Чек крупно"
-                className={styles.largeReceiptImage}
-              />
+              {/* Проверяем формат файла: если PDF, отображаем фрейм или иконку документа */}
+              {selectedPaymentForReceipt.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
+                <div style={{ textAlign: 'center', padding: '24px 0', width: '100%' }}>
+                  <PictureAsPdfIcon style={{ fontSize: '4rem', color: '#dc2626', marginBottom: '8px' }} />
+                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
+                    Документ чека в формате PDF
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                    {selectedPaymentForReceipt.receiptPhotoId}
+                  </div>
+                </div>
+              ) : (
+                /* Для графических форматов отображаем крупное превью чека */
+                <img
+                  src={selectedPaymentForReceipt.receiptUrl || `/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  alt="Чек об оплате крупно"
+                  className={styles.largeReceiptImage}
+                />
+              )}
+
+              {/* Панель действий с прикрепленным чеком */}
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', width: '100%', marginTop: '8px' }}>
+                {/* Кнопка скачивания чека */}
+                <a
+                  href={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className={styles.downloadLink}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <DownloadIcon style={{ fontSize: '1rem' }} />
+                  Скачать чек
+                </a>
+
+                {/* Кнопка загрузки нового файла для замены существующего чека */}
+                <label className={styles.downloadLink} style={{ backgroundColor: '#0284c7', cursor: 'pointer' }}>
+                  <CloudUploadIcon style={{ fontSize: '1rem' }} />
+                  {uploadingReceiptId === selectedPaymentForReceipt.id ? 'Загрузка...' : 'Заменить чек'}
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    style={{ display: 'none' }}
+                    disabled={uploadingReceiptId === selectedPaymentForReceipt.id}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && selectedPaymentForReceipt) {
+                        handleAttachReceipt(selectedPaymentForReceipt.id, file);
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+
+                {/* Кнопка удаления чека у платежа */}
+                <button
+                  type="button"
+                  className={styles.rejectBtn}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}
+                  onClick={() => {
+                    if (selectedPaymentForReceipt) {
+                      handleDetachReceipt(selectedPaymentForReceipt.id);
+                    }
+                  }}
+                >
+                  <DeleteIcon style={{ fontSize: '1rem' }} />
+                  Удалить чек
+                </button>
+              </div>
             </div>
           </div>
         </div>

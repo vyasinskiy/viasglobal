@@ -208,24 +208,76 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 ### 3.6. Платежи арендаторов (`/accountant/payments`)
 
 - **`GET /accountant/payments`**
-  - **Описание**: Список внесенных оплат арендаторов.
+  - **Описание**: Список внесенных оплат арендаторов с обогащенными ссылками на чеки (`receiptUrl`).
   - **Query-параметры**: `status` (`pending`, `confirmed`, `rejected`), `userId`, `accountId`, `userName`.
   - **Пример**:
     ```bash
     curl -s "http://accruals-accountant:3005/accountant/payments?status=pending"
     ```
 
+- **`GET /accountant/payments/:id`**
+  - **Описание**: Получить полную информацию по конкретному платежу (включая `receiptPhotoId`, актуальный `receiptUrl` для просмотра/скачивания, данные банка, пользователя и арендатора).
+  - **Пример**:
+    ```bash
+    curl -s "http://accruals-accountant:3005/accountant/payments/5"
+    ```
+
 - **`POST /accountant/payments`**
-  - **Описание**: Регистрация платежа арендатора.
+  - **Описание**: Регистрация платежа арендатора. Поддерживает передачу файла чека в `receiptPhotoId` (Data URI Base64, Telegram `file_id` или URL). Если передан Data URI, чек автоматически сохраняется в хранилище S3, а в базе фиксируется S3-ключ.
   - **Тело запроса**:
     ```json
     {
       "tenantId": 1,
       "amount": 450,
       "comment": "Оплата аренды за октябрь",
-      "status": "pending"
+      "status": "pending",
+      "receiptPhotoId": "data:image/png;base64,iVBORw0KGgo..."
     }
     ```
+
+- **`PUT /accountant/payments/:id`**
+  - **Описание**: Редактирование существующего платежа (сумма, статус, комментарий, банк, дата, чек).
+  - **Тело запроса**:
+    ```json
+    {
+      "amount": 500,
+      "status": "confirmed",
+      "comment": "Сумма скорректирована"
+    }
+    ```
+
+- **`POST /accountant/payments/:id/receipt`**
+  - **Описание**: Загрузка или замена чека к существующему платежу. Сохраняет файл в S3 (`payments/{paymentId}/receipts/...`), обновляет `receipt_photo_id` в базе данных и возвращает обновленный платеж и прямую ссылку `receiptUrl`.
+  - **Тело запроса**:
+    ```json
+    {
+      "dataUri": "data:image/jpeg;base64,...",
+      "fileName": "receipt.jpg",
+      "mimeType": "image/jpeg"
+    }
+    ```
+    *Либо*: `{"fileId": "BAACAgIAAxkBA..."}` (для Telegram file_id) или `{"url": "https://..."}`.
+  - **Пример**:
+    ```bash
+    curl -s -X POST http://accruals-accountant:3005/accountant/payments/5/receipt \
+      -H "Content-Type: application/json" \
+      -d '{"dataUri":"data:image/jpeg;base64,...","fileName":"check.jpg"}'
+    ```
+
+- **`DELETE /accountant/payments/:id/receipt`**
+  - **Описание**: Удаление прикрепленного чека у платежа (удаляет файл из S3 при наличии и сбрасывает поле `receipt_photo_id` в `null`).
+  - **Пример**:
+    ```bash
+    curl -s -X DELETE http://accruals-accountant:3005/accountant/payments/5/receipt
+    ```
+
+- **`GET /accountant/payments/:id/receipt`**
+  - **Описание**: Получение актуальной ссылки на скачивание/просмотр чека (или 302 редирект на S3 presigned URL при вызове с заголовком Accept: text/html).
+  - **Query-параметры**: `redirect=true` (опционально, для моментального редиректа).
+
+- **`GET /accountant/payments/receipt/signed-url`**
+  - **Описание**: Генерация подписанного S3 URL по произвольному ключу чека.
+  - **Query-параметры**: `key` (например: `key=payments/5/receipts/receipt.jpg`).
 
 - **`POST /accountant/payments/confirm`**
   - **Описание**: Подтверждение платежа администратором.
@@ -236,7 +288,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
   - **Тело запроса**: `{"paymentId": 5, "confirmedBy": 743866013, "comment": "Неверная сумма"}`
 
 - **`DELETE /accountant/payments/:id`**
-  - **Описание**: Удаление записи платежа.
+  - **Описание**: Удаление записи платежа (включая автоматическую очистку прикрепленного чека из S3).
 
 ---
 

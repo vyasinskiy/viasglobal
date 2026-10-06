@@ -335,6 +335,78 @@ export class AccountantController {
     return this.accountantService.deletePayment(id);
   }
 
+  // Получение подписанной ссылки на просмотр или скачивание чека по его ключу S3
+  @Get('payments/receipt/signed-url')
+  async getReceiptSignedUrl(@Query('key') key: string) {
+    if (!key) throw new BadRequestException('Параметр key обязателен');
+    const downloadUrl = this.s3Storage.getSignedDownloadUrl(key);
+    return { downloadUrl, key };
+  }
+
+  // Получение детальной информации о конкретном платеже по ID
+  @Get('payments/:id')
+  async findPaymentById(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.findPaymentById(id);
+  }
+
+  // Обновление существующего платежа
+  @Put('payments/:id')
+  async updatePaymentHttp(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: {
+      amount?: number | string;
+      comment?: string | null;
+      bankId?: number | null;
+      status?: string;
+      createdAt?: string | Date;
+      receiptPhotoId?: string | null;
+    }
+  ) {
+    return this.accountantService.updatePayment(id, body);
+  }
+
+  // Прикрепление или замена чека (файла, Base64, Telegram file_id, ссылки) к платежу
+  @Post('payments/:id/receipt')
+  async attachPaymentReceiptHttp(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: {
+      fileBufferBase64?: string;
+      dataUri?: string;
+      fileName?: string;
+      mimeType?: string;
+      telegramFileId?: string;
+      receiptUrl?: string;
+    }
+  ) {
+    return this.accountantService.attachReceipt(id, body);
+  }
+
+  // Удаление прикрепленного чека у платежа
+  @Delete('payments/:id/receipt')
+  async detachPaymentReceiptHttp(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.detachReceipt(id);
+  }
+
+  // Получение прямой ссылки на скачивание/просмотр чека
+  @Get('payments/:id/receipt')
+  async getPaymentReceiptHttp(@Param('id', ParseIntPipe) id: number) {
+    return this.accountantService.getPaymentReceiptDownloadUrl(id);
+  }
+
+  // Обработчик события из RabbitMQ для прикрепления чека
+  @MessagePattern('attach_payment_receipt')
+  async attachPaymentReceiptMsg(@Payload() data: {
+    paymentId: number;
+    fileBufferBase64?: string;
+    dataUri?: string;
+    fileName?: string;
+    mimeType?: string;
+    telegramFileId?: string;
+    receiptUrl?: string;
+  }) {
+    return this.accountantService.attachReceipt(data.paymentId, data);
+  }
+
   @Get('banks')
   async findBanks() {
     return this.accountantService.findBanks();

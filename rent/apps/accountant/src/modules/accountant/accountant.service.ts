@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -24,6 +24,30 @@ export class AccountantService {
     return JSON.parse(JSON.stringify(data, (key, value) =>
       typeof value === 'bigint' ? value.toString() : value
     ));
+  }
+
+  // Обогащает объект платежа публичной или подписанной ссылкой на чек (receiptUrl)
+  private enrichPaymentReceiptUrl(payment: any): any {
+    if (!payment) return payment;
+    const photoId = payment.receiptPhotoId;
+    let receiptUrl: string | null = null;
+
+    if (photoId) {
+      if (photoId.startsWith('data:') || photoId.startsWith('http://') || photoId.startsWith('https://')) {
+        receiptUrl = photoId;
+      } else if (photoId.includes('/')) {
+        // Ключ в S3 хранилище
+        receiptUrl = this.s3Storage.getSignedDownloadUrl(photoId);
+      } else {
+        // Идентификатор файла Telegram (file_id)
+        receiptUrl = `/api/payments/receipt?fileId=${encodeURIComponent(photoId)}`;
+      }
+    }
+
+    return {
+      ...payment,
+      receiptUrl,
+    };
   }
 
   async upsertApartment(data: any) {
@@ -408,19 +432,220 @@ export class AccountantService {
 
     const paymentDate = data.createdAt ? new Date(data.createdAt) : new Date();
 
+    // Если чек передан в виде Data URI (Base64), сохраняем его в S3, чтобы не раздувать БД
+    let finalReceiptPhotoId = data.receiptPhotoId || null;
+    if (finalReceiptPhotoId && finalReceiptPhotoId.startsWith('data:')) {
+      try {
+        const matches = finalReceiptPhotoId.match(/^data:(.+?);base64,(.+)$/);
+        if (matches) {
+          const mimeType = matches[1];
+          const buffer = Buffer.from(matches[2], 'base64');
+          const ext = mimeType.includes('pdf') ? '.pdf' : mimeType.includes('png') ? '.png' : '.jpg';
+          const s3Key = this.s3Storage.buildReceiptKey(targetUserId, `receipt-${Date.now()}${ext}`);
+          await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
+          finalReceiptPhotoId = s3Key;
+        }
+      } catch (err) {
+        this.logger.warn(`Не удалось сохранить чек в S3 при создании платежа: ${err}`);
+      }
+    }
+
     const result = await this.prisma.payment.create({
       data: {
         userId: targetUserId,
         userName: targetUserName || null,
         amount: data.amount,
-        receiptPhotoId: data.receiptPhotoId || null,
+        receiptPhotoId: finalReceiptPhotoId,
         comment: data.comment || null,
         status: data.status || 'unconfirmed',
-        bankId: data.bankId !== undefined ? Number(data.bankId) : null,
+        bankId: data.bankId !== undefined && data.bankId !== null ? Number(data.bankId) : null,
         createdAt: isNaN(paymentDate.getTime()) ? new Date() : paymentDate,
       },
+      include: {
+        user: true,
+        bank: true,
+      },
     });
-    return this.serialize(result);
+    return this.enrichPaymentReceiptUrl(this.serialize(result));
+  }
+
+  /**
+   * Получение детальной информации о конкретном платеже по ID
+   */
+  async findPaymentById(paymentId: number) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: Number(paymentId) },
+      include: {
+        user: true,
+        bank: true,
+      },
+    });
+    if (!payment) {
+      throw new NotFoundException(`Платеж с ID ${paymentId} не найден.`);
+    }
+    return this.enrichPaymentReceiptUrl(this.serialize(payment));
+  }
+
+  /**
+   * Прикрепление чека (фотографии, квитанции, PDF) к существующему платежу
+   */
+  async attachReceipt(paymentId: number, data: {
+    fileBuffer?: Buffer;
+    fileBufferBase64?: string;
+    dataUri?: string;
+    fileName?: string;
+    mimeType?: string;
+    telegramFileId?: string;
+    receiptUrl?: string;
+  }) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: Number(paymentId) },
+    });
+    if (!payment) {
+      throw new NotFoundException(`Платеж с ID ${paymentId} не найден.`);
+    }
+
+    let receiptPhotoId: string | null = null;
+
+    if (data.telegramFileId) {
+      receiptPhotoId = data.telegramFileId;
+    } else if (data.receiptUrl) {
+      receiptPhotoId = data.receiptUrl;
+    } else {
+      let buffer: Buffer | null = null;
+      let mimeType = data.mimeType || 'image/jpeg';
+      let fileName = data.fileName || 'receipt.jpg';
+
+      if (data.fileBuffer) {
+        buffer = data.fileBuffer;
+      } else if (data.fileBufferBase64) {
+        buffer = Buffer.from(data.fileBufferBase64, 'base64');
+      } else if (data.dataUri) {
+        const matches = data.dataUri.match(/^data:(.+?);base64,(.+)$/);
+        if (matches) {
+          mimeType = matches[1];
+          buffer = Buffer.from(matches[2], 'base64');
+          if (mimeType.includes('pdf')) {
+            fileName = 'receipt.pdf';
+          } else if (mimeType.includes('png')) {
+            fileName = 'receipt.png';
+          }
+        }
+      }
+
+      if (buffer) {
+        const s3Key = this.s3Storage.buildReceiptKey(payment.id, fileName);
+        await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
+        receiptPhotoId = s3Key;
+      }
+    }
+
+    if (!receiptPhotoId) {
+      throw new BadRequestException('Не переданы данные чека (fileBufferBase64, dataUri, telegramFileId или receiptUrl).');
+    }
+
+    // Если старый чек был в S3 и мы загружаем новый, удаляем старый файл
+    if (payment.receiptPhotoId && payment.receiptPhotoId.includes('/') && payment.receiptPhotoId !== receiptPhotoId) {
+      await this.s3Storage.deleteObject(payment.receiptPhotoId);
+    }
+
+    const updated = await this.prisma.payment.update({
+      where: { id: Number(paymentId) },
+      data: { receiptPhotoId },
+      include: { user: true, bank: true },
+    });
+
+    return this.enrichPaymentReceiptUrl(this.serialize(updated));
+  }
+
+  /**
+   * Удаление прикрепленного чека у платежа
+   */
+  async detachReceipt(paymentId: number) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: Number(paymentId) },
+    });
+    if (!payment) {
+      throw new NotFoundException(`Платеж с ID ${paymentId} не найден.`);
+    }
+
+    if (payment.receiptPhotoId && payment.receiptPhotoId.includes('/')) {
+      await this.s3Storage.deleteObject(payment.receiptPhotoId);
+    }
+
+    const updated = await this.prisma.payment.update({
+      where: { id: Number(paymentId) },
+      data: { receiptPhotoId: null },
+      include: { user: true, bank: true },
+    });
+
+    return this.enrichPaymentReceiptUrl(this.serialize(updated));
+  }
+
+  /**
+   * Получение прямой ссылки на скачивание или просмотр чека платежа
+   */
+  async getPaymentReceiptDownloadUrl(paymentId: number): Promise<{ downloadUrl: string; receiptPhotoId: string; mimeType: string }> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: Number(paymentId) },
+    });
+    if (!payment || !payment.receiptPhotoId) {
+      throw new NotFoundException(`У платежа с ID ${paymentId} чек не найден.`);
+    }
+
+    const key = payment.receiptPhotoId;
+    if (key.startsWith('data:') || key.startsWith('http://') || key.startsWith('https://')) {
+      return { downloadUrl: key, receiptPhotoId: key, mimeType: 'image/jpeg' };
+    }
+
+    if (key.includes('/')) {
+      const url = this.s3Storage.getSignedDownloadUrl(key);
+      const isPdf = key.toLowerCase().endsWith('.pdf');
+      return { downloadUrl: url, receiptPhotoId: key, mimeType: isPdf ? 'application/pdf' : 'image/jpeg' };
+    }
+
+    return {
+      downloadUrl: `/api/payments/receipt?fileId=${encodeURIComponent(key)}`,
+      receiptPhotoId: key,
+      mimeType: 'image/jpeg',
+    };
+  }
+
+  /**
+   * Обновление параметров существующего платежа
+   */
+  async updatePayment(paymentId: number, data: {
+    amount?: number | string;
+    comment?: string | null;
+    bankId?: number | null;
+    status?: string;
+    createdAt?: string | Date;
+    receiptPhotoId?: string | null;
+  }) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: Number(paymentId) },
+    });
+    if (!payment) {
+      throw new NotFoundException(`Платеж с ID ${paymentId} не найден.`);
+    }
+
+    const updateData: Prisma.PaymentUpdateInput = {};
+    if (data.amount !== undefined) updateData.amount = data.amount;
+    if (data.comment !== undefined) updateData.comment = data.comment;
+    if (data.bankId !== undefined) {
+      updateData.bank = data.bankId ? { connect: { id: Number(data.bankId) } } : { disconnect: true };
+    }
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.createdAt !== undefined) updateData.createdAt = new Date(data.createdAt);
+    if (data.receiptPhotoId !== undefined) updateData.receiptPhotoId = data.receiptPhotoId;
+
+    const updated = await this.prisma.payment.update({
+      where: { id: Number(paymentId) },
+      data: updateData,
+      include: { user: true, bank: true },
+    });
+
+    return this.enrichPaymentReceiptUrl(this.serialize(updated));
   }
 
   async confirmPayment(paymentId: number, confirmedBy: number) {
@@ -431,8 +656,9 @@ export class AccountantService {
         confirmedAt: new Date(),
         confirmedBy: BigInt(confirmedBy),
       },
+      include: { user: true, bank: true },
     });
-    return this.serialize(result);
+    return this.enrichPaymentReceiptUrl(this.serialize(result));
   }
 
   async rejectPayment(paymentId: number, confirmedBy: number, comment?: string) {
@@ -444,8 +670,9 @@ export class AccountantService {
         confirmedBy: BigInt(confirmedBy),
         comment,
       },
+      include: { user: true, bank: true },
     });
-    return this.serialize(result);
+    return this.enrichPaymentReceiptUrl(this.serialize(result));
   }
 
   async updateTenantPaymentSettings(tenantId: number, rentPaymentDay?: number, rentAmount?: number) {
@@ -874,7 +1101,8 @@ export class AccountantService {
       },
       orderBy: [{ createdAt: 'desc' }],
     });
-    return this.serialize(results);
+    const serialized = this.serialize(results);
+    return Array.isArray(serialized) ? serialized.map((p: any) => this.enrichPaymentReceiptUrl(p)) : serialized;
   }
 
   async findMeterSubmissionEvents(filters: { accountId?: number; status?: string } = {}) {
@@ -1023,7 +1251,8 @@ export class AccountantService {
       },
       orderBy: [{ createdAt: 'desc' }],
     });
-    return this.serialize(results);
+    const serialized = this.serialize(results);
+    return Array.isArray(serialized) ? serialized.map((p: any) => this.enrichPaymentReceiptUrl(p)) : serialized;
   }
 
   async deleteMeterSubmissionEvent(id: number) {

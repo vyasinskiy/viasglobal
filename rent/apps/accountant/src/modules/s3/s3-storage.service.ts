@@ -33,6 +33,16 @@ export class S3StorageService {
     return prefix ? `${prefix}/${path}` : path;
   }
 
+  // Формирует уникальный ключ S3 для чека платежа
+  buildReceiptKey(paymentId: number, fileName = 'receipt.jpg'): string {
+    const timestamp = Date.now();
+    const extension = fileName.includes('.') ? fileName.slice(fileName.lastIndexOf('.')).toLowerCase() : '.jpg';
+    const baseName = slug(fileName.replace(/\.[^/.]+$/, '')) || 'receipt';
+    const path = `payments/${paymentId}/receipts/${timestamp}-${baseName}${extension}`;
+    const prefix = config.S3_PREFIX.trim().replace(/^\/+|\/+$/g, '');
+    return prefix ? `${prefix}/${path}` : path;
+  }
+
   // Формирует ссылку для скачивания квитанции (подписанный S3 URL или локальный эндпоинт)
   getSignedDownloadUrl(key: string, ttlSeconds = config.S3_SIGNED_URL_TTL): string {
     if (!this.isEnabled()) {
@@ -77,6 +87,31 @@ export class S3StorageService {
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
     fs.writeFileSync(fullPath, buffer);
     return key;
+  }
+
+  // Удаляет объект из S3 или локального хранилища
+  async deleteObject(key: string): Promise<void> {
+    if (this.isEnabled()) {
+      try {
+        const url = this.getSignedUrl('DELETE' as any, key, 60);
+        await fetch(url, { method: 'DELETE' });
+      } catch {
+        // Ошибки удаления из S3 не прерывают основной процесс
+      }
+      return;
+    }
+    // Удаление из локальной папки uploads
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const localDir = path.join(process.cwd(), 'data', 'uploads');
+    const fullPath = path.join(localDir, key);
+    if (fs.existsSync(fullPath)) {
+      try {
+        fs.unlinkSync(fullPath);
+      } catch {
+        // Игнорируем ошибку удаления
+      }
+    }
   }
 
 
