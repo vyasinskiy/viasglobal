@@ -16,6 +16,62 @@ interface CustomResponse extends ServerResponse {
   status(code: number): this;
   json(body: unknown): this;
   sendFile(filePath: string): void;
+  redirect(url: string): void;
+}
+
+// Поиск сохраненного файла в локальной директории data/uploads
+// Поддерживает как точный относительный путь (например payments/1/receipts/check.pdf),
+// так и поиск только по имени файла (fallback)
+function findUploadedFile(keyOrFilename: string): { fullPath: string; fileName: string; mimeType: string } | null {
+  if (!keyOrFilename) return null;
+  const uploadDir = path.resolve(process.cwd(), 'data', 'uploads');
+  if (!fs.existsSync(uploadDir)) return null;
+
+  // 1. Проверяем точный относительный путь с защитой от выхода за пределы рабочей директории
+  const normalizedKey = path.normalize(keyOrFilename).replace(/^(\.\.[\/\\])+/, '');
+  const candidatePath = path.resolve(uploadDir, normalizedKey);
+  if (candidatePath.startsWith(uploadDir) && fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
+    const ext = path.extname(candidatePath).toLowerCase();
+    const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+    return { fullPath: candidatePath, fileName: path.basename(candidatePath), mimeType: mime };
+  }
+
+  // 2. Проверяем файл прямо в корне uploads
+  const baseName = path.basename(keyOrFilename);
+  const rootCandidate = path.resolve(uploadDir, baseName);
+  if (rootCandidate.startsWith(uploadDir) && fs.existsSync(rootCandidate) && fs.statSync(rootCandidate).isFile()) {
+    const ext = path.extname(rootCandidate).toLowerCase();
+    const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+    return { fullPath: rootCandidate, fileName: baseName, mimeType: mime };
+  }
+
+  // 3. Рекурсивный поиск по имени файла в поддиректориях uploads
+  const searchRecursive = (dir: string): string | null => {
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          const found = searchRecursive(full);
+          if (found) return found;
+        } else if (entry.name === baseName) {
+          return full;
+        }
+      }
+    } catch {
+      // Игнорируем ошибки доступа к файлам
+    }
+    return null;
+  };
+
+  const recursiveFound = searchRecursive(uploadDir);
+  if (recursiveFound && fs.existsSync(recursiveFound)) {
+    const ext = path.extname(recursiveFound).toLowerCase();
+    const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+    return { fullPath: recursiveFound, fileName: baseName, mimeType: mime };
+  }
+
+  return null;
 }
 
 @Controller('accountant')
@@ -198,23 +254,45 @@ export class AccountantController {
     return res.status(200).json({ success: true, key: cleanKey });
   }
 
-  // Скачивание бинарного файла квитанции при локальном хранении
+  // Вспомогательный метод для безопасной отдачи бинарного файла по ключу или имени
+  private serveFileByKey(key: string, res: CustomResponse) {
+    const fileInfo = findUploadedFile(key);
+    if (!fileInfo) {
+      throw new NotFoundException(`Файл ${path.basename(key)} не найден на диске`);
+    }
+
+    res.setHeader('Content-Type', fileInfo.mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${fileInfo.fileName}"`);
+    return res.sendFile(fileInfo.fullPath);
+  }
+
+  // Универсальный эндпоинт для скачивания файлов из локального хранилища по query параметру key
+  @Get('storage/download')
+  async downloadStorageFile(
+    @Query('key') key: string,
+    @Res() res: CustomResponse
+  ) {
+    if (!key) {
+      throw new BadRequestException('Параметр query "key" обязателен для скачивания файла');
+    }
+    return this.serveFileByKey(key, res);
+  }
+
+  // Скачивание бинарного файла квитанции или чека при локальном хранении по пути
+  @Get('invoices/download/*path')
+  async downloadInvoiceRawWildcard(
+    @Param('path') pathParam: string,
+    @Res() res: CustomResponse
+  ) {
+    return this.serveFileByKey(pathParam, res);
+  }
+
   @Get('invoices/download/:key')
   async downloadInvoiceRaw(
     @Param('key') key: string,
     @Res() res: CustomResponse
   ) {
-    const cleanKey = path.basename(key);
-    const uploadDir = path.join(process.cwd(), 'data', 'uploads');
-    const fullPath = path.join(uploadDir, cleanKey);
-
-    if (!fs.existsSync(fullPath)) {
-      throw new NotFoundException(`Файл квитанции ${cleanKey} не найден на диске`);
-    }
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${cleanKey}"`);
-    return res.sendFile(fullPath);
+    return this.serveFileByKey(key, res);
   }
 
   // Получение предподписанного S3 URL или локального URL для загрузки квитанции
@@ -387,10 +465,35 @@ export class AccountantController {
     return this.accountantService.detachReceipt(id);
   }
 
-  // Получение прямой ссылки на скачивание/просмотр чека
+  // Получение прямой ссылки на скачивание/просмотр чека с поддержкой редиректа и прямого скачивания
   @Get('payments/:id/receipt')
-  async getPaymentReceiptHttp(@Param('id', ParseIntPipe) id: number) {
-    return this.accountantService.getPaymentReceiptDownloadUrl(id);
+  async getPaymentReceiptHttp(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('redirect') redirectQuery: string,
+    @Query('download') downloadQuery: string,
+    @Req() req: CustomRequest,
+    @Res() res: CustomResponse
+  ) {
+    const result = await this.accountantService.getPaymentReceiptDownloadUrl(id);
+    const wantsRedirect = redirectQuery === 'true' || redirectQuery === '1' || req.headers?.accept?.includes('text/html');
+    const wantsDownload = downloadQuery === 'true' || downloadQuery === '1';
+
+    // Если запрошено прямое скачивание локального файла
+    if (wantsDownload && result.receiptPhotoId && !result.receiptPhotoId.startsWith('http')) {
+      const fileInfo = findUploadedFile(result.receiptPhotoId);
+      if (fileInfo) {
+        res.setHeader('Content-Type', fileInfo.mimeType);
+        res.setHeader('Content-Disposition', `inline; filename="${fileInfo.fileName}"`);
+        return res.sendFile(fileInfo.fullPath);
+      }
+    }
+
+    // Если запрошен 302-редирект на готовую ссылку скачивания
+    if (wantsRedirect && result.downloadUrl) {
+      return res.redirect(result.downloadUrl);
+    }
+
+    return res.status(200).json(result);
   }
 
   // Обработчик события из RabbitMQ для прикрепления чека

@@ -43,12 +43,12 @@ export class S3StorageService {
     return prefix ? `${prefix}/${path}` : path;
   }
 
-  // Формирует ссылку для скачивания квитанции (подписанный S3 URL или локальный эндпоинт)
+  // Формирует ссылку для скачивания квитанции или чека (подписанный S3 URL или локальный эндпоинт)
   getSignedDownloadUrl(key: string, ttlSeconds = config.S3_SIGNED_URL_TTL): string {
     if (!this.isEnabled()) {
-      // Локальный режим: возвращаем URL скачивания с сервиса accountant
-      const apiBaseUrl = process.env.API_BASE_URL || 'http://accountant:3005';
-      return `${apiBaseUrl}/accountant/invoices/download/${encodeURIComponent(key)}`;
+      // Локальный режим: возвращаем URL скачивания с сервиса accountant через storage/download
+      const apiBaseUrl = process.env.API_BASE_URL || 'http://accruals-accountant:3005';
+      return `${apiBaseUrl}/accountant/storage/download?key=${encodeURIComponent(key)}`;
     }
     return this.getSignedUrl('GET', key, ttlSeconds);
   }
@@ -57,7 +57,7 @@ export class S3StorageService {
   getSignedUploadUrl(key: string, ttlSeconds = 600): string {
     if (!this.isEnabled()) {
       // Локальный режим: возвращаем URL загрузки на сервис accountant
-      const apiBaseUrl = process.env.API_BASE_URL || 'http://accountant:3005';
+      const apiBaseUrl = process.env.API_BASE_URL || 'http://accruals-accountant:3005';
       return `${apiBaseUrl}/accountant/invoices/upload-raw?key=${encodeURIComponent(key)}`;
     }
     return this.getSignedUrl('PUT', key, ttlSeconds, 'application/octet-stream');

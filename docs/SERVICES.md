@@ -272,11 +272,27 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
     ```
 
 - **`GET /accountant/payments/:id/receipt`**
-  - **Описание**: Получение актуальной ссылки на скачивание/просмотр чека (или 302 редирект на S3 presigned URL при вызове с заголовком Accept: text/html).
-  - **Query-параметры**: `redirect=true` (опционально, для моментального редиректа).
+  - **Описание**: Получение актуальной ссылки на скачивание/просмотр чека (`downloadUrl`), либо прямое скачивание / редирект.
+  - **Query-параметры**:
+    * `redirect=true` (или заголовок `Accept: text/html`): мгновенный HTTP 302 редирект на ссылку скачивания.
+    * `download=true`: прямая отдача бинарного содержимого файла чека с корректным заголовком `Content-Type`.
+  - **Пример**:
+    ```bash
+    curl -s "http://accruals-accountant:3005/accountant/payments/1/receipt"
+    # Для мгновенного скачивания файла:
+    curl -s "http://accruals-accountant:3005/accountant/payments/1/receipt?download=true" -o check.pdf
+    ```
+
+- **`GET /accountant/storage/download`**
+  - **Описание**: Универсальный эндпоинт скачивания любого файла (чека или квитанции) из локального хранилища `data/uploads` по ключу `key`.
+  - **Query-параметры**: `key` (например `key=payments/1/receipts/check.pdf`).
+  - **Пример**:
+    ```bash
+    curl -s "http://accruals-accountant:3005/accountant/storage/download?key=payments/1/receipts/check.pdf" -o check.pdf
+    ```
 
 - **`GET /accountant/payments/receipt/signed-url`**
-  - **Описание**: Генерация подписанного S3 URL по произвольному ключу чека.
+  - **Описание**: Генерация подписанного S3 URL или локальной ссылки на скачивание по произвольному ключу чека.
   - **Query-параметры**: `key` (например: `key=payments/5/receipts/receipt.jpg`).
 
 - **`POST /accountant/payments/confirm`**
