@@ -457,7 +457,7 @@ export default function PaymentsPage() {
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     {row.receiptPhotoId ? (
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {row.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
+                        {(row.receiptPhotoId.toLowerCase().endsWith('.pdf') || row.receiptPhotoId === '***') ? (
                           <button
                             type="button"
                             className={styles.downloadLink}
@@ -637,7 +637,7 @@ export default function PaymentsPage() {
             
             <div className={styles.modalBody}>
               {/* Проверяем формат файла: для PDF отображаем интерактивный фрейм предпросмотра */}
-              {selectedPaymentForReceipt.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
+              {(selectedPaymentForReceipt.receiptPhotoId.toLowerCase().endsWith('.pdf') || selectedPaymentForReceipt.receiptPhotoId === '***') ? (
                 <div style={{ width: '100%', height: '540px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
                   <iframe
                     src={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}

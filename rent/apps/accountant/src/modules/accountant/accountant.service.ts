@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { Injectable, Logger, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -35,12 +36,9 @@ export class AccountantService {
     if (photoId) {
       if (photoId.startsWith('data:') || photoId.startsWith('http://') || photoId.startsWith('https://')) {
         receiptUrl = photoId;
-      } else if (photoId.includes('/')) {
-        // Ключ в S3 хранилище
-        receiptUrl = this.s3Storage.getSignedDownloadUrl(photoId);
       } else {
-        // Идентификатор файла Telegram (file_id)
-        receiptUrl = `/api/payments/receipt?fileId=${encodeURIComponent(photoId)}`;
+        // Формируем URL скачивания из хранилища S3 или локального каталога uploads
+        receiptUrl = this.s3Storage.getSignedDownloadUrl(photoId);
       }
     }
 
@@ -511,6 +509,20 @@ export class AccountantService {
 
     if (data.telegramFileId) {
       receiptPhotoId = data.telegramFileId;
+    } else if (data.receiptUrl && (data.receiptUrl.startsWith('http://') || data.receiptUrl.startsWith('https://'))) {
+      try {
+        const response = await axios.get(data.receiptUrl, { responseType: 'arraybuffer' });
+        const buffer = Buffer.from(response.data);
+        const isPdf = buffer.slice(0, 5).toString('utf-8').startsWith('%PDF') || data.receiptUrl.toLowerCase().endsWith('.pdf');
+        const mimeType = isPdf ? 'application/pdf' : (response.headers['content-type'] || 'image/jpeg');
+        const fileName = isPdf ? 'receipt.pdf' : 'receipt.jpg';
+        const s3Key = this.s3Storage.buildReceiptKey(payment.id, fileName);
+        await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
+        receiptPhotoId = s3Key;
+      } catch (err: unknown) {
+        this.logger.warn(`Не удалось скачать чек по URL ${data.receiptUrl}: ${err}`);
+        receiptPhotoId = data.receiptUrl;
+      }
     } else if (data.receiptUrl) {
       receiptPhotoId = data.receiptUrl;
     } else {
@@ -536,6 +548,12 @@ export class AccountantService {
       }
 
       if (buffer) {
+        if (buffer.slice(0, 5).toString('utf-8').startsWith('%PDF')) {
+          mimeType = 'application/pdf';
+          if (!fileName.toLowerCase().endsWith('.pdf')) {
+            fileName = fileName.replace(/\.[^/.]+$/, '') + '.pdf';
+          }
+        }
         const s3Key = this.s3Storage.buildReceiptKey(payment.id, fileName);
         await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
         receiptPhotoId = s3Key;
@@ -600,16 +618,12 @@ export class AccountantService {
       return { downloadUrl: key, receiptPhotoId: key, mimeType: 'image/jpeg' };
     }
 
-    if (key.includes('/')) {
-      const url = this.s3Storage.getSignedDownloadUrl(key);
-      const isPdf = key.toLowerCase().endsWith('.pdf');
-      return { downloadUrl: url, receiptPhotoId: key, mimeType: isPdf ? 'application/pdf' : 'image/jpeg' };
-    }
-
+    const downloadUrl = this.s3Storage.getSignedDownloadUrl(key);
+    const isPdf = key.toLowerCase().endsWith('.pdf') || key === '***';
     return {
-      downloadUrl: `/api/payments/receipt?fileId=${encodeURIComponent(key)}`,
+      downloadUrl,
       receiptPhotoId: key,
-      mimeType: 'image/jpeg',
+      mimeType: isPdf ? 'application/pdf' : 'image/jpeg',
     };
   }
 

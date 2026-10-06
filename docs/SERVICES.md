@@ -247,35 +247,38 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
     ```
 
 - **`POST /accountant/payments/:id/receipt`**
-  - **Описание**: Загрузка или замена чека к существующему платежу. Сохраняет файл в S3 (`payments/{paymentId}/receipts/...`), обновляет `receipt_photo_id` в базе данных и возвращает обновленный платеж и прямую ссылку `receiptUrl`.
+  - **Описание**: Загрузка или замена чека к существующему платежу. Сохраняет файл в S3/uploads (`payments/{paymentId}/receipts/...`), обновляет `receipt_photo_id` в базе данных и возвращает обновленный платеж и прямую ссылку `receiptUrl`. Лимит тела запроса составляет до 50 МБ. Автоматически определяет формат PDF по сигнатуре файла `%PDF-`.
   - **Тело запроса**:
     ```json
     {
-      "dataUri": "data:image/jpeg;base64,...",
-      "fileName": "receipt.jpg",
-      "mimeType": "image/jpeg"
+      "dataUri": "data:application/pdf;base64,...",
+      "fileName": "receipt.pdf",
+      "mimeType": "application/pdf"
     }
     ```
-    *Либо*: `{"fileId": "BAACAgIAAxkBA..."}` (для Telegram file_id) или `{"url": "https://..."}`.
+    *Либо*: `{"fileBufferBase64": "...", "fileName": "receipt.pdf"}`
+    *Либо*: `{"receiptUrl": "http://..."}` (сервер автоматически скачивает файл по ссылке и сохраняет в постоянное хранилище)
+    *Либо*: `{"telegramFileId": "BAACAgIAAxkBA..."}` (для сохранения Telegram file_id).
+    *Для прямой бинарной загрузки без Base64*: доступен эндпоинт `PUT /accountant/invoices/upload-raw?key=payments/{id}/receipts/receipt.pdf` с бинарным телом файла и последующим `PUT /accountant/payments/:id {"receiptPhotoId": "..."}`.
   - **Пример**:
     ```bash
     curl -s -X POST http://accruals-accountant:3005/accountant/payments/5/receipt \
       -H "Content-Type: application/json" \
-      -d '{"dataUri":"data:image/jpeg;base64,...","fileName":"check.jpg"}'
+      -d '{"dataUri":"data:application/pdf;base64,...","fileName":"check.pdf"}'
     ```
 
 - **`DELETE /accountant/payments/:id/receipt`**
-  - **Описание**: Удаление прикрепленного чека у платежа (удаляет файл из S3 при наличии и сбрасывает поле `receipt_photo_id` в `null`).
+  - **Описание**: Удаление прикрепленного чека у платежа (удаляет файл из S3/uploads при наличии и сбрасывает поле `receipt_photo_id` в `null`).
   - **Пример**:
     ```bash
     curl -s -X DELETE http://accruals-accountant:3005/accountant/payments/5/receipt
     ```
 
 - **`GET /accountant/payments/:id/receipt`**
-  - **Описание**: Получение актуальной ссылки на скачивание/просмотр чека (`downloadUrl`), либо прямое скачивание / редирект.
+  - **Описание**: Получение актуальной ссылки на скачивание/просмотр чека (`downloadUrl`), либо прямое скачивание / редирект. Автоматически выставляет `Content-Type: application/pdf` для PDF-документов.
   - **Query-параметры**:
     * `redirect=true` (или заголовок `Accept: text/html`): мгновенный HTTP 302 редирект на ссылку скачивания.
-    * `download=true`: прямая отдача бинарного содержимого файла чека с корректным заголовком `Content-Type`.
+    * `download=true`: прямая отдача бинарного содержимого файла чека с корректным заголовком `Content-Type` (`application/pdf` или `image/jpeg`).
   - **Пример**:
     ```bash
     curl -s "http://accruals-accountant:3005/accountant/payments/1/receipt"

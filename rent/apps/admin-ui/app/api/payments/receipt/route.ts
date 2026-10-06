@@ -31,38 +31,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(fileId);
     }
 
-    // Если чек сохранен в S3 или локальном хранилище (содержит путь со слешем)
-    if (fileId.includes('/')) {
-      try {
-        const { accountantClient } = await import('../../../../lib/accountant-client');
-        const { data } = await accountantClient.get(`/payments/receipt/signed-url?key=${encodeURIComponent(fileId)}`);
-        if (data?.downloadUrl) {
-          // Если это внешний публичный URL (например реальный S3 bucket https://...)
-          const isExternal = data.downloadUrl.startsWith('https://') || 
-            (data.downloadUrl.startsWith('http://') && !data.downloadUrl.includes('accountant') && !data.downloadUrl.includes('localhost'));
-          if (isExternal) {
-            return NextResponse.redirect(data.downloadUrl);
-          }
-
-          // Иначе это локальный сервис accountant (http://...:3005/...)
-          // Скачиваем бинарный файл через внутренний клиент и отдаем клиенту
-          const fileRes = await accountantClient.get(`/storage/download?key=${encodeURIComponent(fileId)}`, {
-            responseType: 'arraybuffer',
-          });
-          const contentType = fileRes.headers['content-type'] || 
-            (fileId.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
-
-          return new Response(fileRes.data, {
-            headers: {
-              'Content-Type': contentType,
-              'Content-Disposition': `inline; filename="${fileId.split('/').pop() || 'receipt'}"`,
-              'Cache-Control': 'public, max-age=86400',
-            },
-          });
+    // Сначала пробуем получить файл чека из хранилища S3 или локального каталога uploads accountant
+    try {
+      const { accountantClient } = await import('../../../../lib/accountant-client');
+      const { data } = await accountantClient.get(`/payments/receipt/signed-url?key=${encodeURIComponent(fileId)}`);
+      if (data?.downloadUrl) {
+        // Если это внешний публичный URL (например реальный S3 bucket https://...)
+        const isExternal = data.downloadUrl.startsWith('https://') &&
+          !data.downloadUrl.includes('accountant') &&
+          !data.downloadUrl.includes('localhost');
+        if (isExternal) {
+          return NextResponse.redirect(data.downloadUrl);
         }
-      } catch (err: unknown) {
-        console.error('Ошибка получения файла чека через accountant:', err);
+
+        // Иначе это локальный сервис accountant (http://...:3005/...)
+        // Скачиваем бинарный файл через внутренний клиент и отдаем клиенту
+        const fileRes = await accountantClient.get(`/storage/download?key=${encodeURIComponent(fileId)}`, {
+          responseType: 'arraybuffer',
+        });
+        const contentType = fileRes.headers['content-type'] || 
+          (fileId.toLowerCase().endsWith('.pdf') || fileId === '***' ? 'application/pdf' : 'image/jpeg');
+
+        return new Response(fileRes.data, {
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': `inline; filename="${fileId.split('/').pop() || 'receipt'}"`,
+            'Cache-Control': 'public, max-age=86400',
+          },
+        });
       }
+    } catch {
+      // Если файл не найден в accountant, пробуем Telegram API fallback ниже
     }
 
     if (!token) {

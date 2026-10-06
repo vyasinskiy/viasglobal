@@ -267,7 +267,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
   const receiptUrl = payment.receiptPhotoId
     ? `/api/payments/receipt?fileId=${encodeURIComponent(payment.receiptPhotoId)}`
     : null;
-  const isPdfReceipt = payment.receiptPhotoId?.toLowerCase().endsWith('.pdf');
+  const isPdfReceipt = payment.receiptPhotoId?.toLowerCase().endsWith('.pdf') || payment.receiptPhotoId === '***';
 
   return (
     <div className={styles.container}>

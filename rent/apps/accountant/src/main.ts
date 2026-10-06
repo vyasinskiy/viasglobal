@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { config } from './common/config/config';
 import { FileLogger } from './common/file-logger';
@@ -9,6 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger,
   });
+
+  // Увеличиваем лимиты размера тела входящих JSON и URL-encoded запросов (до 50 МБ)
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,

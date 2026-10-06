@@ -19,6 +19,27 @@ interface CustomResponse extends ServerResponse {
   redirect(url: string): void;
 }
 
+// Определение MIME-типа файла по расширению и сигнатуре (магическим байтам %PDF)
+function getFileMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === '.pdf') return 'application/pdf';
+  if (ext === '.png') return 'image/png';
+  if (ext === '.webp') return 'image/webp';
+  if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg';
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buffer = Buffer.alloc(5);
+    fs.readSync(fd, buffer, 0, 5, 0);
+    fs.closeSync(fd);
+    if (buffer.toString('utf-8').startsWith('%PDF')) {
+      return 'application/pdf';
+    }
+  } catch {
+    // Игнорируем ошибки чтения сигнатуры
+  }
+  return 'image/jpeg';
+}
+
 // Поиск сохраненного файла в локальной директории data/uploads
 // Поддерживает как точный относительный путь (например payments/1/receipts/check.pdf),
 // так и поиск только по имени файла (fallback)
@@ -31,18 +52,14 @@ function findUploadedFile(keyOrFilename: string): { fullPath: string; fileName: 
   const normalizedKey = path.normalize(keyOrFilename).replace(/^(\.\.[\/\\])+/, '');
   const candidatePath = path.resolve(uploadDir, normalizedKey);
   if (candidatePath.startsWith(uploadDir) && fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
-    const ext = path.extname(candidatePath).toLowerCase();
-    const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
-    return { fullPath: candidatePath, fileName: path.basename(candidatePath), mimeType: mime };
+    return { fullPath: candidatePath, fileName: path.basename(candidatePath), mimeType: getFileMimeType(candidatePath) };
   }
 
   // 2. Проверяем файл прямо в корне uploads
   const baseName = path.basename(keyOrFilename);
   const rootCandidate = path.resolve(uploadDir, baseName);
   if (rootCandidate.startsWith(uploadDir) && fs.existsSync(rootCandidate) && fs.statSync(rootCandidate).isFile()) {
-    const ext = path.extname(rootCandidate).toLowerCase();
-    const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
-    return { fullPath: rootCandidate, fileName: baseName, mimeType: mime };
+    return { fullPath: rootCandidate, fileName: baseName, mimeType: getFileMimeType(rootCandidate) };
   }
 
   // 3. Рекурсивный поиск по имени файла в поддиректориях uploads
@@ -66,9 +83,7 @@ function findUploadedFile(keyOrFilename: string): { fullPath: string; fileName: 
 
   const recursiveFound = searchRecursive(uploadDir);
   if (recursiveFound && fs.existsSync(recursiveFound)) {
-    const ext = path.extname(recursiveFound).toLowerCase();
-    const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
-    return { fullPath: recursiveFound, fileName: baseName, mimeType: mime };
+    return { fullPath: recursiveFound, fileName: baseName, mimeType: getFileMimeType(recursiveFound) };
   }
 
   return null;
