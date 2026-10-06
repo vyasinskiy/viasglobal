@@ -424,43 +424,51 @@ export default function PaymentsPage() {
 
       {/* Table */}
       <TableContainer component={Paper} className={styles.tableCard}>
-        <Table aria-label="payments table">
+        <Table aria-label="payments table" size="small">
           <TableHead>
             <TableRow>
-              <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Пользователь</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Сумма</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Чек</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Банк зачисления</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Статус</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Дата отправки</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Комментарий</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Действия</TableCell>
+              <TableCell style={{ fontWeight: 'bold', width: '45px' }}>ID</TableCell>
+              <TableCell style={{ fontWeight: 'bold', minWidth: '120px' }}>Пользователь</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Сумма</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Чек</TableCell>
+              <TableCell style={{ fontWeight: 'bold', minWidth: '135px' }}>Банк зачисления</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Статус</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Дата отправки</TableCell>
+              <TableCell style={{ fontWeight: 'bold', maxWidth: '170px' }}>Комментарий</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'right' }}>Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredPayments.length > 0 ? (
               filteredPayments.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className={styles.interactiveRow}
+                  onClick={() => router.push(`/payments/${row.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <TableCell>{row.id}</TableCell>
-                  <TableCell style={{ fontWeight: 500 }}>
+                  <TableCell style={{ fontWeight: 500, fontSize: '0.85rem' }}>
                     {row.userName || `User ID: ${row.userId}`}
                   </TableCell>
-                  <TableCell style={{ fontWeight: 600 }}>
+                  <TableCell style={{ fontWeight: 600, whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
                     {Number(row.amount).toFixed(2)} руб.
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     {row.receiptPhotoId ? (
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         {row.receiptPhotoId.toLowerCase().endsWith('.pdf') ? (
                           <button
                             type="button"
                             className={styles.downloadLink}
-                            style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                            onClick={() => setSelectedPaymentForReceipt(row)}
+                            style={{ padding: '3px 7px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPaymentForReceipt(row);
+                            }}
                             title="Открыть просмотр PDF чека"
                           >
-                            <PictureAsPdfIcon style={{ fontSize: '1rem', color: '#dc2626' }} />
+                            <PictureAsPdfIcon style={{ fontSize: '0.95rem', color: '#dc2626' }} />
                             PDF
                           </button>
                         ) : (
@@ -468,7 +476,10 @@ export default function PaymentsPage() {
                             src={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
                             alt="Чек"
                             className={styles.receiptThumbnail}
-                            onClick={() => setSelectedPaymentForReceipt(row)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPaymentForReceipt(row);
+                            }}
                             title="Нажмите для просмотра чека"
                           />
                         )}
@@ -477,14 +488,18 @@ export default function PaymentsPage() {
                           href={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           style={{ color: '#64748b', display: 'inline-flex', alignItems: 'center', padding: '2px' }}
                           title="Открыть чек в новой вкладке"
                         >
-                          <OpenInNewIcon style={{ fontSize: '1rem' }} />
+                          <OpenInNewIcon style={{ fontSize: '0.95rem' }} />
                         </a>
                       </div>
                     ) : (
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem', color: '#2563eb', fontWeight: 500 }}>
+                      <label
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem', color: '#2563eb', fontWeight: 500 }}
+                      >
                         <AttachFileIcon style={{ fontSize: '0.95rem' }} />
                         {uploadingReceiptId === row.id ? 'Загрузка...' : '+ Чек'}
                         <input
@@ -501,54 +516,63 @@ export default function PaymentsPage() {
                       </label>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {/* Выбор или изменение банка зачисления прямо в ячейке таблицы */}
-                    <select
-                      value={row.bank?.id || ''}
-                      disabled={updatingBankId === row.id}
-                      onChange={(e) => handleBankChange(row.id, e.target.value ? Number(e.target.value) : null)}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '0.8125rem',
-                        fontWeight: 500,
-                        color: row.bank ? '#1e293b' : '#64748b',
-                        backgroundColor: '#ffffff',
-                        cursor: 'pointer',
-                        maxWidth: '160px',
-                        outline: 'none',
-                      }}
-                      title="Нажмите, чтобы выбрать или изменить банк зачисления"
-                    >
-                      <option value="">— Выбрать банк —</option>
-                      {banks?.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
+                  <TableCell style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                    {row.bank ? (
+                      <Link
+                        href={`/banks/${row.bank.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'none' }}
+                        title="Перейти к банку"
+                      >
+                        {row.bank.name}
+                      </Link>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>-</span>
+                    )}
                   </TableCell>
                   <TableCell>{renderStatus(row.status)}</TableCell>
-                  <TableCell style={{ color: '#64748b' }}>{formatDate(row.createdAt)}</TableCell>
-                  <TableCell style={{ color: '#475569', maxWidth: '200px', wordBreak: 'break-word' }}>
-                    {row.comment || '—'}
+                  <TableCell style={{ color: '#64748b', whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
+                    {formatDate(row.createdAt)}
                   </TableCell>
-                  <TableCell>
-                    <div className={styles.actionsCell}>
+                  <TableCell style={{ color: '#475569', maxWidth: '170px' }}>
+                    <div 
+                      style={{ 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 2, 
+                        WebkitBoxOrient: 'vertical', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        fontSize: '0.8rem',
+                        lineHeight: '1.25'
+                      }}
+                      title={row.comment || ''}
+                    >
+                      {row.comment || '-'}
+                    </div>
+                  </TableCell>
+                  <TableCell align="right" style={{ whiteSpace: 'nowrap', width: '95px' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'stretch' }}>
                       {/* Кнопки подтверждения и отклонения доступны как для unconfirmed, так и для pending */}
                       {(row.status === 'unconfirmed' || row.status === 'pending') && (
                         <>
                           <button 
                             className={styles.confirmBtn}
-                            onClick={() => handleOpenConfirm(row)}
+                            style={{ padding: '3px 6px', fontSize: '0.72rem', width: '100%', textAlign: 'center' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenConfirm(row);
+                            }}
                             title="Подтвердить платеж"
                           >
                             Подтвердить
                           </button>
                           <button 
                             className={styles.rejectBtn}
-                            onClick={() => handleOpenReject(row.id)}
+                            style={{ padding: '3px 6px', fontSize: '0.72rem', width: '100%', textAlign: 'center' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenReject(row.id);
+                            }}
                             title="Отклонить платеж"
                           >
                             Отклонить
@@ -557,11 +581,26 @@ export default function PaymentsPage() {
                       )}
                       <button
                         className={styles.rejectBtn}
-                        style={{ padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                        onClick={() => handleDeleteClick(row.id)}
+                        style={{
+                          padding: '3px 6px',
+                          fontSize: '0.72rem',
+                          backgroundColor: '#f1f5f9',
+                          color: '#64748b',
+                          border: '1px solid #cbd5e1',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          width: '100%',
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(row.id);
+                        }}
+                        title="Удалить платеж"
                       >
-                        <DeleteIcon style={{ fontSize: '0.9rem' }} />
-                        Удалить
+                        <DeleteIcon style={{ fontSize: '0.85rem' }} />
+                        <span>Удалить</span>
                       </button>
                     </div>
                   </TableCell>
