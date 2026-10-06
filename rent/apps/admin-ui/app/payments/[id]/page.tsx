@@ -79,6 +79,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
   const [editBankId, setEditBankId] = React.useState<string>('');
   const [editStatus, setEditStatus] = React.useState('');
   const [editComment, setEditComment] = React.useState('');
+  const [editConfirmedAt, setEditConfirmedAt] = React.useState('');
   const [isSavingEdit, setIsSavingEdit] = React.useState(false);
 
   // Состояние удаления платежа
@@ -95,6 +96,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
     setEditBankId(payment.bank?.id ? String(payment.bank.id) : '');
     setEditStatus(payment.status);
     setEditComment(payment.comment || '');
+    setEditConfirmedAt(payment.confirmedAt ? new Date(payment.confirmedAt).toISOString().slice(0, 16) : '');
     setEditOpen(true);
   };
 
@@ -108,12 +110,23 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
 
     try {
       setIsSavingEdit(true);
-      await axios.put(`/api/payments/${paymentId}`, {
+      const payload: Record<string, unknown> = {
         amount: Number(editAmount),
         bankId: editBankId ? Number(editBankId) : null,
         status: editStatus,
         comment: editComment.trim() || null,
-      });
+      };
+
+      if (editStatus === 'confirmed') {
+        payload.confirmedAt = editConfirmedAt ? new Date(editConfirmedAt).toISOString() : (payment?.confirmedAt || new Date().toISOString());
+      } else {
+        payload.confirmedAt = null;
+      }
+
+      const { data: updated } = await axios.put(`/api/payments/${paymentId}`, payload);
+      if (updated) {
+        mutate(updated, false);
+      }
       mutate();
       setEditOpen(false);
     } catch {
@@ -127,11 +140,14 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
   const handleConfirmSubmit = async () => {
     try {
       setIsConfirming(true);
-      await axios.post('/api/payments', {
+      const { data: updated } = await axios.post('/api/payments', {
         action: 'confirm',
         paymentId: Number(paymentId),
         bankId: confirmBankId ? Number(confirmBankId) : undefined,
       });
+      if (updated) {
+        mutate(updated, false);
+      }
       mutate();
       setConfirmOpen(false);
     } catch {
@@ -620,6 +636,17 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
               <MenuItem value="unconfirmed">Не подтвержден</MenuItem>
               <MenuItem value="rejected">Отклонен</MenuItem>
             </TextField>
+            {editStatus === 'confirmed' && (
+              <TextField
+                label="Дата и время подтверждения"
+                type="datetime-local"
+                fullWidth
+                value={editConfirmedAt}
+                onChange={(e) => setEditConfirmedAt(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                helperText="Если оставить пустым, будет зафиксировано текущее время"
+              />
+            )}
             <TextField
               label="Комментарий к платежу"
               multiline

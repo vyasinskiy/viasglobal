@@ -13,24 +13,32 @@ export async function GET(
 
     const { data } = await accountantClient.get(`/invoices/${id}`);
     if (data && data.downloadUrl) {
-      // Если ссылка внутренняя (в сети Docker), скачиваем и отдаем файл напрямую клиенту
-      if (data.downloadUrl.startsWith('http://accountant:') || data.downloadUrl.startsWith('http://localhost:')) {
-        const fileRes = await fetch(data.downloadUrl);
-        if (fileRes.ok) {
-          const blob = await fileRes.arrayBuffer();
-          const filename = data.invoice?.periodLabel && data.invoice?.accountExternalId
-            ? `${data.invoice.periodLabel}_${data.invoice.accountExternalId}.pdf`
-            : `invoice_${id}.pdf`;
+      // Проверяем, является ли ссылка внешней публичной (например реальный S3 bucket в облаке)
+      const isExternalPublic = data.downloadUrl.startsWith('https://') &&
+        !data.downloadUrl.includes('accountant') &&
+        !data.downloadUrl.includes('localhost');
 
-          return new NextResponse(blob, {
-            headers: {
-              'Content-Type': 'application/pdf',
-              'Content-Disposition': `inline; filename="${filename}"`
-            }
-          });
-        }
+      if (isExternalPublic) {
+        return NextResponse.redirect(data.downloadUrl);
       }
-      return NextResponse.redirect(data.downloadUrl);
+
+      // Если ссылка локальная или во внутренней сети Docker (accruals-accountant / accountant / localhost)
+      // Проксируем файл напрямую клиенту, чтобы браузер не пытался резолвить внутренние хосты Docker
+      const fileRes = await fetch(data.downloadUrl);
+      if (fileRes.ok) {
+        const blob = await fileRes.arrayBuffer();
+        const filename = data.invoice?.periodLabel && data.invoice?.accountExternalId
+          ? `${data.invoice.periodLabel}_${data.invoice.accountExternalId}.pdf`
+          : `invoice_${id}.pdf`;
+
+        return new NextResponse(blob, {
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `inline; filename="${filename}"`,
+            'Cache-Control': 'public, max-age=86400',
+          },
+        });
+      }
     }
 
     return NextResponse.json({ error: 'Invoice PDF download URL not found or storage is empty' }, { status: 404 });

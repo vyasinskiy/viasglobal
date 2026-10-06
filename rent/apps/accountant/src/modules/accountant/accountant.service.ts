@@ -458,6 +458,8 @@ export class AccountantService {
         receiptPhotoId: finalReceiptPhotoId,
         comment: data.comment || null,
         status: data.status || 'unconfirmed',
+        confirmedAt: (data.status === 'confirmed') ? new Date() : null,
+        confirmedBy: (data.status === 'confirmed') ? BigInt(1) : null,
         bankId: data.bankId !== undefined && data.bankId !== null ? Number(data.bankId) : null,
         createdAt: isNaN(paymentDate.getTime()) ? new Date() : paymentDate,
       },
@@ -619,6 +621,7 @@ export class AccountantService {
     comment?: string | null;
     bankId?: number | null;
     status?: string;
+    confirmedAt?: string | Date | null;
     createdAt?: string | Date;
     receiptPhotoId?: string | null;
   }) {
@@ -635,7 +638,24 @@ export class AccountantService {
     if (data.bankId !== undefined) {
       updateData.bank = data.bankId ? { connect: { id: Number(data.bankId) } } : { disconnect: true };
     }
-    if (data.status !== undefined) updateData.status = data.status;
+    if (data.status !== undefined) {
+      updateData.status = data.status;
+      if (data.status === 'confirmed') {
+        if (data.confirmedAt !== undefined) {
+          updateData.confirmedAt = data.confirmedAt ? new Date(data.confirmedAt) : new Date();
+          updateData.confirmedBy = BigInt(1);
+        } else if (!payment.confirmedAt) {
+          updateData.confirmedAt = new Date();
+          updateData.confirmedBy = BigInt(1);
+        }
+      } else {
+        updateData.confirmedAt = null;
+        updateData.confirmedBy = null;
+      }
+    } else if (data.confirmedAt !== undefined) {
+      updateData.confirmedAt = data.confirmedAt ? new Date(data.confirmedAt) : null;
+      updateData.confirmedBy = data.confirmedAt ? BigInt(1) : null;
+    }
     if (data.createdAt !== undefined) updateData.createdAt = new Date(data.createdAt);
     if (data.receiptPhotoId !== undefined) updateData.receiptPhotoId = data.receiptPhotoId;
 

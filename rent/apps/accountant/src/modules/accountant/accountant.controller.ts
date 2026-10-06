@@ -437,6 +437,7 @@ export class AccountantController {
       comment?: string | null;
       bankId?: number | null;
       status?: string;
+      confirmedAt?: string | Date | null;
       createdAt?: string | Date;
       receiptPhotoId?: string | null;
     }
