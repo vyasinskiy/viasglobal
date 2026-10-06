@@ -223,7 +223,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
     ```
 
 - **`POST /accountant/payments`**
-  - **Описание**: Регистрация платежа арендатора. Поддерживает передачу файла чека в `receiptPhotoId` (Data URI Base64, Telegram `file_id` или URL). Если передан Data URI, чек автоматически сохраняется в хранилище S3, а в базе фиксируется S3-ключ.
+  - **Описание**: Регистрация платежа арендатора. Поддерживает передачу файла чека в `receiptPhotoId` (Data URI Base64, Telegram `file_id`, URL или готовый S3-ключ), а также в явных полях `dataUri`, `receiptUrl` или `fileBufferBase64`. При передаче Data URI или URL файл автоматически скачивается/декодируется и сохраняется в хранилище под стандартным ключом `payments/{paymentId}/receipts/...`, а в поле `receiptPhotoId` в базе данных фиксируется этот ключ (сырой Base64 в базу не попадает). Автоматически определяет формат PDF по сигнатуре `%PDF-`. Лимит тела запроса составляет до 50 МБ.
   - **Тело запроса**:
     ```json
     {
@@ -231,7 +231,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
       "amount": 450,
       "comment": "Оплата аренды за октябрь",
       "status": "pending",
-      "receiptPhotoId": "data:image/png;base64,iVBORw0KGgo..."
+      "receiptPhotoId": "data:application/pdf;base64,JVBERi0xLjU..."
     }
     ```
 

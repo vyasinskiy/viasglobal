@@ -242,8 +242,8 @@ export class AccountantController {
     @Req() req: CustomRequest,
     @Res() res: CustomResponse
   ) {
-    if (!key) {
-      throw new BadRequestException('Параметр query "key" обязателен для загрузки квитанции');
+    if (!key || key.trim() === '***' || key.trim() === '...' || key.trim() === '') {
+      throw new BadRequestException('Параметр query "key" содержит недопустимое имя файла');
     }
     // Защита от Path Traversal: извлекаем безопасное имя файла
     const cleanKey = path.basename(key);
@@ -353,6 +353,9 @@ export class AccountantController {
     userName?: string;
     amount: number | string;
     receiptPhotoId?: string;
+    dataUri?: string;
+    fileBufferBase64?: string;
+    receiptUrl?: string;
     comment?: string;
     createdAt?: string;
     status?: string;

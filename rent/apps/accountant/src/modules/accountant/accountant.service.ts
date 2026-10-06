@@ -400,6 +400,9 @@ export class AccountantService {
     userName?: string;
     amount: number | string;
     receiptPhotoId?: string | null;
+    dataUri?: string | null;
+    fileBufferBase64?: string | null;
+    receiptUrl?: string | null;
     comment?: string | null;
     createdAt?: string | Date;
     status?: string;
@@ -429,30 +432,28 @@ export class AccountantService {
 
     const paymentDate = data.createdAt ? new Date(data.createdAt) : new Date();
 
-    // Если чек передан в виде Data URI (Base64), сохраняем его в S3, чтобы не раздувать БД
-    let finalReceiptPhotoId = data.receiptPhotoId || null;
-    if (finalReceiptPhotoId && finalReceiptPhotoId.startsWith('data:')) {
-      try {
-        const matches = finalReceiptPhotoId.match(/^data:(.+?);base64,(.+)$/);
-        if (matches) {
-          const mimeType = matches[1];
-          const buffer = Buffer.from(matches[2], 'base64');
-          const ext = mimeType.includes('pdf') ? '.pdf' : mimeType.includes('png') ? '.png' : '.jpg';
-          const s3Key = this.s3Storage.buildReceiptKey(targetUserId, `receipt-${Date.now()}${ext}`);
-          await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
-          finalReceiptPhotoId = s3Key;
-        }
-      } catch (err) {
-        this.logger.warn(`Не удалось сохранить чек в S3 при создании платежа: ${err}`);
+    // Проверяем, передан ли чек (в поле receiptPhotoId как data:, http://, либо в отдельных полях)
+    let initialReceiptPhotoId: string | null = data.receiptPhotoId || null;
+    let pendingDataUri: string | null = data.dataUri || null;
+    let pendingReceiptUrl: string | null = data.receiptUrl || null;
+    const pendingFileBase64: string | null = data.fileBufferBase64 || null;
+
+    if (initialReceiptPhotoId) {
+      if (initialReceiptPhotoId.startsWith('data:')) {
+        pendingDataUri = initialReceiptPhotoId;
+        initialReceiptPhotoId = null; // Не засоряем базу данных сырым Data URI Base64
+      } else if (initialReceiptPhotoId.startsWith('http://') || initialReceiptPhotoId.startsWith('https://')) {
+        pendingReceiptUrl = initialReceiptPhotoId;
+        initialReceiptPhotoId = null;
       }
     }
 
-    const result = await this.prisma.payment.create({
+    const createdPayment = await this.prisma.payment.create({
       data: {
         userId: targetUserId,
         userName: targetUserName || null,
         amount: data.amount,
-        receiptPhotoId: finalReceiptPhotoId,
+        receiptPhotoId: initialReceiptPhotoId,
         comment: data.comment || null,
         status: data.status || 'unconfirmed',
         confirmedAt: (data.status === 'confirmed') ? new Date() : null,
@@ -465,7 +466,21 @@ export class AccountantService {
         bank: true,
       },
     });
-    return this.enrichPaymentReceiptUrl(this.serialize(result));
+
+    // Если передан чек для загрузки (Data URI, URL или Base64), надежно загружаем через attachReceipt
+    if (pendingDataUri || pendingReceiptUrl || pendingFileBase64) {
+      try {
+        return await this.attachReceipt(createdPayment.id, {
+          dataUri: pendingDataUri || undefined,
+          receiptUrl: pendingReceiptUrl || undefined,
+          fileBufferBase64: pendingFileBase64 || undefined,
+        });
+      } catch (attachErr) {
+        this.logger.warn(`Не удалось загрузить чек для платежа #${createdPayment.id}: ${attachErr}`);
+      }
+    }
+
+    return this.enrichPaymentReceiptUrl(this.serialize(createdPayment));
   }
 
   /**
@@ -537,13 +552,14 @@ export class AccountantService {
       if (data.fileBuffer) {
         buffer = data.fileBuffer;
       } else if (data.fileBufferBase64) {
-        buffer = Buffer.from(data.fileBufferBase64, 'base64');
+        const cleanBase64 = data.fileBufferBase64.replace(/\s+/g, '');
+        buffer = Buffer.from(cleanBase64, 'base64');
       } else if (data.dataUri) {
-        const matches = data.dataUri.match(/^data:(.+?);base64,(.+)$/);
-        if (matches) {
-          mimeType = matches[1];
-          buffer = Buffer.from(matches[2], 'base64');
-          if (mimeType.includes('pdf')) {
+        const parsed = parseDataUriOrBase64(data.dataUri);
+        if (parsed) {
+          mimeType = parsed.mimeType;
+          buffer = parsed.buffer;
+          if (parsed.isPdf) {
             fileName = 'receipt.pdf';
           } else if (mimeType.includes('png')) {
             fileName = 'receipt.png';
@@ -552,7 +568,7 @@ export class AccountantService {
       }
 
       if (buffer) {
-        if (buffer.slice(0, 5).toString('utf-8').startsWith('%PDF')) {
+        if (buffer.subarray(0, 5).toString('utf-8').startsWith('%PDF')) {
           mimeType = 'application/pdf';
           if (!fileName.toLowerCase().endsWith('.pdf')) {
             fileName = fileName.replace(/\.[^/.]+$/, '') + '.pdf';
@@ -1514,4 +1530,33 @@ function isS3Key(value?: string | null): value is string {
 function safeJsonParse<T>(value: string | null | undefined): T | null {
   if (!value) return null;
   try { return JSON.parse(value) as T; } catch { return null; }
+}
+
+/**
+ * Безопасный парсер Data URI или сырого Base64 с извлечением MIME-типа и двоичного буфера.
+ * Устойчив к пробелам и переводам строк (\n, \r), автоматически определяет %PDF-.
+ */
+function parseDataUriOrBase64(input: string): { buffer: Buffer; mimeType: string; isPdf: boolean } | null {
+  if (!input) return null;
+  const trimmed = input.trim();
+
+  if (trimmed.startsWith('data:')) {
+    const commaIndex = trimmed.indexOf(',');
+    if (commaIndex === -1) return null;
+    const meta = trimmed.slice(0, commaIndex);
+    const rawBase64 = trimmed.slice(commaIndex + 1).replace(/\s+/g, '');
+    let mimeType = 'application/octet-stream';
+    const mimeMatch = meta.match(/^data:([^;]+)/);
+    if (mimeMatch && mimeMatch[1]) {
+      mimeType = mimeMatch[1].trim();
+    }
+    const buffer = Buffer.from(rawBase64, 'base64');
+    const isPdf = buffer.subarray(0, 5).toString('utf-8').startsWith('%PDF') || mimeType.includes('pdf');
+    if (isPdf) {
+      mimeType = 'application/pdf';
+    }
+    return { buffer, mimeType, isPdf };
+  }
+
+  return null;
 }

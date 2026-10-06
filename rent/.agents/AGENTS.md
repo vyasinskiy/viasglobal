@@ -80,5 +80,14 @@
   * Telegram-бот: скачивает бинарный буфер по внутренней сети Docker из `accountant` и отправляет файл в чат как документ `{ source: buffer, filename }`.
   * Admin UI: API-роут `/api/invoices/[id]/download` проксирует поток PDF файла напрямую в браузер пользователя.
 
+---
+
+## 10. Протокол загрузки и нормализации чеков платежей (Receipts)
+- **Прием чеков в `POST /accountant/payments` и `POST /accountant/payments/:id/receipt`**:
+  * Поддерживаются форматы передачи: `dataUri` (Data URI Base64), `fileBufferBase64`, `receiptUrl` (HTTP/HTTPS ссылка) и `telegramFileId`.
+  * При передаче Data URI или URL в поле `receiptPhotoId` сервис автоматически извлекает или скачивает файл, сохраняет его в хранилище под ключом `payments/{paymentId}/receipts/...` и записывает в БД чистый ключ. Сырой Base64 никогда не сохраняется в базе данных.
+  * Устойчивость к форматированию: декодер Data URI очищает пробелы и переносы строк (`\n`, `\r`), проверяет сигнатуру `%PDF-` в первых байтах файла и автоматически присваивает MIME-тип `application/pdf` и расширение `.pdf`.
+  * Лимит тела запросов в Express увеличен до 50 МБ (`limit: '50mb'`).
+
 
 
