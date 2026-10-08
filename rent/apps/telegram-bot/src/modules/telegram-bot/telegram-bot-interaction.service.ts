@@ -1252,7 +1252,7 @@ export class TelegramBotInteractionService implements OnModuleInit {
     }
 
     await ctx.answerCbQuery('Загрузка файла и прикрепление...');
-    await ctx.editMessageText('⏳ <b>Загрузка фотографии в S3...</b>', { parse_mode: 'HTML' });
+    await ctx.editMessageText('⏳ <b>Сохранение фотографии в хранилище...</b>', { parse_mode: 'HTML' });
 
     try {
       // 1. Get file link from Telegram
@@ -1281,7 +1281,7 @@ export class TelegramBotInteractionService implements OnModuleInit {
 
       const successMsg = `✅ <b>Документ успешно прикреплен к событию!</b>\n\n` +
         `📁 Имя файла: <code>${result.fileName}</code>\n` +
-        `☁️ Загружено в S3 storage\n` +
+        `📁 Сохранено в хранилище\n` +
         `Файл доступен в панели администратора на странице события.`;
 
       await ctx.editMessageText(successMsg, { parse_mode: 'HTML' });

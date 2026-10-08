@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { MeterSubmissionService } from '../meter-submission/meter-submission.service';
-import { S3StorageService } from '../s3/s3-storage.service';
+import { StorageService } from '../storage/storage.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class EventsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly s3Storage: S3StorageService,
+    private readonly storage: StorageService,
     private readonly meterSubmissionService: MeterSubmissionService,
     @Inject('NOTIFICATIONS_SERVICE') private readonly notificationsClient: ClientProxy,
   ) {}
@@ -150,7 +150,7 @@ export class EventsService {
       ...this.serialize(event),
       attachments: (event.attachments || []).map((att: any) => ({
         ...this.serialize(att),
-        downloadUrl: this.s3Storage.getSignedDownloadUrl(att.s3Key) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
+        downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
       }))
     }));
   }
@@ -178,7 +178,7 @@ export class EventsService {
       ...this.serialize(event),
       attachments: (event.attachments || []).map((att: any) => ({
         ...this.serialize(att),
-        downloadUrl: this.s3Storage.getSignedDownloadUrl(att.s3Key) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
+        downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
       }))
     };
   }
@@ -406,15 +406,15 @@ export class EventsService {
       throw new Error('scheduledEventId or valid eventTriggerId is required');
     }
 
-    const s3Key = this.s3Storage.buildAttachmentKey(scheduledEventId, data.fileName);
-    await this.s3Storage.uploadBuffer(s3Key, data.fileBuffer, data.mimeType || 'application/octet-stream');
+    const attachmentKey = this.storage.buildAttachmentKey(scheduledEventId, data.fileName);
+    await this.storage.uploadBuffer(attachmentKey, data.fileBuffer, data.mimeType || 'application/octet-stream', true);
 
     const attachment = await this.prisma.eventAttachment.create({
       data: {
         scheduledEventId,
         eventTriggerId: eventTriggerId || null,
         fileName: data.fileName,
-        s3Key,
+        s3Key: attachmentKey,
         fileSize: data.fileBuffer.length,
         mimeType: data.mimeType || 'application/octet-stream',
         telegramFileId: data.telegramFileId || null,
@@ -422,7 +422,7 @@ export class EventsService {
       }
     });
 
-    const downloadUrl = this.s3Storage.getSignedDownloadUrl(s3Key) || `/api/accountant/events/attachments/${attachment.id}/download`;
+    const downloadUrl = this.storage.getDownloadUrl(attachmentKey) || `/api/accountant/events/attachments/${attachment.id}/download`;
 
     return {
       ...this.serialize(attachment),
@@ -457,7 +457,7 @@ export class EventsService {
       ...this.serialize(event),
       attachments: (event.attachments || []).map((att: any) => ({
         ...this.serialize(att),
-        downloadUrl: this.s3Storage.getSignedDownloadUrl(att.s3Key) || `/api/accountant/events/attachments/${att.id}/download`
+        downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/attachments/${att.id}/download`
       }))
     }));
   }
@@ -470,7 +470,7 @@ export class EventsService {
 
     return attachments.map((att) => ({
       ...this.serialize(att),
-      downloadUrl: this.s3Storage.getSignedDownloadUrl(att.s3Key) || `/api/accountant/events/attachments/${att.id}/download`
+      downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/attachments/${att.id}/download`
     }));
   }
 

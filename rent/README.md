@@ -150,11 +150,11 @@ When authorization is required:
 4. The bot stops the visual browser container (ensuring clean flush of session cookies to disk), automatically verifies the session via a live control scan, and confirms successful renewal.
 5. In addition, the command `/browser` and the `🔑 Браузер ЖКХ` button in the admin menu can start the browser on demand at any time.
 
-### Invoice Storage (Local & S3)
-* **Local Storage (Default)**: Invoices are downloaded by `watcher` and stored locally on the server in `apps/accountant/data/uploads/` via internal HTTP streaming (`PUT /accountant/invoices/upload-raw`).
+### File & Invoice Storage (Local Storage)
+* **Local Storage**: All invoices, payment receipts, and documents are stored locally on the server in `apps/accountant/data/uploads/` via internal HTTP streaming (`PUT /accountant/invoices/upload-raw`).
+* **Overwrite Protection**: Uploads via `upload-raw` reject existing files with `409 Conflict` unless explicit `?overwrite=true` query parameter is provided.
 * **Persistent Volumes**: The `accountant` container mounts `${ACCOUNTANT_PATH}/data:/app/data` to ensure all PDFs survive container rebuilds.
 * **Serving Files**:
   * **Telegram Bot**: Internal HTTP buffer fetch from `accountant:3005` inside the Docker network, sent to Telegram as native documents.
   * **Admin UI**: Next.js proxy route `/api/invoices/[id]/download` streams the PDF directly to the client browser.
-  * **Direct HTTP**: Download endpoint `GET /accountant/invoices/download/:key`.
-* **Optional S3**: When `S3_ENABLED=true` and valid credentials are provided, presigned AWS S3 URLs are generated transparently.
+  * **Direct HTTP**: Download endpoint `GET /accountant/storage/download?key=...` or `GET /accountant/invoices/download/:key`.

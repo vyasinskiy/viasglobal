@@ -3,7 +3,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AccountantController } from './accountant.controller';
 import { AccountantService } from './accountant.service';
 import { PrismaModule } from '../../common/prisma/prisma.module';
-import { S3Module } from '../s3/s3.module';
+import { StorageModule } from '../storage/storage.module';
 import { MeterSubmissionModule } from '../meter-submission/meter-submission.module';
 import { EventsModule } from '../events/events.module';
 import { config } from '../../common/config/config';
@@ -11,7 +11,7 @@ import { config } from '../../common/config/config';
 @Module({
   imports: [
     PrismaModule,
-    S3Module,
+    StorageModule,
     MeterSubmissionModule,
     EventsModule,
     ClientsModule.register([

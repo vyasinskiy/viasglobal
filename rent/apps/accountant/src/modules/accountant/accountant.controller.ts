@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { Controller, Get, Query, Param, ParseIntPipe, NotFoundException, Res, Req, Logger, Post, Body, Delete, Put, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Query, Param, ParseIntPipe, NotFoundException, Res, Req, Logger, Post, Body, Delete, Put, BadRequestException, ConflictException } from '@nestjs/common';
 import { EventPattern, Payload, MessagePattern } from '@nestjs/microservices';
 import { AccountantService } from './accountant.service';
-import { S3StorageService } from '../s3/s3-storage.service';
+import { StorageService } from '../storage/storage.service';
 
 // Интерфейс входящего HTTP-запроса Express
 interface CustomRequest extends IncomingMessage {
@@ -95,7 +95,7 @@ export class AccountantController {
 
   constructor(
     private readonly accountantService: AccountantService,
-    private readonly s3Storage: S3StorageService
+    private readonly storage: StorageService
   ) {}
 
   @MessagePattern('upsert_apartment')
@@ -239,22 +239,35 @@ export class AccountantController {
   @Put('invoices/upload-raw')
   async uploadInvoiceRaw(
     @Query('key') key: string,
+    @Query('overwrite') overwrite: string | undefined,
     @Req() req: CustomRequest,
     @Res() res: CustomResponse
   ) {
     if (!key || key.trim() === '***' || key.trim() === '...' || key.trim() === '') {
       throw new BadRequestException('Параметр query "key" содержит недопустимое имя файла');
     }
-    // Защита от Path Traversal: извлекаем безопасное имя файла
-    const cleanKey = path.basename(key);
-    const uploadDir = path.join(process.cwd(), 'data', 'uploads');
-    fs.mkdirSync(uploadDir, { recursive: true });
-    const fullPath = path.join(uploadDir, cleanKey);
+    // Защита от Path Traversal: используем безопасный путь из StorageService
+    let fullPath: string;
+    try {
+      fullPath = this.storage.resolveSafePath(key);
+    } catch {
+      throw new BadRequestException('Недопустимый путь к файлу в параметре key');
+    }
+
+    // Защита от перезаписи существующих файлов (если не указан явный флаг overwrite=true)
+    const isOverwrite = overwrite === 'true' || overwrite === '1';
+    if (fs.existsSync(fullPath) && !isOverwrite) {
+      throw new ConflictException(
+        `Файл "${path.basename(fullPath)}" уже существует на диске. Для принудительной перезаписи укажите параметр overwrite=true`
+      );
+    }
+
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
 
     // Если body-parser уже считал тело в виде Buffer
     if (Buffer.isBuffer(req.body)) {
       fs.writeFileSync(fullPath, req.body);
-      return res.status(200).json({ success: true, key: cleanKey });
+      return res.status(200).json({ success: true, key: path.basename(fullPath) });
     }
 
     // Иначе считываем бинарный поток данных из request stream
@@ -266,7 +279,7 @@ export class AccountantController {
       req.on('error', (err: unknown) => reject(err));
     });
 
-    return res.status(200).json({ success: true, key: cleanKey });
+    return res.status(200).json({ success: true, key: path.basename(fullPath) });
   }
 
   // Вспомогательный метод для безопасной отдачи бинарного файла по ключу или имени
@@ -310,13 +323,13 @@ export class AccountantController {
     return this.serveFileByKey(key, res);
   }
 
-  // Получение предподписанного S3 URL или локального URL для загрузки квитанции
+  // Получение локального URL для загрузки квитанции
   // Важно: статический роут 'invoices/upload-url' должен объявляться ДО параметризованного 'invoices/:id',
   // чтобы Express не пытался распарсить строку 'upload-url' как числовой идентификатор :id
   @Get('invoices/upload-url')
   async getUploadUrl(@Query('accountExternalId') accountExternalId: string, @Query('periodLabel') periodLabel: string) {
-    const key = this.s3Storage.buildInvoiceKey(accountExternalId, periodLabel);
-    const url = this.s3Storage.getSignedUploadUrl(key);
+    const key = this.storage.buildInvoiceKey(accountExternalId, periodLabel);
+    const url = this.storage.getUploadUrl(key);
     return { url, key };
   }
 
@@ -432,11 +445,11 @@ export class AccountantController {
     return this.accountantService.deletePayment(id);
   }
 
-  // Получение подписанной ссылки на просмотр или скачивание чека по его ключу S3
+  // Получение ссылки на просмотр или скачивание чека по его ключу
   @Get('payments/receipt/signed-url')
   async getReceiptSignedUrl(@Query('key') key: string) {
     if (!key) throw new BadRequestException('Параметр key обязателен');
-    const downloadUrl = this.s3Storage.getSignedDownloadUrl(key);
+    const downloadUrl = this.storage.getDownloadUrl(key);
     return { downloadUrl, key };
   }
 

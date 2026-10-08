@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountantService } from './accountant.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { S3StorageService } from '../s3/s3-storage.service';
+import { StorageService } from '../storage/storage.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { MeterSubmissionService } from '../meter-submission/meter-submission.service';
 import { EventsService } from '../events/events.service';
@@ -43,8 +43,9 @@ describe('AccountantService', () => {
     },
   };
 
-  const mockS3 = {
-    isEnabled: jest.fn(),
+  const mockStorage = {
+    isUploaded: jest.fn(),
+    getDownloadUrl: jest.fn(),
     getSignedDownloadUrl: jest.fn(),
   };
 
@@ -57,7 +58,7 @@ describe('AccountantService', () => {
       providers: [
         AccountantService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: S3StorageService, useValue: mockS3 },
+        { provide: StorageService, useValue: mockStorage },
         { provide: 'NOTIFICATIONS_SERVICE', useValue: mockNotifications },
         { provide: MeterSubmissionService, useValue: mockMeterSubmission },
         { provide: EventsService, useValue: mockEvents },

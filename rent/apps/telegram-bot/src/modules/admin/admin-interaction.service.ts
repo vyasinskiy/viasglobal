@@ -574,7 +574,7 @@ export class AdminInteractionService {
       try {
         const { invoice, downloadUrl } = await firstValueFrom(this.accountantClient.send<{ invoice: Invoice, downloadUrl: string }>('get_invoice', invoiceId));
         if (!downloadUrl) {
-          return ctx.answerCbQuery('PDF инвойса не найден в S3', { show_alert: true });
+          return ctx.answerCbQuery('PDF инвойса не найден в хранилище', { show_alert: true });
         }
         
         // 1. Send description message

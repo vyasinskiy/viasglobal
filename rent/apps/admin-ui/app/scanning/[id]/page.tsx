@@ -300,7 +300,7 @@ export default function ScraperRunDetailPage({ params }: { params: { id: string 
             {run.invoicesObserved}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '6px', fontWeight: 500 }}>
-            +{run.newInvoices} загружено в S3
+            +{run.newInvoices} загружено в хранилище
           </div>
         </div>
       </div>

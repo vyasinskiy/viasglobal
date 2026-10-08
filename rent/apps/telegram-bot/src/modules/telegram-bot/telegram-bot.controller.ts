@@ -232,7 +232,7 @@ export class TelegramBotController {
   }
 
   /**
-   * Метод для публикации нового инвойса (с файлом инвойса/квитанцией из S3).
+   * Метод для публикации нового инвойса (с файлом инвойса/квитанцией из локального хранилища).
    */
   @EventPattern('invoice_available')
   async handleInvoiceAvailable(@Payload() data: { 

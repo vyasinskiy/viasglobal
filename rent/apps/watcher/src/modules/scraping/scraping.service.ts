@@ -224,7 +224,7 @@ export class ScrapingService implements OnApplicationBootstrap {
         if (invoice.available && invoice.invoiceUrl) {
           try {
             if (uploadedMap.has(`${invoice.accountExternalId}_${invoice.periodId}`)) {
-              log(`Invoice already in S3 (skipped): ${invoice.periodLabel} (${invoice.accountExternalId})`);
+              log(`Invoice already in storage (skipped): ${invoice.periodLabel} (${invoice.accountExternalId})`);
               skippedInvoices++;
             } else {
               const { url, key } = await this.accountantClientService.getUploadUrl(invoice.accountExternalId, invoice.periodLabel);
@@ -240,16 +240,16 @@ export class ScrapingService implements OnApplicationBootstrap {
                 });
 
                 if (!uploadResponse.ok) {
-                  throw new Error(`S3 upload failed with status ${uploadResponse.status}: ${uploadResponse.statusText}`);
+                  throw new Error(`Upload to storage failed with status ${uploadResponse.status}: ${uploadResponse.statusText}`);
                 }
-                log(`Successfully uploaded to S3: ${invoice.periodLabel} (${key})`);
+                log(`Successfully uploaded to storage: ${invoice.periodLabel} (${key})`);
               } catch (fetchError: any) {
                 const detailedMsg = [
                   fetchError.message,
                   fetchError.cause?.code ? `[Code: ${fetchError.cause.code}]` : null,
                   fetchError.cause?.message ? `(Cause: ${fetchError.cause.message})` : null
                 ].filter(Boolean).join(' ');
-                throw new Error(`Network error during S3 upload to ${url}: ${detailedMsg}`, { cause: fetchError });
+                throw new Error(`Network error during upload to ${url}: ${detailedMsg}`, { cause: fetchError });
               }
 
               // 4. Enrich metadata
@@ -264,7 +264,7 @@ export class ScrapingService implements OnApplicationBootstrap {
             const red = '\x1b[31m';
             const reset = '\x1b[0m';
             const errorMsg = `Invoice ${invoice.periodLabel} (${invoice.accountExternalId}): ${err.message.trim()}`;
-            log(`${red}Failed to process S3 upload for ${errorMsg}${reset}`);
+            log(`${red}Failed to process upload for ${errorMsg}${reset}`);
             uploadErrors.push(errorMsg);
             invoice.available = false;
             invoice.uploadedToS3 = false;
@@ -287,7 +287,7 @@ export class ScrapingService implements OnApplicationBootstrap {
       log(`Accruals observed: ${accruals.length}`);
       log(`Invoices discovered: ${invoices.length}`);
       log(`${green}Successfully processed/uploaded: ${uploadedInvoicesCount}${reset}`);
-      log(`${yellow}Skipped (already in S3): ${skippedInvoices}${reset}`);
+      log(`${yellow}Skipped (already in storage): ${skippedInvoices}${reset}`);
 
       if (uploadErrors.length > 0) {
         log(`${red}Errors encountered: ${uploadErrors.length}${reset}`);

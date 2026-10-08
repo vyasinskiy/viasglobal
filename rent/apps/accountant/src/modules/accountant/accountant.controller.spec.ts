@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountantController } from './accountant.controller';
 import { AccountantService } from './accountant.service';
-import { S3StorageService } from '../s3/s3-storage.service';
+import { StorageService } from '../storage/storage.service';
 
 describe('AccountantController (HTTP REST эндпоинты финансового учета)', () => {
   let controller: AccountantController;
   let service: jest.Mocked<Partial<AccountantService>>;
-  let s3Storage: jest.Mocked<Partial<S3StorageService>>;
+  let storage: jest.Mocked<Partial<StorageService>>;
 
   beforeEach(async () => {
     // Мокируем методы сервиса бухгалтерского учета
@@ -30,10 +30,11 @@ describe('AccountantController (HTTP REST эндпоинты финансово�
       findSystemEvents: jest.fn(),
     };
 
-    // Мокируем сервис S3 хранилища
-    s3Storage = {
+    // Мокируем сервис локального файлового хранилища
+    storage = {
       buildInvoiceKey: jest.fn().mockReturnValue('invoices/acc-1/202610.pdf'),
-      getSignedUploadUrl: jest.fn().mockResolvedValue('https://s3.amazonaws.com/upload-signed-url'),
+      getUploadUrl: jest.fn().mockReturnValue('http://accruals-accountant:3005/accountant/invoices/upload-raw?key=invoices%2Facc-1%2F202610.pdf'),
+      resolveSafePath: jest.fn().mockImplementation((key) => `/data/uploads/${key}`),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -44,8 +45,8 @@ describe('AccountantController (HTTP REST эндпоинты финансово�
           useValue: service,
         },
         {
-          provide: S3StorageService,
-          useValue: s3Storage,
+          provide: StorageService,
+          useValue: storage,
         },
       ],
     }).compile();
@@ -153,14 +154,14 @@ describe('AccountantController (HTTP REST эндпоинты финансово�
   });
 
   describe('GET /accountant/invoices/upload-url', () => {
-    it('должен генерировать предподписанный S3 URL и корректный ключ файла', async () => {
+    it('должен генерировать URL загрузки и корректный ключ файла', async () => {
       const result = await controller.getUploadUrl('acc-test', 'Октябрь 2026');
 
       // Проверяем формирование валидного ключа и URL
       expect(result).toBeDefined();
       expect(result.key).toBe('invoices/acc-1/202610.pdf');
       expect(result.url).toBeDefined();
-      expect(s3Storage.buildInvoiceKey).toHaveBeenCalledWith('acc-test', 'Октябрь 2026');
+      expect(storage.buildInvoiceKey).toHaveBeenCalledWith('acc-test', 'Октябрь 2026');
     });
   });
 

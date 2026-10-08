@@ -3,7 +3,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { Prisma } from '../../generated/client';
-import { S3StorageService } from '../s3/s3-storage.service';
+import { StorageService } from '../storage/storage.service';
 import { MeterSubmissionService } from '../meter-submission/meter-submission.service';
 import { EventsService } from '../events/events.service';
 
@@ -13,7 +13,7 @@ export class AccountantService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly s3Storage: S3StorageService,
+    private readonly storage: StorageService,
     @Inject('NOTIFICATIONS_SERVICE') private readonly notificationsClient: ClientProxy,
     private readonly meterSubmissionService: MeterSubmissionService,
     private readonly eventsService: EventsService
@@ -36,8 +36,8 @@ export class AccountantService {
       if (photoId.startsWith('data:') || photoId.startsWith('http://') || photoId.startsWith('https://')) {
         receiptUrl = photoId;
       } else {
-        // Формируем URL скачивания из хранилища S3 или локального каталога uploads
-        receiptUrl = this.s3Storage.getSignedDownloadUrl(photoId);
+        // Формируем URL скачивания из локального хранилища uploads
+        receiptUrl = this.storage.getDownloadUrl(photoId);
       }
     }
 
@@ -332,8 +332,8 @@ export class AccountantService {
       },
     });
 
-    const wasReady = existing ? (existing.available && this.s3Storage.isUploaded(existing.uploadedToS3)) : false;
-    const nowReady = result.available && this.s3Storage.isUploaded(result.uploadedToS3);
+    const wasReady = existing ? (existing.available && this.storage.isUploaded(existing.uploadedToS3)) : false;
+    const nowReady = result.available && this.storage.isUploaded(result.uploadedToS3);
 
     if (!wasReady && nowReady) {
       const activeTenant = account.apartment?.tenants?.[0];
@@ -539,9 +539,9 @@ export class AccountantService {
         const isPdf = buffer.subarray(0, 5).toString('utf-8').startsWith('%PDF') || data.receiptUrl.toLowerCase().endsWith('.pdf');
         const mimeType = isPdf ? 'application/pdf' : (response.headers.get('content-type') || 'image/jpeg');
         const fileName = isPdf ? 'receipt.pdf' : 'receipt.jpg';
-        const s3Key = this.s3Storage.buildReceiptKey(payment.id, fileName);
-        await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
-        receiptPhotoId = s3Key;
+        const receiptKey = this.storage.buildReceiptKey(payment.id, fileName);
+        await this.storage.uploadBuffer(receiptKey, buffer, mimeType, true);
+        receiptPhotoId = receiptKey;
       } catch (err: unknown) {
         this.logger.warn(`Не удалось скачать чек по URL ${data.receiptUrl}: ${err}`);
         receiptPhotoId = data.receiptUrl;
@@ -578,9 +578,9 @@ export class AccountantService {
             fileName = fileName.replace(/\.[^/.]+$/, '') + '.pdf';
           }
         }
-        const s3Key = this.s3Storage.buildReceiptKey(payment.id, fileName);
-        await this.s3Storage.uploadBuffer(s3Key, buffer, mimeType);
-        receiptPhotoId = s3Key;
+        const receiptKey = this.storage.buildReceiptKey(payment.id, fileName);
+        await this.storage.uploadBuffer(receiptKey, buffer, mimeType, true);
+        receiptPhotoId = receiptKey;
       }
     }
 
@@ -590,7 +590,7 @@ export class AccountantService {
 
     // Если старый чек был в S3 и мы загружаем новый, удаляем старый файл
     if (payment.receiptPhotoId && payment.receiptPhotoId.includes('/') && payment.receiptPhotoId !== receiptPhotoId) {
-      await this.s3Storage.deleteObject(payment.receiptPhotoId);
+      await this.storage.deleteObject(payment.receiptPhotoId);
     }
 
     const updated = await this.prisma.payment.update({
@@ -614,7 +614,7 @@ export class AccountantService {
     }
 
     if (payment.receiptPhotoId && payment.receiptPhotoId.includes('/')) {
-      await this.s3Storage.deleteObject(payment.receiptPhotoId);
+      await this.storage.deleteObject(payment.receiptPhotoId);
     }
 
     const updated = await this.prisma.payment.update({
@@ -642,7 +642,7 @@ export class AccountantService {
       return { downloadUrl: key, receiptPhotoId: key, mimeType: 'image/jpeg' };
     }
 
-    const downloadUrl = this.s3Storage.getSignedDownloadUrl(key);
+    const downloadUrl = this.storage.getDownloadUrl(key);
     const isPdf = key.toLowerCase().endsWith('.pdf') || key === '***';
     return {
       downloadUrl,
@@ -1089,7 +1089,7 @@ export class AccountantService {
     
     let downloadUrl: string | null = null;
     if (storageKey) {
-      downloadUrl = this.s3Storage.getSignedDownloadUrl(storageKey);
+      downloadUrl = this.storage.getDownloadUrl(storageKey);
     } else if (invoice.invoiceUrl) {
       downloadUrl = invoice.invoiceUrl;
     }
@@ -1156,7 +1156,7 @@ export class AccountantService {
 
     const parsedRaw = safeJsonParse<Record<string, unknown>>(invoice.rawJson);
     const storageKey = parsedRaw?.s3Key as string || (isS3Key(invoice.localFilePath) ? invoice.localFilePath : null);
-    const downloadUrl = storageKey ? this.s3Storage.getSignedDownloadUrl(storageKey) : null;
+    const downloadUrl = storageKey ? this.storage.getDownloadUrl(storageKey) : null;
 
     return this.serialize({ account, invoice, storageKey, downloadUrl });
   }
