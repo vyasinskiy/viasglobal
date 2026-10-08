@@ -26,7 +26,7 @@ deploy-master:
 
 deploy-rent:
 	@echo "Синхронизация файлов проекта rent на сервер Huawei..."
-	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'postgres-data' --exclude '.next' --exclude '.playwright-browsers' --exclude 'backups' ./rent/ huawei@100.92.50.18:~/viasglobal/rent/
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'postgres-data' --exclude '.next' --exclude '.playwright-browsers' --exclude 'backups' --exclude 'data' --exclude '.env' ./rent/ huawei@100.92.50.18:~/viasglobal/rent/
 	@echo "Запуск развертывания проекта rent на сервере..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent && make deploy"
 
