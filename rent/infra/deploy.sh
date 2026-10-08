@@ -32,6 +32,8 @@ echo "📦 Building Telegram Bot..."
 docker build -t accruals-telegram-bot:latest "${TELEGRAM_BOT_PATH}"
 echo "📦 Building Admin UI..."
 docker build -t accruals-admin-ui:latest "${ADMIN_UI_PATH}"
+echo "📦 Building Visual Browser..."
+docker build -t accruals-visual-browser:latest ./visual-browser
 
 # 3. Start the infrastructure
 echo "🏗️  Starting infrastructure services (Database, RabbitMQ)..."

@@ -32,7 +32,10 @@ services:
       retries: 10
 
   visual-browser:
-    image: lscr.io/linuxserver/chromium:latest
+    image: accruals-visual-browser:latest
+    build:
+      context: ./visual-browser
+      dockerfile: Dockerfile
     container_name: accruals-visual-browser
     profiles:
       - manual
@@ -44,6 +47,11 @@ services:
       - TZ=Europe/Moscow
       - CUSTOM_USER=${ADMIN_USER:-admin}
       - PASSWORD=${ADMIN_PASSWORD:-viasglobal}
+      - KEYBOARD_LAYOUT=us,ru
+      - XKB_DEFAULT_LAYOUT=us,ru
+      - XKB_DEFAULT_OPTIONS=grp:ctrl_space_toggle,grp:ctrl_shift_toggle,grp:alt_shift_toggle
+      - LC_ALL=ru_RU.UTF-8
+      - LANG=ru_RU.UTF-8
       - CHROME_CLI=https://xn--80aaaf3bi1ahsd.xn--80asehdb/login
     volumes:
       - ${WATCHER_PATH:-../apps/watcher}/data/browser-profile:/config
