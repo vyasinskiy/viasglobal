@@ -139,12 +139,26 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
   - `CandidatesProductsView.sql`
   - `PrivateLabelView.sql`
   - `ContractedProductsView.sql`
+  - `ContractedFilteredProductsView.sql`
+  - `ContractedAllProductsView.sql`
+  - `KeepaExportView.sql`
 - **Функции (Functions)**: `backend/prisma/sql/functions/`
   - `calculate_max_buy_price.sql`
   - `get_asin_filter_reason.sql`
   - `check_brand_seller_dominance.sql`
   - `check_probable_private_label.sql`
   - `get_contracted_products.sql`
+  - `get_contracted_all_products.sql`
+  - `get_candidates_products.sql`
+
+### Валидация колонок и предотвращение рантайм-ошибок в SQL
+
+В PostgreSQL функции на языке PL/pgSQL (`LANGUAGE plpgsql`) при создании через `CREATE OR REPLACE FUNCTION` проверяют лишь базовый синтаксис процедурного кода. Существование и точные имена колонок таблиц внутри тела запросов (`RETURN QUERY WITH ...`) **не проверяются во время компиляции**, а оцениваются только во время первого реального выполнения.
+
+Для предотвращения рантайм-сбоев (например, ошибки `column snap.amazonOOS90Days does not exist`):
+1. **Сверка с `schema.prisma`**: При написании сырого SQL всегда проверяются точные имена полей в моделях Prisma (например, `amazon90DaysOOS`, `buyBox90DaysOOS` — число 90 перед `DaysOOS`).
+2. **Smoke-тесты в Jest**: В файле `backend/src/prisma/db-functions.spec.ts` настроен блок тестов, который выполняет `SELECT ... LIMIT 1` по всем существующим представлениям (Views) и табличным функциям базы данных. При выполнении обязательного шага тестирования (`npm test`) любые нестыковки в названиях колонок блокируют билд до выката в базу данных.
+
 
 ## Расчет расходов и маржинальности товаров в работе (`ContractedProductsView`)
 

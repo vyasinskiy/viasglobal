@@ -363,3 +363,32 @@ describe('Функция БД: get_asin_filter_reason', () => {
     }
   });
 });
+
+describe('Smoke-тесты SQL-представлений (Views) и функций базы данных', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('все представления БД (Views) должны успешно выполняться без ошибок отсутствующих колонок', async () => {
+    // Проверяем каждое SQL-представление базовым SELECT LIMIT 1 для валидации названий колонок в рантайме
+    await expect(prisma.$queryRaw`SELECT * FROM "ContractedProductsView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "ContractedFilteredProductsView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "ContractedAllProductsView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "AsinView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "CandidatesProductsView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "KeepaExportView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "PrivateLabelView" LIMIT 1`).resolves.toBeDefined();
+  }, 30000);
+
+  it('все ключевые табличные функции БД должны успешно вызываться с параметрами по умолчанию', async () => {
+    // Проверяем вызовы табличных функций с параметрами по умолчанию
+    await expect(prisma.$queryRaw`SELECT * FROM public.get_contracted_products() LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM public.get_contracted_all_products() LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM public.get_candidates_products() LIMIT 1`).resolves.toBeDefined();
+  }, 30000);
+});
+

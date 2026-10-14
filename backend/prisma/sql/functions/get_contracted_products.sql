@@ -47,7 +47,7 @@ BEGIN
             snap."fBAPickPackFee",
             snap."referralFee",
             snap."referralFeeBasedOnCurrentBuyBoxPrice",
-            snap."amazonOOS90Days"
+            snap."amazon90DaysOOS"
         FROM "ProductFinder" snap
         ORDER BY snap."asinId", snap."createdAt" DESC
     ),
@@ -87,8 +87,8 @@ BEGIN
             END::FLOAT AS calc_referral_fee,
             s."salesRankCurrent"::INT AS calc_sales_rank,
             CASE
-                WHEN s."amazonOOS90Days" IS NOT NULL 
-                THEN (100.0 - s."amazonOOS90Days") / 100.0
+                WHEN s."amazon90DaysOOS" IS NOT NULL 
+                THEN (100.0 - s."amazon90DaysOOS") / 100.0
                 ELSE 1.0
             END AS calc_amazon_share
         FROM "ASIN" a
@@ -106,8 +106,8 @@ BEGIN
           AND s."salesRankCurrent" <= p_max_sales_rank
           AND s."salesRankCurrent" > 0
           AND (
-                (s."amazonOOS90Days" IS NOT NULL AND (100.0 - s."amazonOOS90Days") / 100.0 <= p_max_amazon_share)
-                OR s."amazonOOS90Days" IS NULL
+                (s."amazon90DaysOOS" IS NOT NULL AND (100.0 - s."amazon90DaysOOS") / 100.0 <= p_max_amazon_share)
+                OR s."amazon90DaysOOS" IS NULL
           )
     ),
     fees_calc AS (
