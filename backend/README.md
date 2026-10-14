@@ -36,13 +36,22 @@ const contractedAll = await prisma.contractedAllProductsView.findMany({
 });
 ```
 
-## Снапшоты цен дистрибьюторов (`DistributorPriceSnapshot`)
+## Снапшоты цен дистрибьюторов (`DistributorPriceSnapshot`) и расчет минимальной партии
 
 Для учета динамики изменения цен в прайс-листах поставщиков создана модель `DistributorPriceSnapshot`:
 - `priceNetto` — базовая оптовая цена из прайс-листа в евро без налогов.
 - `costPrice` — итоговая расчетная себестоимость закупки с учетом испанских налогов (`priceNetto * 1.262`: 21% IVA + 5.2% Recargo de Equivalencia).
 - `distributorId` — связь с поставщиком `Distributor`.
 - `asinId` и `ean` — привязка к товару в нашей базе данных.
+- `unitsPerBox` — физическая вместимость стандартной заводской упаковки / коробки в штуках (`EMBALAJE` у Cofan, `UNI CAJA STD` у Safta).
+- `minBoxOrder` — минимальный объем партии закупки в **штуках** (total units). Вычисляется как `unitsPerBox * minBoxEnvases` (для поставщиков с кратностью заказа в коробках, например Cofan `ENVASE MÍNIMO`) либо равен прямому числу штук в коробке (для Safta, где заказ кратен стандартным коробкам).
+
+### Логика расчета минимальной партии в представлениях `Contracted*View`:
+В SQL-функциях `get_contracted_all_products` и `get_contracted_products`:
+- **Стоимость минимальной партии брутто**: `minBoxOrderGross = costPrice * COALESCE(minBoxOrder, unitsPerBox, 1)`
+- **Стоимость минимальной партии нетто**: `minBoxOrderNetto = priceNetto * COALESCE(minBoxOrder, unitsPerBox, 1)`
+- **Чистая прибыль с минимальной партии**: `netProfitPerMinBoxOrder = netProfitPerUnit * COALESCE(minBoxOrder, unitsPerBox, 1)`
+- **Коэффициент отдачи на капитал**: `profitCoefficient = netProfitPerMinBoxOrder / minBoxOrderGross` (показывает, сколько евро чистой прибыли генерирует каждый 1 евро, инвестированный в выкуп минимальной партии).
 
 Импорт прайс-листа выполняется скриптом:
 ```bash

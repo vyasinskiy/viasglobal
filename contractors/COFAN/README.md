@@ -25,7 +25,8 @@
     - `PVP/ud.` (рекомендованная розничная цена)
     - `PRECIO NETO` (наша индивидуальная закупочная цена со скидкой оптовика)
     - `STOCK` (наличие: `DISPONIBLE`)
-    - `EMBALAJE` / `ENVASE MÍNIMO`
+    - `EMBALAJE` (количество единиц в одной заводской коробке -> `unitsPerBox`)
+    - `ENVASE MÍNIMO` (минимальный заказ в коробках; в БД поле `minBoxOrder` сохраняется в штуках как `unitsPerBox * ENVASE MÍNIMO`)
 
 ---
 

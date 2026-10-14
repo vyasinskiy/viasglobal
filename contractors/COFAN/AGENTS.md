@@ -11,7 +11,7 @@
   - Страница авторизации: `https://www.cofan.es/es/privatearea/login/`
   - URL кабинета: `https://www.cofan.es/es/area-privada/`
   - Сохранение браузерной сессии выполняется скриптом `contractors/COFAN/scripts/save-session.ts`, сессия пишется в `contractors/COFAN/auth/storage_state.json`.
-  - В кабинете нет единой кнопки выгрузки тарифов, но в каждой карточке товара доступна таблица `REFERENCIAS` со структурой: `Referencia`, `EAN`, `PVP`, `Precio Neto`, `Stock`.
+  - В кабинете нет единой кнопки выгрузки тарифов, но в каждой карточке товара доступна таблица `REFERENCIAS` со структурой: `Referencia`, `EAN`, `Embalaje` (unitsPerBox — количество штук в заводской коробке), `Envase Mínimo` (кратность заказа в коробках; в БД `minBoxOrder` сохраняется в штуках: `unitsPerBox * Envase Mínimo`), `PVP`, `Precio Neto`, `Stock`.
   - Для получения готового полного прайс-листа в Excel поставщик обычно отвечает на запрос торговому представителю Iván Urquizu (`ivan.urquizu@cofansa.es`).
 - **Налоговый режим**:
   - Применяется испанский режим `Recargo de Equivalencia (R.E.)` (21% IVA + 5.2% R.E.). Мы не освобождены от R.E.

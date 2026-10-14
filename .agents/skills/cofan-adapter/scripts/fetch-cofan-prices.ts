@@ -35,6 +35,8 @@ interface CofanItemResult {
   priceNetto: number | null;
   costPrice: number | null;
   pvp: number | null;
+  unitsPerBox: number;
+  minBoxOrder: number;
   stock: string;
   buyBoxPrice?: number | null;
   bsr?: number | null;
@@ -48,6 +50,8 @@ async function fetchCofanDataByExactEan(page: Page, targetEan: string): Promise<
   referencia: string | null;
   pvp: number | null;
   priceNetto: number | null;
+  unitsPerBox: number;
+  minBoxOrder: number;
   stock: string;
   url: string;
 } | null> {
@@ -72,35 +76,77 @@ async function fetchCofanDataByExactEan(page: Page, targetEan: string): Promise<
     }
 
     const rowInfo = await page.evaluate((targetEanStr) => {
-      const rows = Array.from(document.querySelectorAll('#tablaReferencia tr, .tabla-referencias tr'));
+      // Ищем строки в таблицах референций Cofan
+      const rows = Array.from(document.querySelectorAll('#tablaReferencia tr, .tabla-referencias tr'))
+        .filter(r => r.querySelectorAll('td').length >= 4);
+
       let matchedRow = rows.find(r => (r.textContent || '').includes(targetEanStr));
-      if (!matchedRow && rows.length > 1) {
-        matchedRow = rows[rows.length - 1];
+      if (!matchedRow && rows.length > 0) {
+        matchedRow = rows[0];
       }
       if (!matchedRow) return null;
-      const rowInner = (matchedRow as HTMLElement).innerText.trim().replace(/\t+/g, ' | ');
-      return { rowInner };
+
+      const cells = Array.from(matchedRow.querySelectorAll('td')).map(td => (td.innerText || td.textContent || '').trim());
+
+      return {
+        cells,
+        rowInner: (matchedRow as HTMLElement).innerText.trim().replace(/\t+/g, ' | ')
+      };
     }, targetEan);
 
-    if (!rowInfo) return null;
+    if (!rowInfo || rowInfo.cells.length < 4) return null;
 
-    const parts = rowInfo.rowInner.split(' | ');
-    const refMatch = parts[0].match(/\b\d{7,9}\b/);
+    // В B2B структуре Cofan:
+    // cells[0]: артикул (Referencia)
+    // cells[1]: артикул + EAN + описание
+    // cells[2]: EMBALAJE (unitsPerBox)
+    // cells[3]: ENVASE MÍNIMO (minBoxOrder)
+    // cells[4]: PVP/ud.
+    // cells[5]: PRECIO NETO (чистая оптовая цена)
+    const refMatch = (rowInfo.cells[0] || '').match(/\b\d{7,9}\b/) || (rowInfo.cells[1] || '').match(/\b\d{7,9}\b/);
     const referencia = refMatch ? refMatch[0] : null;
 
+    let unitsPerBox = 1;
+    let minBoxOrder = 1;
     let pvp: number | null = null;
     let priceNetto: number | null = null;
 
-    for (const part of parts) {
-      const euroMatches = part.match(/([\d.,]+)\s*€/g);
-      if (euroMatches && euroMatches.length >= 2) {
-        pvp = parseFloat(euroMatches[0].replace('€', '').replace(',', '.').trim()) || null;
-        priceNetto = parseFloat(euroMatches[1].replace('€', '').replace(',', '.').trim()) || null;
-        break;
-      } else if (euroMatches && euroMatches.length === 1) {
-        const num = parseFloat(euroMatches[0].replace('€', '').replace(',', '.').trim());
-        if (!pvp) pvp = num;
-        else if (!priceNetto) priceNetto = num;
+    if (rowInfo.cells.length >= 6) {
+      const parsedEmbalaje = parseInt(rowInfo.cells[2].replace(/\D/g, ''), 10);
+      if (!isNaN(parsedEmbalaje) && parsedEmbalaje > 0) {
+        unitsPerBox = parsedEmbalaje;
+      }
+
+      const parsedEnvase = parseInt(rowInfo.cells[3].replace(/\D/g, ''), 10);
+      if (!isNaN(parsedEnvase) && parsedEnvase > 0) {
+        minBoxOrder = parsedEnvase;
+      }
+
+      const parsedPvp = parseFloat(rowInfo.cells[4].replace('€', '').replace(',', '.').trim());
+      if (!isNaN(parsedPvp) && parsedPvp > 0) {
+        pvp = parsedPvp;
+      }
+
+      const parsedNeto = parseFloat(rowInfo.cells[5].replace('€', '').replace(',', '.').trim());
+      if (!isNaN(parsedNeto) && parsedNeto > 0) {
+        priceNetto = parsedNeto;
+      }
+    }
+
+    // Если цены не распарсились по ячейкам, используем поиск по регулярным выражениям
+    if (!priceNetto || !pvp) {
+      const parts = rowInfo.rowInner.split(' | ');
+      for (const part of parts) {
+        const euroMatches = part.match(/([\d.,]+)\s*€/g);
+        if (euroMatches && euroMatches.length >= 2) {
+          if (!pvp) pvp = parseFloat(euroMatches[0].replace('€', '').replace(',', '.').trim()) || null;
+          if (!priceNetto) priceNetto = parseFloat(euroMatches[1].replace('€', '').replace(',', '.').trim()) || null;
+          break;
+        } else if (euroMatches && euroMatches.length === 1) {
+          const num = parseFloat(euroMatches[0].replace('€', '').replace(',', '.').trim());
+          if (!pvp) pvp = num;
+          else if (!priceNetto) priceNetto = num;
+        }
       }
     }
 
@@ -113,6 +159,8 @@ async function fetchCofanDataByExactEan(page: Page, targetEan: string): Promise<
       referencia,
       pvp,
       priceNetto,
+      unitsPerBox,
+      minBoxOrder,
       stock: stockText || 'DISPONIBLE',
       url: currentUrl,
     };
@@ -198,13 +246,15 @@ async function main() {
         priceNetto: cofanData.priceNetto,
         costPrice,
         pvp: cofanData.pvp,
+        unitsPerBox: cofanData.unitsPerBox,
+        minBoxOrder: cofanData.minBoxOrder,
         stock: cofanData.stock,
         buyBoxPrice: item.buyBoxPrice,
         bsr: item.bsr,
         cofanUrl: cofanData.url,
       });
 
-      console.log(`  -> Найдено: Ref ${cofanData.referencia} | Netto: ${cofanData.priceNetto}€ | Себестоимость с R.E.: ${costPrice}€`);
+      console.log(`  -> Найдено: Ref ${cofanData.referencia} | Netto: ${cofanData.priceNetto}€ | Себестоимость: ${costPrice}€ | Embalaje: ${cofanData.unitsPerBox} шт. | Мин. заказ: ${cofanData.minBoxOrder} кор.`);
     } else {
       console.log(`  -> Не найден на портале Cofan`);
     }
@@ -228,6 +278,8 @@ async function main() {
     'Закупка Neto (€)': r.priceNetto,
     'Себестоимость с R.E. 26.2% (€)': r.costPrice,
     'Каталожный PVP (€)': r.pvp || '',
+    'Штук в коробке (Embalaje)': r.unitsPerBox,
+    'Мин. заказ коробок (Envase)': r.minBoxOrder,
     'Цена Amazon BuyBox (€)': r.buyBoxPrice || '',
     'Наличие на складе': r.stock,
     'Ссылка Cofan': r.cofanUrl,

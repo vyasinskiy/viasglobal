@@ -392,3 +392,75 @@ describe('Smoke-тесты SQL-представлений (Views) и функц�
   }, 30000);
 });
 
+describe('Регрессионные тесты расчета минимальной партии (unitsPerBox и minBoxOrder) в ContractedAllProductsView', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('показатели Safta (где коробка = 400 шт) должны точно рассчитываться по объему коробки', async () => {
+    const saftaRow: any = await prisma.$queryRawUnsafe(`
+      SELECT "asin", "ean", "distributor", "unitsPerBox", "grossPrice", "minBoxOrderGross", "netProfitPerUnit", "netProfitPerMinBoxOrder", "profitCoefficient"
+      FROM "ContractedAllProductsView"
+      WHERE "ean" = '8412688820252'
+      LIMIT 1;
+    `);
+
+    expect(saftaRow.length).toBe(1);
+    const item = saftaRow[0];
+
+    // Проверяем эталонные значения Safta до и после изменений
+    expect(item.distributor).toBe('Safta');
+    expect(item.unitsPerBox).toBe(400);
+    expect(item.grossPrice).toBe(0.31);
+    expect(item.minBoxOrderGross).toBe(124); // 400 шт * 0.31€
+    expect(item.netProfitPerUnit).toBe(10.44);
+    expect(item.netProfitPerMinBoxOrder).toBe(4176); // 400 шт * 10.44€
+    expect(item.profitCoefficient).toBe(33.6774); // 4176 / 124
+  }, 30000);
+
+  it('показатели Safta для второго товара (где коробка = 500 шт) должны быть стабильны', async () => {
+    const saftaRow: any = await prisma.$queryRawUnsafe(`
+      SELECT "asin", "ean", "distributor", "unitsPerBox", "grossPrice", "minBoxOrderGross", "netProfitPerUnit", "netProfitPerMinBoxOrder", "profitCoefficient"
+      FROM "ContractedAllProductsView"
+      WHERE "ean" = '8412688430918'
+      LIMIT 1;
+    `);
+
+    expect(saftaRow.length).toBe(1);
+    const item = saftaRow[0];
+
+    expect(item.distributor).toBe('Safta');
+    expect(item.unitsPerBox).toBe(500);
+    expect(item.grossPrice).toBe(0.15);
+    expect(item.minBoxOrderGross).toBe(75); // 500 шт * 0.15€
+    expect(item.netProfitPerUnit).toBe(1.14);
+    expect(item.netProfitPerMinBoxOrder).toBe(570); // 500 шт * 1.14€
+  }, 30000);
+
+  it('показатели Cofan (десикант) должны точно рассчитываться по полной коробке (20 шт)', async () => {
+    const cofanRow: any = await prisma.$queryRawUnsafe(`
+      SELECT "asin", "ean", "distributor", "unitsPerBox", "minBoxOrder", "grossPrice", "minBoxOrderGross", "netProfitPerUnit", "netProfitPerMinBoxOrder", "profitCoefficient"
+      FROM "ContractedAllProductsView"
+      WHERE "ean" = '8445187398878'
+      LIMIT 1;
+    `);
+
+    expect(cofanRow.length).toBe(1);
+    const item = cofanRow[0];
+
+    expect(item.distributor).toBe('Cofan');
+    expect(item.unitsPerBox).toBe(20);
+    expect(item.minBoxOrder).toBe(20); // 1 коробка * 20 шт/кор = 20 шт
+    expect(item.grossPrice).toBe(2.47);
+    expect(item.minBoxOrderGross).toBeCloseTo(49.4, 2); // 20 шт * 2.47€
+    expect(item.netProfitPerUnit).toBe(4.97);
+    expect(item.netProfitPerMinBoxOrder).toBeCloseTo(99.4, 2); // 20 шт * 4.97€
+    expect(item.profitCoefficient).toBeCloseTo(2.0121, 4); // 99.4 / 49.4
+  }, 30000);
+});
+
+

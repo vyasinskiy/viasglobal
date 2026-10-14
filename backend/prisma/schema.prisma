@@ -122,8 +122,8 @@ model DistributorPriceSnapshot {
   ean           String?     /// Штрихкод EAN товара из прайс-листа (для автосопоставления)
   priceNetto    Float       /// Оптовая цена закупки без НДС (в евро)
   costPrice     Float       /// Себестоимость с испанскими налогами (priceNetto * 1.262: 21% IVA + 5.2% Recargo de Equivalencia)
-  unitsPerBox   Int?        /// Количество штук в заводской упаковке (коробке)
-  minBoxOrder   Int?        /// Минимальный заказ в штуках (или коробках, если кратно)
+  unitsPerBox   Int?        /// Количество штук в стандартной заводской упаковке / коробке (EMBALAJE у Cofan, UNI CAJA STD у Safta)
+  minBoxOrder   Int?        /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок, либо прямое количество штук)
   createdAt     DateTime    @default(now()) /// Дата и время загрузки прайс-листа
 
   distributor   Distributor @relation(fields: [distributorId], references: [id])
@@ -365,8 +365,8 @@ view ContractedProductsView {
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
   netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
-  minBoxOrder   Int?    /// Минимальный заказ
-  unitsPerBox   Int?    /// Количество штук в заводской упаковке
+  minBoxOrder   Int?    /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок)
+  unitsPerBox   Int?    /// Вместимость заводской коробки в штуках (EMBALAJE / UNI CAJA STD)
   netPrice      Float?  /// Цена закупки нетто (без налогов)
   grossPrice    Float?  /// Цена закупки брутто (с налогами)
   costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
@@ -391,8 +391,8 @@ view ContractedFilteredProductsView {
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
   netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
-  minBoxOrder   Int?    /// Минимальный заказ
-  unitsPerBox   Int?    /// Количество штук в заводской упаковке
+  minBoxOrder   Int?    /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок)
+  unitsPerBox   Int?    /// Вместимость заводской коробки в штуках (EMBALAJE / UNI CAJA STD)
   netPrice      Float?  /// Цена закупки нетто (без налогов)
   grossPrice    Float?  /// Цена закупки брутто (с налогами)
   costPrice     Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
@@ -421,8 +421,8 @@ view ContractedAllProductsView {
   title          String? /// Название товара
   netProfitPerUnit Float? /// Чистая прибыль с одной штуки
   minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
-  minBoxOrder    Int?    /// Минимальный заказ
-  unitsPerBox    Int?    /// Количество штук в заводской упаковке
+  minBoxOrder    Int?    /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок)
+  unitsPerBox    Int?    /// Вместимость заводской коробки в штуках (EMBALAJE / UNI CAJA STD)
   netPrice       Float?  /// Цена закупки нетто (без налогов)
   costPrice      Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   brand          String? /// Название бренда

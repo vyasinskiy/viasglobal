@@ -171,6 +171,17 @@ async function main() {
       unmatchedEans.push(rawEan);
     }
 
+    // Извлекаем количество штук в коробке (Embalaje) и минимальный заказ коробок (Envase Mínimo)
+    const rawUnitsPerBox = parseInt(String(row['Штук в коробке (Embalaje)'] || row['unitsPerBox'] || '1'), 10);
+    const unitsPerBox = !isNaN(rawUnitsPerBox) && rawUnitsPerBox > 0 ? rawUnitsPerBox : 1;
+
+    // В веб-кабинете Cofan графа "ENVASE MÍNIMO" задает кратность в коробках (envases).
+    // В базе данных поле minBoxOrder измеряется в штуках (как и у Safta).
+    // Поэтому минимальный заказ в штуках = unitsPerBox * minBoxEnvases.
+    const rawMinBoxEnvases = parseInt(String(row['Мин. заказ коробок (Envase)'] || row['minBoxOrder'] || '1'), 10);
+    const minBoxEnvases = !isNaN(rawMinBoxEnvases) && rawMinBoxEnvases > 0 ? rawMinBoxEnvases : 1;
+    const minBoxOrder = unitsPerBox * minBoxEnvases;
+
     // Создаем снапшот цены в DistributorPriceSnapshot
     await prisma.distributorPriceSnapshot.create({
       data: {
@@ -179,8 +190,8 @@ async function main() {
         ean: rawEan,
         priceNetto: rawPriceNetto,
         costPrice: costPrice,
-        unitsPerBox: 1,
-        minBoxOrder: 1,
+        unitsPerBox: unitsPerBox,
+        minBoxOrder: minBoxOrder,
       },
     });
 

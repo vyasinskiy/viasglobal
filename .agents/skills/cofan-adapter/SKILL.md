@@ -34,6 +34,8 @@ description: Автоматизированный адаптер поставщ�
   - Внутренний артикул Cofan (`referencia`).
   - Оптовая чистая цена (`priceNetto`).
   - Каталожная розничная цена (`PVP`).
+  - Фабричная упаковка / количество единиц в одной коробке (`EMBALAJE` -> `unitsPerBox`).
+  - Минимальный заказ в коробках (`ENVASE MÍNIMO` -> `minBoxEnvases`, в БД `minBoxOrder = unitsPerBox * minBoxEnvases`).
   - Статус наличия на складе (`stock`).
 - Вычисляется себестоимость закупки с учетом режима *Recargo de Equivalencia* в Испании:
   $$\text{costPrice} = \text{priceNetto} \times 1.262 \quad (21\% \text{ IVA} + 5.2\% \text{ R.E.})$$
@@ -41,7 +43,7 @@ description: Автоматизированный адаптер поставщ�
 ### Шаг 3. Создание промежуточного Excel файла для ручной проверки
 - Формируется файл: `contractors/COFAN/reports/cofan_staging_prices_<timestamp>.xlsx`.
 - Таблица содержит колонки:
-  `EAN`, `ASIN`, `Артикул Cofan`, `Наименование`, `BSR`, `Закупка Neto (€)`, `Себестоимость с R.E. (€)`, `Amazon BuyBox (€)`, `Чистая прибыль (€)`, `ROI (%)`, `Наличие на складе`.
+  `EAN`, `ASIN`, `Артикул Cofan`, `Наименование`, `BSR`, `Закупка Neto (€)`, `Себестоимость с R.E. (€)`, `Каталожный PVP (€)`, `Штук в коробке (Embalaje)`, `Мин. заказ коробок (Envase)`, `Amazon BuyBox (€)`, `Наличие на складе`.
 - Пользователю предоставляется прямая ссылка на файл и краткая сводка (количество распознанных позиций, средний ROI).
 
 ### Шаг 4. Согласование и подтверждение с пользователем
@@ -56,7 +58,7 @@ description: Автоматизированный адаптер поставщ�
   ```
 - Скрипт:
   1. Находит дистрибьютора `Cofan` в таблице `Distributor` (ID: 6) и выставляет статус `ACCOUNT_OPENED`.
-  2. Создает снапшоты в таблице `DistributorPriceSnapshot` (`priceNetto`, `costPrice`, `unitsPerBox = 1`, `minBoxOrder = 1`).
+  2. Создает снапшоты в таблице `DistributorPriceSnapshot` (`priceNetto`, `costPrice`, `unitsPerBox`, `minBoxOrder`).
   3. Связывает найденные `ASIN` с дистрибьютором Cofan (`_ASINToDistributor`).
   4. Добавляет товары в очередь `RequestProductQueue` с наивысшим приоритетом (`999999`) для обновления Keepa.
   5. Переводит статус бренда `COFAN` в `'CONTRACTED'` (при необходимости), чтобы товары отображались в представлении `ContractedAllProductsView`.
