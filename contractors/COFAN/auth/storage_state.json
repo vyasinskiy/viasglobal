@@ -1,0 +1,128 @@
+{
+  "cookies": [
+    {
+      "name": "_GRECAPTCHA",
+      "value": "09AKhCRwgn_3623Bm_w3tnsZCgh1tOT3vTS5OOP8DE7TGkQYzN2EKM9vyFNABlJEI7ES9HafpQJy4geDSE3SCfQcg",
+      "domain": "www.google.com",
+      "path": "/recaptcha",
+      "expires": 1807523286.876476,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "PT",
+      "value": "1",
+      "domain": "www.cofan.es",
+      "path": "/",
+      "expires": 1823507265,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "hideCookiesCofan",
+      "value": "1",
+      "domain": "www.cofan.es",
+      "path": "/",
+      "expires": 1823507267,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "TT",
+      "value": "1",
+      "domain": "www.cofan.es",
+      "path": "/",
+      "expires": 1823507267,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "TM",
+      "value": "1",
+      "domain": "www.cofan.es",
+      "path": "/",
+      "expires": 1823507267,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "TP",
+      "value": "1",
+      "domain": "www.cofan.es",
+      "path": "/",
+      "expires": 1823507267,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.1442631130.1791971267",
+      "domain": ".cofan.es",
+      "path": "/",
+      "expires": 1826531288.441215,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Host-SID",
+      "value": "nmahcggut14aof3535hqsukbqn",
+      "domain": "www.cofan.es",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_WCCQWQW9CV",
+      "value": "GS2.1.s1791971267$o1$g1$t1791971288$j39$l0$h0",
+      "domain": ".cofan.es",
+      "path": "/",
+      "expires": 1826531288.443171,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_fbp",
+      "value": "fb.1.1791971288659.828689051613594881",
+      "domain": ".cofan.es",
+      "path": "/",
+      "expires": 1799747288,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://www.cofan.es",
+      "localStorage": [
+        {
+          "name": "_grecaptcha",
+          "value": "09AKhCRwgFVPAlfJ1lKeXfYpH8L-O5aK88X1I2aF2espN8pIoceyNIt2xYzt-R6d9q03O-I_8fE7DVMiVdfraoISAyNVwPJLAQdrlKX24_9YLcWk0u6EHBE9f5u8zyvzYg"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "MTIzbWE5dzFkMjNhMjQ="
+        },
+        {
+          "name": "rc::f",
+          "value": "0aAPDCMQyPvPFv1kL1DH5YtsUHaO0tpMw_ndaPRKELepWTl7Lj0pKib-wdgam9_HXKxifvE3U"
+        }
+      ]
+    }
+  ]
+}
