@@ -289,10 +289,17 @@ export class BrowserManagerService implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      // 1. Сначала отправляем мягкий сигнал завершения Chromium, чтобы он успел сбросить куки и сессию на диск
-      this.logger.log(`Отправка SIGTERM процессу Chromium внутри ${container}...`);
-      await this.execInContainer(container, ['pkill', '-TERM', '-f', 'chromium']);
-      // Даем 2 секунды на сброс сессии в базу данных SQLite
+      // 1. Посылаем сигнал SIGTERM ТОЛЬКО главному процессу Chromium (родительский PID),
+      // чтобы главный процесс успел отправить IPC-команду FlushAndClose в NetworkService,
+      // корректно сбросить кэш сессионных кук в SQLite базу данных на диск и закрыть все базы без повреждений.
+      // Категорически нельзя использовать pkill по всем процессам, так как он убивает NetworkService до сброса данных!
+      this.logger.log(`Отправка корректного SIGTERM главному процессу Chromium внутри ${container}...`);
+      await this.execInContainer(container, [
+        'bash',
+        '-c',
+        'MAIN_PID=$(pgrep -o -f "chromium.*media-router" || pgrep -o -f chromium); if [ -n "$MAIN_PID" ]; then kill -TERM "$MAIN_PID"; for i in $(seq 1 8); do pgrep -f "chromium.*media-router" > /dev/null || break; sleep 0.5; done; fi'
+      ]);
+      // Даем еще 2 секунды на полную синхронизацию файловой системы
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // 2. Отправляем команду на остановку контейнера с увеличенным таймаутом 15 секунд
@@ -300,7 +307,8 @@ export class BrowserManagerService implements OnModuleInit, OnModuleDestroy {
 
       if (response.statusCode === 204 || response.statusCode === 304) {
         this.logger.log(`Контейнер ${container} успешно остановлен.`);
-        // После остановки контейнера обновляем параметры Preferences и права доступа к профилю
+        // После остановки контейнера очищаем устаревшие замки профиля, обновляем Preferences и права доступа
+        this.cleanSingletonLocks();
         this.ensureChromiumPreferences();
         this.fixProfilePermissions();
 
@@ -329,6 +337,29 @@ export class BrowserManagerService implements OnModuleInit, OnModuleDestroy {
         message: `Сбой остановки удаленного браузера: ${errorMessage}`,
         error: errorMessage,
       };
+    }
+  }
+
+  // Удаляет устаревшие симлинки SingletonLock, SingletonSocket, SingletonCookie,
+  // чтобы Playwright мог беспрепятственно открыть постоянный контекст браузера без конфликтов блокировок
+  cleanSingletonLocks(): void {
+    try {
+      const profilePath = config.BROWSER_PROFILE_PATH;
+      if (!profilePath || !fs.existsSync(profilePath)) return;
+      const entries = fs.readdirSync(profilePath);
+      for (const entry of entries) {
+        if (entry.startsWith('Singleton')) {
+          const fullPath = path.join(profilePath, entry);
+          try {
+            fs.unlinkSync(fullPath);
+            this.logger.log(`Удален устаревший замок профиля: ${entry}`);
+          } catch {
+            // Игнорируем ошибки удаления симлинка
+          }
+        }
+      }
+    } catch (err) {
+      this.logger.warn(`Не удалось очистить замки Singleton: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

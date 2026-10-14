@@ -134,6 +134,8 @@ export class KvartplataAdapter {
     let context: BrowserContext;
     
     if (config.BROWSER_PROFILE_PATH && !config.BROWSER_WS_ENDPOINT) {
+      // Удаляем остаточные замки Chromium, чтобы Playwright не создавал пустой временный профиль
+      cleanProfileSingletonLocks(config.BROWSER_PROFILE_PATH);
       context = await chromium.launchPersistentContext(config.BROWSER_PROFILE_PATH, {
         headless: config.HEADLESS,
         acceptDownloads: true
@@ -310,6 +312,8 @@ export class KvartplataAdapter {
     let context: BrowserContext;
 
     if (config.BROWSER_PROFILE_PATH && !config.BROWSER_WS_ENDPOINT) {
+      // Удаляем остаточные замки Chromium перед открытием сессии скачивания
+      cleanProfileSingletonLocks(config.BROWSER_PROFILE_PATH);
       context = await chromium.launchPersistentContext(config.BROWSER_PROFILE_PATH, {
         headless: config.HEADLESS,
         acceptDownloads: true
@@ -577,4 +581,27 @@ function dedupe<T>(items: T[], getKey: (item: T) => string): T[] {
 
 function formatApartment(apartment: ApartmentSnapshot): string {
   return [apartment.externalId, apartment.address, apartment.organization].filter(Boolean).join(' | ');
+}
+
+/**
+ * Очищает остаточные симлинки SingletonLock, SingletonSocket, SingletonCookie в профиле Chromium.
+ * Это предотвращает создание временных изолированных профилей Playwright при запуске.
+ */
+function cleanProfileSingletonLocks(profilePath: string): void {
+  try {
+    if (!profilePath || !fs.existsSync(profilePath)) return;
+    const entries = fs.readdirSync(profilePath);
+    for (const entry of entries) {
+      if (entry.startsWith('Singleton')) {
+        const fullPath = `${profilePath}/${entry}`;
+        try {
+          fs.unlinkSync(fullPath);
+        } catch {
+          // Игнорируем ошибки удаления симлинка
+        }
+      }
+    }
+  } catch {
+    // Игнорируем ошибки доступа
+  }
 }
