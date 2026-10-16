@@ -736,6 +736,7 @@ export class TelegramBotInteractionService implements OnModuleInit {
           userName: ctx.from!.username || ctx.from!.first_name,
           amount,
           receiptPhotoId: photo.file_id,
+          paymentDate: new Date().toISOString(),
           createdAt: new Date().toISOString(),
         }));
 
@@ -994,6 +995,7 @@ export class TelegramBotInteractionService implements OnModuleInit {
 
     try {
       const paymentDate = draft.paymentDate ? new Date(draft.paymentDate) : new Date();
+      const validPaymentDate = isNaN(paymentDate.getTime()) ? new Date().toISOString() : paymentDate.toISOString();
 
       await firstValueFrom(
         this.accountantClient.send('create_payment', {
@@ -1001,7 +1003,8 @@ export class TelegramBotInteractionService implements OnModuleInit {
           amount: draft.totalAmount,
           comment: draft.comment,
           receiptPhotoId: draft.photoFileId,
-          createdAt: isNaN(paymentDate.getTime()) ? new Date().toISOString() : paymentDate.toISOString(),
+          paymentDate: validPaymentDate,
+          createdAt: validPaymentDate,
           status: 'confirmed',
         }),
       );
@@ -1436,6 +1439,7 @@ export class TelegramBotInteractionService implements OnModuleInit {
         userName,
         amount,
         receiptPhotoId: photoFileId,
+        paymentDate: paymentDate.toISOString(),
         createdAt: paymentDate.toISOString(),
         status: 'unconfirmed'
       }));

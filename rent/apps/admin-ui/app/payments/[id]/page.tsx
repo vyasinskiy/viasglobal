@@ -42,6 +42,7 @@ interface Payment {
   amount: string | number;
   receiptPhotoId: string | null;
   status: string;
+  paymentDate?: string;
   createdAt: string;
   confirmedAt: string | null;
   comment: string | null;
@@ -100,7 +101,8 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
     setEditStatus(payment.status);
     setEditComment(payment.comment || '');
     setEditConfirmedAt(payment.confirmedAt ? new Date(payment.confirmedAt).toISOString().slice(0, 16) : '');
-    setEditCreatedAt(payment.createdAt ? new Date(payment.createdAt).toISOString().slice(0, 16) : '');
+    const dateToEdit = payment.paymentDate || payment.createdAt;
+    setEditCreatedAt(dateToEdit ? new Date(dateToEdit).toISOString().slice(0, 16) : '');
     setEditOpen(true);
   };
 
@@ -128,6 +130,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
       }
 
       if (editCreatedAt) {
+        payload.paymentDate = new Date(editCreatedAt).toISOString();
         payload.createdAt = new Date(editCreatedAt).toISOString();
       }
 
@@ -427,6 +430,14 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
             <div>
               <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block' }}>Дата платежа</span>
               <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500, display: 'block', marginTop: '4px' }}>
+                {formatDate(payment.paymentDate || payment.createdAt)}
+              </span>
+            </div>
+
+            {/* Создан в системе */}
+            <div>
+              <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block' }}>Создан в системе</span>
+              <span style={{ fontSize: '0.95rem', color: '#64748b', fontWeight: 400, display: 'block', marginTop: '4px' }}>
                 {formatDate(payment.createdAt)}
               </span>
             </div>

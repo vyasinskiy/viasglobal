@@ -399,7 +399,8 @@ export class AccountantController {
     fileBufferBase64?: string;
     receiptUrl?: string;
     comment?: string;
-    createdAt?: string;
+    paymentDate?: string | Date;
+    createdAt?: string | Date;
     status?: string;
     bankId?: number;
   }) {
@@ -498,6 +499,7 @@ export class AccountantController {
       bankId?: number | null;
       status?: string;
       confirmedAt?: string | Date | null;
+      paymentDate?: string | Date;
       createdAt?: string | Date;
       receiptPhotoId?: string | null;
     }

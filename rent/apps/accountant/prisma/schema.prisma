@@ -130,6 +130,7 @@ model Payment {
   amount           Decimal  @db.Decimal(10, 2)
   receiptPhotoId   String?  @map("receipt_photo_id")
   status           String   @default("unconfirmed") // unconfirmed, confirmed, rejected
+  paymentDate      DateTime @default(now()) @map("payment_date")
   createdAt        DateTime @default(now()) @map("created_at")
   confirmedAt      DateTime? @map("confirmed_at")
   confirmedBy      BigInt?  @map("confirmed_by")
@@ -140,6 +141,7 @@ model Payment {
   bank             Bank?    @relation(fields: [bankId], references: [id], onDelete: SetNull)
 
   @@index([bankId], map: "idx_payments_bank_id")
+  @@index([paymentDate], map: "idx_payments_payment_date")
   @@map("payments")
 }
 

@@ -46,6 +46,7 @@ interface Payment {
   receiptPhotoId: string | null;
   receiptUrl?: string | null;
   status: string; // unconfirmed, confirmed, rejected
+  paymentDate?: string;
   createdAt: string;
   confirmedAt: string | null;
   comment: string | null;
@@ -212,6 +213,7 @@ export default function PaymentsPage() {
         action: 'create',
         tenantId: parseInt(addTenantId, 10),
         amount: parseFloat(addAmount),
+        paymentDate: addDate ? new Date(addDate).toISOString() : new Date().toISOString(),
         createdAt: addDate ? new Date(addDate).toISOString() : new Date().toISOString(),
         comment: addComment || null,
         receiptPhotoId: addReceiptPreview || null,
@@ -532,7 +534,7 @@ export default function PaymentsPage() {
                   </TableCell>
                   <TableCell>{renderStatus(row.status)}</TableCell>
                   <TableCell style={{ color: '#64748b', whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
-                    {formatDate(row.createdAt)}
+                    {formatDate(row.paymentDate || row.createdAt)}
                   </TableCell>
                   <TableCell style={{ color: '#475569', maxWidth: '170px' }}>
                     <div 

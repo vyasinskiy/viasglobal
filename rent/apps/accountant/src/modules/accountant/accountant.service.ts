@@ -404,6 +404,7 @@ export class AccountantService {
     fileBufferBase64?: string | null;
     receiptUrl?: string | null;
     comment?: string | null;
+    paymentDate?: string | Date;
     createdAt?: string | Date;
     status?: string;
     bankId?: number;
@@ -437,7 +438,14 @@ export class AccountantService {
       }
     }
 
-    const paymentDate = data.createdAt ? new Date(data.createdAt) : new Date();
+    // Определение фактической даты совершения платежа (paymentDate)
+    const rawPaymentDate = data.paymentDate || data.createdAt;
+    const parsedPaymentDate = rawPaymentDate ? new Date(rawPaymentDate) : new Date();
+    const finalPaymentDate = isNaN(parsedPaymentDate.getTime()) ? new Date() : parsedPaymentDate;
+
+    // Системный штамп создания записи в БД (createdAt)
+    const parsedCreatedAt = data.createdAt ? new Date(data.createdAt) : undefined;
+    const finalCreatedAt = parsedCreatedAt && !isNaN(parsedCreatedAt.getTime()) ? parsedCreatedAt : undefined;
 
     // Проверяем, передан ли чек (в поле receiptPhotoId как data:, http://, либо в отдельных полях)
     let initialReceiptPhotoId: string | null = data.receiptPhotoId || null;
@@ -469,7 +477,8 @@ export class AccountantService {
         confirmedAt: (data.status === 'confirmed') ? new Date() : null,
         confirmedBy: (data.status === 'confirmed') ? BigInt(1) : null,
         bankId: data.bankId !== undefined && data.bankId !== null ? Number(data.bankId) : null,
-        createdAt: isNaN(paymentDate.getTime()) ? new Date() : paymentDate,
+        paymentDate: finalPaymentDate,
+        ...(finalCreatedAt ? { createdAt: finalCreatedAt } : {}),
       },
       include: {
         user: true,
@@ -666,6 +675,7 @@ export class AccountantService {
     bankId?: number | null;
     status?: string;
     confirmedAt?: string | Date | null;
+    paymentDate?: string | Date;
     createdAt?: string | Date;
     receiptPhotoId?: string | null;
   }) {
@@ -700,7 +710,21 @@ export class AccountantService {
       updateData.confirmedAt = data.confirmedAt ? new Date(data.confirmedAt) : null;
       updateData.confirmedBy = data.confirmedAt ? BigInt(1) : null;
     }
-    if (data.createdAt !== undefined) updateData.createdAt = new Date(data.createdAt);
+
+    // Обновление даты платежа (paymentDate)
+    const rawPaymentDate = data.paymentDate !== undefined ? data.paymentDate : data.createdAt;
+    if (rawPaymentDate !== undefined) {
+      const parsedDate = new Date(rawPaymentDate);
+      if (!isNaN(parsedDate.getTime())) {
+        updateData.paymentDate = parsedDate;
+      }
+    }
+    if (data.createdAt !== undefined && data.paymentDate !== undefined) {
+      const parsedCreated = new Date(data.createdAt);
+      if (!isNaN(parsedCreated.getTime())) {
+        updateData.createdAt = parsedCreated;
+      }
+    }
 
     let pendingDataUri: string | null = null;
     let pendingReceiptUrl: string | null = null;
@@ -1200,7 +1224,7 @@ export class AccountantService {
         user: true,
         bank: true,
       },
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ paymentDate: 'desc' }, { createdAt: 'desc' }],
     });
     const serialized = this.serialize(results);
     return Array.isArray(serialized) ? serialized.map((p: any) => this.enrichPaymentReceiptUrl(p)) : serialized;
@@ -1350,7 +1374,7 @@ export class AccountantService {
         user: true,
         bank: true,
       },
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ paymentDate: 'desc' }, { createdAt: 'desc' }],
     });
     const serialized = this.serialize(results);
     return Array.isArray(serialized) ? serialized.map((p: any) => this.enrichPaymentReceiptUrl(p)) : serialized;

@@ -44,6 +44,7 @@ interface Payment {
   amount: string | number;
   receiptPhotoId: string | null;
   status: string;
+  paymentDate?: string;
   createdAt: string;
   confirmedAt: string | null;
   comment: string | null;
@@ -384,7 +385,7 @@ export default function BankDetailPage({ params }: { params: { id: string } }) {
                     {Number(row.amount).toFixed(2)} руб.
                   </TableCell>
                   <TableCell>{renderStatus(row.status)}</TableCell>
-                  <TableCell style={{ color: '#64748b' }}>{formatDateTime(row.createdAt)}</TableCell>
+                  <TableCell style={{ color: '#64748b' }}>{formatDateTime(row.paymentDate || row.createdAt)}</TableCell>
                   <TableCell style={{ color: '#475569', maxWidth: '200px', wordBreak: 'break-word' }}>
                     {row.comment || '—'}
                   </TableCell>
