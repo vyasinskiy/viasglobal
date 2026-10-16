@@ -735,7 +735,8 @@ export class TelegramBotInteractionService implements OnModuleInit {
           tenantId: user.tenantId,
           userName: ctx.from!.username || ctx.from!.first_name,
           amount,
-          receiptPhotoId: photo.file_id
+          receiptPhotoId: photo.file_id,
+          createdAt: new Date().toISOString(),
         }));
 
         ctx.session.state = undefined;

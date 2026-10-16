@@ -39,7 +39,6 @@ interface Bank {
 interface Payment {
   id: number;
   userId: number;
-  userName: string | null;
   amount: string | number;
   receiptPhotoId: string | null;
   status: string;
@@ -47,6 +46,9 @@ interface Payment {
   confirmedAt: string | null;
   comment: string | null;
   bank?: Bank | null;
+  user?: {
+    name: string | null;
+  };
 }
 
 // Универсальный SWR-загрузчик
@@ -80,6 +82,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
   const [editStatus, setEditStatus] = React.useState('');
   const [editComment, setEditComment] = React.useState('');
   const [editConfirmedAt, setEditConfirmedAt] = React.useState('');
+  const [editCreatedAt, setEditCreatedAt] = React.useState('');
   const [isSavingEdit, setIsSavingEdit] = React.useState(false);
 
   // Состояние удаления платежа
@@ -97,6 +100,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
     setEditStatus(payment.status);
     setEditComment(payment.comment || '');
     setEditConfirmedAt(payment.confirmedAt ? new Date(payment.confirmedAt).toISOString().slice(0, 16) : '');
+    setEditCreatedAt(payment.createdAt ? new Date(payment.createdAt).toISOString().slice(0, 16) : '');
     setEditOpen(true);
   };
 
@@ -121,6 +125,10 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
         payload.confirmedAt = editConfirmedAt ? new Date(editConfirmedAt).toISOString() : (payment?.confirmedAt || new Date().toISOString());
       } else {
         payload.confirmedAt = null;
+      }
+
+      if (editCreatedAt) {
+        payload.createdAt = new Date(editCreatedAt).toISOString();
       }
 
       const { data: updated } = await axios.put(`/api/payments/${paymentId}`, payload);
@@ -391,7 +399,7 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
                 Плательщик
               </span>
               <strong style={{ fontSize: '1.05rem', color: '#0f172a', display: 'block', marginTop: '4px' }}>
-                {payment.userName || `ID пользователя: ${payment.userId}`}
+                {payment.user?.name || `ID пользователя: ${payment.userId}`}
               </strong>
             </div>
 
@@ -415,9 +423,9 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
               </div>
             </div>
 
-            {/* Дата создания */}
+            {/* Дата платежа */}
             <div>
-              <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block' }}>Дата отправки</span>
+              <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block' }}>Дата платежа</span>
               <span style={{ fontSize: '0.95rem', color: '#334155', fontWeight: 500, display: 'block', marginTop: '4px' }}>
                 {formatDate(payment.createdAt)}
               </span>
@@ -624,6 +632,15 @@ export default function PaymentDetailPage({ params }: { params: { id: string } }
                 </MenuItem>
               ))}
             </TextField>
+            <TextField
+              label="Дата и время платежа"
+              type="datetime-local"
+              fullWidth
+              required
+              value={editCreatedAt}
+              onChange={(e) => setEditCreatedAt(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
             <TextField
               select
               label="Статус платежа"

@@ -127,7 +127,6 @@ model Payment {
   // existing fields remain unchanged
   id               Int      @id @default(autoincrement())
   userId           Int      @map("user_id")
-  userName         String?  @map("user_name")
   amount           Decimal  @db.Decimal(10, 2)
   receiptPhotoId   String?  @map("receipt_photo_id")
   status           String   @default("unconfirmed") // unconfirmed, confirmed, rejected

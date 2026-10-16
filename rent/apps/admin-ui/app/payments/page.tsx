@@ -42,7 +42,6 @@ import FormControl from '@mui/material/FormControl';
 interface Payment {
   id: number;
   userId: number;
-  userName: string | null;
   amount: string | number;
   receiptPhotoId: string | null;
   receiptUrl?: string | null;
@@ -245,7 +244,8 @@ export default function PaymentsPage() {
   const filteredPayments = useMemo(() => {
     if (!payments) return [];
     return payments.filter(item => {
-      const nameMatch = item.userName?.toLowerCase().includes(search.toLowerCase()) ?? false;
+      const displayName = item.user?.name || '';
+      const nameMatch = displayName.toLowerCase().includes(search.toLowerCase());
       const statusMatch = item.status.toLowerCase().includes(search.toLowerCase());
       const commentMatch = item.comment?.toLowerCase().includes(search.toLowerCase()) ?? false;
       return nameMatch || statusMatch || commentMatch;
@@ -433,7 +433,7 @@ export default function PaymentsPage() {
               <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Чек</TableCell>
               <TableCell style={{ fontWeight: 'bold', minWidth: '135px' }}>Банк зачисления</TableCell>
               <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Статус</TableCell>
-              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Дата отправки</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Дата платежа</TableCell>
               <TableCell style={{ fontWeight: 'bold', maxWidth: '170px' }}>Комментарий</TableCell>
               <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'right' }}>Действия</TableCell>
             </TableRow>
@@ -449,7 +449,7 @@ export default function PaymentsPage() {
                 >
                   <TableCell>{row.id}</TableCell>
                   <TableCell style={{ fontWeight: 500, fontSize: '0.85rem' }}>
-                    {row.userName || `User ID: ${row.userId}`}
+                    {row.user?.name || `ID пользователя: ${row.userId}`}
                   </TableCell>
                   <TableCell style={{ fontWeight: 600, whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
                     {Number(row.amount).toFixed(2)} руб.
@@ -777,7 +777,7 @@ export default function PaymentsPage() {
             </div>
             <div className={styles.modalBody} style={{ alignItems: 'stretch', gap: '14px' }}>
               <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
-                Подтвердить получение оплаты на сумму <b style={{ color: '#0f172a' }}>{Number(confirmPaymentModal.amount).toFixed(2)} руб.</b> от пользователя <b>{confirmPaymentModal.userName || `ID: ${confirmPaymentModal.userId}`}</b>?
+                Подтвердить получение оплаты на сумму <b style={{ color: '#0f172a' }}>{Number(confirmPaymentModal.amount).toFixed(2)} руб.</b> от пользователя <b>{confirmPaymentModal.user?.name || `ID: ${confirmPaymentModal.userId}`}</b>?
               </p>
 
               <div>

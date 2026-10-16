@@ -41,7 +41,6 @@ interface Bank {
 interface Payment {
   id: number;
   userId: number;
-  userName: string | null;
   amount: string | number;
   receiptPhotoId: string | null;
   status: string;
@@ -52,6 +51,9 @@ interface Payment {
     id: number;
     name: string;
   } | null;
+  user?: {
+    name: string | null;
+  };
 }
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
@@ -360,7 +362,7 @@ export default function BankDetailPage({ params }: { params: { id: string } }) {
               <TableCell style={{ fontWeight: 'bold' }}>Пользователь</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Сумма</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Статус</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>Дата отправки</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Дата платежа</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Комментарий</TableCell>
             </TableRow>
           </TableHead>
@@ -376,7 +378,7 @@ export default function BankDetailPage({ params }: { params: { id: string } }) {
                 <TableRow key={row.id}>
                   <TableCell>{row.id}</TableCell>
                   <TableCell style={{ fontWeight: 500 }}>
-                    {row.userName || `User ID: ${row.userId}`}
+                    {row.user?.name || `ID пользователя: ${row.userId}`}
                   </TableCell>
                   <TableCell style={{ fontWeight: 600 }}>
                     {Number(row.amount).toFixed(2)} руб.

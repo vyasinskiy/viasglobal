@@ -35,7 +35,6 @@ export class TenantService {
     const payment = await this.prisma.payment.create({
       data: {
         userId: tenant.userId,
-        userName: tenant.user.name || 'Unknown',
         amount: data.amount,
         receiptPhotoId: data.receiptPhotoId,
         status: 'unconfirmed',

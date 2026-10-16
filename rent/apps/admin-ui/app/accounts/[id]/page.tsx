@@ -51,7 +51,9 @@ interface Payment {
   userId: number;
   amount: string;
   createdAt: string;
-  userName: string | null;
+  user?: {
+    name: string | null;
+  };
 }
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
@@ -227,7 +229,7 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
               <Paper key={pay.id} style={{ padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 600 }}>Оплата ({pay.userName || 'Неизвестно'})</div>
+                    <div style={{ fontWeight: 600 }}>Оплата ({pay.user?.name || 'Неизвестно'})</div>
                     <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{new Date(pay.createdAt).toLocaleDateString('ru-RU')}</div>
                   </div>
                   <div style={{ textAlign: 'right', fontWeight: 700, color: '#10b981' }}>

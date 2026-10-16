@@ -17,7 +17,7 @@ export class AccountantService {
     @Inject('NOTIFICATIONS_SERVICE') private readonly notificationsClient: ClientProxy,
     private readonly meterSubmissionService: MeterSubmissionService,
     private readonly eventsService: EventsService
-  ) {}
+  ) { }
 
   private serialize(data: any): any {
     if (!data) return data;
@@ -55,21 +55,21 @@ export class AccountantService {
 
     const result = existing
       ? await this.prisma.apartment.update({
-          where: { externalId: data.externalId },
-          data: {
-            address: data.address,
-            organization: data.organization,
-            rawJson: data.rawJson,
-            lastSeenAt: new Date(),
-          },
-        })
+        where: { externalId: data.externalId },
+        data: {
+          address: data.address,
+          organization: data.organization,
+          rawJson: data.rawJson,
+          lastSeenAt: new Date(),
+        },
+      })
       : await this.prisma.apartment.create({
-          data: {
-            ...data,
-            firstSeenAt: new Date(),
-            lastSeenAt: new Date(),
-          },
-        });
+        data: {
+          ...data,
+          firstSeenAt: new Date(),
+          lastSeenAt: new Date(),
+        },
+      });
 
     this.logger.log(`Apartment ${data.externalId} ${existing ? 'updated' : 'created'}`);
     return this.serialize(result);
@@ -92,27 +92,27 @@ export class AccountantService {
 
     const result = existing
       ? await this.prisma.account.update({
-          where: { externalId: data.externalId },
-          data: {
-            accountNumber: data.accountNumber,
-            accountLabel: data.accountLabel,
-            balance: data.balance,
-            rawJson: data.rawJson,
-            lastSeenAt: new Date(),
-          },
-        })
+        where: { externalId: data.externalId },
+        data: {
+          accountNumber: data.accountNumber,
+          accountLabel: data.accountLabel,
+          balance: data.balance,
+          rawJson: data.rawJson,
+          lastSeenAt: new Date(),
+        },
+      })
       : await this.prisma.account.create({
-          data: {
-            externalId: data.externalId,
-            apartmentId: apartment.id,
-            accountNumber: data.accountNumber,
-            accountLabel: data.accountLabel,
-            balance: data.balance,
-            rawJson: data.rawJson,
-            firstSeenAt: new Date(),
-            lastSeenAt: new Date(),
-          },
-        });
+        data: {
+          externalId: data.externalId,
+          apartmentId: apartment.id,
+          accountNumber: data.accountNumber,
+          accountLabel: data.accountLabel,
+          balance: data.balance,
+          rawJson: data.rawJson,
+          firstSeenAt: new Date(),
+          lastSeenAt: new Date(),
+        },
+      });
 
     this.logger.log(`Account ${data.externalId} ${existing ? 'updated' : 'created'} (linked to apartment.id=${apartment.id})`);
     return this.serialize(result);
@@ -185,7 +185,7 @@ export class AccountantService {
         if (parsed.accrual?.accruedAmount !== undefined) {
           accruedAmountNum = Number(parsed.accrual.accruedAmount) || 0;
         }
-      } catch {}
+      } catch { }
     }
     if (accruedAmountNum === 0 && data.amountText) {
       const match = String(data.amountText).match(/accruedAmount=([0-9.]+)/);
@@ -282,7 +282,7 @@ export class AccountantService {
             if (parsed.accrual?.accruedAmount !== undefined) {
               resolvedAmount = Number(parsed.accrual.accruedAmount) || 0;
             }
-          } catch {}
+          } catch { }
         }
         if ((!resolvedAmount || Number(resolvedAmount) === 0) && relatedAccrual.amountText) {
           const match = String(relatedAccrual.amountText).match(/accruedAmount=([0-9.]+)/);
@@ -409,7 +409,6 @@ export class AccountantService {
     bankId?: number;
   }) {
     let targetUserId = data.userId;
-    let targetUserName = data.userName;
 
     if (data.tenantId) {
       const tenant = await this.prisma.tenant.findUnique({
@@ -421,13 +420,21 @@ export class AccountantService {
         throw new Error(`Tenant with ID ${data.tenantId} not found in accounting system.`);
       }
       targetUserId = tenant.userId;
-      if (!targetUserName) {
-        targetUserName = tenant.user?.name || `Tenant #${tenant.id}`;
-      }
     }
 
     if (!targetUserId) {
       throw new Error(`Either tenantId or userId must be provided to create a payment.`);
+    }
+
+    // Если у пользователя еще не заполнено имя в профиле, а при создании платежа передано имя, сохраняем его в users
+    if (data.userName) {
+      const existingUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+      if (existingUser && (!existingUser.name || existingUser.name.trim() === '')) {
+        await this.prisma.user.update({
+          where: { id: targetUserId },
+          data: { name: data.userName }
+        });
+      }
     }
 
     const paymentDate = data.createdAt ? new Date(data.createdAt) : new Date();
@@ -455,7 +462,6 @@ export class AccountantService {
     const createdPayment = await this.prisma.payment.create({
       data: {
         userId: targetUserId,
-        userName: targetUserName || null,
         amount: data.amount,
         receiptPhotoId: initialReceiptPhotoId,
         comment: data.comment || null,
@@ -806,7 +812,7 @@ export class AccountantService {
       },
       include: { tenantProfile: true }
     });
-    
+
     if (data.rentPaymentDay) {
       await this.eventsService.createScheduledEvent({
         title: `Оплата аренды (${data.name})`,
@@ -831,8 +837,8 @@ export class AccountantService {
       ...(filters.organization ? { organization: { contains: filters.organization, mode: 'insensitive' } } : {}),
     };
     // Выбираем квартиры с подсчетом количества лицевых счетов (_count.accounts) и связанными данными
-    const results = await this.prisma.apartment.findMany({ 
-      where, 
+    const results = await this.prisma.apartment.findMany({
+      where,
       include: {
         // Подсчет общего количества лицевых счетов для квартиры
         _count: {
@@ -851,7 +857,7 @@ export class AccountantService {
           }
         }
       },
-      orderBy: [{ address: 'asc' }] 
+      orderBy: [{ address: 'asc' }]
     });
     return this.serialize(results);
   }
@@ -877,10 +883,10 @@ export class AccountantService {
   async findAccruals(filters: { accountId?: number; accountExternalId?: string | string[]; periodLabel?: string }) {
     const where: any = {
       ...(filters.accountId ? { accountId: Number(filters.accountId) } : {}),
-      ...(filters.accountExternalId ? { 
-        accountExternalId: Array.isArray(filters.accountExternalId) 
-          ? { in: filters.accountExternalId } 
-          : filters.accountExternalId 
+      ...(filters.accountExternalId ? {
+        accountExternalId: Array.isArray(filters.accountExternalId)
+          ? { in: filters.accountExternalId }
+          : filters.accountExternalId
       } : {}),
       ...(filters.periodLabel ? { periodLabel: { contains: filters.periodLabel, mode: 'insensitive' } } : {})
     };
@@ -946,21 +952,21 @@ export class AccountantService {
     return this.serialize({ items, total });
   }
 
-  async findInvoices(filters: { 
-    accountId?: number; 
-    accountExternalId?: string | string[]; 
-    periodLabel?: string; 
-    periodId?: string; 
+  async findInvoices(filters: {
+    accountId?: number;
+    accountExternalId?: string | string[];
+    periodLabel?: string;
+    periodId?: string;
     available?: boolean | string;
     uploadedToS3?: boolean | string;
     take?: number | string;
   }) {
     const where: any = {
       ...(filters.accountId ? { accountId: Number(filters.accountId) } : {}),
-      ...(filters.accountExternalId ? { 
-        accountExternalId: Array.isArray(filters.accountExternalId) 
-          ? { in: filters.accountExternalId } 
-          : filters.accountExternalId 
+      ...(filters.accountExternalId ? {
+        accountExternalId: Array.isArray(filters.accountExternalId)
+          ? { in: filters.accountExternalId }
+          : filters.accountExternalId
       } : {}),
       ...(filters.periodLabel ? { periodLabel: { contains: filters.periodLabel, mode: 'insensitive' } } : {}),
       ...(filters.periodId ? { periodId: filters.periodId } : {}),
@@ -973,12 +979,12 @@ export class AccountantService {
       where.uploadedToS3 = filters.uploadedToS3 === 'true' || filters.uploadedToS3 === true;
     }
 
-    const results = await this.prisma.invoice.findMany({ 
-      where, 
-      include: { 
+    const results = await this.prisma.invoice.findMany({
+      where,
+      include: {
         account: { include: { apartment: true } },
         tenant: { include: { user: true, apartment: true } }
-      }, 
+      },
       orderBy: [{ periodId: 'desc' }],
       ...(filters.take ? { take: Number(filters.take) } : {})
     });
@@ -1013,7 +1019,7 @@ export class AccountantService {
             if (parsed.accrual?.accruedAmount !== undefined) {
               amt = Number(parsed.accrual.accruedAmount) || 0;
             }
-          } catch {}
+          } catch { }
         }
         if (amt === 0 && acc.amountText) {
           const match = String(acc.amountText).match(/accruedAmount=([0-9.]+)/);
@@ -1042,7 +1048,7 @@ export class AccountantService {
   async findApartmentById(id: number) {
     const apartment = await this.prisma.apartment.findUnique({
       where: { id },
-      include: { 
+      include: {
         accounts: true,
         tenants: {
           include: { user: true }
@@ -1086,7 +1092,7 @@ export class AccountantService {
 
     const parsedRaw = safeJsonParse<Record<string, unknown>>(invoice.rawJson);
     const storageKey = parsedRaw?.s3Key as string || (isS3Key(invoice.localFilePath) ? invoice.localFilePath : null);
-    
+
     let downloadUrl: string | null = null;
     if (storageKey) {
       downloadUrl = this.storage.getDownloadUrl(storageKey);
@@ -1140,13 +1146,13 @@ export class AccountantService {
       where: { externalId: accountExternalId },
       include: { apartment: true }
     });
-    
+
     if (!account) {
       throw new NotFoundException(`Account ${accountExternalId} not found`);
     }
 
     const invoices = await this.prisma.invoice.findMany({ where: { accountExternalId } });
-    const invoice = invoices.find((inv: any) => 
+    const invoice = invoices.find((inv: any) =>
       inv.periodId === normalizedPeriod || inv.periodId === period || inv.periodLabel === normalizedPeriod || inv.periodLabel === period
     );
 
@@ -1170,7 +1176,7 @@ export class AccountantService {
       where.status = filters.status;
     }
     if (filters.userName) {
-      where.userName = { contains: filters.userName, mode: 'insensitive' };
+      where.user = { name: { contains: filters.userName, mode: 'insensitive' } };
     }
     if (filters.bankId) {
       where.bankId = Number(filters.bankId);
@@ -1508,7 +1514,7 @@ export class AccountantService {
       where: { id }
     });
     if (!tenant) throw new NotFoundException(`Tenant with ID ${id} not found`);
-    
+
     const updatedTenant = await this.prisma.tenant.update({
       where: { id },
       data: { status: 'deleted' }
