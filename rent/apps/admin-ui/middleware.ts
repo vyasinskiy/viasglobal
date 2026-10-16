@@ -2,7 +2,7 @@
 // Промежуточный слой Next.js для защиты всех страниц и эндпоинтов паролем
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isAuthenticated } from './lib/auth';
+import { isAuthenticated, SESSION_COOKIE, sessionCookieOptions } from './lib/auth';
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -38,7 +38,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/', req.url));
   }
 
-  return NextResponse.next();
+  // Для авторизованных страниц автоматически продлеваем срок действия cookie (бессрочная скользящая сессия)
+  const res = NextResponse.next();
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  if (token) {
+    const cookieOpts = await sessionCookieOptions(token);
+    res.cookies.set(cookieOpts);
+  }
+
+  return res;
 }
 
 // Конфигурация путей, на которых работает middleware

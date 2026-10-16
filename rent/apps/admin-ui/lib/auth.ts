@@ -5,8 +5,12 @@ import type { NextRequest } from 'next/server';
 // Название защищенной cookie сессии
 export const SESSION_COOKIE = 'vias_rent_session';
 
-// Время жизни сессии (30 дней в миллисекундах)
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+// Время жизни сессии в токене: 20 лет в миллисекундах (бессрочная авторизация)
+const SESSION_TTL_MS = 20 * 365 * 24 * 60 * 60 * 1000;
+
+// Максимальный срок жизни cookie в браузере: 400 дней в секундах (верхний предел стандартов Chrome/WebKit)
+// При каждом переходе по страницам middleware автоматически продлевает куку еще на 400 дней вперед (sliding session)
+export const COOKIE_MAX_AGE_SECONDS = 400 * 24 * 60 * 60;
 
 // Секретный ключ для подписи
 function getSecret(): string {
@@ -25,7 +29,7 @@ export function timingSafeStringEqual(a: string, b: string): boolean {
 
 // Проверка введенного пароля
 export function passwordValid(password: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD || process.env.VIASLANGS_APP_PASSWORD || 'hgstczHC2M9eZAFT';
+  const expected = process.env.ADMIN_PASSWORD || process.env.VIASLANGS_APP_PASSWORD || 'viasglobal';
   return expected.length > 0 && timingSafeStringEqual(password, expected);
 }
 
@@ -73,9 +77,22 @@ export async function isAuthenticated(req: NextRequest): Promise<boolean> {
   return isSessionValid(req.cookies.get(SESSION_COOKIE)?.value);
 }
 
-// Параметры куки сессии
-export async function sessionCookieOptions() {
-  const token = await createSessionToken();
+// Параметры куки сессии (с поддержкой автоматического продления и обновления токена)
+export async function sessionCookieOptions(existingToken?: string) {
+  let token = existingToken;
+
+  // Если токена нет или его срок жизни менее 180 дней (например, старый 30-дневный токен),
+  // перевыпускаем долгосрочный 20-летний токен
+  if (token) {
+    const dot = token.indexOf('.');
+    const expiryMs = dot > 0 ? Number(token.slice(0, dot)) : 0;
+    if (!Number.isFinite(expiryMs) || expiryMs - Date.now() < 180 * 24 * 60 * 60 * 1000) {
+      token = await createSessionToken();
+    }
+  } else {
+    token = await createSessionToken();
+  }
+
   return {
     name: SESSION_COOKIE,
     value: token,
@@ -83,6 +100,7 @@ export async function sessionCookieOptions() {
     sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: SESSION_TTL_MS / 1000,
+    maxAge: COOKIE_MAX_AGE_SECONDS,
+    expires: new Date(Date.now() + COOKIE_MAX_AGE_SECONDS * 1000),
   };
 }

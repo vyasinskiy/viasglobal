@@ -1,11 +1,22 @@
 import type { NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+// Название защищенной cookie сессии
 export const SESSION_COOKIE = "vias_session";
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Время жизни сессии в токене: 20 лет в миллисекундах (бессрочная авторизация)
+const SESSION_TTL_MS = 20 * 365 * 24 * 60 * 60 * 1000;
+
+// Максимальный срок жизни cookie в браузере: 400 дней в секундах (верхний предел стандартов Chrome/WebKit)
+// При каждом переходе по страницам proxy автоматически продлевает куку еще на 400 дней вперед (sliding session)
+export const COOKIE_MAX_AGE_SECONDS = 400 * 24 * 60 * 60;
 
 function secret(): string {
-  return process.env.VIASLANGS_APP_SECRET || "";
+  return (
+    process.env.VIASLANGS_APP_SECRET ||
+    process.env.JWT_SECRET ||
+    "e4201cba41a7cddd45d1a0e6ffff3b30d610c98a2d4f50c4d24f6d4b9513916c"
+  );
 }
 
 function timingSafeStringEqual(a: string, b: string): boolean {
@@ -15,8 +26,12 @@ function timingSafeStringEqual(a: string, b: string): boolean {
   return timingSafeEqual(ab, bb);
 }
 
+// Проверка пароля администратора (дефолт: viasglobal)
 export function passwordValid(password: string): boolean {
-  const expected = process.env.VIASLANGS_APP_PASSWORD || "";
+  const expected =
+    process.env.VIASLANGS_APP_PASSWORD ||
+    process.env.ADMIN_PASSWORD ||
+    "viasglobal";
   return expected.length > 0 && timingSafeStringEqual(password, expected);
 }
 
@@ -27,7 +42,8 @@ function signExpiry(expiryMs: number): string {
 }
 
 export function createSessionToken(): string {
-  return `${Date.now() + SESSION_TTL_MS}.${signExpiry(Date.now() + SESSION_TTL_MS)}`;
+  const expiry = Date.now() + SESSION_TTL_MS;
+  return `${expiry}.${signExpiry(expiry)}`;
 }
 
 export function isSessionValid(token: string | undefined): boolean {
@@ -48,7 +64,8 @@ export function isAuthenticated(req: NextRequest): boolean {
   return isSessionValid(req.cookies.get(SESSION_COOKIE)?.value);
 }
 
-export function sessionCookieOptions(): {
+// Параметры куки сессии (с поддержкой автоматического продления и обновления токена)
+export function sessionCookieOptions(existingToken?: string): {
   name: string;
   value: string;
   httpOnly: boolean;
@@ -56,14 +73,30 @@ export function sessionCookieOptions(): {
   secure: boolean;
   path: string;
   maxAge: number;
+  expires: Date;
 } {
+  let token = existingToken;
+
+  // Если токена нет или его срок жизни менее 180 дней (например, старый 30-дневный токен),
+  // перевыпускаем долгосрочный 20-летний токен
+  if (token) {
+    const dot = token.indexOf(".");
+    const expiryMs = dot > 0 ? Number(token.slice(0, dot)) : 0;
+    if (!Number.isFinite(expiryMs) || expiryMs - Date.now() < 180 * 24 * 60 * 60 * 1000) {
+      token = createSessionToken();
+    }
+  } else {
+    token = createSessionToken();
+  }
+
   return {
     name: SESSION_COOKIE,
-    value: createSessionToken(),
+    value: token,
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_TTL_MS / 1000,
+    maxAge: COOKIE_MAX_AGE_SECONDS,
+    expires: new Date(Date.now() + COOKIE_MAX_AGE_SECONDS * 1000),
   };
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAuthenticated } from "./lib/auth";
+import { isAuthenticated, SESSION_COOKIE, sessionCookieOptions } from "./lib/auth";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -30,7 +30,15 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  return NextResponse.next();
+  // Для авторизованных страниц автоматически продлеваем срок действия cookie (бессрочная скользящая сессия)
+  const res = NextResponse.next();
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  if (token) {
+    const cookieOpts = sessionCookieOptions(token);
+    res.cookies.set(cookieOpts);
+  }
+
+  return res;
 }
 
 export const config = {
