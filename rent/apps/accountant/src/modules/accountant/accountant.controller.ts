@@ -43,20 +43,32 @@ function getFileMimeType(filePath: string): string {
 // Поиск сохраненного файла в локальной директории data/uploads
 // Поддерживает как точный относительный путь (например payments/1/receipts/check.pdf),
 // так и поиск только по имени файла (fallback)
-function findUploadedFile(keyOrFilename: string): { fullPath: string; fileName: string; mimeType: string } | null {
+function findUploadedFile(keyOrFilename: string | string[] | undefined | null): { fullPath: string; fileName: string; mimeType: string } | null {
+  // Проверяем наличие входных данных
   if (!keyOrFilename) return null;
+
+  // Если NestJS или Express передали путь массивом (из-за роута со звездочкой *path)
+  const rawKey = Array.isArray(keyOrFilename)
+    ? keyOrFilename.map((segment) => String(segment || '').trim()).filter(Boolean).join('/')
+    : String(keyOrFilename || '');
+
+  // Отсекаем пустые или служебные тестовые плейсхолдеры
+  const trimmedKey = rawKey.trim();
+  if (!trimmedKey || trimmedKey === '***' || trimmedKey === '...') return null;
+
+  // Базовая директория локального хранилища
   const uploadDir = path.resolve(process.cwd(), 'data', 'uploads');
   if (!fs.existsSync(uploadDir)) return null;
 
   // 1. Проверяем точный относительный путь с защитой от выхода за пределы рабочей директории
-  const normalizedKey = path.normalize(keyOrFilename).replace(/^(\.\.[\/\\])+/, '');
+  const normalizedKey = path.normalize(trimmedKey).replace(/^(\.\.[\/\\])+/, '');
   const candidatePath = path.resolve(uploadDir, normalizedKey);
   if (candidatePath.startsWith(uploadDir) && fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
     return { fullPath: candidatePath, fileName: path.basename(candidatePath), mimeType: getFileMimeType(candidatePath) };
   }
 
   // 2. Проверяем файл прямо в корне uploads
-  const baseName = path.basename(keyOrFilename);
+  const baseName = path.basename(trimmedKey);
   const rootCandidate = path.resolve(uploadDir, baseName);
   if (rootCandidate.startsWith(uploadDir) && fs.existsSync(rootCandidate) && fs.statSync(rootCandidate).isFile()) {
     return { fullPath: rootCandidate, fileName: baseName, mimeType: getFileMimeType(rootCandidate) };
@@ -283,10 +295,26 @@ export class AccountantController {
   }
 
   // Вспомогательный метод для безопасной отдачи бинарного файла по ключу или имени
-  private serveFileByKey(key: string, res: CustomResponse) {
-    const fileInfo = findUploadedFile(key);
+  private serveFileByKey(key: string | string[] | undefined | null, res: CustomResponse) {
+    if (!key) {
+      throw new BadRequestException('Параметр query "key" или путь к файлу обязателен для скачивания файла');
+    }
+
+    // Если передан массив путей из wildcard роута Express/NestJS
+    const rawKey = Array.isArray(key)
+      ? key.map((segment) => String(segment || '').trim()).filter(Boolean).join('/')
+      : String(key || '').trim();
+
+    const cleanKey = rawKey.trim();
+
+    // Проверяем на недопустимые или пустые тестовые плейсхолдеры
+    if (!cleanKey || cleanKey === '***' || cleanKey === '...') {
+      throw new BadRequestException('Указано недопустимое имя файла или тестовый плейсхолдер в параметре key');
+    }
+
+    const fileInfo = findUploadedFile(cleanKey);
     if (!fileInfo) {
-      throw new NotFoundException(`Файл ${path.basename(key)} не найден на диске`);
+      throw new NotFoundException(`Файл ${path.basename(cleanKey)} не найден на диске`);
     }
 
     res.setHeader('Content-Type', fileInfo.mimeType);
@@ -300,27 +328,28 @@ export class AccountantController {
     @Query('key') key: string,
     @Res() res: CustomResponse
   ) {
-    if (!key) {
-      throw new BadRequestException('Параметр query "key" обязателен для скачивания файла');
+    if (!key || key.trim() === '' || key.trim() === '***' || key.trim() === '...') {
+      throw new BadRequestException('Параметр query "key" обязателен для скачивания файла и не должен быть плейсхолдером');
     }
     return this.serveFileByKey(key, res);
   }
 
-  // Скачивание бинарного файла квитанции или чека при локальном хранении по пути
-  @Get('invoices/download/*path')
-  async downloadInvoiceRawWildcard(
-    @Param('path') pathParam: string,
-    @Res() res: CustomResponse
-  ) {
-    return this.serveFileByKey(pathParam, res);
-  }
-
+  // Скачивание бинарного файла квитанции или чека при локальном хранении по одиночному имени файла
   @Get('invoices/download/:key')
   async downloadInvoiceRaw(
     @Param('key') key: string,
     @Res() res: CustomResponse
   ) {
     return this.serveFileByKey(key, res);
+  }
+
+  // Скачивание бинарного файла квитанции или чека при локальном хранении по пути с подпапками (wildcard *path)
+  @Get('invoices/download/*path')
+  async downloadInvoiceRawWildcard(
+    @Param('path') pathParam: string | string[],
+    @Res() res: CustomResponse
+  ) {
+    return this.serveFileByKey(pathParam, res);
   }
 
   // Получение локального URL для загрузки квитанции

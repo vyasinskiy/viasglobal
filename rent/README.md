@@ -157,4 +157,4 @@ When authorization is required:
 * **Serving Files**:
   * **Telegram Bot**: Internal HTTP buffer fetch from `accountant:3005` inside the Docker network, sent to Telegram as native documents.
   * **Admin UI**: Next.js proxy route `/api/invoices/[id]/download` streams the PDF directly to the client browser.
-  * **Direct HTTP**: Download endpoint `GET /accountant/storage/download?key=...` or `GET /accountant/invoices/download/:key`.
+  * **Direct HTTP**: Download endpoint `GET /accountant/storage/download?key=...` or `GET /accountant/invoices/download/:key` (supports nested keys via `*path` wildcard; safely parses string and array parameters).

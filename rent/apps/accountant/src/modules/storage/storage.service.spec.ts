@@ -75,4 +75,19 @@ describe('StorageService', () => {
     await service.deleteObject(testKey);
     expect(service.fileExists(testKey)).toBe(false);
   });
+
+  it('должен безопасно разрешать пути resolveSafePath и предотвращать выход за пределы uploadDir', () => {
+    // Стандартный ключ
+    const normalPath = service.resolveSafePath('invoice-1.pdf');
+    expect(normalPath).toBe(path.resolve(testDir, 'invoice-1.pdf'));
+
+    // Вложенный ключ
+    const nestedPath = service.resolveSafePath('payments/1/receipt.jpg');
+    expect(nestedPath).toBe(path.resolve(testDir, 'payments/1/receipt.jpg'));
+
+    // Попытка path-traversal с относительными точками ../..
+    const traversalPath = service.resolveSafePath('../../etc/passwd');
+    expect(traversalPath.startsWith(testDir)).toBe(true);
+    expect(traversalPath).toBe(path.resolve(testDir, 'etc/passwd'));
+  });
 });
