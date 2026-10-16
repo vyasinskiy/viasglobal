@@ -648,9 +648,9 @@ export default function PaymentsPage() {
                   />
                 </div>
               ) : (
-                /* Для графических форматов отображаем изображение с автомасштабированием */
+                /* Для графических форматов отображаем изображение через прокси-роут Next.js, так как внутренний URL контейнера недоступен из браузера */
                 <img
-                  src={selectedPaymentForReceipt.receiptUrl || `/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  src={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
                   alt="Чек об оплате крупно"
                   className={styles.largeReceiptImage}
                   style={{ maxHeight: '540px' }}

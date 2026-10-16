@@ -156,7 +156,8 @@ When authorization is required:
 * **Persistent Volumes**: The `accountant` container mounts `${ACCOUNTANT_PATH}/data:/app/data` to ensure all PDFs survive container rebuilds.
 * **Serving Files**:
   * **Telegram Bot**: Internal HTTP buffer fetch from `accountant:3005` inside the Docker network, sent to Telegram as native documents.
-  * **Admin UI**: Next.js proxy route `/api/invoices/[id]/download` streams the PDF directly to the client browser.
+  * **Admin UI (Invoices)**: Next.js proxy route `/api/invoices/[id]/download` streams the PDF directly to the client browser.
+  * **Admin UI (Payment Receipts)**: Next.js proxy route `/api/payments/receipt?fileId=...` безопасным образом передает файлы чеков клиенту, исключая попытки браузера напрямую стучаться во внутреннюю Docker-сеть к `accountant:3005`.
   * **Direct HTTP**: Download endpoint `GET /accountant/storage/download?key=...` or `GET /accountant/invoices/download/:key` (supports nested keys via `*path` wildcard; safely parses string and array parameters).
 
 ### Паттерны проектирования API для LLM-агентов (Анти-галлюцинации)
