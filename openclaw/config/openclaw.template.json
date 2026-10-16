@@ -7,15 +7,18 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/xiaomi/mimo-v2.6-flash"
+        "primary": "openrouter/openai/gpt-6-luna"
       },
       "models": {
-        "openrouter/xiaomi/mimo-v2.6-flash": {}
+        "openrouter/openai/gpt-6-luna": {}
       },
       "modelPolicy": {
         "allow": [
-          "openrouter/xiaomi/mimo-v2.6-flash"
+          "openrouter/openai/gpt-6-luna"
         ]
+      },
+      "heartbeat": {
+        "every": "0m"
       }
     },
     "entries": {
