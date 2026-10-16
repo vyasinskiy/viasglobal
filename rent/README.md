@@ -158,3 +158,8 @@ When authorization is required:
   * **Telegram Bot**: Internal HTTP buffer fetch from `accountant:3005` inside the Docker network, sent to Telegram as native documents.
   * **Admin UI**: Next.js proxy route `/api/invoices/[id]/download` streams the PDF directly to the client browser.
   * **Direct HTTP**: Download endpoint `GET /accountant/storage/download?key=...` or `GET /accountant/invoices/download/:key` (supports nested keys via `*path` wildcard; safely parses string and array parameters).
+
+### Паттерны проектирования API для LLM-агентов (Анти-галлюцинации)
+* **Fail-Fast Bad Request (HTTP 400)**: Все эндпоинты (включая скачивание `/accountant/storage/download` и `/accountant/invoices/download/:key`) валидируют входные параметры до обращения к файловой системе или БД. Передача плейсхолдеров (`***`, `...`, `<key>`), пустых строк или пробелов немедленно отклоняется с кодом `400 Bad Request` и подсказкой (`hint`), предотвращая галлюцинации языковых моделей об утере файлов (404) или сбоях сервера (500).
+* **Type Guarding для Wildcard-роутов**: Роут `download/*path` нормализует параметры как строки, так и массивы фрагментов путей от Express/NestJS, предотвращая ошибку `TypeError [ERR_INVALID_ARG_TYPE]`.
+* **Семантическое разделение кодов**: Четкое разграничение 400 (ошибка аргументов), 404 (объект не найден), 409 (конфликт/защита от перезаписи без `overwrite=true`), 422 (бизнес-ошибка), 500 (сбой сервиса).
