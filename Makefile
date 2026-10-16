@@ -58,6 +58,8 @@ redeploy-rent-accountant:
 redeploy-rent-admin:
 	@echo "Синхронизация admin-ui на сервер Huawei..."
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.next' --exclude '.env' ./rent/apps/admin-ui/ huawei@100.92.50.18:~/viasglobal/rent/apps/admin-ui/
+	rsync -avz ./rent/.agents/ huawei@100.92.50.18:~/viasglobal/rent/.agents/
+	rsync -avz ./rent/README.md huawei@100.92.50.18:~/viasglobal/rent/
 	@echo "Пересборка и перезапуск контейнера accruals-admin-ui на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build admin-ui"
 
