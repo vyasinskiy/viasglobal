@@ -812,11 +812,30 @@ export class AccountantService {
     return this.serialize(result);
   }
 
-  async updateAccount(accountId: number, data: { customLabel?: string | null; meterSubmissionDay?: number | null }) {
+  // Обновление пользовательского названия лицевого счета (customLabel)
+  async updateAccount(accountId: number, data: { customLabel?: string | null }) {
+    // Шаг 1: Проверяем существование лицевого счета в базе данных
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account) {
+      throw new NotFoundException(`Лицевой счет #${accountId} не найден`);
+    }
+
+    // Шаг 2: Обновляем только customLabel в модели Account
     const result = await this.prisma.account.update({
       where: { id: accountId },
-      data,
+      data: {
+        customLabel: data.customLabel !== undefined ? (data.customLabel ? data.customLabel.trim() : null) : undefined,
+      },
+      include: {
+        apartment: true,
+        _count: { select: { invoices: true } },
+      },
     });
+
+    // Шаг 3: Возвращаем сериализованный объект обновленного счета
     return this.serialize(result);
   }
 
@@ -893,14 +912,16 @@ export class AccountantService {
       ...(filters.externalId ? { externalId: { contains: filters.externalId, mode: 'insensitive' } } : {}),
       ...(filters.accountNumber ? { accountNumber: { contains: filters.accountNumber, mode: 'insensitive' } } : {}),
     };
+    // Загружаем список счетов со связанной квартирой и подсчетом инвойсов
     const results = await this.prisma.account.findMany({
       where,
       include: {
         apartment: true,
-        _count: { select: { invoices: true } }
+        _count: { select: { invoices: true } },
       },
       orderBy: [{ externalId: 'asc' }]
     });
+
     return this.serialize(results);
   }
 
@@ -1268,13 +1289,16 @@ export class AccountantService {
   }
 
   async findAccountById(id: number) {
+    // Запрашиваем лицевой счет по ID со связанной квартирой и подсчетом инвойсов
     const result = await this.prisma.account.findUnique({
       where: { id },
       include: {
         apartment: true,
-        _count: { select: { invoices: true } }
+        _count: { select: { invoices: true } },
       }
     });
+
+    if (!result) return null;
     return this.serialize(result);
   }
 

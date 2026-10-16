@@ -15,6 +15,7 @@ describe('AccountantService', () => {
   const mockMeterSubmission = {};
   const mockEvents = {
     createScheduledEvent: jest.fn(),
+    updateScheduledEvent: jest.fn(),
   };
 
   const mockPrisma = {
@@ -40,6 +41,12 @@ describe('AccountantService', () => {
       upsert: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
+    },
+    scheduledEvent: {
+      findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
     },
   };
 
@@ -264,4 +271,47 @@ describe('AccountantService', () => {
       expect(service.attachReceipt).not.toHaveBeenCalled();
     });
   });
+
+  describe('updateAccount (редактирование лицевого счета)', () => {
+    it('должен успешно обновить customLabel лицевого счета', async () => {
+      // Имитируем существующий аккаунт в базе данных
+      mockPrisma.account.findUnique.mockResolvedValueOnce({
+        id: 8,
+        accountNumber: '464746',
+        customLabel: null,
+        apartmentId: 1,
+      });
+
+      // Имитируем успешное обновление модели Account в Prisma
+      mockPrisma.account.update.mockResolvedValueOnce({
+        id: 8,
+        accountNumber: '464746',
+        customLabel: 'Капитальный ремонт 554',
+        apartmentId: 1,
+      });
+
+      const result = await service.updateAccount(8, {
+        customLabel: 'Капитальный ремонт 554',
+      });
+
+      // Проверяем, что в prisma.account.update передано обновленное название
+      expect(mockPrisma.account.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 8 },
+          data: { customLabel: 'Капитальный ремонт 554' },
+        })
+      );
+
+      // Проверяем результат
+      expect(result.customLabel).toBe('Капитальный ремонт 554');
+    });
+
+    it('должен выбросить NotFoundException, если лицевой счет не найден', async () => {
+      mockPrisma.account.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.updateAccount(999, { customLabel: 'Новое название' }))
+        .rejects.toThrow('Лицевой счет #999 не найден');
+    });
+  });
 });
+

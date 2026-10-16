@@ -452,7 +452,7 @@ export class AccountantController {
   @Put('accounts/:id')
   async updateAccount(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: { customLabel?: string | null; meterSubmissionDay?: number | null }
+    @Body() data: { customLabel?: string | null }
   ) {
     return this.accountantService.updateAccount(id, data);
   }

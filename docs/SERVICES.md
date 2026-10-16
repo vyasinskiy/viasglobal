@@ -144,8 +144,8 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
   - **Описание**: Детали конкретного счета по ID.
 
 - **`PUT /accountant/accounts/:id`**
-  - **Описание**: Обновить пользовательскую метку счета или день подачи показаний.
-  - **Тело запроса**: `{"customLabel": "Свет (Iberdrola)", "meterSubmissionDay": 20}`
+  - **Описание**: Обновить пользовательскую метку счета (`customLabel`).
+  - **Тело запроса**: `{"customLabel": "Свет (Iberdrola)"}`
 
 - **`DELETE /accountant/accounts/:id`**
   - **Описание**: Удаление счета.

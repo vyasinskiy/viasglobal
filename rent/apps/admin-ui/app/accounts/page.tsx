@@ -34,7 +34,6 @@ interface Account {
   accountLabel: string | null;
   customLabel: string | null;
   balance: string | number | null;
-  meterSubmissionDay: number;
   firstSeenAt: string;
   apartment?: {
     address: string | null;
@@ -61,7 +60,6 @@ export default function AccountsPage() {
 
   const [editAccount, setEditAccount] = useState<Account | null>(null);
   const [formCustomLabel, setFormCustomLabel] = useState('');
-  const [formSubmissionDay, setFormSubmissionDay] = useState('');
 
   const filteredAccounts = useMemo(() => {
     if (!accounts) return [];
@@ -94,20 +92,24 @@ export default function AccountsPage() {
     e.stopPropagation();
     setEditAccount(account);
     setFormCustomLabel(account.customLabel || '');
-    setFormSubmissionDay(String(account.meterSubmissionDay || '20'));
   };
 
+  // Обработчик сохранения изменений лицевого счета
   const handleSaveEdit = async () => {
     if (!editAccount) return;
     try {
+      // Отправляем обновленное название счета
       await axios.put(`/api/accounts/${editAccount.id}`, {
         customLabel: formCustomLabel.trim() || null,
-        meterSubmissionDay: parseInt(formSubmissionDay, 10) || null
       });
+      // Обновляем данные таблицы через SWR
       mutate();
+      // Закрываем модальное окно редактирования
       setEditAccount(null);
-    } catch (err: unknown) {
-      alert('Ошибка при сохранении лицевого счета.');
+    } catch (err: any) {
+      // Извлекаем детальный текст ошибки из ответа бэкенда при сбое
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Неизвестная ошибка';
+      alert(`Ошибка при сохранении лицевого счета: ${msg}`);
     }
   };
 
@@ -160,7 +162,6 @@ export default function AccountsPage() {
               <TableCell style={{ fontWeight: 'bold' }}>Номер ЛС</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Название</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Баланс</TableCell>
-              <TableCell style={{ fontWeight: 'bold' }}>День подачи показаний</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Адрес квартиры</TableCell>
               <TableCell style={{ fontWeight: 'bold' }}>Инвойсы</TableCell>
               <TableCell style={{ fontWeight: 'bold', textAlign: 'center' }}>Действия</TableCell>
@@ -183,7 +184,6 @@ export default function AccountsPage() {
                   }}>
                     {row.balance !== null ? `${Number(row.balance).toFixed(2)} руб.` : '—'}
                   </TableCell>
-                  <TableCell>{row.meterSubmissionDay}-е число</TableCell>
                   <TableCell style={{ color: '#475569' }}>{row.apartment?.address || '—'}</TableCell>
                   <TableCell style={{ color: '#2563eb', fontWeight: 600 }}>
                     {row._count?.invoices ?? 0} шт.
@@ -223,7 +223,7 @@ export default function AccountsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={7} align="center">
                   <div className={styles.emptyState}>Лицевые счета не найдены</div>
                 </TableCell>
               </TableRow>
@@ -275,15 +275,6 @@ export default function AccountsPage() {
             value={formCustomLabel}
             onChange={(e) => setFormCustomLabel(e.target.value)}
             placeholder="Например: Моя квартира"
-          />
-          <TextField
-            label="День подачи показаний"
-            type="number"
-            variant="outlined"
-            fullWidth
-            value={formSubmissionDay}
-            onChange={(e) => setFormSubmissionDay(e.target.value)}
-            inputProps={{ min: 1, max: 31 }}
           />
         </DialogContent>
         <DialogActions style={{ padding: '16px 24px' }}>

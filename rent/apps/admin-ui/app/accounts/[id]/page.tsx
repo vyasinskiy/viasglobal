@@ -27,7 +27,6 @@ interface Account {
   accountLabel: string | null;
   customLabel: string | null;
   balance: string | number | null;
-  meterSubmissionDay: number;
   firstSeenAt: string;
   apartment?: {
     address: string | null;
@@ -68,25 +67,28 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
 
   const [editOpen, setEditOpen] = useState(false);
   const [formCustomLabel, setFormCustomLabel] = useState('');
-  const [formSubmissionDay, setFormSubmissionDay] = useState('');
 
   const handleEditClick = () => {
     if (!account) return;
     setFormCustomLabel(account.customLabel || '');
-    setFormSubmissionDay(String(account.meterSubmissionDay || '20'));
     setEditOpen(true);
   };
 
+  // Обработчик сохранения изменений счета в карточке
   const handleSaveEdit = async () => {
     try {
+      // Отправляем обновленное название счета
       await axios.put(`/api/accounts/${accountId}`, {
         customLabel: formCustomLabel.trim() || null,
-        meterSubmissionDay: parseInt(formSubmissionDay, 10) || null
       });
+      // Инвалидируем кэш SWR для карточки счета
       mutateAccount();
+      // Закрываем диалог
       setEditOpen(false);
-    } catch (err: unknown) {
-      alert('Ошибка при сохранении данных счета.');
+    } catch (err: any) {
+      // Извлекаем детальный текст ошибки из ответа сервера
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Неизвестная ошибка';
+      alert(`Ошибка при сохранении данных счета: ${msg}`);
     }
   };
 
@@ -134,10 +136,6 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
           <div>
             <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '4px' }}>Свое название</div>
             <div style={{ fontWeight: 600, color: '#0f172a' }}>{account.customLabel || '—'}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '4px' }}>День подачи показаний</div>
-            <div style={{ fontWeight: 600, color: '#0f172a' }}>{account.meterSubmissionDay}-е число</div>
           </div>
           <div>
             <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '4px' }}>Баланс</div>
@@ -265,15 +263,6 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
             value={formCustomLabel}
             onChange={(e) => setFormCustomLabel(e.target.value)}
             placeholder="Например: Моя квартира"
-          />
-          <TextField
-            label="День подачи показаний"
-            type="number"
-            variant="outlined"
-            fullWidth
-            value={formSubmissionDay}
-            onChange={(e) => setFormSubmissionDay(e.target.value)}
-            inputProps={{ min: 1, max: 31 }}
           />
         </DialogContent>
         <DialogActions style={{ padding: '16px 24px' }}>
