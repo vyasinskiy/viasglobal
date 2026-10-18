@@ -154,7 +154,7 @@ export async function POST(req: Request) {
       if (!existingCorrect.rows[0]) {
         await client.query(
           `INSERT INTO vy_answers (word_id, answer, is_correct) VALUES ($1, $2, true)`,
-          [synonymWord.id, userAnswer]
+          [synonymWord.id, rawUserAnswer.toLowerCase()]
         );
       }
     }
