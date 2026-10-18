@@ -32,7 +32,15 @@ FROM (VALUES
     ('estamos dispuestos', 'мы готовы, готовы', 'Estamos dispuestos a negociar un contrato de suministro a largo plazo.', 'Мы готовы обсудить долгосрочный контракт на поставку.'),
     ('ya que', 'так как, поскольку', 'Necesitamos la confirmación hoy, ya que debemos planificar la logística semanal.', 'Нам нужно подтверждение сегодня, так как мы должны спланировать недельную логистику.'),
     ('resistente', 'прочный, устойчивый, стойкий', 'Utilizamos cajas de cartón resistente para proteger los productos frágiles.', 'Мы используем коробки из прочного картона для защиты хрупких товаров.'),
-    ('soportar', 'выдерживать, переносить', 'Los palets deben soportar un peso máximo de mil kilogramos.', 'Паллеты должны выдерживать максимальный вес в тысячу килограммов.')
+    ('soportar', 'выдерживать, переносить', 'Los palets deben soportar un peso máximo de mil kilogramos.', 'Паллеты должны выдерживать максимальный вес в тысячу килограммов.'),
+    ('gracias a', 'благодаря', 'Conseguimos un mejor precio gracias al volumen de compra anual.', 'Мы получили лучшую цену благодаря годовому объёму закупок.'),
+    ('el importe íntegro', 'полная сумма, вся сумма целиком', 'Ayer transferimos el importe íntegro a la cuenta bancaria del fabricante.', 'Вчера мы перевели полную сумму на банковский счёт производителя.'),
+    ('sin demora', 'без задержек, незамедлительно', 'Por favor, envíenos la factura proforma sin demora para autorizar el pago.', 'Пожалуйста, отправьте нам счёт-проформу без задержек, чтобы авторизовать платёж.'),
+    ('el lote', 'партия', 'Ayer compramos un lote grande con descuento especial por volumen.', 'Вчера мы купили крупную партию со специальной скидкой за объём.'),
+    ('pásenos', 'передайте нам, перешлите нам', 'Pásenos, sin demora, el albarán de entrega sellado por el transportista.', 'Передайте нам без задержек товарную накладную с печатью перевозчика.'),
+    ('el albarán de entrega', 'товарная накладная, накладная о доставке', 'Ayer nosotros recibimos el albarán de entrega debidamente sellado.', 'Вчера мы получили товарную накладную с круглой печатью.'),
+    ('sellado', 'с печатью, заверенный печатью', 'Es obligatorio adjuntar el albarán sellado para tramitar la garantía.', 'Обязательно приложить накладную с печатью для оформления гарантии.'),
+    ('el transporte marítimo', 'морская перевозка, морской транспорт', 'Ayer reclamamos las piezas que sufrieron daños durante el transporte marítimo.', 'Вчера мы предъявили претензию по деталям, пострадавшим во время морской перевозки.')
 ) AS v(english, russian, example_en, example_ru)
 CROSS JOIN vy_languages l
 WHERE l.code = 'es'
@@ -76,7 +84,15 @@ WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
     'estamos dispuestos',
     'ya que',
     'resistente',
-    'soportar'
+    'soportar',
+    'gracias a',
+    'el importe íntegro',
+    'sin demora',
+    'el lote',
+    'pásenos',
+    'el albarán de entrega',
+    'sellado',
+    'el transporte marítimo'
   )
 ON CONFLICT DO NOTHING;
 
@@ -92,5 +108,6 @@ CROSS JOIN (
     AND l.code = 'es'
 ) t
 WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
-  AND lower(w.english) IN ('respetar', 'retrasar', 'soportar')
+  AND lower(w.english) IN ('respetar', 'retrasar', 'soportar', 'pásenos')
 ON CONFLICT DO NOTHING;
+
