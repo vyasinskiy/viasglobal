@@ -46,16 +46,24 @@ async function simulateCheckAnswer(client, { wordId, answer }) {
     throw new Error(`Слово с id ${wordId} не найдено в БД`);
   }
 
-  // 2. Нормализация ответа (нижний регистр и удаление внешних пробелов)
-  const userAnswer = answer.toLowerCase().trim();
-  const correctAnswer = word.english.toLowerCase().trim();
-  const isCorrect = userAnswer === correctAnswer;
+  // 2. Нормализация ответа (нижний регистр, схлопывание пробелов и удаление диакритических знаков ударения)
+  const normalizeAnswer = (text) =>
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  const normUserAnswer = normalizeAnswer(answer);
+  const normCorrectAnswer = normalizeAnswer(word.english);
+  const isCorrect = normUserAnswer === normCorrectAnswer;
 
   // 3. Сохранение ответа пользователя в историю
   await client.query(
     `INSERT INTO vy_answers (word_id, answer, is_correct, is_synonym)
      VALUES ($1, $2, $3, $4)`,
-    [wordId, userAnswer, isCorrect, false]
+    [wordId, answer.trim().toLowerCase(), isCorrect, false]
   );
 
   // 4. Логика автозачёта: срабатывает только при верном ответе для связанных форм (base_word_id)
@@ -94,6 +102,7 @@ describe('Автозачёт форм глагола при изучении в�
   let basePedirId;
   let basePagarId;
   let baseProducirId;
+  let baseAceptarId;
 
   // Списки форм для каждого глагола и времени
   let indefEnviar = [];
@@ -102,6 +111,7 @@ describe('Автозачёт форм глагола при изучении в�
   let imperfPedir = [];
   let indefPagar = [];
   let indefProducir = [];
+  let indefAceptar = [];
 
   // Функция для очистки ответов по всем тестовым словам
   async function cleanupAnswers() {
@@ -110,12 +120,14 @@ describe('Автозачёт форм глагола при изучении в�
       basePedirId,
       basePagarId,
       baseProducirId,
+      baseAceptarId,
       ...indefEnviar.map(w => w.id),
       ...imperfEnviar.map(w => w.id),
       ...indefPedir.map(w => w.id),
       ...imperfPedir.map(w => w.id),
       ...indefPagar.map(w => w.id),
       ...indefProducir.map(w => w.id),
+      ...indefAceptar.map(w => w.id),
     ].filter(Boolean);
 
     if (allWordIds.length > 0) {
@@ -137,10 +149,10 @@ describe('Автозачёт форм глагола при изучении в�
     assert.ok(tagIndefinidoId, 'Тег Pretérito Indefinido должен существовать в БД');
     assert.ok(tagImperfectoId, 'Тег Pretérito Imperfecto должен существовать в БД');
 
-    // 2. Получаем базовые глаголы (enviar, pedir, pagar, producir)
+    // 2. Получаем базовые глаголы (enviar, pedir, pagar, producir, aceptar)
     const baseWordsRes = await pool.query(`
       SELECT id, english FROM vy_words
-      WHERE lower(english) IN ('enviar', 'pedir', 'pagar', 'producir')
+      WHERE lower(english) IN ('enviar', 'pedir', 'pagar', 'producir', 'aceptar')
         AND base_word_id IS NULL;
     `);
     for (const row of baseWordsRes.rows) {
@@ -149,11 +161,13 @@ describe('Автозачёт форм глагола при изучении в�
       if (name === 'pedir') basePedirId = row.id;
       if (name === 'pagar') basePagarId = row.id;
       if (name === 'producir') baseProducirId = row.id;
+      if (name === 'aceptar') baseAceptarId = row.id;
     }
     assert.ok(baseEnviarId, 'Базовый глагол enviar должен существовать в БД');
     assert.ok(basePedirId, 'Базовый глагол pedir должен существовать в БД');
     assert.ok(basePagarId, 'Базовый глагол pagar должен существовать в БД');
     assert.ok(baseProducirId, 'Базовый глагол producir должен существовать в БД');
+    assert.ok(baseAceptarId, 'Базовый глагол aceptar должен существовать в БД');
 
     // 3. Загружаем формы глагола enviar
     const indefEnviarRes = await pool.query(`
@@ -206,6 +220,15 @@ describe('Автозачёт форм глагола при изучении в�
     `, [baseProducirId, tagIndefinidoId]);
     indefProducir = indefProducirRes.rows;
     assert.strictEqual(indefProducir.length, 6, 'Должно быть ровно 6 форм глагола producir в Pretérito Indefinido');
+
+    // 7. Загружаем формы глагола aceptar (Pretérito Indefinido)
+    const indefAceptarRes = await pool.query(`
+      SELECT w.id, w.english, w.russian FROM vy_words w
+      JOIN vy_word_tags wt ON wt.word_id = w.id
+      WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
+    `, [baseAceptarId, tagIndefinidoId]);
+    indefAceptar = indefAceptarRes.rows;
+    assert.strictEqual(indefAceptar.length, 6, 'Должно быть ровно 6 форм глагола aceptar в Pretérito Indefinido');
 
     // Очищаем историю ответов для всех тестируемых слов
     await cleanupAnswers();
@@ -499,6 +522,38 @@ describe('Автозачёт форм глагола при изучении в�
       unlearnedRes.rows.length,
       0,
       'Все закрытые формы в Indefinido должны быть полностью исключены из неизученных слов в Study'
+    );
+  });
+
+  it('12. Нечувствительность к графическим ударениям (акцентам): ввод acepto для формы aceptó засчитывается как верный ответ и автозачитывает все 6 форм', async () => {
+    // Находим форму 3-го лица aceptó
+    const formAcepto = indefAceptar.find(w => w.english.toLowerCase() === 'aceptó');
+    assert.ok(formAcepto, 'Форма aceptó должна существовать в БД');
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Пользователь вводит "acepto" без ударения над "o"
+      const result = await simulateCheckAnswer(client, {
+        wordId: formAcepto.id,
+        answer: 'acepto'
+      });
+      assert.strictEqual(result.isCorrect, true, 'Ответ "acepto" обязан быть признан верным для формы "aceptó"');
+      await client.query('COMMIT');
+    } finally {
+      client.release();
+    }
+
+    // Проверяем, что в vy_answers зафиксированы все 6 верных форм глагола aceptar
+    const correctRes = await pool.query(`
+      SELECT word_id FROM vy_answers
+      WHERE word_id = ANY($1::int[]) AND is_correct = true;
+    `, [indefAceptar.map(w => w.id)]);
+
+    assert.strictEqual(
+      correctRes.rows.length,
+      6,
+      'Все 6 форм глагола aceptar должны быть автозачтены при правильном ответе без ударения'
     );
   });
 });

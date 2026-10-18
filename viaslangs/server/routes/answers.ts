@@ -12,6 +12,21 @@ import {
 const router = Router();
 const prisma = new PrismaClient();
 
+/**
+ * Нормализация текста для проверки ответа пользователя:
+ * - приведение к нижнему регистру
+ * - обрезка крайних пробелов и схлопывание внутренних пробелов
+ * - удаление графических знаков ударения (диакритики): ó -> o, é -> e, á -> a, í -> i, ú -> u и т.д.
+ */
+function normalizeAnswer(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Response<ApiResponse<CheckAnswerResponse>>) => {
   try {
     const { wordId, answer } = req.body;
@@ -35,39 +50,48 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
       });
     }
     
-    const userAnswer = answer.toLowerCase().trim();
-    const correctAnswer = word.english.toLowerCase().trim();
+    const rawUserAnswer = answer.trim();
+    const rawCorrectAnswer = word.english.trim();
     
-    const isCorrect = userAnswer === correctAnswer;
+    // Нормализованные строки для сравнения без учёта регистра, лишних пробелов и акцентов (например, acepto == aceptó)
+    const normUserAnswer = normalizeAnswer(rawUserAnswer);
+    const normCorrectAnswer = normalizeAnswer(rawCorrectAnswer);
+    
+    const isCorrect = normUserAnswer === normCorrectAnswer;
     
     let isSynonym = false;
     let synonymWord: { id: number } | null = null;
     if (!isCorrect) {
-      synonymWord = await prisma.word.findFirst({
+      const candidates = await prisma.word.findMany({
         where: {
           russian: word.russian,
-          english: userAnswer,
           languageId: word.languageId,
         }
       });
-      isSynonym = Boolean(synonymWord);
+      for (const candidate of candidates) {
+        if (normalizeAnswer(candidate.english) === normUserAnswer) {
+          synonymWord = { id: candidate.id };
+          isSynonym = true;
+          break;
+        }
+      }
     }
     
     let isPartial = false;
     let hint = '';
     
-    if (!isCorrect && !isSynonym && userAnswer.length > 0) {
-      if (correctAnswer.startsWith(userAnswer)) {
+    if (!isCorrect && !isSynonym && normUserAnswer.length > 0) {
+      if (normCorrectAnswer.startsWith(normUserAnswer)) {
         isPartial = true;
-        hint = `Correct! Continue... (${correctAnswer.length - userAnswer.length} letters left)`;
+        hint = `Correct! Continue... (${normCorrectAnswer.length - normUserAnswer.length} letters left)`;
       }
       
-      else if (correctAnswer.includes(userAnswer)) {
+      else if (normCorrectAnswer.includes(normUserAnswer)) {
         isPartial = true;
         hint = 'Partially correct! Try again!';
       }
 
-      else if (levenshteinDistance(userAnswer, correctAnswer) <= 2) {
+      else if (levenshteinDistance(normUserAnswer, normCorrectAnswer) <= 2) {
         isPartial = true;
         hint = 'Very close! Check your answer';
       }
@@ -76,7 +100,7 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
     await prisma.answer.create({
       data: {
         wordId,
-        answer: userAnswer,
+        answer: rawUserAnswer.toLowerCase(),
         isCorrect,
         isSynonym
       }
