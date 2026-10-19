@@ -4,46 +4,8 @@
       "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
     }
   },
-  "models": {
-    "providers": {
-      "openrouter": {
-        "models": [
-          {
-            "id": "openai/gpt-6-luna",
-            "name": "OpenAI: GPT-6 Luna",
-            "contextTokens": 64000,
-            "contextWindow": 1050000
-          }
-        ]
-      }
-    }
-  },
   "agents": {
     "defaults": {
-      "model": {
-        "primary": "openrouter/openai/gpt-6-luna"
-      },
-      "models": {
-        "openrouter/openai/gpt-6-luna": {}
-      },
-      "modelPolicy": {
-        "allow": [
-          "openrouter/openai/gpt-6-luna"
-        ]
-      },
-      "compaction": {
-        "enabled": true,
-        "mode": "safeguard",
-        "maxActiveTranscriptBytes": "2mb",
-        "recentTurnsPreserve": 3,
-        "midTurnPrecheck": {
-          "enabled": true
-        }
-      },
-      "contextPruning": {
-        "mode": "cache-ttl",
-        "ttl": "5m"
-      },
       "heartbeat": {
         "every": "0m"
       }
@@ -67,7 +29,7 @@
           },
           {
             "when": "context.max_tokens",
-            "text": "📊 Контекст: [{context.pct_used|meter:5:braille}] {context.used_tokens|num}/{context.max_tokens|num} ({context.pct_used}%)"
+            "text": "📊 Контекст: {context.used_tokens|num}/{context.max_tokens|num} ({context.pct_used}%)"
           },
           {
             "when": "cost.turn_usd",
