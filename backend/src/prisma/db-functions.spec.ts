@@ -462,4 +462,51 @@ describe('Регрессионные тесты расчета минималь�
   }, 30000);
 });
 
+describe('Регрессионные тесты расчета estimatedMonthlySales (по дропам Keepa: salesRankDropsLast90Days / 3)', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('для ASIN B0GWN21GRQ (пенал Safta) число дропов Keepa (28) должно давать estimatedMonthlySales = 9', async () => {
+    const row: any = await prisma.$queryRawUnsafe(`
+      SELECT 
+        snap."asinId",
+        snap."salesRankDropsLast90Days",
+        ROUND(snap."salesRankDropsLast90Days" / 3.0)::INT AS "estimatedMonthlySales"
+      FROM "ProductFinder" snap
+      JOIN "ASIN" a ON snap."asinId" = a.id
+      WHERE a.code = 'B0GWN21GRQ'
+      ORDER BY snap."createdAt" DESC
+      LIMIT 1;
+    `);
+
+    expect(row.length).toBe(1);
+    const item = row[0];
+    expect(item.salesRankDropsLast90Days).toBe(28);
+    expect(item.estimatedMonthlySales).toBe(9); // 28 дропов за 90 дней / 3 = 9.33 -> 9
+  }, 30000);
+
+  it('если миграция применена, ContractedAllProductsView возвращает колонку estimatedMonthlySales', async () => {
+    const colCheck: any = await prisma.$queryRawUnsafe(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'ContractedAllProductsView' AND column_name = 'estimatedMonthlySales';
+    `);
+    if (colCheck.length > 0) {
+      const row: any = await prisma.$queryRawUnsafe(`
+        SELECT "asin", "estimatedMonthlySales" 
+        FROM "ContractedAllProductsView" 
+        WHERE "asin" = 'B0GWN21GRQ' 
+        LIMIT 1;
+      `);
+      expect(row.length).toBe(1);
+      expect(row[0].estimatedMonthlySales).toBe(9);
+    }
+  }, 30000);
+});
+
 

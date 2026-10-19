@@ -13,6 +13,7 @@ RETURNS TABLE (
     "ean" TEXT,
     "salesRank" INT,
     "boughtInPastMonth" INT,
+    "estimatedMonthlySales" INT,
     "netProfitPerMinBoxOrder" FLOAT,
     "profitCoefficient" FLOAT,
     "minBoxOrderGross" FLOAT,
@@ -50,7 +51,8 @@ BEGIN
             snap."referralFee",
             snap."referralFeeBasedOnCurrentBuyBoxPrice",
             snap."amazon90DaysOOS",
-            snap."monthlySalesTrendsBoughtInPastMonth"
+            snap."monthlySalesTrendsBoughtInPastMonth",
+            snap."salesRankDropsLast90Days"
         FROM "ProductFinder" snap
         ORDER BY snap."asinId", snap."createdAt" DESC
     ),
@@ -95,6 +97,8 @@ BEGIN
                 ELSE 1.0
             END AS calc_amazon_share,
             NULLIF(REGEXP_REPLACE(s."monthlySalesTrendsBoughtInPastMonth", '[^0-9]', '', 'g'), '')::INT AS calc_bought_in_past_month,
+            -- Расчет примерных продаж в месяц по падениям ранга Keepa (drops за 90 дней / 3 месяца)
+            ROUND(s."salesRankDropsLast90Days" / 3.0)::INT AS calc_estimated_monthly_sales,
             a."feeStatus"::TEXT AS calc_fee_status
         FROM "ASIN" a
         JOIN "Brand" b ON a."brandId" = b.id
@@ -142,6 +146,7 @@ BEGIN
         pc.calc_ean AS "ean",
         pc.calc_sales_rank AS "salesRank",
         pc.calc_bought_in_past_month AS "boughtInPastMonth",
+        pc.calc_estimated_monthly_sales AS "estimatedMonthlySales",
         (pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1))::FLOAT AS "netProfitPerMinBoxOrder",
         CASE 
             WHEN pc.calc_min_box_order_gross IS NOT NULL 

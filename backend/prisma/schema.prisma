@@ -376,6 +376,7 @@ view ContractedFilteredProductsView {
   ean           String? /// EAN/штрихкод товара
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
   boughtInPastMonth Int? /// Количество продаж за прошлый месяц (бейдж "X+ bought in past month" на Amazon)
+  estimatedMonthlySales Int? /// Примерная оценка продаж в месяц по падениям BSR Keepa (salesRankDropsLast90Days / 3)
   netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
   minBoxOrder   Int?    /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок)
@@ -403,6 +404,7 @@ view ContractedAllProductsView {
   ean            String? /// EAN/штрихкод товара
   salesRank      Int?    /// Текущий рейтинг продаж BSR на Amazon
   boughtInPastMonth Int? /// Количество продаж за прошлый месяц (бейдж "X+ bought in past month" на Amazon)
+  estimatedMonthlySales Int? /// Примерная оценка продаж в месяц по падениям BSR Keepa (salesRankDropsLast90Days / 3)
   netProfitPerMinBoxOrder Float? /// Чистая прибыль с минимальной партии
   profitCoefficient Float? /// Коэффициент прибыли = netProfitPerMinBoxOrder / minBoxOrderGross
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
