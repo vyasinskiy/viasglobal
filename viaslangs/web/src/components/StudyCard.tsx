@@ -28,6 +28,7 @@ import {
   Error as ErrorIcon,
   Info,
   Edit,
+  Delete,
 } from '@mui/icons-material';
 import { Word, CheckAnswerResponse, UpdateWordRequest } from '../../lib/types';
 import { wordsApi, answersApi } from '../services/api';
@@ -203,6 +204,34 @@ export const StudyCard: React.FC<StudyCardProps> = ({
     }
   };
 
+  // Обработчик удаления текущего слова
+  const handleDeleteWord = async () => {
+    if (!currentWord) return;
+    // Запрашиваем подтверждение у пользователя перед безвозвратным удалением слова
+    if (!window.confirm(`Are you sure you want to delete "${currentWord.english}"?`)) return;
+
+    try {
+      setLoading(true);
+      // Вызываем API для удаления слова из базы данных
+      await wordsApi.delete(currentWord.id);
+      // Закрываем модальное окно редактирования, если оно было открыто
+      setEditDialogOpen(false);
+      // Сбрасываем таймер автоперехода, если он был активен
+      if (autoAdvanceTimeoutRef.current) {
+        window.clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+      }
+      // Оповещаем родительский компонент об изменении прогресса
+      onWordCompleted();
+      // Загружаем следующее доступное слово для изучения
+      loadNextWord(true);
+    } catch (err: unknown) {
+      setError('Failed to delete word');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRevealExample = () => {
     if (!isExampleRevealed) {
       setIsExampleRevealed(true);
@@ -271,6 +300,11 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               <Tooltip title="Edit word">
                 <IconButton onClick={handleEditOpen} color="primary">
                   <Edit />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete word">
+                <IconButton onClick={handleDeleteWord} color="error">
+                  <Delete />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -516,9 +550,22 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             rows={2}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSaveEdit} variant="contained">Save</Button>
+        <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+          <Button
+            onClick={handleDeleteWord}
+            color="error"
+            startIcon={<Delete />}
+          >
+            Delete
+          </Button>
+          <Box>
+            <Button onClick={() => setEditDialogOpen(false)} sx={{ mr: 1 }}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} variant="contained">
+              Save
+            </Button>
+          </Box>
         </DialogActions>
       </Dialog>
     </>

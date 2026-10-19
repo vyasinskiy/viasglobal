@@ -290,9 +290,28 @@ export const WordList: React.FC<WordListProps> = ({ onWordUpdated, languageId, t
             rows={2}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">Save</Button>
+        <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+          {/* Кнопка удаления слова прямо из модального окна редактирования */}
+          <Button
+            onClick={() => {
+              if (editingWord) {
+                setEditDialogOpen(false);
+                handleDelete(editingWord.id);
+              }
+            }}
+            color="error"
+            startIcon={<Delete />}
+          >
+            Delete
+          </Button>
+          <Box>
+            <Button onClick={() => setEditDialogOpen(false)} sx={{ mr: 1 }}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} variant="contained">
+              Save
+            </Button>
+          </Box>
         </DialogActions>
       </Dialog>
 
