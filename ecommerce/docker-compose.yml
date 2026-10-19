@@ -1,0 +1,68 @@
+services:
+  backend:
+    build: ./backend
+    container_name: ecommerce-backend
+    ports:
+      - "3010:3001"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    environment:
+      - DATABASE_URL=postgresql://viasuser:viaspassword@db:5432/ecommerce_db?schema=public
+      - JWT_SECRET=ecommerce-jwt-secret-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - PORT=3001
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+      - accruals-network
+
+  admin:
+    build:
+      context: ./admin
+      args:
+        - NEXT_PUBLIC_API_URL=/api
+    container_name: ecommerce-admin
+    ports:
+      - "3020:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+      - INTERNAL_API_URL=http://backend:3001
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+      - accruals-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: ecommerce-db
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=viasuser
+      - POSTGRES_PASSWORD=viaspassword
+      - POSTGRES_DB=ecommerce_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U viasuser -d ecommerce_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+
+volumes:
+  pgdata:
+
+networks:
+  ecommerce-net:
+    driver: bridge
+  accruals-network:
+    name: infra_accruals-network
+    external: true

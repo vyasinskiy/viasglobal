@@ -94,4 +94,6 @@ docker compose -f docker-compose.standby.yml up -d --build
 - **Маршрутизация поддоменов**:
   - `portainer.viasglobal.es` -> `http://172.17.0.1:9000` (панель управления Docker контейнерами).
   - `rent.viasglobal.es` -> `http://accruals-admin-ui:3000` (веб-панель управления учетом аренды и начислений).
+  - `browser.viasglobal.es` -> `http://172.17.0.1:3002` (удаленный визуальный браузер для SMS-авторизаций).
+  - `crm.viasglobal.es` -> `http://ecommerce-admin:3000` или `http://172.17.0.1:3020` (веб-панель управления E-Commerce CRM / ERP).
 

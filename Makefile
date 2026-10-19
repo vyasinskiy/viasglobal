@@ -95,4 +95,16 @@ redeploy-openclaw:
 	@echo "Развертывание и перезапуск сервиса viasglobal-openclaw..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && bash deploy.sh"
 
+deploy-ecommerce:
+	@echo "Синхронизация файлов сервиса ecommerce на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.next' --exclude 'uploads' --exclude '*.tsbuildinfo' ./ecommerce/ huawei@100.92.50.18:~/viasglobal/ecommerce/
+	@echo "Развертывание сервиса ecommerce на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/ecommerce && make deploy"
+
+redeploy-ecommerce:
+	@echo "Синхронизация файлов сервиса ecommerce на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.next' --exclude 'uploads' --exclude '*.tsbuildinfo' ./ecommerce/ huawei@100.92.50.18:~/viasglobal/ecommerce/
+	@echo "Пересборка и перезапуск контейнеров ecommerce на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/ecommerce && docker compose up -d --build backend admin"
+
 

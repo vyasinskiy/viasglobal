@@ -15,8 +15,8 @@
 
 Все микросервисы объединены в две основные изолированные bridge-сети Docker на сервере:
 
-1. **`infra_accruals-network`**: Сеть учета аренды и коммунальных платежей (`rent`).
-   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`.
+1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, `ecommerce`, AI-агенты).
+   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `ecommerce-backend`, `ecommerce-admin`.
 2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`).
    - Контейнеры: `backend`, `viasglobal-openclaw`, `viasglobal-hermes`.
 
@@ -32,8 +32,11 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | **Watcher Service** | `accruals-watcher` | `4500` | `4500` | Парсинг коммунальных порталов через Playwright |
 | **Backend API** | `backend` | `3000` | `3000` | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди |
 | **Admin UI (Rent)** | `accruals-admin-ui` | `3000` | `3000` (`https://rent.viasglobal.es`) | Веб-интерфейс панели администратора аренды (Next.js/MUI) |
+| **E-Commerce Backend** | `ecommerce-backend` | `3001` | `3010` | REST API CRM/ERP: товары, закупки, поставщики, остатки, заказы |
+| **E-Commerce Admin UI** | `ecommerce-admin` | `3000` | `3020` (`https://crm.viasglobal.es`) | Веб-интерфейс CRM/ERP (Next.js 16/MUI) |
+| **E-Commerce PostgreSQL**| `ecommerce-db` | `5432` | `5434` | База данных `ecommerce_db` |
 | **RabbitMQ** | `accruals-rabbitmq` | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
-| **PostgreSQL** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |
+| **PostgreSQL (Rent)** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |
 | **Telegram Bot Rent** | `accruals-telegram-bot`| - | - | Бот арендаторов и администраторов аренды |
 | **Visual Browser** | `accruals-visual-browser` | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
 | **Hermes Agent** | `viasglobal-hermes` | - | - | Голосовой AI-ассистент с локальным STT Whisper |
@@ -584,7 +587,165 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 6. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
+## 6. API сервиса E-Commerce CRM (`ecommerce-backend:3001`)
+
+Базовый URL изнутри Docker-сети: `http://ecommerce-backend:3001`
+Базовый URL извне через веб-панель: `https://crm.viasglobal.es/api`
+
+### 6.1. Авторизация (`/auth`)
+
+- **`POST /auth/login`**
+  - **Описание**: Вход пользователя в систему.
+  - **Тело запроса (JSON)**: `{"email": "admin@viasglobal.com", "password": "..."}`
+  - **Ответ**: `{ "access_token": "...", "user": { "id": 1, "email": "...", "name": "...", "role": "ADMIN" } }`
+
+- **`POST /auth/register`**
+  - **Описание**: Регистрация нового менеджера/администратора.
+  - **Тело запроса (JSON)**: `{"email": "user@example.com", "password": "...", "name": "Имя"}`
+
+---
+
+### 6.2. Поставщики (`/suppliers`)
+
+- **`GET /suppliers`**
+  - **Описание**: Список всех поставщиков CRM.
+  - **Query-параметры**: `status` (`NEW`, `RESEARCHING`, `FORM_SUBMITTED`, `EMAIL_SENT`, `CALLED`, `NEGOTIATING`, `ACCOUNT_OPENED`, `REJECTED`, `INACTIVE`).
+  - **Пример**: `curl -s "http://ecommerce-backend:3001/suppliers?status=ACCOUNT_OPENED"`
+
+- **`POST /suppliers`**
+  - **Описание**: Добавление нового поставщика в воронку.
+  - **Тело запроса**: `{"name": "Поставщик", "website": "https://...", "country": "ES", "email": "info@...", "phone": "..."}`
+
+- **`GET /suppliers/funnel`**
+  - **Описание**: Сводная статистика воронки работы с поставщиками по статусам.
+
+- **`GET /suppliers/:id`**
+  - **Описание**: Полная карточка поставщика с контактами, историей коммуникаций и привязанными товарами.
+
+- **`PATCH /suppliers/:id/status`**
+  - **Описание**: Смена этапа воронки поставщика.
+  - **Тело запроса**: `{"status": "NEGOTIATING", "notes": "Получен оптовый прайс-лист"}`
+
+- **`POST /suppliers/:id/contacts`**
+  - **Описание**: Добавление контактного лица к поставщику (`name`, `role`, `email`, `phone`, `isPrimary`).
+
+- **`POST /suppliers/:id/communications`**
+  - **Описание**: Фиксация факта коммуникации (`type`: `CALL`/`EMAIL`/`MEETING`/`FORM`, `notes`, `nextContactDate`).
+
+- **`DELETE /suppliers/:id`**
+  - **Описание**: Удаление поставщика.
+
+---
+
+### 6.3. Каталог товаров (`/products`)
+
+- **`GET /products`**
+  - **Описание**: Каталог товаров с артикулами (SKU), ценами, габаритами и остатками.
+
+- **`POST /products`**
+  - **Описание**: Создание товара.
+  - **Тело запроса**: `{"sku": "PROD-001", "name": "Наименование", "costPrice": 12.5, "retailPrice": 29.99, "weight": 0.35}`
+
+- **`GET /products/:id`**
+  - **Описание**: Детальная информация о товаре, привязанных платформах (ASIN Amazon, Etsy ID) и поставщиках.
+
+- **`PATCH /products/:id`**
+  - **Описание**: Обновление характеристик или цен товара.
+
+- **`DELETE /products/:id`**
+  - **Описание**: Удаление товара из каталога.
+
+- **`POST /products/:id/external-ids`**
+  - **Описание**: Привязка внешнего ID платформы (Amazon ASIN, Etsy ID).
+
+---
+
+### 6.4. Закупки у поставщиков (`/purchases`)
+
+- **`GET /purchases`**
+  - **Описание**: Список заказов на закупку. Фильтр: `?status=CONFIRMED`.
+  - **Статусы**: `DRAFT`, `SENT`, `CONFIRMED`, `PAID`, `SHIPPED`, `PARTIALLY_RECEIVED`, `RECEIVED`, `CANCELLED`.
+
+- **`POST /purchases`**
+  - **Описание**: Создание заказа на закупку с перечнем позиций и закупочными ценами.
+
+- **`GET /purchases/:id`**
+  - **Описание**: Детальный заказ закупки со строками и статусом поставки.
+
+- **`PATCH /purchases/:id/status`**
+  - **Описание**: Смена статуса закупки. При переводе в `RECEIVED` автоматически приходуются остатки на склад.
+
+- **`DELETE /purchases/:id`**
+  - **Описание**: Отмена заказа на закупку.
+
+---
+
+### 6.5. Заказы и продажи (`/sales`)
+
+- **`GET /sales`**
+  - **Описание**: Список заказов покупателей с маркетплейсов.
+
+- **`POST /sales`**
+  - **Описание**: Регистрация заказа продажи (платформа, номер заказа, состав, комиссия площадки).
+
+- **`GET /sales/:id`**
+  - **Описание**: Детали заказа продажи с расчетом себестоимости и чистой прибыли.
+
+- **`PATCH /sales/:id/status`**
+  - **Описание**: Обновление статуса заказа (`PENDING`, `SHIPPED`, `DELIVERED`, `CANCELLED`). При отправке автоматически списываются остатки со склада.
+
+---
+
+### 6.6. Складской учет и остатки (`/inventory`)
+
+- **`GET /inventory`**
+  - **Описание**: Текущие складские остатки по складам (`OWN`, `FBA`, `THIRD_PARTY`).
+
+- **`GET /inventory/movements`**
+  - **Описание**: Журнал движений товаров (приход, списание, резерв, возврат).
+
+- **`POST /inventory/movements`**
+  - **Описание**: Ручное создание складского движения (инвентаризация, списание, корректировка).
+
+- **`GET /inventory/low-stock`**
+  - **Описание**: Список товаров с остатком ниже минимального страхового порога.
+
+---
+
+### 6.7. Документооборот (`/documents`)
+
+- **`POST /documents/upload`**
+  - **Описание**: Загрузка файла (PDF, скан, инвойс, накладная) с привязкой к сущности (`SUPPLIER`, `PURCHASE`, `SALE`, `PRODUCT`).
+  - **Формат**: `multipart/form-data` (файл в поле `file`, метаданные в теле).
+
+- **`GET /documents/:entityType/:entityId`**
+  - **Описание**: Список прикрепленных документов для выбранной сущности.
+
+- **`GET /documents/:id/download`**
+  - **Описание**: Скачивание файла документа по ID.
+
+- **`DELETE /documents/:id`**
+  - **Описание**: Удаление документа из системы и дискового хранилища.
+
+---
+
+### 6.8. Аналитика и маржинальность (`/analytics`)
+
+- **`GET /analytics/kpis`**
+  - **Описание**: Ключевые метрики бизнеса (выручка, маржа, чистая прибыль, средний чек).
+
+- **`GET /analytics/sales-by-platform`**
+  - **Описание**: Распределение продаж и комиссий по площадкам (Amazon vs Etsy).
+
+- **`GET /analytics/top-products`**
+  - **Описание**: Рейтинг наиболее маржинальных и популярных товаров.
+
+- **`GET /analytics/margin-analysis`**
+  - **Описание**: Построчный расчет прибыльности и удержаний комиссий.
+
+---
+
+## 7. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
 
 При взаимодействии автономных языковых моделей (OpenClaw, Hermes, Antigravity) с бэкенд-сервисами критически важно предотвращать когнитивные искажения (галлюцинации) агентов. Если API возвращает неточный статус или неполную ошибку, LLM делает ложные выводы о состоянии системы и начинает деструктивные действия (создание фиктивных сущностей, попытки обхода проверок, удаление записей).
 
@@ -651,7 +812,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 7. Правила использования для AI-ассистентов (OpenClaw, Hermes)
+## 8. Правила использования для AI-ассистентов (OpenClaw, Hermes)
 
 1. **Доступ через Bash и cURL**:
    - При выполнении запросов к микросервисам используй команду `curl -s` с передачей правильных заголовков `Content-Type: application/json`.
