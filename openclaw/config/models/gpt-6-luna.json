@@ -1,0 +1,25 @@
+{
+  "preset": "gpt-6-luna",
+  "name": "OpenAI: GPT-6 Luna",
+  "modelId": "openrouter/openai/gpt-6-luna",
+  "provider": "openrouter",
+  "model": {
+    "id": "openai/gpt-6-luna",
+    "name": "OpenAI: GPT-6 Luna",
+    "contextTokens": 64000,
+    "contextWindow": 1050000
+  },
+  "compaction": {
+    "enabled": true,
+    "mode": "safeguard",
+    "maxActiveTranscriptBytes": "2mb",
+    "recentTurnsPreserve": 3,
+    "midTurnPrecheck": {
+      "enabled": true
+    }
+  },
+  "contextPruning": {
+    "mode": "cache-ttl",
+    "ttl": "5m"
+  }
+}

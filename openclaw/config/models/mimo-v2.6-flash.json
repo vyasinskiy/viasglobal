@@ -1,0 +1,25 @@
+{
+  "preset": "mimo-v2.6-flash",
+  "name": "Xiaomi: MiMo-V2.6-Flash",
+  "modelId": "openrouter/xiaomi/mimo-v2.6-flash",
+  "provider": "openrouter",
+  "model": {
+    "id": "xiaomi/mimo-v2.6-flash",
+    "name": "Xiaomi: MiMo-V2.6-Flash",
+    "contextTokens": 128000,
+    "contextWindow": 1050000
+  },
+  "compaction": {
+    "enabled": true,
+    "mode": "safeguard",
+    "maxActiveTranscriptBytes": "5mb",
+    "recentTurnsPreserve": 3,
+    "midTurnPrecheck": {
+      "enabled": true
+    }
+  },
+  "contextPruning": {
+    "mode": "cache-ttl",
+    "ttl": "10m"
+  }
+}

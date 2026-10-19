@@ -1,0 +1,25 @@
+{
+  "preset": "deepseek-chat",
+  "name": "DeepSeek: DeepSeek V3",
+  "modelId": "openrouter/deepseek/deepseek-chat",
+  "provider": "openrouter",
+  "model": {
+    "id": "deepseek/deepseek-chat",
+    "name": "DeepSeek: DeepSeek V3",
+    "contextTokens": 64000,
+    "contextWindow": 163840
+  },
+  "compaction": {
+    "enabled": true,
+    "mode": "safeguard",
+    "maxActiveTranscriptBytes": "2mb",
+    "recentTurnsPreserve": 3,
+    "midTurnPrecheck": {
+      "enabled": true
+    }
+  },
+  "contextPruning": {
+    "mode": "cache-ttl",
+    "ttl": "5m"
+  }
+}

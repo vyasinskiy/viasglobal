@@ -18,14 +18,9 @@ set +a
 # 3. Создаем директорию данных для пользователя node (uid 1000)
 mkdir -p data/workspace
 
-# 4. Генерируем актуальный openclaw.json из шаблона с подстановкой ключей
-echo "⚙️ Генерация конфигурации openclaw.json..."
-sed \
-  -e "s|\${OPENROUTER_API_KEY}|${OPENROUTER_API_KEY}|g" \
-  -e "s|\${OPENCLAW_GATEWAY_TOKEN}|${OPENCLAW_GATEWAY_TOKEN}|g" \
-  -e "s|\${TELEGRAM_BOT_TOKEN}|${TELEGRAM_BOT_TOKEN}|g" \
-  -e "s|\${TELEGRAM_ALLOWED_USERS}|${TELEGRAM_ALLOWED_USERS:-743866013}|g" \
-  config/openclaw.template.json > data/openclaw.json
+# 4. Генерируем актуальный openclaw.json из шаблона и выбранного пресета модели
+echo "⚙️ Генерация конфигурации openclaw.json с пресетом модели [${MODEL:-gpt-6-luna}]..."
+python3 config/build-config.py --preset "${MODEL:-gpt-6-luna}" --output data/openclaw.json
 cp -f data/openclaw.json data/openclaw.json.last-good
 rm -f data/openclaw.json.bak* data/openclaw.json.clobbered*
 
