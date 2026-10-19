@@ -333,6 +333,12 @@ async function main() {
         }
       }).catch(() => {});
       queuedAsinsCount++;
+
+      // Фиксируем статус жизненного цикла расчета комиссий (запрошено в Keepa)
+      await prisma.aSIN.update({
+        where: { id: currentAsin.id },
+        data: { feeStatus: 'KEEPA_REQUESTED' as any }
+      }).catch(() => {});
     } else {
       // Сохраняем EAN, которого еще нет в таблице ASIN
       unmatchedEans.push(item.ean);

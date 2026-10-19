@@ -13,6 +13,16 @@ enum BrandStatus {
   CONTRACTED
 }
 
+/// Статусы жизненного цикла расчета комиссий FBA и габаритов товара
+enum FeeCalculationStatus {
+  KEEPA_REQUESTED    /// Запрошено в Keepa API (стоит в очереди или отправлен запрос)
+  KEEPA_SUCCESS      /// Успешно получено из Keepa (есть комиссии и габариты)
+  KEEPA_UNKNOWN      /// Keepa не имеет данных (габариты -1 или комиссии null на стороне Amazon)
+  SUPPLIER_ENRICHING /// Пробуем обогатить из каталога/прайс-листа поставщика
+  SUPPLIER_SUCCESS   /// Успешно обогащено из данных поставщика (рассчитан Size Tier и FBA fee)
+  FAILED             /// Неуспешный (ни в Keepa, ни у поставщика нет данных)
+}
+
 model Brand {
   id            Int            @id @default(autoincrement())
   name          String         @unique
@@ -107,6 +117,7 @@ model ASIN {
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  feeStatus      FeeCalculationStatus? /// Статус расчета комиссий и габаритов FBA
   productFinders ProductFinder[]
   keepaExports   KeepaExport[]
   tags           Tag[]
@@ -363,6 +374,7 @@ view ContractedProductsView {
   asin          String? /// ASIN товара
   ean           String? /// EAN/штрихкод товара
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  boughtInPastMonth Int? /// Количество продаж за прошлый месяц (бейдж "X+ bought in past month" на Amazon)
   netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
   minBoxOrder   Int?    /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок)
@@ -381,6 +393,7 @@ view ContractedProductsView {
   roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfitPerUnit / grossPrice) * 100
   marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfitPerUnit / buyBoxPrice) * 100
   minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
+  feeStatus     String? /// Статус расчета комиссий и габаритов FBA (FeeCalculationStatus)
 }
 
 /// Сводное представление товаров брендов в работе С ФИЛЬТРАМИ (BSR <= 100k, Amazon <= 50%, BuyBox >= 10€)
@@ -389,6 +402,7 @@ view ContractedFilteredProductsView {
   asin          String? /// ASIN товара
   ean           String? /// EAN/штрихкод товара
   salesRank     Int?    /// Текущий рейтинг продаж BSR на Amazon
+  boughtInPastMonth Int? /// Количество продаж за прошлый месяц (бейдж "X+ bought in past month" на Amazon)
   netProfit     Float?  /// Чистая прибыль (с вычетом налога на комиссии для Recargo)
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
   minBoxOrder   Int?    /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок)
@@ -407,6 +421,7 @@ view ContractedFilteredProductsView {
   roiPercent    Float?  /// Рентабельность инвестиций ROI (%) = (netProfitPerUnit / grossPrice) * 100
   marginPercent Float?  /// Маржинальность продаж Margin (%) = (netProfitPerUnit / buyBoxPrice) * 100
   minBoxOrderNetto Float? /// Стоимость минимальной партии нетто (без налогов)
+  feeStatus     String? /// Статус расчета комиссий и габаритов FBA (FeeCalculationStatus)
 }
 
 /// Сводное представление ВСЕХ товаров брендов в работе БЕЗ ФИЛЬТРОВ (без ограничений по BSR, цене и Amazon)
@@ -414,6 +429,7 @@ view ContractedAllProductsView {
   asin           String? /// ASIN товара
   ean            String? /// EAN/штрихкод товара
   salesRank      Int?    /// Текущий рейтинг продаж BSR на Amazon
+  boughtInPastMonth Int? /// Количество продаж за прошлый месяц (бейдж "X+ bought in past month" на Amazon)
   netProfitPerMinBoxOrder Float? /// Чистая прибыль с минимальной партии
   profitCoefficient Float? /// Коэффициент прибыли = netProfitPerMinBoxOrder / minBoxOrderGross
   minBoxOrderGross Float? /// Стоимость минимальной партии брутто (с налогами)
@@ -434,6 +450,7 @@ view ContractedAllProductsView {
   vatOnFees      Float?  /// 21% НДС на комиссии Amazon (включается в расходы на режиме Recargo de Equivalencia)
   roiPercent     Float?  /// Рентабельность инвестиций ROI (%) = (netProfitPerUnit / grossPrice) * 100
   marginPercent  Float?  /// Маржинальность продаж Margin (%) = (netProfitPerUnit / buyBoxPrice) * 100
+  feeStatus      String? /// Статус расчета комиссий и габаритов FBA (FeeCalculationStatus)
 }
 
 model KeepaExport {

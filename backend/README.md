@@ -16,13 +16,16 @@
 4. **`ContractedFilteredProductsView`** и **`ContractedAllProductsView`** — поштучный вывод товаров брендов в работе (`BrandStatus = 'CONTRACTED'`) с расчетом чистой оптовой цены закупки (`netPrice`), себестоимости с налогами (`grossPrice` / `costPrice`), комиссий Amazon (`amazonFees`), чистой прибыли (`netProfit`), ROI (%) и маржинальности (Margin %):
    - `ContractedFilteredProductsView`: со строгими оптовыми фильтрами (`BSR <= 100 000`, `Amazon <= 50%`, `BuyBox >= 10 €`).
    - `ContractedAllProductsView`: **все товары бренда в работе без фильтров**, включая новинки с `salesRank IS NULL`, товары с высоким BSR и позиции с низкой ценой.
+   - **Колонки ликвидности и статуса расчета комиссий**:
+     * `boughtInPastMonth` — число покупок за прошлый месяц по счетчику Amazon («X+ bought in past month»).
+     * `feeStatus` — статус жизненного цикла расчета комиссий (`NULL`, `KEEPA_REQUESTED`, `KEEPA_SUCCESS`, `KEEPA_UNKNOWN`, `SUPPLIER_ENRICHING`, `SUPPLIER_SUCCESS`, `FAILED`).
 
 Использование в SQL:
 ```sql
 SELECT * FROM "AsinView";
 SELECT * FROM "CandidatesProductsView";
-SELECT * FROM "ContractedFilteredProductsView" ORDER BY "netProfitPerUnit" DESC NULLS LAST;
-SELECT * FROM "ContractedAllProductsView" ORDER BY "netProfitPerUnit" DESC NULLS LAST;
+SELECT * FROM "ContractedFilteredProductsView" ORDER BY "boughtInPastMonth" DESC NULLS LAST, "netProfitPerUnit" DESC NULLS LAST;
+SELECT * FROM "ContractedAllProductsView" ORDER BY "boughtInPastMonth" DESC NULLS LAST, "profitCoefficient" DESC NULLS LAST;
 ```
 
 Использование через Prisma Client:

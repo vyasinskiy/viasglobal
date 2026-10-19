@@ -259,6 +259,19 @@ export class KeepaProductService {
       data: { isProcessed: true },
     });
 
+    // Пошаговая проверка наличия рассчитанных комиссий или габаритов в ответе Keepa
+    // Если есть FBA комиссия или все 4 габарита упаковки > 0, статус KEEPA_SUCCESS
+    const hasKeepaFees = (pickAndPackFee !== null && pickAndPackFee > 0) || 
+      (pLength !== null && pLength > 0 && pWidth !== null && pWidth > 0 && pHeight !== null && pHeight > 0 && pWeight !== null && pWeight > 0);
+
+    const feeStatus = hasKeepaFees ? 'KEEPA_SUCCESS' : 'KEEPA_UNKNOWN';
+
+    // Фиксируем статус расчета комиссий в рабочей таблице ASIN
+    await this.prisma.aSIN.updateMany({
+      where: { code: asin },
+      data: { feeStatus: feeStatus as any },
+    });
+
     // Очередь на анализ вариаций
     await this.analysisService.queueForAnalysis(asin, 0);
   }

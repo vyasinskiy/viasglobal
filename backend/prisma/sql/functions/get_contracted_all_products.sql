@@ -9,6 +9,7 @@ RETURNS TABLE (
     "asin" TEXT,
     "ean" TEXT,
     "salesRank" INT,
+    "boughtInPastMonth" INT,
     "netProfitPerMinBoxOrder" FLOAT,
     "profitCoefficient" FLOAT,
     "minBoxOrderGross" FLOAT,
@@ -28,7 +29,8 @@ RETURNS TABLE (
     "amazonFees" FLOAT,
     "vatOnFees" FLOAT,
     "roiPercent" FLOAT,
-    "marginPercent" FLOAT
+    "marginPercent" FLOAT,
+    "feeStatus" TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -43,7 +45,8 @@ BEGIN
             snap."newCurrent",
             snap."fBAPickPackFee",
             snap."referralFee",
-            snap."referralFeeBasedOnCurrentBuyBoxPrice"
+            snap."referralFeeBasedOnCurrentBuyBoxPrice",
+            snap."monthlySalesTrendsBoughtInPastMonth"
         FROM "ProductFinder" snap
         ORDER BY snap."asinId", snap."createdAt" DESC
     ),
@@ -81,7 +84,9 @@ BEGIN
                 THEN ROUND((LEAST(s."buyBoxCurrent", s."newCurrent") * s."referralFee")::numeric, 2)
                 ELSE s."referralFeeBasedOnCurrentBuyBoxPrice"
             END::FLOAT AS calc_referral_fee,
-            s."salesRankCurrent"::INT AS calc_sales_rank
+            s."salesRankCurrent"::INT AS calc_sales_rank,
+            NULLIF(REGEXP_REPLACE(s."monthlySalesTrendsBoughtInPastMonth", '[^0-9]', '', 'g'), '')::INT AS calc_bought_in_past_month,
+            a."feeStatus"::TEXT AS calc_fee_status
         FROM "ASIN" a
         JOIN "Brand" b ON a."brandId" = b.id
         LEFT JOIN latest_snapshots s ON s."asinId" = a.id
@@ -121,6 +126,7 @@ BEGIN
         pc.calc_asin AS "asin",
         pc.calc_ean AS "ean",
         pc.calc_sales_rank AS "salesRank",
+        pc.calc_bought_in_past_month AS "boughtInPastMonth",
         (pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1))::FLOAT AS "netProfitPerMinBoxOrder",
         CASE 
             WHEN pc.calc_min_box_order_gross IS NOT NULL 
@@ -164,7 +170,8 @@ BEGIN
                 - pc.calc_cost_price) / pc.calc_buy_box_price * 100.0
             )::numeric, 2)::FLOAT
             ELSE NULL
-        END AS "marginPercent"
+        END AS "marginPercent",
+        pc.calc_fee_status AS "feeStatus"
     FROM profit_calc pc
     ORDER BY 
         "netProfitPerMinBoxOrder" DESC NULLS LAST,

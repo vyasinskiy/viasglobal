@@ -42,6 +42,12 @@ export class KeepaController {
       1,
     );
 
+    // Пошаговая фиксация статуса: запрос отправлен в Keepa API
+    await this.prisma.aSIN.updateMany({
+      where: { code: asin },
+      data: { feeStatus: 'KEEPA_REQUESTED' as any },
+    }).catch(() => {});
+
     // 2. Немедленно выполняем задачу через KeepaProductService
     try {
       await this.productService.handleProductAsinsJob(job);

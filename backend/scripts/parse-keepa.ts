@@ -824,6 +824,14 @@ async function main() {
         data: snapshotData
       });
       newSnapshotsCount++;
+
+      // Если в выгрузке Keepa уже есть подтвержденная комиссия FBA Pick & Pack, фиксируем статус KEEPA_SUCCESS
+      if (snapshotData.fBAPickPackFee && snapshotData.fBAPickPackFee > 0) {
+        await prisma.aSIN.update({
+          where: { id: currentAsin.id },
+          data: { feeStatus: 'KEEPA_SUCCESS' as any }
+        }).catch(() => {});
+      }
     }
 
     // 4. Создаем KeepaExport (связываем с продавцом, брендом и ASIN-ами)
