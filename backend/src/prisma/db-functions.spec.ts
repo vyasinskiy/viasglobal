@@ -375,7 +375,6 @@ describe('Smoke-тесты SQL-представлений (Views) и функц�
 
   it('все представления БД (Views) должны успешно выполняться без ошибок отсутствующих колонок', async () => {
     // Проверяем каждое SQL-представление базовым SELECT LIMIT 1 для валидации названий колонок в рантайме
-    await expect(prisma.$queryRaw`SELECT * FROM "ContractedProductsView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "ContractedFilteredProductsView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "ContractedAllProductsView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "AsinView" LIMIT 1`).resolves.toBeDefined();

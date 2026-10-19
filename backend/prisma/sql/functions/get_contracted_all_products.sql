@@ -174,6 +174,7 @@ BEGIN
         pc.calc_fee_status AS "feeStatus"
     FROM profit_calc pc
     ORDER BY 
+        pc.calc_bought_in_past_month DESC NULLS LAST,
         "netProfitPerMinBoxOrder" DESC NULLS LAST,
         pc.calc_sales_rank ASC NULLS LAST;
 END;

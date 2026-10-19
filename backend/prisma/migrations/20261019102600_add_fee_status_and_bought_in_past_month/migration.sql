@@ -224,6 +224,7 @@ BEGIN
         pc.calc_fee_status AS "feeStatus"
     FROM profit_calc pc
     ORDER BY 
+        pc.calc_bought_in_past_month DESC NULLS LAST,
         "netProfitPerMinBoxOrder" DESC NULLS LAST,
         pc.calc_sales_rank ASC NULLS LAST;
 END;
@@ -416,19 +417,16 @@ BEGIN
         pc.calc_fee_status AS "feeStatus"
     FROM profit_calc pc
     ORDER BY 
+        pc.calc_bought_in_past_month DESC NULLS LAST,
         "netProfitPerMinBoxOrder" DESC NULLS LAST,
         pc.calc_sales_rank ASC NULLS LAST;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
--- 8. Восстанавливаем View ContractedProductsView
-CREATE OR REPLACE VIEW public."ContractedProductsView" AS
-SELECT * FROM public.get_contracted_products();
-
--- 9. Восстанавливаем View ContractedFilteredProductsView
+-- 8. Восстанавливаем View ContractedFilteredProductsView
 CREATE OR REPLACE VIEW public."ContractedFilteredProductsView" AS
 SELECT * FROM public.get_contracted_products();
 
--- 10. Восстанавливаем View ContractedAllProductsView
+-- 9. Восстанавливаем View ContractedAllProductsView
 CREATE OR REPLACE VIEW public."ContractedAllProductsView" AS
 SELECT * FROM public.get_contracted_all_products();

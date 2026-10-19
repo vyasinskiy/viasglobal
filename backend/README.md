@@ -150,7 +150,6 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
   - `AsinView.sql`
   - `CandidatesProductsView.sql`
   - `PrivateLabelView.sql`
-  - `ContractedProductsView.sql`
   - `ContractedFilteredProductsView.sql`
   - `ContractedAllProductsView.sql`
   - `KeepaExportView.sql`
@@ -172,9 +171,9 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
 2. **Smoke-тесты в Jest**: В файле `backend/src/prisma/db-functions.spec.ts` настроен блок тестов, который выполняет `SELECT ... LIMIT 1` по всем существующим представлениям (Views) и табличным функциям базы данных. При выполнении обязательного шага тестирования (`npm test`) любые нестыковки в названиях колонок блокируют билд до выката в базу данных.
 
 
-## Расчет расходов и маржинальности товаров в работе (`ContractedProductsView`)
+## Расчет расходов и маржинальности товаров в работе (`ContractedFilteredProductsView` / `ContractedAllProductsView`)
 
-Представление `ContractedProductsView` и функция `get_contracted_products` поштучно анализируют товары брендов со статусом `CONTRACTED`:
+Представления `ContractedFilteredProductsView` / `ContractedAllProductsView` и функции `get_contracted_products` / `get_contracted_all_products` поштучно анализируют товары брендов со статусом `CONTRACTED`:
 - `netPrice` — оптовая цена дистрибьютора без налогов.
 - `grossPrice` / `costPrice` — себестоимость закупки с налогами (для испанского Autónomo: 21% IVA + 5.2% Recargo de Equivalencia = `netPrice * 1.262`).
 - `amazonFees` — чистые комиссии площадки Amazon (`fbaFee` + `referralFee`).
