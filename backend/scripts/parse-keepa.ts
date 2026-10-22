@@ -84,6 +84,9 @@ function normalizeEntityName(str: string | undefined | null): string | null {
   return clean.toUpperCase();
 }
 
+export { normalizeManufacturerName } from '../src/keepa/manufacturer-normalization';
+
+
 /**
  * Парсит строку продавца из Keepa (например: "paramount city (80%) / A2125XITGCFM0Q" или "Seller Name / A1234567").
  * Извлекает только чистое название продавца (без рейтинга в процентах) и его Seller ID.
@@ -151,7 +154,8 @@ async function main(filePath?: string) {
       // Очищаем строки от невидимых спецсимволов и пробелов
       const asin = cleanString(row['ASIN']);
       const brand = normalizeEntityName(row['Brand']);
-      const manufacturer = normalizeEntityName(row['Manufacturer']);
+      // Очищаем и нормализуем производителя (отрезаем вендор-коды Amazon вида (COFB0) и унифицируем правовые формы S.L.)
+      const manufacturer = normalizeManufacturerName(row['Manufacturer']);
 
       if (asin) uniqueAsins.add(asin);
       if (brand) uniqueBrands.add(brand);
@@ -198,7 +202,8 @@ async function main(filePath?: string) {
       if (!asinCode) continue;
 
       const brandName = normalizeEntityName(row['Brand']);
-      const manufacturerName = normalizeEntityName(row['Manufacturer']);
+      // Нормализуем производителя для поиска существующей записи в БД
+      const manufacturerName = normalizeManufacturerName(row['Manufacturer']);
       const buyBoxSeller = cleanString(row['Buy Box: Buy Box Seller']);
 
       let currentAsin = await prisma.aSIN.findUnique({ where: { code: asinCode } });
@@ -688,8 +693,8 @@ async function main(filePath?: string) {
     // Type
     if (row['Type'] !== undefined && row['Type'] !== null) snapshotData.type = String(row['Type']);
 
-    // Manufacturer
-    if (row['Manufacturer'] !== undefined && row['Manufacturer'] !== null) snapshotData.manufacturer = normalizeEntityName(row['Manufacturer']);
+    // Manufacturer (очищенный и нормализованный)
+    if (row['Manufacturer'] !== undefined && row['Manufacturer'] !== null) snapshotData.manufacturer = normalizeManufacturerName(row['Manufacturer']);
 
     // Brand
     if (row['Brand'] !== undefined && row['Brand'] !== null) snapshotData.brand = normalizeEntityName(row['Brand']);

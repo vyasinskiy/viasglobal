@@ -32,58 +32,64 @@ const dotenv = requireBackendModule('dotenv');
 dotenv.config({ path: path.join(backendDir, '.env') });
 
 /**
- * Нормализация и поиск бренда в базе данных (только чтение SELECT).
- * Если передан ID бренда (число) или точное/частичное название.
+ * Нормализация и поиск бренда или производителя в базе данных (только чтение SELECT).
+ * Если передан ID (число) или точное/частичное название.
  */
-async function resolveBrand(input: string): Promise<{ brandName: string; brandId: number | null }> {
+async function resolveEntity(
+  input: string,
+  isManufacturer: boolean
+): Promise<{ entityName: string; entityId: number | null }> {
   const trimmed = input.trim();
   const numericId = parseInt(trimmed, 10);
   const isNumeric = !isNaN(numericId) && numericId.toString() === trimmed;
 
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    return { brandName: trimmed, brandId: isNumeric ? numericId : null };
+    return { entityName: trimmed, entityId: isNumeric ? numericId : null };
   }
 
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
+  const entityType = isManufacturer ? 'производителя' : 'бренда';
+
   try {
     if (isNumeric) {
-      // Ищем бренд по первичному ключу ID
-      const brand = await prisma.brand.findUnique({ where: { id: numericId } });
-      if (brand) {
-        return { brandName: brand.name, brandId: brand.id };
+      if (isManufacturer) {
+        const m = await prisma.manufacturer.findUnique({ where: { id: numericId } });
+        if (m) return { entityName: m.name, entityId: m.id };
+      } else {
+        const brand = await prisma.brand.findUnique({ where: { id: numericId } });
+        if (brand) return { entityName: brand.name, entityId: brand.id };
       }
     }
 
-    // Ищем бренд по названию (регистронезависимо)
-    console.log(`Поиск бренда в базе данных по запросу: "${trimmed}"...`);
-    const brands = await prisma.brand.findMany({
-      where: {
-        name: {
-          contains: trimmed,
-          mode: 'insensitive',
-        },
-      },
-      take: 5,
-    });
-
-    if (brands.length === 0) {
-      console.log(`Бренд "${trimmed}" не найден в локальной БД. Будет выполнен прямой поиск в Keepa.`);
-      return { brandName: trimmed, brandId: null };
+    console.log(`Поиск ${entityType} в базе данных по запросу: "${trimmed}"...`);
+    if (isManufacturer) {
+      const records = await prisma.manufacturer.findMany({
+        where: { name: { contains: trimmed, mode: 'insensitive' } },
+        take: 5,
+      });
+      if (records.length === 0) {
+        console.log(`Производитель "${trimmed}" не найден в локальной БД. Будет выполнен прямой поиск в Keepa.`);
+        return { entityName: trimmed, entityId: null };
+      }
+      return { entityName: records[0].name, entityId: records[0].id };
+    } else {
+      const brands = await prisma.brand.findMany({
+        where: { name: { contains: trimmed, mode: 'insensitive' } },
+        take: 5,
+      });
+      if (brands.length === 0) {
+        console.log(`Бренд "${trimmed}" не найден в локальной БД. Будет выполнен прямой поиск в Keepa.`);
+        return { entityName: trimmed, entityId: null };
+      }
+      return { entityName: brands[0].name, entityId: brands[0].id };
     }
-
-    if (brands.length > 1) {
-      console.log(`Найдено несколько совпадений в базе данных:`);
-      brands.forEach((b) => console.log(`  - ${b.name} (ID: ${b.id})`));
-      console.log(`Выбран наиболее релевантный: ${brands[0].name} (ID: ${brands[0].id})`);
-    }
-
-    return { brandName: brands[0].name, brandId: brands[0].id };
   } finally {
     await prisma.$disconnect();
+    await pool.end();
   }
 }
 
@@ -110,26 +116,36 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log('Использование:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id_бренда> [--no-parse] [output.xlsx] [domainId]');
+    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id> [--manufacturer] [--regex] [--no-parse] [output.xlsx] [domainId]');
+    console.log('\nПараметры:');
+    console.log('  --manufacturer, -m   Искать по полю Manufacturer вместо Brand');
+    console.log('  --regex, -r          Использовать режим регулярных выражений (префикс regex:)');
+    console.log('  --no-parse           Не запускать автоматический парсинг после выгрузки');
     console.log('\nПримеры:');
     console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY"');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY" --no-parse');
+    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "COFAN" --manufacturer');
+    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "ALFA DYSER.*" --manufacturer --regex');
     process.exit(0);
   }
 
-  const rawBrandParam = args[0];
+  const isManufacturer = args.includes('--manufacturer') || args.includes('-m');
+  const isRegex = args.includes('--regex') || args.includes('-r');
   const noParse = args.includes('--no-parse');
-  const filteredArgs = args.filter((a) => a !== '--no-parse');
+  const filteredArgs = args.filter((a) => a !== '--no-parse' && a !== '--manufacturer' && a !== '-m' && a !== '--regex' && a !== '-r');
 
-  // Определяем название и ID бренда
-  const { brandName, brandId } = await resolveBrand(rawBrandParam);
-  console.log(`\nЦелевой бренд: "${brandName}" ${brandId ? `(ID в БД: ${brandId})` : ''}`);
+  const rawEntityParam = filteredArgs[0];
+
+  // Определяем название и ID сущности (бренда или производителя)
+  const { entityName, entityId } = await resolveEntity(rawEntityParam, isManufacturer);
+  const entityLabel = isManufacturer ? 'производитель' : 'бренд';
+  console.log(`\nЦелевой ${entityLabel}: "${entityName}" ${entityId ? `(ID в БД: ${entityId})` : ''} ${isRegex ? '[Режим RegEx]' : ''}`);
 
   // Формируем безопасное имя файла
-  const safeBrandSlug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const safeSlug = entityName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const prefix = isManufacturer ? 'manufacturer' : 'brand';
   const defaultOutputFile = path.resolve(
     __dirname,
-    `../../../../keepa/exports/brand_${safeBrandSlug}_${Date.now()}.xlsx`
+    `../../../../keepa/exports/${prefix}_${safeSlug}_${Date.now()}.xlsx`
   );
   const targetOutputFile = filteredArgs[1]
     ? path.resolve(process.cwd(), filteredArgs[1])
@@ -165,38 +181,62 @@ async function main() {
     // Закрываем возможные стартовые оверлеи/уведомления
     await page.keyboard.press('Escape');
 
-    // Поиск поля фильтра бренда (#autocomplete-brand)
-    console.log(`Поиск поля фильтра бренда для: "${brandName}"...`);
-    const brandInput = page.locator('#autocomplete-brand');
-    await brandInput.waitFor({ state: 'visible', timeout: 15000 });
-    await brandInput.scrollIntoViewIfNeeded().catch(() => {});
+    // Определяем целевой инпут: Brand (#autocomplete-brand) или Manufacturer (#autocomplete-manufacturer)
+    const inputSelector = isManufacturer ? '#autocomplete-manufacturer' : '#autocomplete-brand';
+    const fieldName = isManufacturer ? 'Manufacturer' : 'Brand';
 
-    // Очищаем и вводим название бренда
-    await brandInput.click();
-    await brandInput.fill(brandName);
-    console.log(`Введено значение "${brandName}" в поле Brand.`);
-    await page.waitForTimeout(1000);
+    console.log(`Поиск поля фильтра ${fieldName} для: "${entityName}"...`);
+    const targetInput = page.locator(inputSelector);
+    await targetInput.waitFor({ state: 'visible', timeout: 15000 });
+    await targetInput.scrollIntoViewIfNeeded().catch(() => {});
 
-    // Проверяем появление выпадающего списка автодополнения (.ui-autocomplete)
-    const autocompleteList = page.locator('.ui-autocomplete:visible');
-    const hasDropdown = await autocompleteList.isVisible({ timeout: 2500 }).catch(() => false);
-
-    if (hasDropdown) {
-      // Ищем точное или валидное совпадение (исключая "no match")
-      const lowerBrand = brandName.toLowerCase();
-      const itemMatch = page.locator(`.ui-autocomplete:visible li:not(:has-text("no match")):has-text("${lowerBrand}")`).first();
-
-      if (await itemMatch.isVisible({ timeout: 1500 }).catch(() => false)) {
-        const itemText = (await itemMatch.innerText().catch(() => '')).trim();
-        console.log(`Выбран вариант из списка: "${itemText}"`);
-        await itemMatch.click();
-      } else {
-        console.log('Подходящих вариантов в автодополнении нет, нажимаем Enter.');
-        await page.keyboard.press('Escape');
-        await brandInput.press('Enter');
-      }
+    // Если включен режим RegEx (или запрос уже содержит regex:)
+    if (isRegex || entityName.startsWith('regex:')) {
+      const regexQuery = entityName.startsWith('regex:') ? entityName : `regex:${entityName}`;
+      console.log(`Применяем регулярное выражение: "${regexQuery}" в поле ${fieldName}...`);
+      await targetInput.click();
+      await targetInput.fill(regexQuery);
+      await page.waitForTimeout(1000);
+      // В Keepa для фиксации regex нажимаем Enter
+      await targetInput.press('Enter');
+      console.log(`RegEx фильтр "${regexQuery}" успешно зафиксирован в Keepa.`);
     } else {
-      await brandInput.press('Enter');
+      // Стандартный режим ввода (с поддержкой выбора всех вариантов и множественных тегов)
+      await targetInput.click();
+      await targetInput.fill(entityName);
+      console.log(`Введено значение "${entityName}" в поле ${fieldName}.`);
+      await page.waitForTimeout(1500);
+
+      // Проверяем появление выпадающего списка автодополнения (.ui-autocomplete)
+      const autocompleteList = page.locator('.ui-autocomplete:visible');
+      const hasDropdown = await autocompleteList.isVisible({ timeout: 2500 }).catch(() => false);
+
+      if (hasDropdown) {
+        // 1. Проверяем наличие опции "Select all" (Keepa предлагает выбрать сразу ВСЕ вариации, например COFAN + COFAN (COFB0))
+        const selectAllItem = page.locator('.ui-autocomplete:visible li.ui-item-select-all, .ui-autocomplete:visible li:has-text("Select all")').first();
+        const hasSelectAll = await selectAllItem.isVisible({ timeout: 1500 }).catch(() => false);
+
+        if (hasSelectAll) {
+          console.log('Найдена опция "Select all" в автодополнении Keepa! Выбираем ВСЕ вариации для исключения потерь товаров...');
+          await selectAllItem.click();
+        } else {
+          // 2. Если "Select all" нет, проверяем подходящие варианты (исключая "no match")
+          const lowerQuery = entityName.toLowerCase();
+          const itemMatch = page.locator(`.ui-autocomplete:visible li:not(:has-text("no match")):has-text("${lowerQuery}")`).first();
+
+          if (await itemMatch.isVisible({ timeout: 1500 }).catch(() => false)) {
+            const itemText = (await itemMatch.innerText().catch(() => '')).trim();
+            console.log(`Выбран вариант из списка: "${itemText}"`);
+            await itemMatch.click();
+          } else {
+            console.log('Подходящих вариантов в автодополнении нет, нажимаем Enter (поиск по точному тексту).');
+            await targetInput.press('Enter');
+          }
+        }
+      } else {
+        console.log('Автодополнение не появилось, нажимаем Enter.');
+        await targetInput.press('Enter');
+      }
     }
 
     await page.waitForTimeout(1000);
@@ -276,7 +316,7 @@ async function main() {
     }
 
     if (!foundExport) {
-      throw new Error(`Кнопка "Export" не появилась. Возможно, у бренда "${brandName}" нет активных товаров в выборке.`);
+      throw new Error(`Кнопка "Export" не появилась. Возможно, у ${entityLabel} "${entityName}" нет активных товаров в выборке.`);
     }
 
     // Проверяем текущий процент квоты в интерфейсе Keepa

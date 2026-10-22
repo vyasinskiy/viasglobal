@@ -61,6 +61,7 @@ backend/scripts/temp/
 # Keepa auth storage for skills
 .agents/skills/fetch-keepa-viewer/auth/
 .agents/skills/keepa-seller-finder-playwright/auth/
+.agents/skills/keepa-brand-finder-playwright/auth/
 
 # Python cache and Agent persistent storage
 __pycache__/

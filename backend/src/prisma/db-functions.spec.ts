@@ -587,7 +587,7 @@ describe('Регрессионные тесты расчета доли прис
     ).resolves.toBeDefined();
   }, 30000);
 
-  it('для ASIN B0CSPHRCFH производитель в базе данных должен быть ALFA DYSER, S.L', async () => {
+  it('для ASIN B0CSPHRCFH производитель в базе данных должен быть ALFA DYSER, S.L (или нормализованный ALFA DYSER, S.L.)', async () => {
     const rows: any[] = await prisma.$queryRawUnsafe(`
       SELECT m.name AS "manufacturer"
       FROM "ASIN" a
@@ -596,7 +596,7 @@ describe('Регрессионные тесты расчета доли прис
       LIMIT 1;
     `);
     expect(rows.length).toBe(1);
-    expect(rows[0].manufacturer).toBe('ALFA DYSER, S.L');
+    expect(rows[0].manufacturer).toMatch(/^ALFA DYSER, S\.L\.?$/);
   }, 30000);
 
   it('если миграция применена, ContractedAllProductsView возвращает колонку manufacturer сразу после distributor', async () => {
@@ -619,7 +619,7 @@ describe('Регрессионные тесты расчета доли прис
         LIMIT 1;
       `);
       expect(row.length).toBe(1);
-      expect(row[0].manufacturer).toBe('ALFA DYSER, S.L');
+      expect(row[0].manufacturer).toMatch(/^ALFA DYSER, S\.L\.?$/);
     }
   }, 30000);
 });

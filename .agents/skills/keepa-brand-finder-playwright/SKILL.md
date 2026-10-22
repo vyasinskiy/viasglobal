@@ -25,11 +25,16 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-sel
 
 ## Автоматическая выгрузка и сохранение в БД
 
-Запуск выгрузки каталога бренда:
+Запуск выгрузки каталога бренда или производителя:
 
 ```bash
-cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id_бренда>
+cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id> [опции]
 ```
+
+### Доступные параметры:
+- `--manufacturer`, `-m` — производить поиск и фильтрацию по полю **Manufacturer** (`#autocomplete-manufacturer`) вместо поля **Brand** (`#autocomplete-brand`).
+- `--regex`, `-r` — режим регулярных выражений. Keepa автоматически получает префикс `regex:` (например, `regex:^COFAN.*` или `regex:ALFA DYSER.*`), что позволяет захватывать любые написания, вариации правовых форм (`S.L.`, `S.L.U.`) и опечатки.
+- `--no-parse` — только выгрузить файл `.xlsx` без последующего автоматического импорта в базу данных.
 
 ### Примеры использования:
 
@@ -38,12 +43,23 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-bra
    cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY"
    ```
 
-2. **По ID бренда из базы данных**:
+2. **По производителю (Manufacturer) с автоматическим выбором всех вариаций**:
+   ```bash
+   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "COFAN" --manufacturer
+   ```
+   *(Keepa автоматически находит опцию «Select all» в выпадающем списке и выбирает одновременно `COFAN` и `COFAN (COFB0)`, исключая потерю товаров с вендор-кодами)*.
+
+3. **По производителю через RegEx** (захват всех написаний и правовых форм):
+   ```bash
+   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "ALFA DYSER.*" --manufacturer --regex
+   ```
+
+4. **По ID бренда из базы данных**:
    ```bash
    cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts 123
    ```
 
-3. **Только скачивание файла без записи в БД** (флаг `--no-parse`):
+5. **Только скачивание файла без записи в БД** (флаг `--no-parse`):
    ```bash
    cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY" --no-parse
    ```
@@ -52,11 +68,13 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-bra
 
 ## Что происходит под капотом
 
-1. **Поиск ID бренда**: Если передан ID или имя бренда, скрипт выполняет `SELECT` к таблице `Brand` в БД для уточнения данных.
+1. **Поиск ID сущности**: Если передан ID или имя бренда/производителя, скрипт выполняет `SELECT` к соответствующей таблице (`Brand` или `Manufacturer`) в БД для уточнения данных.
 2. **UI автоматизация Keepa**:
    - Открывается `https://keepa.com/#!finder`.
-   - Вводится название бренда в фильтр *"Brand"*.
-   - Выбирается вариант в выпадающем списке автодополнения.
+   - Вводится название в фильтр *"Brand"* (`#autocomplete-brand`) или *"Manufacturer"* (`#autocomplete-manufacturer`).
+   - **Множественный выбор ("Select all")**: Если в выпадающем списке автодополнения Keepa есть пункт `Select all` (`li.ui-item-select-all`), скрипт кликает его, выбирая сразу все предложенные вариации (`value1###value2`).
+   - **Режим RegEx**: Если активен флаг `--regex` (или запрос начинается с `regex:`), значение отправляется как регулярное выражение (`regex:...`) и подтверждается клавишей `Enter`.
+   - **Прямой ввод**: Если точных совпадений в автодополнении нет, нажимается `Enter` для поиска по введённому тексту без сброса фильтра.
    - Нажимается кнопка *"FIND PRODUCTS"*.
    - Ожидается формирование таблицы результатов.
    - **Автоматически переключается лимит отображения таблицы на 5000 строк** (`.tool__row` -> `5000 rows`), гарантируя захват до 5000 товаров, а не 100 по умолчанию.
@@ -64,5 +82,6 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-bra
    - Скачивается файл `.xlsx` в директорию `keepa/exports/`.
 3. **Сохранение в БД**:
    - Скрипт сразу запускает `scripts/parse-keepa.ts` с полученным файлом.
+   - Названия производителей автоматически очищаются от вендор-кодов (`COFAN (COFB0)` ➔ `COFAN`) и унифицируются по правовым формам через `normalizeManufacturerName`.
    - Заполняются таблицы `Brand`, `Manufacturer`, `Seller`, `ASIN`, `ProductFinder` и `KeepaExport`.
-   - Все новые ASIN бренда автоматически ставятся в очередь `RequestProductQueue` с приоритетом 50 для последующего сбора точных характеристик и метрик.
+   - Все новые ASIN бренда/производителя автоматически ставятся в очередь `RequestProductQueue` с приоритетом 50 для последующего сбора точных характеристик и метрик.
