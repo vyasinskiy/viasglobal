@@ -350,17 +350,18 @@ async function main() {
     if (fallbackClicked) console.log('Экспорт запущен через fallback (submit/primary кнопка в диалоге экспорта)');
   };
 
-  await clickExportBtn();
-
-  if (!exportBtnClicked) {
-    const errScreenshot = path.resolve(process.cwd(), 'temp_export_timeout.png');
-    await page.screenshot({ path: errScreenshot, fullPage: true }).catch(() => {});
-    console.error(`Скриншот ошибки сохранен в: ${errScreenshot}`);
-    throw new Error('Не удалось найти кнопку экспорта в диалоге');
-  }
-
   try {
-    const download = await page.waitForEvent('download', { timeout: 90000 });
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 90000 }),
+      clickExportBtn(),
+    ]);
+
+    if (!exportBtnClicked) {
+      const errScreenshot = path.resolve(process.cwd(), 'temp_export_timeout.png');
+      await page.screenshot({ path: errScreenshot, fullPage: true }).catch(() => {});
+      console.error(`Скриншот ошибки сохранен в: ${errScreenshot}`);
+      throw new Error('Не удалось найти кнопку экспорта в диалоге');
+    }
 
     // Сохраняем файл
     fs.mkdirSync(path.dirname(resolvedOutputPath), { recursive: true });

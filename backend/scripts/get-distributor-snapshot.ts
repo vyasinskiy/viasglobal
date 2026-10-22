@@ -141,8 +141,9 @@ async function main() {
       }
 
       // Проверяем, проходит ли товар жесткие оптовые фильтры в ContractedFilteredProductsView
+      // В представлении колонка называется "asin", а не "asinId"
       const filteredRows: any[] = await prisma.$queryRaw`
-        SELECT "asinId" FROM "ContractedFilteredProductsView"
+        SELECT asin FROM "ContractedFilteredProductsView"
         WHERE asin = ${targetAsin}
         LIMIT 1
       `;

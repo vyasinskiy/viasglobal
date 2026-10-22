@@ -91,9 +91,14 @@ BEGIN
                 ELSE s."referralFeeBasedOnCurrentBuyBoxPrice"
             END::FLOAT AS calc_referral_fee,
             s."salesRankCurrent"::INT AS calc_sales_rank,
+            -- Расчет доли присутствия Amazon в Buy Box
+            -- Поддерживает как формат процентов (0..100, где 100 = 100% OOS), так и исторический формат долей (0..1, где 1 = 100% OOS)
             CASE
-                WHEN s."amazon90DaysOOS" IS NOT NULL 
-                THEN (100.0 - s."amazon90DaysOOS") / 100.0
+                WHEN s."amazon90DaysOOS" IS NOT NULL AND s."amazon90DaysOOS" >= 0 THEN
+                    CASE
+                        WHEN s."amazon90DaysOOS" <= 1 THEN (1.0 - s."amazon90DaysOOS")::FLOAT
+                        ELSE ((100.0 - s."amazon90DaysOOS") / 100.0)::FLOAT
+                    END
                 ELSE 1.0
             END AS calc_amazon_share,
             NULLIF(REGEXP_REPLACE(s."monthlySalesTrendsBoughtInPastMonth", '[^0-9]', '', 'g'), '')::INT AS calc_bought_in_past_month,
@@ -115,8 +120,14 @@ BEGIN
           AND s."salesRankCurrent" <= p_max_sales_rank
           AND s."salesRankCurrent" > 0
           AND (
-                (s."amazon90DaysOOS" IS NOT NULL AND (100.0 - s."amazon90DaysOOS") / 100.0 <= p_max_amazon_share)
-                OR s."amazon90DaysOOS" IS NULL
+                s."amazon90DaysOOS" IS NULL
+                OR s."amazon90DaysOOS" < 0
+                OR (
+                    CASE
+                        WHEN s."amazon90DaysOOS" <= 1 THEN (1.0 - s."amazon90DaysOOS")::FLOAT
+                        ELSE ((100.0 - s."amazon90DaysOOS") / 100.0)::FLOAT
+                    END
+                ) <= p_max_amazon_share
           )
     ),
     fees_calc AS (

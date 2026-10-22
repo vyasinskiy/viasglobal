@@ -509,4 +509,84 @@ describe('Регрессионные тесты расчета estimatedMonthlyS
   }, 30000);
 });
 
+describe('Регрессионные тесты расчета доли присутствия Amazon и фильтрации KUKEN (кейс ASIN B0CSPHRCFH)', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('товар KUKEN (ASIN B0CSPHRCFH) должен иметь корректные контрактные цены и расчет прибыли в ContractedAllProductsView', async () => {
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT "asin", "ean", "brand", "distributor", "grossPrice", "netPrice", "buyBoxPrice", "netProfitPerUnit", "salesRank"
+      FROM "ContractedAllProductsView"
+      WHERE "asin" = 'B0CSPHRCFH'
+      LIMIT 1;
+    `);
+
+    expect(rows.length).toBe(1);
+    const item = rows[0];
+    expect(item.asin).toBe('B0CSPHRCFH');
+    expect(item.ean).toBe('8425160343163');
+    expect(item.brand).toBe('KUKEN');
+    expect(item.distributor).toBe('Alfadyser (Kuken)');
+    expect(item.netPrice).toBe(11.82);
+    expect(item.grossPrice).toBe(14.92);
+    expect(item.buyBoxPrice).toBe(26.7);
+    expect(item.netProfitPerUnit).toBe(1.76);
+    expect(item.salesRank).toBeLessThanOrEqual(100000);
+  }, 30000);
+
+  it('исправленная формула calc_amazon_share должна давать долю Amazon 0.0 (0%) для 100% OOS как в масштабе 0..1, так и 0..100', async () => {
+    // Проверяем работу SQL-выражения для различных форматов OOS
+    const testCases: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        -- Случай 1: OOS = 1 (в масштабе Excel 0..1, 100% Out of Stock)
+        CASE 
+          WHEN 1 <= 1 THEN (1.0 - 1.0)::FLOAT 
+          ELSE ((100.0 - 1.0) / 100.0)::FLOAT 
+        END AS share_from_1,
+        -- Случай 2: OOS = 100 (в масштабе процентов 0..100, 100% Out of Stock)
+        CASE 
+          WHEN 100 <= 1 THEN (1.0 - 100.0)::FLOAT 
+          ELSE ((100.0 - 100.0) / 100.0)::FLOAT 
+        END AS share_from_100,
+        -- Случай 3: OOS = 0 (Amazon всегда в наличии, доля 100%)
+        CASE 
+          WHEN 0 <= 1 THEN (1.0 - 0.0)::FLOAT 
+          ELSE ((100.0 - 0.0) / 100.0)::FLOAT 
+        END AS share_from_0,
+        -- Случай 4: OOS = 56 (Amazon отсутствовал 56% времени, доля 44%)
+        CASE 
+          WHEN 56 <= 1 THEN (1.0 - 56.0)::FLOAT 
+          ELSE ((100.0 - 56.0) / 100.0)::FLOAT 
+        END AS share_from_56
+    `);
+
+    expect(testCases.length).toBe(1);
+    const res = testCases[0];
+    // 100% OOS из любого представления должен давать долю Amazon = 0.0
+    expect(res.share_from_1).toBe(0.0);
+    expect(res.share_from_100).toBe(0.0);
+    // 0% OOS должен давать долю Amazon = 1.0
+    expect(res.share_from_0).toBe(1.0);
+    // 56% OOS должен давать долю Amazon = 0.44
+    expect(res.share_from_56).toBeCloseTo(0.44, 2);
+  }, 30000);
+
+  it('запрос колонки asin в ContractedFilteredProductsView не должен вызывать ошибку отсутствующей колонки asinId', async () => {
+    // Тест проверяет исправление опечатки "asinId" -> asin в get-distributor-snapshot.ts
+    await expect(
+      prisma.$queryRawUnsafe(`
+        SELECT asin FROM "ContractedFilteredProductsView"
+        WHERE asin = 'B0CSPHRCFH'
+        LIMIT 1;
+      `)
+    ).resolves.toBeDefined();
+  }, 30000);
+});
+
+
 

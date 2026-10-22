@@ -8,22 +8,68 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const inputFile = process.argv[2];
-if (!inputFile) {
-  console.error('Использование: cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>');
-  process.exit(1);
-}
 
-const resolvedPath = path.resolve(process.cwd(), inputFile);
-if (!fs.existsSync(resolvedPath)) {
-  console.error(`Файл не найден: ${resolvedPath}`);
-  process.exit(1);
-}
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+/**
+ * Вспомогательная функция парсинга процентов Keepa.
+ * Обрабатывает:
+ * - Дроби Excel от 0.0 до 1.0 (например, 1 => 100, 0.56 => 56, 0.01 => 1, 0 => 0)
+ * - Готовые числа от 1 до 100 (например, 100 => 100, 56 => 56)
+ * - Строки вида "100%", "56%", "0.56", "1"
+ * - Отрицательные значения (например, -1 при отсутствии данных Keepa) => null
+ *
+ * @param rawValue Исходное значение из ячейки Excel или CSV Keepa
+ * @returns Процент от 0 до 100 (целое число) или null
+ */
+export function parseKeepaPercentage(rawValue: unknown): number | null {
+  if (rawValue === undefined || rawValue === null || rawValue === '') {
+    return null;
+  }
+
+  let num: number;
+  let isExplicitPercentString = false;
+
+  if (typeof rawValue === 'string') {
+    const trimmed = rawValue.trim();
+    if (!trimmed) return null;
+    isExplicitPercentString = trimmed.includes('%');
+    const clean = trimmed.replace('%', '').trim();
+    if (!clean) return null;
+    num = parseFloat(clean);
+  } else if (typeof rawValue === 'number') {
+    num = rawValue;
+  } else {
+    return null;
+  }
+
+  if (isNaN(num)) {
+    return null;
+  }
+
+  // Отрицательные значения (Keepa использует -1 как флаг отсутствия данных)
+  if (num < 0) {
+    return null;
+  }
+
+  // Если в строке был явный знак процента (например, "1%" или "100%")
+  if (isExplicitPercentString) {
+    return Math.round(num);
+  }
+
+  // Если значение от 0 до 1 включительно (типичный формат процентов в Excel: 1 = 100%, 0.56 = 56%, 0.01 = 1%)
+  // Примечание: в Excel число 1.0 в процентной ячейке означает ровно 100%
+  if (num > 0 && num <= 1.0) {
+    return Math.round(num * 100);
+  }
+
+  // Если значение уже в масштабе 0..100 (например, 100, 56, 0)
+  return Math.round(num);
+}
 
 // Убираем невидимые символы (Zero-width space, Left-to-Right mark, и т.д.)
 function cleanString(str: string | undefined | null): string | null {
@@ -81,10 +127,16 @@ function parseSellerInfo(rawSeller: string | null | undefined): {
   };
 }
 
-async function main() {
+async function main(filePath?: string) {
   try {
-    console.log(`Читаем файл: ${resolvedPath}...`);
-    const workbook = xlsx.readFile(resolvedPath);
+    const targetFile = filePath || process.argv[2];
+    if (!targetFile) {
+      console.error('Ошибка: не указан путь к файлу.');
+      process.exit(1);
+    }
+    const resolvedTarget = path.resolve(process.cwd(), targetFile);
+    console.log(`Читаем файл: ${resolvedTarget}...`);
+    const workbook = xlsx.readFile(resolvedTarget);
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     
@@ -379,8 +431,8 @@ async function main() {
     if (row['Amazon: Stock'] !== undefined && row['Amazon: Stock'] !== null) snapshotData.amazonStock = String(row['Amazon: Stock']);
 
     // Amazon: 90 days OOS
-    const val_amazon90DaysOOS = parseInt(row['Amazon: 90 days OOS']);
-    if (!isNaN(val_amazon90DaysOOS)) snapshotData.amazon90DaysOOS = val_amazon90DaysOOS;
+    const val_amazon90DaysOOS = parseKeepaPercentage(row['Amazon: 90 days OOS']);
+    if (val_amazon90DaysOOS !== null) snapshotData.amazon90DaysOOS = val_amazon90DaysOOS;
 
     // New: Current
     const val_newCurrent = parseFloat(row['New: Current']);
@@ -475,8 +527,8 @@ async function main() {
     if (row['Used: 90 days drop %'] !== undefined && row['Used: 90 days drop %'] !== null) snapshotData.used90DaysDrop = String(row['Used: 90 days drop %']);
 
     // Used: 90 days OOS
-    const val_used90DaysOOS = parseInt(row['Used: 90 days OOS']);
-    if (!isNaN(val_used90DaysOOS)) snapshotData.used90DaysOOS = val_used90DaysOOS;
+    const val_used90DaysOOS = parseKeepaPercentage(row['Used: 90 days OOS']);
+    if (val_used90DaysOOS !== null) snapshotData.used90DaysOOS = val_used90DaysOOS;
 
     // Used, like new: Current
     if (row['Used, like new: Current'] !== undefined && row['Used, like new: Current'] !== null) snapshotData.usedLikeNewCurrent = String(row['Used, like new: Current']);
@@ -897,4 +949,19 @@ async function main() {
   }
 }
 
-main();
+// Запускаем процесс парсинга только при прямом вызове через CLI
+if (require.main === module) {
+  const inputFile = process.argv[2];
+  if (!inputFile) {
+    console.error('Использование: cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>');
+    process.exit(1);
+  }
+
+  const resolvedPath = path.resolve(process.cwd(), inputFile);
+  if (!fs.existsSync(resolvedPath)) {
+    console.error(`Файл не найден: ${resolvedPath}`);
+    process.exit(1);
+  }
+
+  main(resolvedPath);
+}

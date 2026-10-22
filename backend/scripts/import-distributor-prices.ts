@@ -87,6 +87,9 @@ async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
     let title: string | null = null;
     let unitsPerBox: number | null = null;
 
+    // Если специфичный прайс Kuken (колонка G = 'KUKEN' или колонка C содержит KUKEN)
+    const isKuken = row && (row[6] === 'KUKEN' || (typeof row[2] === 'string' && row[2].toUpperCase().includes('KUKEN')));
+
     if (isSafta) {
       // Структура Safta:
       // Index 1: DESCRIPCION
@@ -101,6 +104,24 @@ async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
       }
       ean = cleanEan(row[7]) || cleanEan(row[6]);
       // Поиск коробки для Safta: UNI CAJA STD часто в 4-й или 5-й колонке. Будем искать динамически.
+    } else if (isKuken) {
+      // Структура Kuken / Alfa Dyser:
+      // Index 1: REFERENCIA (артикул)
+      // Index 2: DESCRIPCION (наименование)
+      // Index 3: PRECIO NETO (чистая оптовая цена закупки)
+      // Index 5: ENVASE / UNIDADES (штук в коробке / мин. заказ)
+      // Index 6: MARCA ('KUKEN')
+      // Index 7: EAN (13-значный штрихкод)
+      title = row[2] ? String(row[2]).trim() : null;
+      const rawPrice = typeof row[3] === 'number' ? row[3] : parseFloat(String(row[3]).replace(',', '.'));
+      if (!isNaN(rawPrice) && rawPrice > 0) {
+        priceNetto = rawPrice;
+      }
+      ean = cleanEan(row[7]);
+      const rawBox = parseInt(String(row[5]), 10);
+      if (!isNaN(rawBox) && rawBox > 0) {
+        unitsPerBox = rawBox;
+      }
     } else {
       // Универсальный разбор колонок
       for (let col = 0; col < row.length; col++) {
@@ -122,7 +143,9 @@ async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
         ean,
         priceNetto,
         costPrice,
-        title: title || undefined
+        title: title || undefined,
+        unitsPerBox: unitsPerBox || undefined,
+        minBoxOrder: unitsPerBox || undefined
       });
     }
   }
@@ -290,6 +313,8 @@ async function main() {
   let savedSnapshotsCount = 0;
   let queuedAsinsCount = 0;
   const unmatchedEans: string[] = [];
+  const matchedBrandIds = new Set<number>();
+  const isContractedFlag = process.argv.includes('--contracted');
 
   for (const item of priceItems) {
     // Ищем ASIN в БД:
@@ -301,11 +326,15 @@ async function main() {
         }
       },
       orderBy: { createdAt: 'desc' },
-      select: { asinId: true, asin: { select: { code: true } } }
+      select: { asinId: true, asin: { select: { code: true, brandId: true } } }
     });
 
     let asinId = matchingSnapshot?.asinId || null;
     let asinCode = matchingSnapshot?.asin?.code || null;
+
+    if (matchingSnapshot?.asin?.brandId) {
+      matchedBrandIds.add(matchingSnapshot.asin.brandId);
+    }
 
     // Если нашли привязанный ASIN, связываем его с дистрибьютором и ставим в очередь с максимальным приоритетом
     if (asinId && asinCode) {
@@ -336,7 +365,7 @@ async function main() {
 
       // Фиксируем статус жизненного цикла расчета комиссий (запрошено в Keepa)
       await prisma.aSIN.update({
-        where: { id: currentAsin.id },
+        where: { id: asinId },
         data: { feeStatus: 'KEEPA_REQUESTED' as any }
       }).catch(() => {});
     } else {
@@ -359,6 +388,25 @@ async function main() {
     savedSnapshotsCount++;
   }
 
+  // Обновление статусов дистрибьютора и бренда при наличии флага --contracted
+  if (isContractedFlag) {
+    if (distributor.status !== 'ACCOUNT_OPENED') {
+      await prisma.distributor.update({
+        where: { id: distributor.id },
+        data: { status: 'ACCOUNT_OPENED' }
+      });
+      console.log(`\n🎉 Статус дистрибьютора "${distributor.name}" переведен в: ACCOUNT_OPENED`);
+    }
+
+    for (const brandId of matchedBrandIds) {
+      const updatedBrand = await prisma.brand.update({
+        where: { id: brandId },
+        data: { status: 'CONTRACTED' }
+      });
+      console.log(`🎉 Статус бренда "${updatedBrand.name}" (ID: ${brandId}) переведен в: CONTRACTED`);
+    }
+  }
+
   // Если есть EAN, не найденные в нашей базе ASIN (товары еще не заведены на Amazon или не спарсены),
   // сохраняем их в файл для дальнейшего анализа незаведенных позиций (потенциал монопольного Buy Box)
   if (unmatchedEans.length > 0) {
@@ -373,6 +421,14 @@ async function main() {
     const eansFilePath = path.join(outDir, `${distributorSlug}_unmatched_eans.txt`);
     fs.writeFileSync(eansFilePath, uniqueUnmatched.join('\n'), 'utf-8');
     console.log(`\n📋 Список несопоставленных EAN (${uniqueUnmatched.length} шт.) сохранен в: ${eansFilePath}`);
+
+    // Если файл импортируется из папки contractors, также сохраняем локально
+    const fileDir = path.dirname(resolvedPath);
+    if (fileDir.includes('contractors')) {
+      const localEansPath = path.join(fileDir, 'unmatched_eans.txt');
+      fs.writeFileSync(localEansPath, uniqueUnmatched.join('\n'), 'utf-8');
+      console.log(`📋 Также сохранен локально в папке поставщика: ${localEansPath}`);
+    }
     console.log(`💡 Эти товары отсутствуют в каталоге Amazon и являются потенциальными кандидатами на создание новых карточек с монопольным Buy Box.`);
   }
 
