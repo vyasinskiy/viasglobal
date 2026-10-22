@@ -38,6 +38,7 @@ const SPAIN_TAX_COEFFICIENT = 1.262;
 interface ParsedPriceItem {
   ean: string;
   priceNetto: number;
+  ecoTasa?: number;
   costPrice: number;
   title?: string;
   unitsPerBox?: number;
@@ -83,6 +84,7 @@ async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
     if (!row || row.length === 0) continue;
 
     let priceNetto: number | null = null;
+    let ecoTasa: number | null = null;
     let ean: string | null = null;
     let title: string | null = null;
     let unitsPerBox: number | null = null;
@@ -109,13 +111,18 @@ async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
       // Index 1: REFERENCIA (артикул)
       // Index 2: DESCRIPCION (наименование)
       // Index 3: PRECIO NETO (чистая оптовая цена закупки)
-      // Index 5: ENVASE / UNIDADES (штук в коробке / мин. заказ)
+      // Index 4: TASA (эко-таса RAEE)
+      // Index 5: ENVASE / UNIDADES / CAJA (штук в коробке / мин. заказ)
       // Index 6: MARCA ('KUKEN')
       // Index 7: EAN (13-значный штрихкод)
       title = row[2] ? String(row[2]).trim() : null;
       const rawPrice = typeof row[3] === 'number' ? row[3] : parseFloat(String(row[3]).replace(',', '.'));
       if (!isNaN(rawPrice) && rawPrice > 0) {
         priceNetto = rawPrice;
+      }
+      const rawTasa = typeof row[4] === 'number' ? row[4] : parseFloat(String(row[4]).replace(',', '.'));
+      if (!isNaN(rawTasa) && rawTasa > 0) {
+        ecoTasa = rawTasa;
       }
       ean = cleanEan(row[7]);
       const rawBox = parseInt(String(row[5]), 10);
@@ -137,11 +144,13 @@ async function parsePriceRows(rows: any[][]): Promise<ParsedPriceItem[]> {
     }
 
     if (ean && priceNetto !== null && priceNetto > 0) {
-      // Округляем себестоимость до 2 знаков
-      const costPrice = Math.round(priceNetto * SPAIN_TAX_COEFFICIENT * 100) / 100;
+      // Округляем себестоимость до 2 знаков с обязательным учетом эко-тасы
+      const effectiveNet = ecoTasa ? Math.round((priceNetto + ecoTasa) * 100) / 100 : priceNetto;
+      const costPrice = Math.round(effectiveNet * SPAIN_TAX_COEFFICIENT * 100) / 100;
       items.push({
         ean,
         priceNetto,
+        ecoTasa: ecoTasa || undefined,
         costPrice,
         title: title || undefined,
         unitsPerBox: unitsPerBox || undefined,
@@ -373,13 +382,14 @@ async function main() {
       unmatchedEans.push(item.ean);
     }
 
-    // Сохраняем снапшот цены
+    // Сохраняем снапшот цены с учетом эко-тасы
     await prisma.distributorPriceSnapshot.create({
       data: {
         distributorId: distributor.id,
         asinId: asinId,
         ean: item.ean,
         priceNetto: item.priceNetto,
+        ecoTasa: item.ecoTasa || null,
         costPrice: item.costPrice,
         unitsPerBox: item.unitsPerBox,
         minBoxOrder: item.minBoxOrder

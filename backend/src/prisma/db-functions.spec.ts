@@ -533,9 +533,9 @@ describe('Регрессионные тесты расчета доли прис
     expect(item.brand).toBe('KUKEN');
     expect(item.distributor).toBe('Alfadyser (Kuken)');
     expect(item.netPrice).toBe(11.82);
-    expect(item.grossPrice).toBe(14.92);
+    expect(item.grossPrice).toBe(15.74);
     expect(item.buyBoxPrice).toBe(26.7);
-    expect(item.netProfitPerUnit).toBe(1.76);
+    expect(item.netProfitPerUnit).toBe(0.94);
     expect(item.salesRank).toBeLessThanOrEqual(100000);
   }, 30000);
 
@@ -642,7 +642,7 @@ describe('Регрессионные тесты приоритета прибы�
         "boughtInPastMonth", 
         "netProfitPerMinBoxOrder", 
         "profitCoefficient"
-      FROM "ContractedFilteredProductsView"
+      FROM "ContractedAllProductsView"
       WHERE "asin" IN ('B01N4SDF1W', 'B0GWNF9VBL', 'B0DR36YG4Q')
       ORDER BY 
         CASE 
@@ -699,6 +699,175 @@ describe('Регрессионные тесты приоритета прибы�
     }
   }, 30000);
 });
+
+describe('Эталонные тесты инвариантности цен реальных снапшотов разных производителей до миграции эко-тасы', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('для производителя SAFTA (товары B01N4SDF1W и B0HFKT8N24) контрактные цены и кратность партии должны оставаться неизменными', async () => {
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        "asin", "ean", "brand", "manufacturer", "distributor",
+        "netPrice", "grossPrice", "costPrice",
+        "unitsPerBox", "minBoxOrder", "minBoxOrderGross", "minBoxOrderNetto",
+        "buyBoxPrice", "netProfitPerUnit", "profitCoefficient"
+      FROM "ContractedAllProductsView"
+      WHERE "asin" IN ('B01N4SDF1W', 'B0HFKT8N24')
+      ORDER BY "asin" ASC;
+    `);
+
+    expect(rows.length).toBe(2);
+
+    // Товар 1: B01N4SDF1W (пенал Safta)
+    const item1 = rows.find((r: any) => r.asin === 'B01N4SDF1W');
+    expect(item1).toBeDefined();
+    expect(item1.manufacturer).toBe('SAFTA');
+    expect(item1.brand).toBe('SAFTA');
+    expect(item1.distributor).toBe('Safta');
+    expect(item1.netPrice).toBe(11.135);
+    expect(item1.grossPrice).toBe(14.05);
+    expect(item1.costPrice).toBe(14.05);
+    expect(item1.unitsPerBox).toBe(10);
+    expect(item1.minBoxOrder).toBe(10);
+    expect(item1.minBoxOrderGross).toBe(140.5);
+    expect(item1.buyBoxPrice).toBe(19.6);
+    expect(item1.netProfitPerUnit).toBe(-5.28);
+    expect(item1.profitCoefficient).toBe(-0.3758);
+
+    // Товар 2: B0HFKT8N24 (рюкзак на колесах Safta)
+    const item2 = rows.find((r: any) => r.asin === 'B0HFKT8N24');
+    expect(item2).toBeDefined();
+    expect(item2.manufacturer).toBe('SAFTA');
+    expect(item2.brand).toBe('SAFTA');
+    expect(item2.distributor).toBe('Safta');
+    expect(item2.netPrice).toBe(36.68);
+    expect(item2.grossPrice).toBe(46.29);
+    expect(item2.costPrice).toBe(46.29);
+    expect(item2.unitsPerBox).toBe(4);
+    expect(item2.minBoxOrder).toBe(4);
+    expect(item2.minBoxOrderGross).toBe(185.16);
+    expect(item2.minBoxOrderNetto).toBe(146.72);
+    expect(item2.buyBoxPrice).toBe(64.89);
+    expect(item2.netProfitPerUnit).toBe(-1.17);
+    expect(item2.profitCoefficient).toBe(-0.0253);
+  }, 30000);
+
+  it('для производителя COFAN (товары B08WM385FK и B00MGJ4GOO) контрактные цены и кратность партии должны оставаться неизменными', async () => {
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        "asin", "ean", "brand", "manufacturer", "distributor",
+        "netPrice", "grossPrice", "costPrice",
+        "unitsPerBox", "minBoxOrder", "minBoxOrderGross", "minBoxOrderNetto",
+        "buyBoxPrice", "netProfitPerUnit", "profitCoefficient"
+      FROM "ContractedAllProductsView"
+      WHERE "asin" IN ('B08WM385FK', 'B00MGJ4GOO')
+      ORDER BY "asin" ASC;
+    `);
+
+    expect(rows.length).toBe(2);
+
+    // Товар 1: B00MGJ4GOO (каска защитная Cofan)
+    const item1 = rows.find((r: any) => r.asin === 'B00MGJ4GOO');
+    expect(item1).toBeDefined();
+    expect(item1.manufacturer).toBe('COFAN');
+    expect(item1.brand).toBe('COFAN');
+    expect(item1.distributor).toBe('Cofan');
+    expect(item1.netPrice).toBe(5.25);
+    expect(item1.grossPrice).toBe(6.63);
+    expect(item1.costPrice).toBe(6.63);
+    expect(item1.unitsPerBox).toBe(1);
+    expect(item1.minBoxOrder).toBe(1);
+    expect(item1.minBoxOrderGross).toBe(6.63);
+    expect(item1.minBoxOrderNetto).toBe(5.25);
+    expect(item1.buyBoxPrice).toBe(13.54);
+    expect(item1.netProfitPerUnit).toBe(-2.35);
+    expect(item1.profitCoefficient).toBe(-0.3544);
+
+    // Товар 2: B08WM385FK (пульверизатор Cofan)
+    const item2 = rows.find((r: any) => r.asin === 'B08WM385FK');
+    expect(item2).toBeDefined();
+    expect(item2.manufacturer).toBe('COFAN');
+    expect(item2.brand).toBe('COFAN');
+    expect(item2.distributor).toBe('Cofan');
+    expect(item2.netPrice).toBe(5.8);
+    expect(item2.grossPrice).toBe(7.32);
+    expect(item2.costPrice).toBe(7.32);
+    expect(item2.unitsPerBox).toBe(6);
+    expect(item2.minBoxOrder).toBe(6);
+    expect(item2.minBoxOrderGross).toBe(43.92);
+    expect(item2.minBoxOrderNetto).toBe(34.8);
+    expect(item2.buyBoxPrice).toBe(13.38);
+    expect(item2.netProfitPerUnit).toBe(-3.16);
+    expect(item2.profitCoefficient).toBe(-0.4317);
+  }, 30000);
+
+  it('для производителя ALFA DYSER, S.L. (товар B0CSPHRCFH) исторический снапшот до эко-тасы должен сохранять точные значения', async () => {
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        dp.ean, dp."priceNetto", dp."costPrice", dp."ecoTasa", dp."unitsPerBox", dp."minBoxOrder"
+      FROM "DistributorPriceSnapshot" dp
+      JOIN "ASIN" a ON dp."asinId" = a.id
+      WHERE a.code = 'B0CSPHRCFH' AND dp."ecoTasa" IS NULL
+      ORDER BY dp."createdAt" ASC
+      LIMIT 1;
+    `);
+
+    expect(rows.length).toBe(1);
+    const item = rows[0];
+    expect(item.ean).toBe('8425160343163');
+    expect(item.priceNetto).toBe(11.82);
+    expect(item.costPrice).toBe(14.92);
+    expect(item.ecoTasa).toBeNull();
+    expect(item.unitsPerBox).toBe(1);
+    expect(item.minBoxOrder).toBe(1);
+  }, 30000);
+
+  it('для товара KUKEN B0CSPHRCFH свежий снапшот с эко-тасой должен содержать ecoTasa 0.65 и себестоимость 15.74', async () => {
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        dp.ean, dp."priceNetto", dp."costPrice", dp."ecoTasa", dp."unitsPerBox", dp."minBoxOrder"
+      FROM "DistributorPriceSnapshot" dp
+      JOIN "ASIN" a ON dp."asinId" = a.id
+      WHERE a.code = 'B0CSPHRCFH' AND dp."ecoTasa" IS NOT NULL
+      ORDER BY dp."createdAt" DESC
+      LIMIT 1;
+    `);
+
+    expect(rows.length).toBe(1);
+    const item = rows[0];
+    expect(item.ean).toBe('8425160343163');
+    expect(item.priceNetto).toBe(11.82);
+    expect(item.ecoTasa).toBe(0.65);
+    expect(item.costPrice).toBe(15.74);
+    expect(item.unitsPerBox).toBe(1);
+    expect(item.minBoxOrder).toBe(1);
+  }, 30000);
+
+  it('в таблице DistributorPriceSnapshot для всех снапшотов SAFTA и COFAN себестоимость costPrice строго равна round(priceNetto * 1.262, 2)', async () => {
+    // Выбираем пачку реальных снапшотов дистрибьюторов SAFTA и COFAN из БД
+    const snapshots: any[] = await prisma.$queryRawUnsafe(`
+      SELECT dp.id, d.name as distributor, dp."priceNetto", dp."costPrice"
+      FROM "DistributorPriceSnapshot" dp
+      JOIN "Distributor" d ON dp."distributorId" = d.id
+      WHERE d.name IN ('Safta', 'Cofan')
+      ORDER BY dp.id DESC
+      LIMIT 50;
+    `);
+
+    expect(snapshots.length).toBeGreaterThan(0);
+    for (const snap of snapshots) {
+      const expectedCost = Math.round(snap.priceNetto * 1.262 * 100) / 100;
+      // Себестоимость без эко-тасы обязана строго соответствовать умножению на 1.262
+      expect(snap.costPrice).toBeCloseTo(expectedCost, 2);
+    }
+  }, 30000);
+});
+
 
 
 

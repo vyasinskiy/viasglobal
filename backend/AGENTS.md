@@ -53,10 +53,14 @@
      * `distributorId` — связь с дистрибьютором.
      * `asinId`, `ean` — привязка к товару в базе.
      * `priceNetto` — оптовая цена без НДС.
-     * `costPrice` — себестоимость с налогами (21% IVA + 5.2% RE = `priceNetto * 1.262`).
+     * `ecoTasa` — опциональный экологический сбор (эко-таса RAEE) за единицу электроники (в евро).
+     * `costPrice` — себестоимость с испанскими налогами (IVA 21% + RE 5.2%):
+       - При наличии эко-тасы (электроника KUKEN): `costPrice = round((priceNetto + ecoTasa) * 1.262, 2)`.
+       - При отсутствии эко-тасы (SAFTA, COFAN): строго сохраняется `costPrice = round(priceNetto * 1.262, 2)`.
      * `unitsPerBox` — количество единиц в одной стандартной заводской коробке (`EMBALAJE` у Cofan, `UNI CAJA STD` у Safta).
      * `minBoxOrder` — минимальный объем партии закупки в **штуках** (`unitsPerBox * minBoxEnvases` для Cofan, где `ENVASE MÍNIMO` задает число коробок; либо прямое число штук в коробке для Safta).
      * `createdAt` — дата и время фиксации цены.
+   - **Инвариантность цен при миграциях (Golden Snapshot Tests)**: В `src/prisma/db-functions.spec.ts` действуют строгие эталонные тесты, фиксирующие неизменность числовых показателей реальных строк Safta (`B01N4SDF1W`, `B0HFKT8N24`) и Cofan (`B08WM385FK`, `B00MGJ4GOO`). Любое искажение формулы или поломка отображения цен других производителей немедленно валит тестовый набор.
    - **Расчет минимальной партии в SQL-представлениях (`Contracted*View`)**:
      * `minBoxOrderGross = costPrice * COALESCE(minBoxOrder, unitsPerBox, 1)` — затраты брутто на выкуп минимальной партии.
      * `netProfitPerMinBoxOrder = netProfitPerUnit * COALESCE(minBoxOrder, unitsPerBox, 1)` — чистая прибыль с минимальной партии.

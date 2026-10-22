@@ -144,7 +144,8 @@ model DistributorPriceSnapshot {
   asinId        Int?        /// Внешний ключ: сопоставленный ASIN в нашей базе данных
   ean           String?     /// Штрихкод EAN товара из прайс-листа (для автосопоставления)
   priceNetto    Float       /// Оптовая цена закупки без НДС (в евро)
-  costPrice     Float       /// Себестоимость с испанскими налогами (priceNetto * 1.262: 21% IVA + 5.2% Recargo de Equivalencia)
+  ecoTasa       Float?      /// Экологический сбор (эко-таса / RAEE) в евро за единицу товара
+  costPrice     Float       /// Себестоимость с испанскими налогами ((priceNetto + COALESCE(ecoTasa, 0)) * 1.262: 21% IVA + 5.2% Recargo de Equivalencia)
   unitsPerBox   Int?        /// Количество штук в стандартной заводской упаковке / коробке (EMBALAJE у Cofan, UNI CAJA STD у Safta)
   minBoxOrder   Int?        /// Минимальный объем партии в штуках (unitsPerBox * minBoxEnvases для кратности коробок, либо прямое количество штук)
   createdAt     DateTime    @default(now()) /// Дата и время загрузки прайс-листа

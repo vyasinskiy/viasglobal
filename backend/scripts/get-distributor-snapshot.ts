@@ -91,13 +91,7 @@ async function main() {
     // Поиск по ID ASIN или по EAN
     snapshots = await prisma.$queryRaw`
       SELECT 
-        s.id,
-        s."distributorId",
-        s."asinId",
-        s.ean,
-        s."priceNetto",
-        s."costPrice",
-        s."createdAt",
+        s.*,
         d.name as distributor_name,
         d.status as distributor_status
       FROM "DistributorPriceSnapshot" s
@@ -109,13 +103,7 @@ async function main() {
     // Поиск строго по EAN, если ASIN еще не привязан
     snapshots = await prisma.$queryRaw`
       SELECT 
-        s.id,
-        s."distributorId",
-        s."asinId",
-        s.ean,
-        s."priceNetto",
-        s."costPrice",
-        s."createdAt",
+        s.*,
         d.name as distributor_name,
         d.status as distributor_status
       FROM "DistributorPriceSnapshot" s
@@ -242,6 +230,10 @@ async function main() {
       console.log(`[Снапшот #${index + 1}]`);
       console.log(`- Дистрибьютор: ${s.distributor_name} (Статус: ${s.distributor_status})`);
       console.log(`- Оптовая цена (Netto): ${s.priceNetto.toFixed(2)} €`);
+      if (s.ecoTasa !== null && s.ecoTasa !== undefined) {
+        console.log(`- Экологический сбор (эко-таса RAEE): ${Number(s.ecoTasa).toFixed(2)} €`);
+        console.log(`- Итоговая чистая база с тасой: ${(s.priceNetto + Number(s.ecoTasa)).toFixed(2)} €`);
+      }
       console.log(`- Себестоимость с налогами (IVA 21% + RE 5.2%): ${s.costPrice.toFixed(2)} €`);
       console.log(`- Штрихкод (EAN): ${s.ean || 'нет'}`);
       console.log(`- Дата прайс-листа: ${new Date(s.createdAt).toLocaleString('ru-RU')}`);
