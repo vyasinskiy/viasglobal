@@ -24,6 +24,7 @@ RETURNS TABLE (
     "costPrice" FLOAT,
     "brand" TEXT,
     "distributor" TEXT,
+    "manufacturer" TEXT,
     "buyBoxPrice" FLOAT,
     "fbaFee" FLOAT,
     "referralFee" FLOAT,
@@ -73,6 +74,7 @@ BEGIN
             s."title"::TEXT AS calc_title,
             b.name::TEXT AS calc_brand,
             COALESCE(dp."distributorName", d_rel.name, '')::TEXT AS calc_distributor,
+            COALESCE(m.name, '')::TEXT AS calc_manufacturer,
             dp."unitsPerBox"::INT AS calc_units_per_box,
             dp."minBoxOrder"::INT AS calc_min_box_order,
             (dp."costPrice" * COALESCE(dp."minBoxOrder", dp."unitsPerBox", 1))::FLOAT AS calc_min_box_order_gross,
@@ -93,6 +95,7 @@ BEGIN
             a."feeStatus"::TEXT AS calc_fee_status
         FROM "ASIN" a
         JOIN "Brand" b ON a."brandId" = b.id
+        LEFT JOIN "Manufacturer" m ON a."manufacturerId" = m.id
         LEFT JOIN latest_snapshots s ON s."asinId" = a.id
         LEFT JOIN latest_distributor_prices dp ON dp."asinId" = a.id
         LEFT JOIN LATERAL (
@@ -151,6 +154,7 @@ BEGIN
         pc.calc_cost_price AS "costPrice",
         pc.calc_brand AS "brand",
         pc.calc_distributor AS "distributor",
+        pc.calc_manufacturer AS "manufacturer",
         pc.calc_buy_box_price AS "buyBoxPrice",
         pc.calc_fba_fee AS "fbaFee",
         pc.calc_referral_fee AS "referralFee",

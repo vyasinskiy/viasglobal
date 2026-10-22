@@ -586,7 +586,44 @@ describe('Регрессионные тесты расчета доли прис
       `)
     ).resolves.toBeDefined();
   }, 30000);
+
+  it('для ASIN B0CSPHRCFH производитель в базе данных должен быть ALFA DYSER, S.L', async () => {
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT m.name AS "manufacturer"
+      FROM "ASIN" a
+      LEFT JOIN "Manufacturer" m ON a."manufacturerId" = m.id
+      WHERE a.code = 'B0CSPHRCFH'
+      LIMIT 1;
+    `);
+    expect(rows.length).toBe(1);
+    expect(rows[0].manufacturer).toBe('ALFA DYSER, S.L');
+  }, 30000);
+
+  it('если миграция применена, ContractedAllProductsView возвращает колонку manufacturer сразу после distributor', async () => {
+    const colCheck: any = await prisma.$queryRawUnsafe(`
+      SELECT column_name, ordinal_position
+      FROM information_schema.columns 
+      WHERE table_name = 'ContractedAllProductsView' AND column_name IN ('distributor', 'manufacturer')
+      ORDER BY ordinal_position ASC;
+    `);
+    if (colCheck.length === 2) {
+      // Проверяем, что колонка manufacturer идет сразу после distributor
+      expect(colCheck[0].column_name).toBe('distributor');
+      expect(colCheck[1].column_name).toBe('manufacturer');
+      expect(colCheck[1].ordinal_position).toBe(colCheck[0].ordinal_position + 1);
+
+      const row: any = await prisma.$queryRawUnsafe(`
+        SELECT "asin", "distributor", "manufacturer" 
+        FROM "ContractedAllProductsView" 
+        WHERE "asin" = 'B0CSPHRCFH' 
+        LIMIT 1;
+      `);
+      expect(row.length).toBe(1);
+      expect(row[0].manufacturer).toBe('ALFA DYSER, S.L');
+    }
+  }, 30000);
 });
+
 
 
 

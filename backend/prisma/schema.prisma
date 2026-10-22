@@ -387,6 +387,7 @@ view ContractedFilteredProductsView {
   title         String? /// Название товара
   brand         String? /// Название бренда
   distributor   String? /// Название поставщика/дистрибьютора
+  manufacturer  String? /// Название производителя
   buyBoxPrice   Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee        Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee   Float?  /// Комиссия площадки Amazon (Referral Fee)
@@ -418,6 +419,7 @@ view ContractedAllProductsView {
   costPrice      Float?  /// Себестоимость закупки с налогами (синоним grossPrice для обратной совместимости)
   brand          String? /// Название бренда
   distributor    String? /// Название поставщика/дистрибьютора
+  manufacturer   String? /// Название производителя
   buyBoxPrice    Float?  /// Текущая цена продажи Buy Box на Amazon
   fbaFee         Float?  /// Логистическая комиссия FBA (Pick & Pack)
   referralFee    Float?  /// Комиссия площадки Amazon (Referral Fee)
