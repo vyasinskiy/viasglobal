@@ -126,7 +126,17 @@ BEGIN
                     - f.calc_cost_price
                 )::numeric, 2)::FLOAT
                 ELSE NULL
-            END AS calc_net_profit_per_unit
+            END AS calc_net_profit_per_unit,
+            CASE 
+                WHEN f.calc_cost_price IS NOT NULL AND f.calc_buy_box_price IS NOT NULL 
+                THEN (ROUND((
+                    f.calc_buy_box_price 
+                    - f.base_amazon_fees 
+                    - (CASE WHEN p_include_vat_on_fees THEN f.calc_vat_on_fees ELSE 0 END)
+                    - f.calc_cost_price
+                )::numeric, 2) * COALESCE(f.calc_min_box_order, f.calc_units_per_box, 1))::FLOAT
+                ELSE NULL
+            END AS calc_net_profit_per_min_box_order
         FROM fees_calc f
     )
     SELECT
@@ -135,12 +145,12 @@ BEGIN
         pc.calc_sales_rank AS "salesRank",
         pc.calc_bought_in_past_month AS "boughtInPastMonth",
         pc.calc_estimated_monthly_sales AS "estimatedMonthlySales",
-        (pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1))::FLOAT AS "netProfitPerMinBoxOrder",
+        pc.calc_net_profit_per_min_box_order AS "netProfitPerMinBoxOrder",
         CASE 
             WHEN pc.calc_min_box_order_gross IS NOT NULL 
              AND pc.calc_min_box_order_gross > 0
              AND pc.calc_net_profit_per_unit IS NOT NULL
-            THEN ROUND((pc.calc_net_profit_per_unit * COALESCE(pc.calc_min_box_order, pc.calc_units_per_box, 1) / pc.calc_min_box_order_gross)::numeric, 4)::FLOAT
+            THEN ROUND((pc.calc_net_profit_per_min_box_order / pc.calc_min_box_order_gross)::numeric, 4)::FLOAT
             ELSE NULL
         END AS "profitCoefficient",
         pc.calc_min_box_order_gross AS "minBoxOrderGross",
@@ -183,8 +193,13 @@ BEGIN
         pc.calc_fee_status AS "feeStatus"
     FROM profit_calc pc
     ORDER BY 
+        CASE 
+            WHEN pc.calc_net_profit_per_min_box_order > 0 THEN 0 
+            WHEN pc.calc_net_profit_per_min_box_order <= 0 THEN 1 
+            ELSE 2 
+        END ASC,
         pc.calc_bought_in_past_month DESC NULLS LAST,
-        "netProfitPerMinBoxOrder" DESC NULLS LAST,
+        pc.calc_net_profit_per_min_box_order DESC NULLS LAST,
         pc.calc_sales_rank ASC NULLS LAST;
 END;
 $$ LANGUAGE plpgsql STABLE;

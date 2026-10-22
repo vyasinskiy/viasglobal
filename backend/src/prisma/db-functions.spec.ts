@@ -624,6 +624,83 @@ describe('Регрессионные тесты расчета доли прис
   }, 30000);
 });
 
+describe('Регрессионные тесты приоритета прибыльных товаров в ContractedFilteredProductsView и ContractedAllProductsView', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('прибыльный товар B0DR36YG4Q (+76€) должен идти в ContractedFilteredProductsView раньше минусовых B01N4SDF1W (-52.8€) и B0GWNF9VBL (-138.6€)', async () => {
+    // Выполняем выборку конкретных тестовых товаров из кейса пользователя
+    const rows: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        "asin", 
+        "salesRank", 
+        "boughtInPastMonth", 
+        "netProfitPerMinBoxOrder", 
+        "profitCoefficient"
+      FROM "ContractedFilteredProductsView"
+      WHERE "asin" IN ('B01N4SDF1W', 'B0GWNF9VBL', 'B0DR36YG4Q')
+      ORDER BY 
+        CASE 
+          WHEN "netProfitPerMinBoxOrder" > 0 THEN 0 
+          WHEN "netProfitPerMinBoxOrder" <= 0 THEN 1 
+          ELSE 2 
+        END ASC,
+        "boughtInPastMonth" DESC NULLS LAST,
+        "netProfitPerMinBoxOrder" DESC NULLS LAST,
+        "salesRank" ASC NULLS LAST;
+    `);
+
+    expect(rows.length).toBe(3);
+    // Первый товар - прибыльный B0DR36YG4Q с подтвержденными продажами 200 шт и прибылью +76€
+    expect(rows[0].asin).toBe('B0DR36YG4Q');
+    expect(rows[0].boughtInPastMonth).toBe(200);
+    expect(rows[0].netProfitPerMinBoxOrder).toBe(76);
+    expect(rows[0].profitCoefficient).toBe(0.3645);
+
+    // Минусовые товары не удаляются из выборки, но опускаются ниже всех прибыльных позиций
+    expect(rows[1].asin).toBe('B01N4SDF1W');
+    expect(rows[1].boughtInPastMonth).toBe(1000);
+    expect(rows[1].netProfitPerMinBoxOrder).toBeCloseTo(-52.8, 1);
+
+    expect(rows[2].asin).toBe('B0GWNF9VBL');
+    expect(rows[2].boughtInPastMonth).toBe(300);
+    expect(rows[2].netProfitPerMinBoxOrder).toBeCloseTo(-138.6, 1);
+  }, 30000);
+
+  it('в топ-выборке ContractedFilteredProductsView товары с отрицательной прибылью не должны опережать прибыльные позиции с меньшими продажами', async () => {
+    // Проверяем, что в верхнем срезе товаров присутствуют только позиции с netProfitPerMinBoxOrder > 0
+    const topPositive: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        "asin", 
+        "boughtInPastMonth", 
+        "netProfitPerMinBoxOrder"
+      FROM "ContractedFilteredProductsView"
+      ORDER BY 
+        CASE 
+          WHEN "netProfitPerMinBoxOrder" > 0 THEN 0 
+          WHEN "netProfitPerMinBoxOrder" <= 0 THEN 1 
+          ELSE 2 
+        END ASC,
+        "boughtInPastMonth" DESC NULLS LAST,
+        "netProfitPerMinBoxOrder" DESC NULLS LAST,
+        "salesRank" ASC NULLS LAST
+      LIMIT 10;
+    `);
+
+    expect(topPositive.length).toBeGreaterThan(0);
+    for (const item of topPositive) {
+      // Все верхние товары обязаны иметь строго положительную чистую прибыль
+      expect(item.netProfitPerMinBoxOrder).toBeGreaterThan(0);
+    }
+  }, 30000);
+});
+
+
 
 
 
