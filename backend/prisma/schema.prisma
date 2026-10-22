@@ -105,14 +105,65 @@ model Distributor {
   website         String?
   email           String?
   phone           String?
+  domains         String[]          @default([]) /// Список почтовых доменов компании (например, ["alfadyser.es", "alfadyser.com"])
   status          DistributorStatus @default(NEW)
   rejectionReason String?
   notes           String?
   lastContactAt   DateTime?
   asins           ASIN[] // implicit m-to-m
   priceSnapshots  DistributorPriceSnapshot[]
+  contacts        DistributorContact[] /// Список контактных лиц и менеджеров дистрибьютора
+  emails          DistributorEmail[]   /// История переписки по электронной почте
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+}
+
+/// Контактное лицо дистрибьютора (менеджер, отдел продаж, бухгалтерия)
+model DistributorContact {
+  id            Int         @id @default(autoincrement())
+  distributorId Int         /// Внешний ключ: связанный дистрибьютор
+  name          String?     /// Имя контактного лица (например, "Guido")
+  email         String      /// Электронная почта менеджера
+  phone         String?     /// Телефон менеджера
+  role          String?     /// Должность / отдел (например, "Comercial / Account Manager", "Atención al cliente")
+  isPrimary     Boolean     @default(false) /// Основной ли это контакт для связи
+  notes         String?     /// Дополнительные заметки по общению с контактом
+  createdAt     DateTime    @default(now()) /// Дата создания записи
+  updatedAt     DateTime    @updatedAt /// Дата последнего обновления
+
+  distributor   Distributor @relation(fields: [distributorId], references: [id], onDelete: Cascade)
+
+  @@index([distributorId])
+  @@index([email])
+}
+
+/// Сохраненное входящее или исходящее письмо из почтового ящика, связанное с дистрибьютором
+model DistributorEmail {
+  id             Int          @id @default(autoincrement())
+  distributorId  Int?         /// Внешний ключ: дистрибьютор (может быть null, если письмо пока не сопоставлено)
+  messageId      String       @unique /// Уникальный RFC 822 Message-ID письма для предотвращения дублирования
+  uid            Int?         /// Уникальный номер письма в папке IMAP
+  folder         String       @default("INBOX") /// Папка в почтовом ящике (INBOX, Sent и т.д.)
+  fromEmail      String       /// Email адрес отправителя
+  fromName       String?      /// Имя отправителя (например, "Guido - Alfa Dyser")
+  toEmails       String[]     @default([]) /// Массив email адресов получателей
+  ccEmails       String[]     @default([]) /// Массив адресов копии
+  subject        String       /// Тема письма
+  date           DateTime     /// Дата и время отправки письма
+  bodyText       String?      /// Очищенный текстовый контент письма для поиска условий и ключевых слов
+  bodyHtml       String?      /// Исходный HTML контент письма
+  snippet        String?      /// Короткий текстовый фрагмент для быстрого предпросмотра
+  hasAttachments Boolean      @default(false) /// Флаг наличия прикрепленных файлов
+  attachments    Json?        /// Метаданные вложений (имя файла, размер, mime-тип, локальный путь к сохраненному файлу)
+  isRead         Boolean      @default(false) /// Прочитано ли письмо
+  createdAt      DateTime     @default(now()) /// Дата сохранения письма в базу данных
+  updatedAt      DateTime     @updatedAt /// Дата последнего обновления
+
+  distributor    Distributor? @relation(fields: [distributorId], references: [id], onDelete: SetNull)
+
+  @@index([distributorId])
+  @@index([fromEmail])
+  @@index([date(sort: Desc)])
 }
 
 

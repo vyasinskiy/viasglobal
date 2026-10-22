@@ -69,4 +69,7 @@ __pycache__/
 hermes/data/
 openclaw/data/
 
+# Contractor email attachments (PDF catalogs, pricelists, scans)
+contractors/**/attachments/
+
 

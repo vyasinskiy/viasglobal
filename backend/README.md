@@ -70,6 +70,30 @@ npx tsx scripts/import-distributor-prices.ts <путь_к_прайсу.xls> <И�
 npx tsx scripts/get-distributor-snapshot.ts <ASIN_или_EAN>
 ```
 
+## Интеграция с почтой поставщиков (Hostinger IMAP) и база знаний CRM
+
+Для автоматического сбора условий сотрудничества, поиска переписки с менеджерами фабрик и извлечения порогов бесплатной доставки (*franco de portes*) реализована почтовая подсистема:
+- **`DistributorContact`**: таблица контактных лиц и менеджеров (`name`, `email`, `phone`, `role`, `isPrimary`). Создается автоматически при получении писем от новых представителей фабрики.
+- **`DistributorEmail`**: таблица истории входящих и исходящих писем (`messageId`, `fromEmail`, `fromName`, `subject`, `date`, `bodyText`, `hasAttachments`, `attachments`). Защищена от дублирования уникальным `messageId`.
+- **Поле `domains` у `Distributor`**: список доменов компании (например, `["alfadyser.es", "alfadyser.com"]`) для умного авто-связывания писем от любых новых менеджеров.
+
+### Скрипты работы с почтой:
+
+1. **Синхронизация входящих писем из Hostinger в локальную БД**:
+```bash
+cd backend && npx tsx scripts/sync-emails.ts [--limit 30]
+```
+Скрипт подключается по IMAP к ящику Hostinger (`imap.hostinger.com:993`), считывает свежие письма, сопоставляет отправителей с базой дистрибьюторов, при необходимости регистрирует новых менеджеров в `DistributorContact`, а прикрепленные прайс-листы Excel и PDF сохраняет в папку `contractors/<поставщик>/attachments/`.
+
+2. **Быстрый поиск условий и переписки в локальной БД**:
+```bash
+cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken" --query "portes"
+```
+Параметры:
+- `--distributor` (`-d`): фильтрация по имени контрагента (например: `"Kuken"`, `"Cofan"`, `"Safta"`).
+- `--query` (`-q`): ключевое слово для поиска (*portes, franco, pedido mínimo, entrega, catálogo*).
+- `--limit` (`-l`): лимит выводимых писем (по умолчанию 10).
+
 ## Нормализация регистра брендов и производителей (UPPERCASE)
 
 Для предотвращения дублирования данных названия брендов (`Brand.name`) и производителей (`Manufacturer.name`) строго приводятся к **верхнему регистру (UPPERCASE)** во всех скриптах парсинга и сервисах.
