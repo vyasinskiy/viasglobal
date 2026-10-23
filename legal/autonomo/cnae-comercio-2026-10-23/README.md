@@ -6,7 +6,7 @@
 
 1. `Informe actividades declaradas.pdf` — копия отчёта TGSS (Tesorería General de la Seguridad Social) от 23/10/2026, Id. CEA `2AE6KT5AECMW`. Оригинал: `legal/autonomo/`.
 2. `certificado_situacion_censal_2026-09-23.pdf` — копия certificado de situación censal AEAT от 23/09/2026, Nº ref. `20269409296`. Оригинал: `legal/autonomo/`.
-3. `carta_para_gestor.md` — письмо хестору на испанском с просьбой добавить CNAE торговли.
+3. `carta_para_gestor.md` - письмо в онлайн-хесторию Taxfix ([taxfix.es](https://taxfix.es/)) на испанском языке с просьбой добавить CNAE торговли.
 
 ## Выводы (на русском)
 
@@ -29,4 +29,18 @@
 2. Заодно обновить domicilio de actividad: в TGSS числится `C/ Sant Antonio 22, Lucena del Cid`, а в Hacienda уже `Ronda Albocacer 11, Sierra Engarcerán`.
 3. Технически это variación de datos через Importass / Sede Electrónica (модель TA.0521). На размер cuota RETA не влияет, но влияет на корректный тариф AT/EP и когерентность AEAT ↔ TGSS (важно при проверках, bajas, ayudas, а также для Amazon / RAP / SCRAP / поставщиков, которые просят оба сертификата).
 
-Письмо хестору (`carta_para_gestor.md`) уже содержит просьбу подтвердить необходимость TA.0521 и последствия для cotización / AT/EP.
+Письмо для консультантов Taxfix (`carta_para_gestor.md`) уже содержит просьбу подтвердить необходимость TA.0521 и последствия для cotización / AT/EP.
+
+---
+
+## Статус выполнения и ответ хестора (23.10.2026)
+
+- **Ответ от хестора (Jorge Dorado Rubio / Taxfix, 23.10.2026 12:51)**:
+  > *«¡Hola VITALII! Buenos días, dame apoderamiento para poder realizarlo. Adjunto documento de como hacer el apoderamiento.»*
+- **Задача**: Оформить электронную доверенность (*apoderamiento electrónico*), чтобы хестор мог подать изменения в Seguridad Social (TGSS / RETA).
+- **План действий**:
+  1. Открыть личный кабинет или приложение Taxfix и ознакомиться с приложенным документом-инструкцией.
+  2. Перейти в Sede Electrónica (Seguridad Social / AEAT) и через цифровой сертификат (*Certificado Digital*) оформить *apoderamiento* для Jorge Dorado Rubio / Taxfix.
+  3. Подтвердить предоставление доверенности в чате Taxfix, чтобы хестор зарегистрировал код CNAE 4791 (торговля через интернет) с датой начала 21.09.2026.
+
+
