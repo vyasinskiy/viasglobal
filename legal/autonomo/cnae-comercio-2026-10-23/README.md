@@ -42,5 +42,8 @@
   1. Открыть личный кабинет или приложение Taxfix и ознакомиться с приложенным документом-инструкцией.
   2. Перейти в Sede Electrónica (Seguridad Social / AEAT) и через цифровой сертификат (*Certificado Digital*) оформить *apoderamiento* для Jorge Dorado Rubio / Taxfix.
   3. Подтвердить предоставление доверенности в чате Taxfix, чтобы хестор зарегистрировал код CNAE 4791 (торговля через интернет) с датой начала 21.09.2026.
+- **Задача в Google Tasks**: `[Legal]: Оформить apoderamiento для Taxfix (Jorge Dorado) для добавления CNAE 4791` (ID: `Q21nTDY4Y3BIRE5Fa0JTMg`, дедлайн: `2026-10-24`).
+
+
 
 
