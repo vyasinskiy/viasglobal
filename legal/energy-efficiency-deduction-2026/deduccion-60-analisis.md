@@ -12,7 +12,7 @@
 
 ## 2. Факты по документам
 
-* Escritura compraventa 19.02.2026, L'Alcora, N°101 (`/Users/usuario/code/viasglobal/taxes/escritura_compra_casa.pdf`):
+* Escritura compraventa 19.02.2026, L'Alcora, N°101 (`/Users/usuario/code/viasglobal/legal/escritura_compra_casa.pdf`):
   * `URBANA NUMERO 19. Casa vivienda unifamiliar adosada dúplex del tipo A... Ronda Albocácer... núcleo Los Ibarzos` — planta baja + primera + buhardilla.
   * Parcela 89,08 м2, construida 120,67 м2, útil 98,58 м2.
   * `Cuota: 7,10%`. Registro: finca 4705 Sierra-Engarcerán, CRU 12001000509673.
