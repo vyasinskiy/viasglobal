@@ -40,12 +40,17 @@ Directorio para самостоятельного оформления RAP-ном
 
 ## Статус
 
-- [ ] Шаг 1: выбран SCRAP (Procircular), оформление на `join.procircular.es` (деятельности: Retail Distributor, Importer; NACE: 47.91), подписание contrato de adhesión
-- [ ] Шаг 2: получен certificado de pertenencia
-- [ ] Шаг 3: inscripción RPP, получен номер ENV/...
-- [ ] Шаг 4: номер внесён в facturas и в Seller Central Amazon
-- [ ] Шаг 5: настроен учёт кг по материалам (registro_envases_kg)
-- [ ] Ежегодно до 31.03: декларации в SCRAP и в RPP
+- [x] **Шаг 1 (В процессе / Договор подписан 23.10.2026)**:
+  - Выбран SCRAP **Procircular** (мультиматериальный: doméstico + comercial + industrial).
+  - Оформлена заявка на `join.procircular.es` (деятельности: *Retail Distributor*, *Importer*; NACE: `47.91`).
+  - Согласован и принят договор присоединения (Terms and Conditions): [`contrato_adhesion_Procircular_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_2026-10-23.pdf).
+  - Реквизиты SCRAP: **PROCIRCULAR ENVASES, S.L.** (NIF B-72918006, авторизация 13SCRA5000042205P, администратор RECLAY IBERIA, S.L.).
+- [ ] **Шаг 2**: Ожидание и получение от Procircular сертификата членства (*Certificado de pertenencia / Certificado de adhesión*).
+- [ ] **Шаг 3**: Регистрация в RPP (Sede MITERD) с сертификатом FNMT, получение номера `ENV/...`.
+- [ ] **Шаг 4**: Внесение номера `ENV/...` в шаблоны счетов-фактур (*facturas*) и в Amazon Seller Central (*Embalaje de España*).
+- [ ] **Шаг 5**: Подача предварительной декларации в Procircular (в течение 30 дней с момента присоединения, ст. 9.1.b договора) и настройка учета кг (`registro_envases_kg_2026.xlsx`).
+- [ ] **Ежегодно до 31.03**: Годовые декларации упаковки в Procircular (до 28.02) и в RPP (до 31.03).
 
 Контакты MITERD: `bzn-rpp@miteco.es` (регистр, декларации),
 `buzon-sgr@miteco.es` (толкование RD 1055/2022), тел. 917284813.
+Контакты Procircular: `info@procircular.es`, тел./sede Pozuelo de Alarcón (Madrid).

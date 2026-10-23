@@ -25,6 +25,7 @@
 ### `envases_rap/`
 - Оформление расширенной ответственности производителя (RAP) по упаковке в Испании (Real Decreto 1055/2022).
 - Инструкции по регистрации в SCRAP (Procircular) и государственном реестре RPP (MITERD).
+- Договор присоединения к Procircular ([`contrato_adhesion_Procircular_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_2026-10-23.pdf)).
 - Сертификаты членства, присвоенные номера `ENV/...`, годовые декларации по весу упаковки и шаблоны инвойсов.
 
 ### `autonomo/`
