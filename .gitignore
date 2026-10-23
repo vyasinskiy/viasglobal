@@ -72,4 +72,9 @@ openclaw/data/
 # Contractor email attachments (PDF catalogs, pricelists, scans)
 contractors/**/attachments/
 
+# Secrets and Google API credentials
+.secrets/
+*.service-account.json
+google-service-account.json
+
 
