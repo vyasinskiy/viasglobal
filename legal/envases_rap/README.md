@@ -16,6 +16,15 @@ Directorio para самостоятельного оформления RAP-ном
 - `facturas/` — шаблоны facturas с номером RPP, facturas покупки/продажи
   для подтверждения учёта упаковки.
 
+## Данные из Certificado de Situación Censal (AEAT)
+- **Файл сертификата**: `contractors/safta/attachments/CERTIFICADO DE SITUACION CENSAL (1).pdf` (CSV: `B2LR8ME9RKYAX683`).
+- **Зарегистрированные виды деятельности (IAE)**:
+  - **Epígrafe 665**: *Comercio Menor Por Correo o Catálogo* (Código A03, alta 21/09/2026) ➔ международный код **NACE 47.91** (*Retail sale via mail order houses or via Internet*).
+  - **Epígrafe 763**: *Programadores y Analistas de Informática* (Código A05, alta 01/07/2026).
+- **Налоговые режимы**:
+  - ROI (Registro de Operadores Intracomunitarios / VIES): включен с 15/01/2024.
+  - Régimen especial recargo de equivalencia: с 21/09/2026.
+
 ## Правила именования
 
 Оригиналы хранить с понятными именами на испанском или латинице:
@@ -31,7 +40,7 @@ Directorio para самостоятельного оформления RAP-ном
 
 ## Статус
 
-- [ ] Шаг 1: выбран SCRAP, подписан contrato de adhesión
+- [ ] Шаг 1: выбран SCRAP (Procircular), оформление на `join.procircular.es` (деятельности: Retail Distributor, Importer; NACE: 47.91), подписание contrato de adhesión
 - [ ] Шаг 2: получен certificado de pertenencia
 - [ ] Шаг 3: inscripción RPP, получен номер ENV/...
 - [ ] Шаг 4: номер внесён в facturas и в Seller Central Amazon

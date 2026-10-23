@@ -68,8 +68,19 @@ y Gestión + финансовую гарантию — для autónomo нере
 
 Действия:
 
-1. Заявка на сайте SCRAP: NIF autónomo, оценка кг/год по материалам
-   (plástico, papel-cartón, madera, vidrio, metal и др.).
+1. Заявка на сайте SCRAP (например, Procircular `join.procircular.es`):
+   - **Main activity/activities** (множественный выбор):
+     - `Retail Distributor` (Обязательно для Amazon B2C и интернет-магазина)
+     - `Importer` (Обязательно, если закупаете товары у поставщиков вне Испании — в других странах ЕС или импорт из третьих стран, ст. 2.t RD 1055/2022)
+     - `Wholesale Distributor` (Отметить, если также ведете оптовые B2B операции)
+     - *Не выбирать*: `Product manufacturer`, `Packaging manufacturer`, `HORECA`.
+   - **Main NACE**:
+     - `47.91` — *Retail sale via mail order houses or via Internet* (в Испании CNAE 4791 — онлайн-торговля / Amazon).
+     - Если приоритет опт: `46.90` (*Non-specialised wholesale trade*).
+   - **Переключатели (Toggles)**:
+     - `The billing address differs from the address of the registered office`: выключен (адрес выставления счетов совпадает с адресом регистрации).
+     - `The company is recognized as a business`: включен (autónomo с коммерческой деятельностью).
+   - Оценка кг/год по материалам (plástico, papel-cartón, madera, vidrio, metal и др.).
 2. Подписать contrato de adhesión (договор о присоединении).
 3. Оплатить по тарифам SCRAP (за кг по материалам). Госпошлины за сам RPP
    нет; стоимость — это взнос в SCRAP.
