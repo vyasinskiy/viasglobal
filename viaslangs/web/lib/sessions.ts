@@ -328,6 +328,24 @@ export function calculateMedian(values: number[]): number {
 }
 
 /**
+ * Склоняет слово «день» в зависимости от числительного на русском языке.
+ */
+export function formatDaysText(days: number): string {
+  const mod10 = days % 10;
+  const mod100 = days % 100;
+  if (mod100 >= 11 && mod100 <= 19) {
+    return `${days} дней`;
+  }
+  if (mod10 === 1) {
+    return `${days} день`;
+  }
+  if (mod10 >= 2 && mod10 <= 4) {
+    return `${days} дня`;
+  }
+  return `${days} дней`;
+}
+
+/**
  * Получает аналитику активности за несколько дней (по умолчанию 7 дней).
  * Рассчитывает средний и медианный уровень активности, сравнивает с сегодняшним днем,
  * определяет тренд (DROPPING, STABLE, GROWING) и формирует текст напоминания для OpenClaw.
@@ -415,19 +433,20 @@ export async function getSessionsHistory(
   let trend: "STABLE" | "GROWING" | "DROPPING" | "INACTIVE" = "STABLE";
   let alert: string | null = null;
   let praise: string | null = null;
+  const periodText = formatDaysText(days);
 
   if (isBelowMedian) {
     trend = "DROPPING";
-    alert = `H1, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние 7 дней. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
+    alert = `H1, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
   } else if (todayActivities === 0 && medianDailyActivities === 0) {
     trend = "INACTIVE";
     alert = "H1, за сегодня еще не было занятий по испанскому. Давай откроем приложение и прочитаем несколько примеров!";
   } else if (medianDailyActivities > 0 && todayActivities > medianDailyActivities * 1.3) {
     trend = "GROWING";
-    praise = `H1, великолепный прогресс по испанскому! Твоя дневная активность значительно превышает норму: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за 7 дней. Отличный темп, так держать!`;
+    praise = `H1, великолепный прогресс по испанскому! Твоя дневная активность значительно превышает норму: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Отличный темп, так держать!`;
   } else if (todayActivities >= medianDailyActivities && medianDailyActivities > 0) {
     trend = "STABLE";
-    praise = `H1, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние 7 дней. Регулярность - залог успеха!`;
+    praise = `H1, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Регулярность - залог успеха!`;
   }
 
   return {

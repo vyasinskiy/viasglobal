@@ -29,7 +29,7 @@ const pool = new Pool({
 
 // Импорт утилит проекта
 import { parseWordGrammar } from '../lib/grammar.ts';
-import { calculateMedian, getMadridDateString } from '../lib/sessions.ts';
+import { calculateMedian, getMadridDateString, formatDaysText } from '../lib/sessions.ts';
 
 describe('1. Модуль грамматического анализа испанских слов (parseWordGrammar)', () => {
   it('1.1. Корректно определяет 1-е лицо ед. ч. (yo) и время Pretérito Indefinido', () => {
@@ -359,5 +359,18 @@ describe('2. Интеграционная логика сессий и анал�
     assert.ok(!praiseMessage.includes('–'), 'В тексте похвалы категорически запрещено среднее тире en-dash');
     assert.ok(praiseMessage.includes('уже 22 действий при медианной норме 20'), 'Текст похвалы содержит точные числовые показатели');
     assert.ok(praiseMessage.includes('Регулярность - залог успеха!'), 'Текст содержит ободряющий посыл');
+  });
+
+  it('2.8. Функция formatDaysText корректно склоняет слово «день» для различных значений параметра days', () => {
+    assert.strictEqual(formatDaysText(1), '1 день');
+    assert.strictEqual(formatDaysText(2), '2 дня');
+    assert.strictEqual(formatDaysText(4), '4 дня');
+    assert.strictEqual(formatDaysText(5), '5 дней');
+    assert.strictEqual(formatDaysText(7), '7 дней');
+    assert.strictEqual(formatDaysText(11), '11 дней');
+    assert.strictEqual(formatDaysText(14), '14 дней');
+    assert.strictEqual(formatDaysText(21), '21 день');
+    assert.strictEqual(formatDaysText(24), '24 дня');
+    assert.strictEqual(formatDaysText(30), '30 дней');
   });
 });
