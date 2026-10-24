@@ -1,7 +1,7 @@
-import { PoolClient } from "pg";
-import { pool } from "./db";
-import { parseWordGrammar } from "./grammar";
-import {
+import type { PoolClient } from "pg";
+import { pool } from "./db.ts";
+import { parseWordGrammar } from "./grammar.ts";
+import type {
   ActivityType,
   TodaySessionStats,
   TagStat,
@@ -9,7 +9,7 @@ import {
   WeakWord,
   SessionsHistory,
   DailySessionSummary,
-} from "./types";
+} from "./types.ts";
 
 /**
  * Гарантирует наличие сессионного дня в таблице vy_study_sessions для указанного языка.
@@ -299,8 +299,37 @@ export async function getTodaySessionStats(
 }
 
 /**
+ * Возвращает строковую дату в формате YYYY-MM-DD для часового пояса Europe/Madrid.
+ * Позволяет избежать сдвигов дат из-за разницы с UTC около полуночи.
+ */
+export function getMadridDateString(date: Date = new Date()): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(date);
+}
+
+/**
+ * Вычисляет медианное значение числового массива.
+ * Для нечетного количества элементов берется центральный элемент отсортированного массива.
+ * Для четного количества элементов берется среднее арифметическое двух центральных элементов.
+ */
+export function calculateMedian(values: number[]): number {
+  if (!values || values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 !== 0) {
+    return sorted[mid];
+  }
+  return Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 10) / 10;
+}
+
+/**
  * Получает аналитику активности за несколько дней (по умолчанию 7 дней).
- * Рассчитывает средний уровень активности, сравнивает с сегодняшним днем,
+ * Рассчитывает средний и медианный уровень активности, сравнивает с сегодняшним днем,
  * определяет тренд (DROPPING, STABLE, GROWING) и формирует текст напоминания для OpenClaw.
  *
  * @param days - количество дней для анализа (по умолчанию 7)
@@ -353,36 +382,64 @@ export async function getSessionsHistory(
     };
   });
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getMadridDateString();
   const todaySession = dailySessions.find((s) => s.date === todayStr);
   const todayActivities = todaySession ? todaySession.totalActivities : 0;
 
-  // Считаем среднюю активность за предыдущие дни (исключая сегодня)
-  const previousDays = dailySessions.filter((s) => s.date !== todayStr);
-  const previousSum = previousDays.reduce((acc, curr) => acc + curr.totalActivities, 0);
-  const averageDailyActivities =
-    previousDays.length > 0 ? Math.round((previousSum / previousDays.length) * 10) / 10 : todayActivities;
+  // Формируем массив дневной активности ровно за предыдущие N дней (исключая сегодня).
+  // Для дней, когда пользователь вообще не занимался, активность равна 0.
+  const previousDaysActivities: number[] = [];
+  const now = new Date();
+  for (let i = 1; i <= days; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = getMadridDateString(d);
+    const found = dailySessions.find((s) => s.date === dateStr);
+    previousDaysActivities.push(found ? found.totalActivities : 0);
+  }
 
-  // Анализ тренда
+  // Считаем среднее и медиану за предыдущие дни
+  const previousSum = previousDaysActivities.reduce((acc, curr) => acc + curr, 0);
+  const averageDailyActivities =
+    previousDaysActivities.length > 0
+      ? Math.round((previousSum / previousDaysActivities.length) * 10) / 10
+      : 0;
+
+  const medianDailyActivities = calculateMedian(previousDaysActivities);
+
+  // Сравниваем сегодняшнюю активность с медианной нормой
+  const isBelowMedian = todayActivities < medianDailyActivities;
+  const shouldRemind = isBelowMedian || (medianDailyActivities === 0 && todayActivities === 0);
+
+  // Анализ тренда, напоминаний и похвалы без длинных тире
   let trend: "STABLE" | "GROWING" | "DROPPING" | "INACTIVE" = "STABLE";
   let alert: string | null = null;
+  let praise: string | null = null;
 
-  if (averageDailyActivities > 0 && todayActivities < averageDailyActivities * 0.4) {
+  if (isBelowMedian) {
     trend = "DROPPING";
-    alert = `H1, у тебя очень низкая активность сегодня: всего ${todayActivities} действий при среднем уровне ${averageDailyActivities}. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
-  } else if (todayActivities === 0 && averageDailyActivities === 0) {
+    alert = `H1, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние 7 дней. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
+  } else if (todayActivities === 0 && medianDailyActivities === 0) {
     trend = "INACTIVE";
-    alert = "Активность отсутствует уже несколько дней. Давай вернемся к регулярным тренировкам испанского!";
-  } else if (todayActivities > averageDailyActivities * 1.3) {
+    alert = "H1, за сегодня еще не было занятий по испанскому. Давай откроем приложение и прочитаем несколько примеров!";
+  } else if (medianDailyActivities > 0 && todayActivities > medianDailyActivities * 1.3) {
     trend = "GROWING";
+    praise = `H1, великолепный прогресс по испанскому! Твоя дневная активность значительно превышает норму: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за 7 дней. Отличный темп, так держать!`;
+  } else if (todayActivities >= medianDailyActivities && medianDailyActivities > 0) {
+    trend = "STABLE";
+    praise = `H1, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние 7 дней. Регулярность - залог успеха!`;
   }
 
   return {
     daysCount: days,
     averageDailyActivities,
+    medianDailyActivities,
     todayActivities,
+    isBelowMedian,
+    shouldRemind,
     trend,
     alert,
+    praise,
     dailySessions,
   };
 }

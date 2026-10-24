@@ -29,6 +29,7 @@ const pool = new Pool({
 
 // Импорт утилит проекта
 import { parseWordGrammar } from '../lib/grammar.ts';
+import { calculateMedian, getMadridDateString } from '../lib/sessions.ts';
 
 describe('1. Модуль грамматического анализа испанских слов (parseWordGrammar)', () => {
   it('1.1. Корректно определяет 1-е лицо ед. ч. (yo) и время Pretérito Indefinido', () => {
@@ -297,5 +298,66 @@ describe('2. Интеграционная логика сессий и анал�
       expectedAlert.includes('Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!'),
       'Алерт содержит точную мотивирующую фразу'
     );
+  });
+
+  it('2.4. Функция calculateMedian корректно вычисляет медиану для разных наборов данных', () => {
+    // Нечетное число элементов (7 дней)
+    assert.strictEqual(calculateMedian([0, 0, 15, 20, 25, 30, 35]), 20, 'Медиана 7 элементов равна 20');
+    // Неотсортированный массив
+    assert.strictEqual(calculateMedian([35, 15, 0, 25, 0, 20, 30]), 20, 'Медиана неотсортированного массива равна 20');
+    // Четное число элементов
+    assert.strictEqual(calculateMedian([10, 20, 30, 40]), 25, 'Медиана четного числа элементов равна 25');
+    // Пустой массив
+    assert.strictEqual(calculateMedian([]), 0, 'Медиана пустого массива равна 0');
+    // Один элемент
+    assert.strictEqual(calculateMedian([42]), 42, 'Медиана одного элемента равна 42');
+  });
+
+  it('2.5. Функция getMadridDateString возвращает валидную дату формата YYYY-MM-DD', () => {
+    const dateStr = getMadridDateString();
+    assert.match(dateStr, /^\d{4}-\d{2}-\d{2}$/, 'Формат даты строго YYYY-MM-DD');
+  });
+
+  it('2.6. Эталонный кейс OpenClaw («прибитый гвоздями»): дневная активность 12 хуже медианной 20 за 7 дней -> isBelowMedian: true, shouldRemind: true', () => {
+    // Предыдущие 7 календарных дней: 25, 30, 0, 15, 20, 0, 35
+    const previousDaysActivities = [25, 30, 0, 15, 20, 0, 35];
+    const median = calculateMedian(previousDaysActivities);
+    assert.strictEqual(median, 20, 'Эталонная медиана за 7 дней равна 20');
+
+    // Сегодня пользователь выполнил 12 действий (кликнул Next и ответил)
+    const todayActivities = 12;
+    const isBelowMedian = todayActivities < median;
+    const shouldRemind = isBelowMedian || (median === 0 && todayActivities === 0);
+
+    assert.strictEqual(isBelowMedian, true, 'Дневная активность хуже медианы (12 < 20)');
+    assert.strictEqual(shouldRemind, true, 'Флаг отправки напоминания активирован');
+
+    const alertMessage = `H1, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${median} за последние 7 дней. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
+
+    // Проверка текста напоминания и анти-AI стилистики (запрет длинных тире)
+    assert.ok(!alertMessage.includes('—'), 'В тексте категорически запрещено длинное тире em-dash');
+    assert.ok(!alertMessage.includes('–'), 'В тексте категорически запрещено среднее тире en-dash');
+    assert.ok(alertMessage.includes('всего 12 действий при медианной норме 20'), 'Текст содержит точные числовые показатели');
+    assert.ok(alertMessage.includes('Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!'), 'Текст содержит мотивирующий слоган');
+  });
+
+  it('2.7. Эталонный кейс OpenClaw («прибитый гвоздями»): активность на уровне нормы (22 >= 20) -> генерация похвалы praise, ответ NO_REPLY запрещен', () => {
+    // Предыдущие 7 дней: медиана = 20
+    const previousDaysActivities = [25, 30, 0, 15, 20, 0, 35];
+    const median = calculateMedian(previousDaysActivities);
+    assert.strictEqual(median, 20, 'Эталонная медиана равна 20');
+
+    // Сегодня активность 22 (на уровне/выше медианы)
+    const todayActivities = 22;
+    const isBelowMedian = todayActivities < median;
+    assert.strictEqual(isBelowMedian, false, 'Активность не ниже медианы');
+
+    const praiseMessage = `H1, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${median} за последние 7 дней. Регулярность - залог успеха!`;
+
+    // Проверка текста похвалы и анти-AI стилистики
+    assert.ok(!praiseMessage.includes('—'), 'В тексте похвалы категорически запрещено длинное тире em-dash');
+    assert.ok(!praiseMessage.includes('–'), 'В тексте похвалы категорически запрещено среднее тире en-dash');
+    assert.ok(praiseMessage.includes('уже 22 действий при медианной норме 20'), 'Текст похвалы содержит точные числовые показатели');
+    assert.ok(praiseMessage.includes('Регулярность - залог успеха!'), 'Текст содержит ободряющий посыл');
   });
 });

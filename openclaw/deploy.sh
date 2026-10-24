@@ -36,6 +36,13 @@ if [ -d config/workspace ]; then
   cp -rf config/workspace/* data/workspace/
 fi
 
+# 5.1. Синхронизируем расписание регламентных задач cron
+echo "⏰ Синхронизация расписания cron-задач OpenClaw..."
+mkdir -p data/cron
+if [ -f config/cron/jobs.json ]; then
+  cp -f config/cron/jobs.json data/cron/jobs.json
+fi
+
 # Удаляем устаревший BOOTSTRAP.md, чтобы агент сразу перешел к боевому режиму
 rm -f data/workspace/BOOTSTRAP.md
 

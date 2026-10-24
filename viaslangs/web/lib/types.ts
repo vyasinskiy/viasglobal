@@ -167,8 +167,12 @@ export interface DailySessionSummary {
 export interface SessionsHistory {
   daysCount: number;
   averageDailyActivities: number;
+  medianDailyActivities: number;
   todayActivities: number;
+  isBelowMedian: boolean;
+  shouldRemind: boolean;
   trend: 'STABLE' | 'GROWING' | 'DROPPING' | 'INACTIVE';
   alert: string | null;
+  praise: string | null;
   dailySessions: DailySessionSummary[];
 }

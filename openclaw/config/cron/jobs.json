@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "viaslangs-spanish-study-reminder",
+      "agentId": "main",
+      "name": "Напоминание о занятиях испанским (проверка прогресса Viaslangs)",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9,15,21 * * *",
+        "tz": "Europe/Madrid"
+      },
+      "sessionTarget": "isolated",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Сделай HTTP GET запрос к API сервиса Viaslangs: https://langs.viasglobal.es/api/sessions/history?days=7 с заголовком x-app-password: viasglobal (при недоступности проверь http://host.docker.internal:3000/api/sessions/history?days=7). Проверь полученные данные: 1) Если дневная активность сегодня ниже нормы (isBelowMedian === true или shouldRemind === true): отправь дружелюбное напоминание в Telegram без длинных тире: укажи число действий за сегодня, медианную норму за 7 дней и призови позаниматься прямо сейчас в https://langs.viasglobal.es («это твое самое слабое место, иначе мы не разбогатеем!»). 2) Если дневная активность на уровне или выше нормы (todayActivities >= medianDailyActivities): обязательно похвали пользователя за усердие и поддержание темпа (без длинных тире): укажи число выполненных действий за сегодня, недельную медианную норму и подбодри: «Отличная работа! Твоя активность на уровне нормы. Так держать, регулярность - залог успеха!»."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "telegram",
+        "to": "743866013"
+      }
+    }
+  ]
+}
