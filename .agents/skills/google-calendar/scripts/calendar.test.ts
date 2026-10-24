@@ -46,6 +46,22 @@ describe('Тестирование 2 категорий и форматиров�
     assert.strictEqual(res.colorId, '6');
   });
 
+  it('должен форматировать Tech в графитовый цвет (Graphite, 8)', () => {
+    const res = formatEventSummary('Tech', 'Миграция баз данных PostgreSQL');
+    assert.strictEqual(res.summary, '[Tech]: Миграция баз данных PostgreSQL');
+    assert.strictEqual(res.colorId, '8');
+  });
+
+  it('должен автоматически мапить инфраструктуру, бэкапы, базы данных и Docker в категорию Tech', () => {
+    const dbRes = formatEventSummary('Postgres/DB', 'Консолидация инстансов БД на Huawei');
+    assert.strictEqual(dbRes.summary, '[Tech]: Консолидация инстансов БД на Huawei');
+    assert.strictEqual(dbRes.colorId, '8');
+
+    const backupRes = formatEventSummary('Backup', 'Настройка ежедневного бэкапа в облако');
+    assert.strictEqual(backupRes.summary, '[Tech]: Настройка ежедневного бэкапа в облако');
+    assert.strictEqual(backupRes.colorId, '8');
+  });
+
   it('должен нормализовать неизвестную категорию по умолчанию в Legal', () => {
     const res = formatEventSummary('UnknownCategory', 'Справка о счетах в банке');
     assert.strictEqual(res.summary, '[Legal]: Справка о счетах в банке');

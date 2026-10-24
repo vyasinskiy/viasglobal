@@ -29,14 +29,40 @@ export const CALENDAR_CATEGORIES: Record<string, { colorId: string; name: string
     name: 'Электронная коммерция, Amazon FBA, опт и поставщики',
     prefix: '[E-commerce]',
   },
+  'Tech': {
+    colorId: '8', // Graphite (контрастный графитовый/темно-серый)
+    name: 'Техническая инфраструктура, базы данных, бэкапы, серверы, Docker',
+    prefix: '[Tech]',
+  },
 };
 
 /**
- * Нормализация переданной категории к одному из двух основных типов (Legal или E-commerce)
+ * Нормализация переданной категории к одному из трех основных типов (Legal, E-commerce или Tech)
  */
-export function normalizeCategoryKey(rawCategory?: string): 'Legal' | 'E-commerce' {
+export function normalizeCategoryKey(rawCategory?: string): 'Legal' | 'E-commerce' | 'Tech' {
   if (!rawCategory) return 'Legal';
   const lower = rawCategory.toLowerCase().trim();
+
+  // Признаки категории Tech (инфраструктура, базы данных, бэкапы, серверы, docker, миграции)
+  if (
+    lower.includes('tech') ||
+    lower.includes('тех') ||
+    lower.includes('infra') ||
+    lower.includes('инфра') ||
+    lower.includes('db') ||
+    lower.includes('postgres') ||
+    lower.includes('бд') ||
+    lower.includes('баз') ||
+    lower.includes('backup') ||
+    lower.includes('бэкап') ||
+    lower.includes('docker') ||
+    lower.includes('server') ||
+    lower.includes('сервер') ||
+    lower.includes('huawei') ||
+    lower.includes('supabase')
+  ) {
+    return 'Tech';
+  }
 
   // Признаки категории Legal (налоги, юриспруденция, экология RAP, нотариат, договоры)
   if (
