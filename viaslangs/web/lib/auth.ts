@@ -61,7 +61,27 @@ export function isSessionValid(token: string | undefined): boolean {
 }
 
 export function isAuthenticated(req: NextRequest): boolean {
-  return isSessionValid(req.cookies.get(SESSION_COOKIE)?.value);
+  // 1. Проверка защищенной cookie сессии браузера
+  if (isSessionValid(req.cookies.get(SESSION_COOKIE)?.value)) {
+    return true;
+  }
+
+  // 2. Проверка заголовка x-app-password (для вызовов от OpenClaw / curl)
+  const headerPassword = req.headers.get("x-app-password");
+  if (headerPassword && passwordValid(headerPassword)) {
+    return true;
+  }
+
+  // 3. Проверка заголовка Authorization: Bearer <password_или_token>
+  const authHeader = req.headers.get("authorization");
+  if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (passwordValid(token) || isSessionValid(token)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // Параметры куки сессии (с поддержкой автоматического продления и обновления токена)

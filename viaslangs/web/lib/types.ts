@@ -102,3 +102,73 @@ export interface Stats {
   learnedWords: number;
   favoriteWords: number;
 }
+
+export type ActivityType = 'NEXT' | 'ANSWER_CORRECT' | 'ANSWER_ERROR';
+
+export interface RecordActivityRequest {
+  languageId?: number;
+  wordId?: number;
+  activityType: ActivityType;
+  userAnswer?: string;
+}
+
+export interface TagStat {
+  tag: string;
+  errors: number;
+  correct: number;
+  total: number;
+  errorRate: number;
+}
+
+export interface FormStat {
+  person: string;
+  label: string;
+  errors: number;
+  correct: number;
+}
+
+export interface WeakWord {
+  wordId: number;
+  english: string;
+  russian: string;
+  tense: string | null;
+  person: string;
+  personLabel: string;
+  errorsCount: number;
+}
+
+export interface TodaySessionStats {
+  sessionId: number;
+  date: string;
+  languageId: number;
+  languageCode: string;
+  summary: {
+    totalActivities: number;
+    nextClicks: number;
+    correctAnswers: number;
+    errorAnswers: number;
+    accuracy: number;
+  };
+  tagStats: TagStat[];
+  formStats: FormStat[];
+  weakWords: WeakWord[];
+  recommendation: string;
+}
+
+export interface DailySessionSummary {
+  date: string;
+  totalActivities: number;
+  nextClicks: number;
+  correctAnswers: number;
+  errorAnswers: number;
+  accuracy: number;
+}
+
+export interface SessionsHistory {
+  daysCount: number;
+  averageDailyActivities: number;
+  todayActivities: number;
+  trend: 'STABLE' | 'GROWING' | 'DROPPING' | 'INACTIVE';
+  alert: string | null;
+  dailySessions: DailySessionSummary[];
+}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { CheckAnswerRequest, CheckAnswerResponse } from "@/lib/types";
+import { recordSessionActivity } from "@/lib/sessions";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,19 @@ export async function POST(req: Request) {
        VALUES ($1, $2, $3, $4)`,
       [wordId, rawUserAnswer.toLowerCase(), isCorrect, isSynonym]
     );
+
+    // Автоматическая фиксация активности в сессионном дне (успех или ошибка с тегами и словом)
+    try {
+      await recordSessionActivity({
+        languageId: word.language_id,
+        wordId,
+        activityType: isCorrect ? "ANSWER_CORRECT" : "ANSWER_ERROR",
+        userAnswer: rawUserAnswer,
+        client,
+      });
+    } catch (sessionErr) {
+      console.warn("Предупреждение: не удалось зафиксировать активность сессии:", sessionErr);
+    }
 
 
     // Автозачёт всех 6 форм глагола при изучении конкретного времени (Pretérito Indefinido / Imperfecto)

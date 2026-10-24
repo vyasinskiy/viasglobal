@@ -162,4 +162,39 @@ export const answersApi = {
   clearAll: async (): Promise<ClearAnswersResponse> => {
     return request<ClearAnswersResponse>("/api/answers", { method: "DELETE" });
   },
-}
+};
+
+export const sessionsApi = {
+  // Фиксация события активности в сессионном дне (Next, правильный ответ, ошибка)
+  recordActivity: async (data: import("@/lib/types").RecordActivityRequest) => {
+    return request<{ success: boolean; sessionId: number; totalActivities: number }>(
+      "/api/sessions/activity",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+  },
+
+  // Получение детальной аналитики по текущей сессии за сегодня
+  getTodayStats: async (languageId?: number): Promise<import("@/lib/types").TodaySessionStats> => {
+    const params = new URLSearchParams();
+    if (languageId) params.set("languageId", String(languageId));
+    return request<import("@/lib/types").TodaySessionStats>(
+      `/api/sessions/today?${params.toString()}`
+    );
+  },
+
+  // Получение мульти-дневной истории сессий для анализа динамики темпов активности
+  getHistory: async (
+    days: number = 7,
+    languageId?: number
+  ): Promise<import("@/lib/types").SessionsHistory> => {
+    const params = new URLSearchParams();
+    params.set("days", String(days));
+    if (languageId) params.set("languageId", String(languageId));
+    return request<import("@/lib/types").SessionsHistory>(
+      `/api/sessions/history?${params.toString()}`
+    );
+  },
+};

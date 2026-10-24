@@ -12,8 +12,9 @@ model Language {
   code  String @unique
   name  String
 
-  words Word[]
-  tags  Tag[]
+  words    Word[]
+  tags     Tag[]
+  sessions StudySession[]
 
   @@map("vy_languages")
 }
@@ -35,6 +36,7 @@ model Word {
   forms       Word[]   @relation("WordToForms")
   answers     Answer[]
   tags        WordTag[]
+  activities  SessionActivity[]
 
   @@index([languageId])
   @@index([baseWordId])
@@ -79,3 +81,38 @@ model Answer {
   
   @@map("vy_answers")
 }
+
+model StudySession {
+  id          Int               @id @default(autoincrement())
+  languageId  Int
+  sessionDate DateTime          @db.Date
+  nextClicks  Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  language    Language          @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  activities  SessionActivity[]
+
+  @@unique([languageId, sessionDate], map: "uq_vy_study_sessions_lang_date")
+  @@index([sessionDate])
+  @@index([languageId])
+  @@map("vy_study_sessions")
+}
+
+model SessionActivity {
+  id           Int          @id @default(autoincrement())
+  sessionId    Int
+  wordId       Int
+  activityType String       @db.VarChar(32)
+  userAnswer   String?
+  createdAt    DateTime     @default(now())
+
+  session      StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  word         Word         @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([wordId])
+  @@index([activityType])
+  @@map("vy_session_activities")
+}
+

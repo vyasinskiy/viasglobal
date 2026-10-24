@@ -31,7 +31,7 @@ import {
   Delete,
 } from '@mui/icons-material';
 import { Word, CheckAnswerResponse, UpdateWordRequest } from '../../lib/types';
-import { wordsApi, answersApi } from '../services/api';
+import { wordsApi, answersApi, sessionsApi } from '../services/api';
 import { useTheme } from '@mui/material/styles';
 
 interface StudyCardProps {
@@ -496,6 +496,15 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                   fullWidth
                   disabled={loading}
                   onClick={() => {
+                    // Фиксируем клик на кнопку Next в текущем сессионном дне
+                    if (currentWord) {
+                      sessionsApi.recordActivity({
+                        languageId: languageId || currentWord.languageId,
+                        wordId: currentWord.id,
+                        activityType: 'NEXT',
+                      }).catch((err) => console.warn('Не удалось зафиксировать клик Next:', err));
+                    }
+
                     setEnteredSynonyms([]);
                     if (autoAdvanceTimeoutRef.current) {
                       window.clearTimeout(autoAdvanceTimeoutRef.current);

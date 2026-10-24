@@ -19,6 +19,7 @@
 | `accruals-telegram-bot` | `accruals-telegram-bot` | - | Бот учета аренды для арендаторов |
 | `viasglobal-hermes` | `viasglobal-hermes` | - | Голосовой AI-ассистент с локальным STT Whisper |
 | `viasglobal-openclaw` | `viasglobal-openclaw` | `18789` | Твой собственный контейнер (OpenClaw шлюз) |
+| `viaslangs` | `viaslangs-web` / `localhost` | `3000` | **Тренажер языков Viaslangs**: сессии изучения, клики Next, статистика ошибок по временам/формам лица, динамика активности |
 
 > [!IMPORTANT]
 > Полная документация всех HTTP REST эндпоинтов, их методов, форматов параметров и ответов находится в файле `SERVICES.md` прямо в твоей рабочей директории (`SERVICES.md`). Перед выполнением запросов обязательно заглядывай в этот файл!
@@ -46,6 +47,16 @@
     ```bash
     curl -s http://accruals-watcher:4500/scraping/runs
     ```
+  - Проверить статистику текущей сессии изучения испанского языка за сегодня (клики Next, ошибки по временам и формам лица):
+    ```bash
+    curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/today"
+    ```
+  - Проверить динамику активности за последние дни и спад темпов (для регулярных напоминаний в Telegram раз в 6 часов):
+    ```bash
+    curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/history?days=7"
+    ```
+    *Если `trend === 'DROPPING'` и есть `alert`*: отправить пользователю мотивационное напоминание:
+    `«H1, у тебя очень низкая активность сегодня: всего N действий... Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!»`
 
 ---
 

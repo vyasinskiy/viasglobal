@@ -41,6 +41,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | **Visual Browser** | `accruals-visual-browser` | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
 | **Hermes Agent** | `viasglobal-hermes` | - | - | Голосовой AI-ассистент с локальным STT Whisper |
 | **OpenClaw Agent** | `viasglobal-openclaw` | `18789` | `18789` | Автономный AI-ассистент в Telegram |
+| **Viaslangs Service** | `viaslangs-web` / `localhost` | `3000` | `3000` (`https://langs.viasglobal.es`) | Тренажер испанского/английского, сессии, клики Next, ошибки по тегам и формам |
 
 ---
 
@@ -745,7 +746,149 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 7. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
+## 7. API сервиса Viaslangs — Тренажер испанского и аналитика сессий (`viaslangs-web:3000`)
+
+Базовый URL: `http://localhost:3000` (локально) или `https://langs.viasglobal.es`
+Авторизация для AI-агентов: Заголовок `x-app-password: viasglobal` или `Authorization: Bearer viasglobal`.
+
+### 7.1. Фиксация активности в сессионном дне (`POST /api/sessions/activity`)
+
+- **Описание**: Фиксирует активность пользователя в рамках текущего дня (нажатие кнопки `Next`, успешный ответ или ошибку). Если на сегодня сессия еще не открыта, она создается автоматически.
+- **Тело запроса (JSON)**:
+  ```json
+  {
+    "languageId": 2,
+    "wordId": 80,
+    "activityType": "NEXT",
+    "userAnswer": "abono"
+  }
+  ```
+- **Параметры**:
+  * `languageId` (число, опционально): ID языка (по умолчанию `2` - испанский `es`).
+  * `wordId` (число, опционально): ID карточки слова, на которой произошло действие.
+  * `activityType` (строка, обязательно): `'NEXT'` (клик на кнопку Next / прочитан пример), `'ANSWER_CORRECT'` (верный ответ), `'ANSWER_ERROR'` (ошибка).
+  * `userAnswer` (строка, опционально): введенный пользователем ответ.
+- **Пример запроса**:
+  ```bash
+  curl -s -X POST http://localhost:3000/api/sessions/activity \
+    -H "Content-Type: application/json" \
+    -H "x-app-password: viasglobal" \
+    -d '{"activityType":"NEXT","wordId":80}'
+  ```
+
+---
+
+### 7.2. Статистика по текущей сессии за сегодня (`GET /api/sessions/today`)
+
+- **Описание**: Возвращает полную аналитику сегодняшней сессии изучения: число кликов Next (прочитанные примеры), количество верных ответов и ошибок, группировку ошибок по тегам (времена глаголов), по грамматическим лицам (`yo`, `tú`, `él/ella/usted`, `nosotros`, `vosotros`, `ellos/ellas/ustedes`), список слабых слов и готовую текстовую рекомендацию для ассистента.
+- **Query-параметры**: `languageId` (опционально, по умолчанию `2` для испанского).
+- **Пример запроса**:
+  ```bash
+  curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/today"
+  ```
+- **Пример ответа**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "sessionId": 15,
+      "date": "2026-10-24",
+      "languageId": 2,
+      "languageCode": "es",
+      "summary": {
+        "totalActivities": 45,
+        "nextClicks": 15,
+        "correctAnswers": 20,
+        "errorAnswers": 10,
+        "accuracy": 67
+      },
+      "tagStats": [
+        { "tag": "Pretérito Indefinido", "errors": 7, "correct": 5, "total": 12, "errorRate": 58 },
+        { "tag": "Pretérito Imperfecto", "errors": 2, "correct": 8, "total": 10, "errorRate": 20 },
+        { "tag": "Глаголы", "errors": 9, "correct": 13, "total": 22, "errorRate": 41 }
+      ],
+      "formStats": [
+        { "person": "yo", "label": "1-е лицо ед. ч. (yo)", "errors": 4, "correct": 6 },
+        { "person": "él/ella/usted", "label": "3-е лицо ед. ч. (él/ella/usted)", "errors": 3, "correct": 2 }
+      ],
+      "weakWords": [
+        {
+          "wordId": 80,
+          "english": "abonó",
+          "russian": "зачислил (он / Вы)",
+          "tense": "Pretérito Indefinido",
+          "person": "él/ella/usted",
+          "personLabel": "3-е лицо ед. ч. (él/ella/usted)",
+          "errorsCount": 3
+        }
+      ],
+      "recommendation": "В текущей сессии больше всего ошибок во времени «Pretérito Indefinido» (7 ошибок, процент ошибок: 58%) и наибольшая сложность в форме «1-е лицо ед. ч. (yo)» (4 ошибок). Сделай упор на повторение именно этих карточек!"
+    }
+  }
+  ```
+
+---
+
+### 7.3. Мульти-дневная динамика активности (`GET /api/sessions/history`)
+
+- **Описание**: Анализирует историю сессий за последние N дней (по умолчанию 7). Вычисляет среднюю дневную активность, сравнивает её с сегодняшним днем, определяет тренд (`DROPPING`, `STABLE`, `GROWING`, `INACTIVE`) и формирует готовый текст напоминания при спаде темпов.
+- **Query-параметры**:
+  * `days` (число, опционально, по умолчанию `7`): глубина анализа в днях.
+  * `languageId` (число, опционально): ID языка.
+- **Пример запроса**:
+  ```bash
+  curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/history?days=7"
+  ```
+- **Пример ответа при спаде активности**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "daysCount": 7,
+      "averageDailyActivities": 40.0,
+      "todayActivities": 10,
+      "trend": "DROPPING",
+      "alert": "H1, у тебя очень низкая активность сегодня: всего 10 действий при среднем уровне 40. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!",
+      "dailySessions": [
+        {
+          "date": "2026-10-24",
+          "totalActivities": 10,
+          "nextClicks": 4,
+          "correctAnswers": 4,
+          "errorAnswers": 2,
+          "accuracy": 67
+        },
+        {
+          "date": "2026-10-23",
+          "totalActivities": 40,
+          "nextClicks": 12,
+          "correctAnswers": 20,
+          "errorAnswers": 8,
+          "accuracy": 71
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+### 7.4. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+
+1. **Сценарий 1: Ответ на вопрос «Какая у меня статистика по испанскому за сегодня?»**:
+   - Выполни: `curl -s -H "x-app-password: viasglobal" http://localhost:3000/api/sessions/today`
+   - Извлеки `summary` и `recommendation`:
+     «Сегодня сделано N активностей (X кликов Next, Y верных ответов, Z ошибок). Точность: A%.»
+   - Сообщи вывод из поля `recommendation` (например: «Больше всего ошибок во времени Pretérito Indefinido (7 ошибок) на форме yo. Слабое слово: abonó»).
+2. **Сценарий 2: Регулярный мониторинг активности (раз в 6 часов)**:
+   - Выполни: `curl -s -H "x-app-password: viasglobal" http://localhost:3000/api/sessions/history?days=7`
+   - Если `data.trend === 'DROPPING'` и `data.alert` не пустой:
+     Отправь пользователю H1 мотивационное напоминание в Telegram:
+     «H1, у тебя очень низкая активность сегодня: всего N действий при среднем уровне M. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!»
+
+---
+
+## 8. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
 
 При взаимодействии автономных языковых моделей (OpenClaw, Hermes, Antigravity) с бэкенд-сервисами критически важно предотвращать когнитивные искажения (галлюцинации) агентов. Если API возвращает неточный статус или неполную ошибку, LLM делает ложные выводы о состоянии системы и начинает деструктивные действия (создание фиктивных сущностей, попытки обхода проверок, удаление записей).
 
