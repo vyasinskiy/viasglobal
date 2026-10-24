@@ -240,7 +240,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   if (loading && !currentWord) {
     return (
-      <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center', p: 4 }}>
+      <Card sx={{ width: '100%', maxWidth: 800, textAlign: 'center', p: { xs: 2, sm: 4 } }}>
         <Skeleton variant="text" width="55%" sx={{ fontSize: '1.5rem', mb: 2 }} />
         <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
         <Skeleton variant="text" width="100%" sx={{ mb: 1 }} />
@@ -256,7 +256,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   if (error && !currentWord) {
     return (
-      <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center', p: 4 }}>
+      <Card sx={{ width: '100%', maxWidth: 800, textAlign: 'center', p: { xs: 2, sm: 4 } }}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
@@ -269,7 +269,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   if (!currentWord) {
     return (
-      <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center', p: 4 }}>
+      <Card sx={{ width: '100%', maxWidth: 800, textAlign: 'center', p: { xs: 2, sm: 4 } }}>
         <Typography variant="h6" gutterBottom>
           No words available for study
         </Typography>
@@ -285,7 +285,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   return (
     <>
-      <Card sx={{ width: { xs: '100%', sm: 800 }, maxWidth: '100%' }}>
+      <Card sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
         {/* Адаптивные отступы карточки слова */}
         <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
           {/* Заголовок карточки: перевод на русский и кнопки избранного/редактирования/удаления */}

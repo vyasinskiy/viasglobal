@@ -55,8 +55,8 @@ function TabPanel(props: TabPanelProps) {
       style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}
       {...other}
     >
-      {/* Адаптивные отступы контента: компактные на смартфонах, просторные на ПК */}
-      <Box sx={{ p: { xs: 1, sm: 3 }, pt: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+      {/* Адаптивные отступы контента: горизонтальный padding задается на уровне Container */}
+      <Box sx={{ px: 0, py: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
         {children}
       </Box>
     </div>
@@ -163,19 +163,20 @@ function App() {
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             alignItems: { xs: 'stretch', sm: 'center' },
-            py: { xs: 1, sm: 1.25 },
-            px: { xs: 1.5, sm: 3 },
+            justifyContent: 'space-between',
+            py: { xs: 1, sm: 1 },
+            px: { xs: 1.5, sm: 2, md: 3 },
             gap: { xs: 1, sm: 1.5 },
           }}
         >
-          {/* Верхняя строка на смартфонах: логотип + название + кнопка выхода */}
+          {/* Верхняя строка на смартфонах / левая колонка на планшетах и ПК */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               width: { xs: '100%', sm: 'auto' },
-              flexGrow: { xs: 0, sm: 1 },
+              flexShrink: 0,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -186,20 +187,22 @@ function App() {
                 sx={{
                   fontWeight: 800,
                   color: 'text.primary',
-                  fontSize: { xs: '1.05rem', sm: '1.25rem' },
+                  fontSize: { xs: '1.05rem', sm: '1.15rem', md: '1.25rem' },
                   whiteSpace: 'nowrap',
                 }}
               >
-                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                {/* На экранах до 900px (включая планшеты 786px) компактное Viaslangs */}
+                <Box component="span" sx={{ display: { xs: 'inline', md: 'none' } }}>
                   Viaslangs
                 </Box>
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                {/* На широких десктопах от 900px полное название */}
+                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
                   VIAS - Langs learning application
                 </Box>
               </Typography>
             </Box>
 
-            {/* Кнопка выхода на мобильных экранах (в верхнем правом углу) */}
+            {/* Кнопка выхода на смартфонах (в верхнем правом углу) */}
             <Tooltip title="Log out">
               <IconButton
                 onClick={handleLogout}
@@ -212,20 +215,23 @@ function App() {
             </Tooltip>
           </Box>
 
-          {/* Строка селекторов: адаптивно делят ширину на телефоне, в одну строку на десктопе */}
+          {/* Блок селекторов и кнопки выхода на планшетах и ПК */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               width: { xs: '100%', sm: 'auto' },
-              gap: 1,
+              gap: { xs: 1, sm: 1, md: 1.5 },
+              flexShrink: 1,
+              minWidth: 0,
             }}
           >
             <FormControl
               size="small"
               sx={{
                 flex: { xs: 1, sm: 'initial' },
-                minWidth: { xs: 0, sm: 150 },
+                minWidth: { xs: 0, sm: 120, md: 140 },
+                maxWidth: { sm: 150, md: 180 },
               }}
             >
               <InputLabel id="language-select-label">Language</InputLabel>
@@ -240,6 +246,12 @@ function App() {
                   borderRadius: '20px',
                   minHeight: 38,
                   fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                  '& .MuiSelect-select': {
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    pr: '32px !important',
+                  },
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                   '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
                 }}
@@ -256,7 +268,8 @@ function App() {
               size="small"
               sx={{
                 flex: { xs: 1.3, sm: 'initial' },
-                minWidth: { xs: 0, sm: 200 },
+                minWidth: { xs: 0, sm: 160, md: 200 },
+                maxWidth: { sm: 220, md: 300 },
               }}
             >
               <InputLabel id="tag-select-label">Tag (pack)</InputLabel>
@@ -274,6 +287,12 @@ function App() {
                     borderRadius: '20px',
                     minHeight: 38,
                     fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                    '& .MuiSelect-select': {
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      pr: '32px !important',
+                    },
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
                   }}
@@ -291,12 +310,16 @@ function App() {
               )}
             </FormControl>
 
-            {/* Кнопка выхода на десктопе */}
+            {/* Кнопка выхода на планшетах и десктопе */}
             <Tooltip title="Log out">
               <IconButton
                 onClick={handleLogout}
                 color="inherit"
-                sx={{ display: { xs: 'none', sm: 'inline-flex' }, ml: 0.5 }}
+                sx={{
+                  display: { xs: 'none', sm: 'inline-flex' },
+                  ml: { sm: 0.5, md: 1 },
+                  flexShrink: 0,
+                }}
               >
                 <ExitToApp />
               </IconButton>
@@ -326,7 +349,7 @@ function App() {
             minHeight={0}
             p={3}
           >
-            <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center' }}>
+            <Card sx={{ width: '100%', maxWidth: 800, textAlign: 'center' }}>
               <CardContent>
                 <Skeleton variant="text" width="55%" sx={{ fontSize: '1.5rem', mb: 2 }} />
                 <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
