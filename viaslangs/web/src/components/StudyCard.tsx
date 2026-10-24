@@ -285,75 +285,96 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   return (
     <>
-      <Card sx={{ width: { xs: '100%', sm: 800 } }}>
-        <CardContent sx={{ paddingTop: isMobile ? 0 : 1, paddingBottom: isMobile ? '14px !important' : 1 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h5" component="div">
+      <Card sx={{ width: { xs: '100%', sm: 800 }, maxWidth: '100%' }}>
+        {/* Адаптивные отступы карточки слова */}
+        <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
+          {/* Заголовок карточки: перевод на русский и кнопки избранного/редактирования/удаления */}
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2} gap={1}>
+            <Typography
+              variant="h5"
+              component="div"
+              sx={{
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                fontWeight: 700,
+                wordBreak: 'break-word',
+                flex: 1,
+                lineHeight: 1.25,
+              }}
+            >
               {currentWord.russian?.[0].toUpperCase() + currentWord.russian.slice(1)}
             </Typography>
-            <Box display="flex" alignItems="center">
+            <Box display="flex" alignItems="center" sx={{ flexShrink: 0 }}>
               <Tooltip title={currentWord.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-                <IconButton onClick={handleToggleFavorite} color="primary">
-                  {currentWord.isFavorite ? <Favorite /> : <FavoriteBorder />}
+                <IconButton onClick={handleToggleFavorite} color="primary" size={isMobile ? 'small' : 'medium'}>
+                  {currentWord.isFavorite ? <Favorite fontSize={isMobile ? 'small' : 'medium'} /> : <FavoriteBorder fontSize={isMobile ? 'small' : 'medium'} />}
                 </IconButton>
               </Tooltip>
               <Tooltip title="Edit word">
-                <IconButton onClick={handleEditOpen} color="primary">
-                  <Edit />
+                <IconButton onClick={handleEditOpen} color="primary" size={isMobile ? 'small' : 'medium'}>
+                  <Edit fontSize={isMobile ? 'small' : 'medium'} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete word">
-                <IconButton onClick={handleDeleteWord} color="error">
-                  <Delete />
+                <IconButton onClick={handleDeleteWord} color="error" size={isMobile ? 'small' : 'medium'}>
+                  <Delete fontSize={isMobile ? 'small' : 'medium'} />
                 </IconButton>
               </Tooltip>
             </Box>
           </Box>
 
-          <Box mb={3}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
+          {/* Пример предложения на русском */}
+          <Box mb={2}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, fontWeight: 600 }}>
               Example in Russian:
             </Typography>
-            <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+            <Typography variant="body1" sx={{ fontStyle: 'italic', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
               {currentWord.exampleRu}
             </Typography>
           </Box>
 
-          <Box mb={3}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Example in target language:
-            </Typography>
+          {/* Пример предложения на изучаемом языке с блюром до клика */}
+          <Box mb={2.5}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                Example in target language:
+              </Typography>
+              {!isExampleRevealed && (
+                <Chip
+                  size="small"
+                  label="Tap to reveal"
+                  color="primary"
+                  onClick={handleRevealExample}
+                  sx={{ height: 22, fontSize: '0.72rem', cursor: 'pointer' }}
+                />
+              )}
+            </Box>
             <Box
               onClick={handleRevealExample}
               sx={{
                 position: 'relative',
                 cursor: isExampleRevealed ? 'default' : 'pointer',
                 userSelect: isExampleRevealed ? 'text' : 'none',
+                p: 1.25,
+                borderRadius: 1,
+                bgcolor: 'rgba(30, 41, 59, 0.4)',
+                border: '1px solid rgba(148, 163, 184, 0.1)',
               }}
             >
               <Typography
                 variant="body1"
                 sx={{
                   fontStyle: 'italic',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                   filter: isExampleRevealed ? 'none' : 'blur(6px)',
                   transition: 'filter 0.2s ease',
                 }}
               >
                 {currentWord.exampleEn}
               </Typography>
-              {!isExampleRevealed && (
-                <Chip
-                  size="small"
-                  label="Click to reveal"
-                  color="primary"
-                  sx={{ position: 'absolute', top: -8, right: 0 }}
-                />
-              )}
             </Box>
           </Box>
 
           <form onSubmit={handleSubmit}>
-
             <TextField
               fullWidth
               label="Enter word in the selected language"
@@ -366,7 +387,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             />
 
             {isAnswerRevealed && (
-              <Box mb={1}>
+              <Box mb={1.5}>
                 <Alert icon={<CheckCircle />} severity="info">
                   Correct answer: <strong>{currentWord.english}</strong>
                 </Alert>
@@ -374,7 +395,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             )}
 
             {isExampleRevealed && (
-              <Box mb={2}>
+              <Box mb={1.5}>
                 <Alert icon={<Info />} severity="info">
                   Example revealed.
                 </Alert>
@@ -408,39 +429,21 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               </Box>
             )}
 
+            {/* Блок кнопок управления: главная кнопка проверки + вспомогательные действия */}
             <Box
               sx={{
-                mt: isMobile ? 0 : 2,
+                mt: 2,
                 display: 'flex',
-                flexDirection: isMobile ? 'row' : 'column',
-                gap: 1,
+                flexDirection: 'column',
+                gap: 1.25,
               }}
             >
-              <Button
-                type="button"
-                variant="text"
-                fullWidth={!isMobile}
-                onClick={() => setIsAnswerRevealed(true)}
-                disabled={
-                  isAnswerRevealed || Boolean(
-                    result && !result.isCorrect && !result.isPartial && !result.isSynonym
-                  )
-                }
-                sx={{
-                  ...(isMobile ? { flex: 1 } : undefined),
-                  '&.Mui-disabled': {
-                    color: 'rgba(244, 246, 248, 0.85)',
-                    backgroundColor: 'rgba(148, 163, 184, 0.2)',
-                  },
-                }}
-              >
-                Show Answer
-              </Button>
-
+              {/* Главная кнопка проверки ответа */}
               <Button
                 type="submit"
                 variant="contained"
-                fullWidth={!isMobile}
+                fullWidth
+                size="large"
                 disabled={
                   loading ||
                   !answer.trim() ||
@@ -449,7 +452,10 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                   Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)
                 }
                 sx={{
-                  ...(isMobile ? { flex: 1 } : undefined),
+                  minHeight: 46,
+                  fontSize: { xs: '0.95rem', sm: '1rem' },
+                  fontWeight: 700,
+                  borderRadius: '12px',
                   '&.Mui-disabled': {
                     color: 'rgba(244, 246, 248, 0.85)',
                     backgroundColor: 'rgba(148, 163, 184, 0.2)',
@@ -459,40 +465,74 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                 {loading ? 'Checking...' : 'Check Answer'}
               </Button>
 
-              <Button
-                type="button"
-                variant="text"
-                fullWidth={!isMobile}
-                disabled={loading}
-                onClick={() => {
-                  setEnteredSynonyms([]);
-                  if (autoAdvanceTimeoutRef.current) {
-                    window.clearTimeout(autoAdvanceTimeoutRef.current);
-                    autoAdvanceTimeoutRef.current = null;
+              {/* Вспомогательные действия: Показать ответ и Далее */}
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => setIsAnswerRevealed(true)}
+                  disabled={
+                    isAnswerRevealed || Boolean(
+                      result && !result.isCorrect && !result.isPartial && !result.isSynonym
+                    )
                   }
-                  if (result?.isCorrect) {
-                    onWordCompleted();
-                  }
-                  loadNextWord(true);
-                }}
-                sx={{
-                  ...(isMobile ? { flex: 1 } : undefined),
-                  '&.Mui-disabled': {
-                    color: 'rgba(244, 246, 248, 0.85)',
-                  },
-                }}
-              >
-                Next
-              </Button>
+                  sx={{
+                    minHeight: 40,
+                    borderRadius: '10px',
+                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                    '&.Mui-disabled': {
+                      color: 'rgba(244, 246, 248, 0.5)',
+                      borderColor: 'rgba(148, 163, 184, 0.2)',
+                    },
+                  }}
+                >
+                  Show Answer
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outlined"
+                  fullWidth
+                  disabled={loading}
+                  onClick={() => {
+                    setEnteredSynonyms([]);
+                    if (autoAdvanceTimeoutRef.current) {
+                      window.clearTimeout(autoAdvanceTimeoutRef.current);
+                      autoAdvanceTimeoutRef.current = null;
+                    }
+                    if (result?.isCorrect) {
+                      onWordCompleted();
+                    }
+                    loadNextWord(true);
+                  }}
+                  sx={{
+                    minHeight: 40,
+                    borderRadius: '10px',
+                    fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                    '&.Mui-disabled': {
+                      color: 'rgba(244, 246, 248, 0.85)',
+                    },
+                  }}
+                >
+                  Next
+                </Button>
+              </Box>
             </Box>
           </form>
         </CardContent>
       </Card>
+      {/* Снекбар прогресса (центрирован на мобильных экранах) */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: isMobile ? 'center' : 'right' }}
+        sx={{
+          bottom: { xs: 16, sm: 24 },
+          left: isMobile ? 16 : 'auto',
+          right: isMobile ? 16 : 24,
+        }}
       >
         <Alert onClose={() => setSnackbarOpen(false)} severity="info" sx={{ width: '100%' }}>
           <Box sx={{ width: '100%' }}>

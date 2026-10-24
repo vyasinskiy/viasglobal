@@ -53,8 +53,8 @@ export default function LoginPage() {
         p: 2,
       }}
     >
-      <Card sx={{ width: { xs: '100%', sm: 400 }, textAlign: 'center', p: 3 }}>
-        <CardContent>
+      <Card sx={{ width: { xs: '100%', sm: 400 }, maxWidth: 400, textAlign: 'center', p: { xs: 1.5, sm: 3 }, borderRadius: '16px' }}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
           <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
             <Translate sx={{ mr: 1, color: 'primary.main' }} />
             <Typography variant="h5" component="div" fontWeight={800}>

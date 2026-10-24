@@ -1,7 +1,11 @@
 # Инструкции для ИИ (KUKEN / ALFA DYSER)
 
 - **Контрагент**: ALFA DYSER, S.L. (дистрибьютор и правообладатель бренда бытовой техники и ухода KUKEN).
-- **Контакты**: `alfa@alfadyser.es`, `atencionalcliente@alfadyser.com`. Портал: `https://alfadyser.es/`.
+- **Контакты**: `alfa@alfadyser.es`, `atencionalcliente@alfadyser.com`, менеджер Guido (`guido@alfadyser.es`). Портал: `https://alfadyser.es/`.
+- **Коммерческие условия и доставка (подтверждено 23.10.2026)**:
+  - Порог бесплатной доставки (**Portes pagados / Franco**): **200 €** нетто (Base Imponible).
+  - Способ оплаты: **SEPA Direct Debit B2B** (прямой банковский дебет / *domiciliación bancaria SEPA*). Подписанный мандат отправлен менеджеру Guido (`attachments/SEPA CORE ALFA 2.pdf`). Оплата списывается поставщиком напрямую со счета, без ручных переводов по проформе.
+  - Первичный заказ для бесплатной доставки: 10 шт арт. `34316` (фен 2000W) + 10 шт арт. `35536` (утюг 2600W) = 272.40 € нетто (с эко-тасой) / 343.80 € с RE. Ожидается присвоение номера клиента, подтверждение заказа и выставление albarán / фактуры.
 - **Прайс-листы поставщика**:
   - Персональный файл с заголовками: `contractors/kuken/viasglobal (1).xlsx`.
   - Исторический файл без заголовков: `contractors/kuken/viasglobal.xlsx`.

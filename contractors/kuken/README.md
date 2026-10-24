@@ -8,8 +8,19 @@
 - **CIF:** B-60163441
 - **Город:** Барселона, Испания
 - **Email:** `alfa@alfadyser.es`, `atencionalcliente@alfadyser.com`
+- **Персональный менеджер:** Guido (`guido@alfadyser.es`)
 - **Официальный сайт:** [https://alfadyser.es/](https://alfadyser.es/)
 - **Портал B2B:** [https://alfadyser.es/es/customer/account/login/](https://alfadyser.es/es/customer/account/login/)
+
+### Коммерческие условия и доставка (подтверждено 23.10.2026)
+- **Порог бесплатной доставки (Portes pagados / Franco):** **200 €** чистой базы (Base Imponible).
+- **Способ оплаты:** **SEPA Direct Debit B2B** (*orden de domiciliación bancaria SEPA*). Подписанный мандат официально передан менеджеру Guido (документ `contractors/kuken/attachments/SEPA CORE ALFA 2.pdf`). Списание средств за поставку производится поставщиком автоматически напрямую с банковского счета компании (без ручной предоплаты по проформе). Поставщик формирует подтверждение заказа, транспортную накладную (*albarán*) и счет-фактуру.
+- **Сформированный пробный заказ для бесплатной доставки:**
+  1. **Арт. 34316** (Secador Profesional Iónico 2000W Negro): 10 шт x 11.82 € (+ 0.65 € таса) = **124.70 €**
+  2. **Арт. 35536** (Plancha Vapor 2600W Suela Cerámica): 10 шт x 14.12 € (+ 0.65 € таса) = **147.70 €**
+  - **Итого Base Imponible (с эко-тасой):** **272.40 €** (существенно выше порога 200 €).
+  - **Итого с налогами Recargo de Equivalencia (1.262):** **343.80 €**.
+  - **Ожидаемая чистая прибыль на Amazon:** +18.30 € (+9.40 € фены, +8.90 € утюги).
 
 ---
 

@@ -55,7 +55,8 @@ function TabPanel(props: TabPanelProps) {
       style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}
       {...other}
     >
-      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+      {/* Адаптивные отступы контента: компактные на смартфонах, просторные на ПК */}
+      <Box sx={{ p: { xs: 1, sm: 3 }, pt: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
         {children}
       </Box>
     </div>
@@ -87,7 +88,8 @@ function App() {
         if (restored) {
           setSelectedLanguageId(restored.id);
         } else {
-          const fallback = langs[0]?.id;
+          // Если язык не был сохранен, выбираем испанский (где есть база слов) либо первый доступный
+          const fallback = langs.find((l) => l.code === 'es')?.id || langs[0]?.id;
           setSelectedLanguageId(fallback);
           if (fallback !== undefined) {
             sessionStorage.setItem(LANGUAGE_STORAGE_KEY, String(fallback));
@@ -139,7 +141,7 @@ function App() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (err: unknown) {
-      // ignore network errors — still redirect
+      // Игнорируем сетевые ошибки и перенаправляем на логин
     }
     window.location.href = '/login';
   };
@@ -156,133 +158,233 @@ function App() {
           backdropFilter: 'blur(8px)',
         }}
       >
-        <Toolbar>
-          <Translate sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 800, color: 'text.primary' }}>
-            VIAS - Langs learning application
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel id="language-select-label">Language</InputLabel>
-            <Select
-              labelId="language-select-label"
-              id="language-select"
-              value={selectedLanguageId ? String(selectedLanguageId) : ''}
-              onChange={handleLanguageChange}
-              label="Language"
-              disabled={languageError || languages.length === 0}
+        <Toolbar
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            py: { xs: 1, sm: 1.25 },
+            px: { xs: 1.5, sm: 3 },
+            gap: { xs: 1, sm: 1.5 },
+          }}
+        >
+          {/* Верхняя строка на смартфонах: логотип + название + кнопка выхода */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: { xs: '100%', sm: 'auto' },
+              flexGrow: { xs: 0, sm: 1 },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Translate sx={{ mr: 1, color: 'primary.main' }} />
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  fontWeight: 800,
+                  color: 'text.primary',
+                  fontSize: { xs: '1.05rem', sm: '1.25rem' },
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                  Viaslangs
+                </Box>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                  VIAS - Langs learning application
+                </Box>
+              </Typography>
+            </Box>
+
+            {/* Кнопка выхода на мобильных экранах (в верхнем правом углу) */}
+            <Tooltip title="Log out">
+              <IconButton
+                onClick={handleLogout}
+                color="inherit"
+                size="small"
+                sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+              >
+                <ExitToApp />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* Строка селекторов: адаптивно делят ширину на телефоне, в одну строку на десктопе */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: { xs: '100%', sm: 'auto' },
+              gap: 1,
+            }}
+          >
+            <FormControl
+              size="small"
               sx={{
-                borderRadius: '20px',
-                minHeight: 40,
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+                flex: { xs: 1, sm: 'initial' },
+                minWidth: { xs: 0, sm: 150 },
               }}
             >
-              {languages.map((lang) => (
-                <MenuItem key={lang.id} value={String(lang.id)}>
-                  {lang.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 220, ml: 1 }}>
-            <InputLabel id="tag-select-label">Tag (pack)</InputLabel>
-            {tagsLoading ? (
-              <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: '20px' }} />
-            ) : (
+              <InputLabel id="language-select-label">Language</InputLabel>
               <Select
-                labelId="tag-select-label"
-                id="tag-select"
-                value={selectedTagId ? String(selectedTagId) : ''}
-                onChange={handleTagChange}
-                label="Tag (pack)"
-                disabled={selectedLanguageId === undefined || tags.length === 0}
+                labelId="language-select-label"
+                id="language-select"
+                value={selectedLanguageId ? String(selectedLanguageId) : ''}
+                onChange={handleLanguageChange}
+                label="Language"
+                disabled={languageError || languages.length === 0}
                 sx={{
                   borderRadius: '20px',
-                  minHeight: 40,
+                  minHeight: 38,
+                  fontSize: { xs: '0.85rem', sm: '0.875rem' },
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                   '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
                 }}
               >
-                <MenuItem value="">
-                  All words
-                </MenuItem>
-                {tags.map((tag) => (
-                  <MenuItem key={tag.id} value={String(tag.id)}>
-                    {tag.name}
-                    {tag.wordCount ? ` (${tag.wordCount})` : ''}
+                {languages.map((lang) => (
+                  <MenuItem key={lang.id} value={String(lang.id)}>
+                    {lang.name}
                   </MenuItem>
                 ))}
               </Select>
-            )}
-          </FormControl>
-          <Tooltip title="Log out">
-            <IconButton onClick={handleLogout} color="inherit" sx={{ ml: 1 }}>
-              <ExitToApp />
-            </IconButton>
-          </Tooltip>
+            </FormControl>
+
+            <FormControl
+              size="small"
+              sx={{
+                flex: { xs: 1.3, sm: 'initial' },
+                minWidth: { xs: 0, sm: 200 },
+              }}
+            >
+              <InputLabel id="tag-select-label">Tag (pack)</InputLabel>
+              {tagsLoading ? (
+                <Skeleton variant="rectangular" width="100%" height={38} sx={{ borderRadius: '20px' }} />
+              ) : (
+                <Select
+                  labelId="tag-select-label"
+                  id="tag-select"
+                  value={selectedTagId ? String(selectedTagId) : ''}
+                  onChange={handleTagChange}
+                  label="Tag (pack)"
+                  disabled={selectedLanguageId === undefined || tags.length === 0}
+                  sx={{
+                    borderRadius: '20px',
+                    minHeight: 38,
+                    fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+                  }}
+                >
+                  <MenuItem value="">
+                    All words
+                  </MenuItem>
+                  {tags.map((tag) => (
+                    <MenuItem key={tag.id} value={String(tag.id)}>
+                      {tag.name}
+                      {tag.wordCount ? ` (${tag.wordCount})` : ''}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            </FormControl>
+
+            {/* Кнопка выхода на десктопе */}
+            <Tooltip title="Log out">
+              <IconButton
+                onClick={handleLogout}
+                color="inherit"
+                sx={{ display: { xs: 'none', sm: 'inline-flex' }, ml: 0.5 }}
+              >
+                <ExitToApp />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Toolbar>
       </AppBar>
 
-        <Container sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
-          {selectedLanguageId === undefined && !languageError ? (
-            <Box
-              display="flex"
-              flexDirection="column"
-              justifyContent="center"
-              alignItems="center"
-              flexGrow={1}
-              minHeight={0}
-              p={3}
-            >
-              <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center' }}>
-                <CardContent>
-                  <Skeleton variant="text" width="55%" sx={{ fontSize: '1.5rem', mb: 2 }} />
-                  <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
-                  <Skeleton variant="text" width="100%" sx={{ mb: 1 }} />
-                  <Skeleton variant="text" width="100%" sx={{ mb: 3 }} />
-                  <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1, mb: 2 }} />
-                  <Box display="flex" justifyContent="center" gap={1}>
-                    <Skeleton variant="rectangular" width={140} height={40} sx={{ borderRadius: '20px' }} />
-                    <Skeleton variant="rectangular" width={160} height={40} sx={{ borderRadius: '20px' }} />
-                  </Box>
-                </CardContent>
-              </Card>
+      <Container
+        maxWidth="lg"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+          minHeight: 0,
+          px: { xs: 1, sm: 3 },
+          py: { xs: 1, sm: 2 },
+        }}
+      >
+        {selectedLanguageId === undefined && !languageError ? (
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            flexGrow={1}
+            minHeight={0}
+            p={3}
+          >
+            <Card sx={{ width: { xs: '100%', sm: 800 }, textAlign: 'center' }}>
+              <CardContent>
+                <Skeleton variant="text" width="55%" sx={{ fontSize: '1.5rem', mb: 2 }} />
+                <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
+                <Skeleton variant="text" width="100%" sx={{ mb: 1 }} />
+                <Skeleton variant="text" width="100%" sx={{ mb: 3 }} />
+                <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 1, mb: 2 }} />
+                <Box display="flex" justifyContent="center" gap={1}>
+                  <Skeleton variant="rectangular" width={140} height={40} sx={{ borderRadius: '20px' }} />
+                  <Skeleton variant="rectangular" width={160} height={40} sx={{ borderRadius: '20px' }} />
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        ) : (
+          <>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: { xs: -0.5, sm: 0 } }}>
+              <Tabs 
+                value={tabValue} 
+                onChange={handleTabChange} 
+                aria-label="app tabs"
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+                sx={{
+                  minHeight: 44,
+                  '& .MuiTab-root': {
+                    minHeight: 44,
+                    py: 1,
+                    px: { xs: 1.25, sm: 2 },
+                    fontSize: { xs: '0.82rem', sm: '0.9rem' },
+                  },
+                }}
+              >
+                <Tab 
+                  icon={<School sx={{ fontSize: { xs: 20, sm: 24 } }} />} 
+                  label="Study" 
+                  iconPosition="start"
+                />
+                <Tab 
+                  icon={<Favorite sx={{ fontSize: { xs: 20, sm: 24 } }} />} 
+                  label="Favorites" 
+                  iconPosition="start"
+                />
+                <Tab 
+                  icon={<List sx={{ fontSize: { xs: 20, sm: 24 } }} />} 
+                  label="Words List" 
+                  iconPosition="start"
+                />
+                <Tab 
+                  icon={<BarChart sx={{ fontSize: { xs: 20, sm: 24 } }} />} 
+                  label="Statistics" 
+                  iconPosition="start"
+                />
+              </Tabs>
             </Box>
-          ) : (
-            <>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs 
-                  value={tabValue} 
-                  onChange={handleTabChange} 
-                  aria-label="app tabs"
-                  variant="scrollable"
-                  scrollButtons="auto"
-                >
-                  <Tab 
-                    icon={<School />} 
-                    label="Study" 
-                    iconPosition="start"
-                  />
-                  <Tab 
-                    icon={<Favorite />} 
-                    label="Favorites" 
-                    iconPosition="start"
-                  />
-                  <Tab 
-                    icon={<List />} 
-                    label="Words List" 
-                    iconPosition="start"
-                  />
-                  <Tab 
-                    icon={<BarChart />} 
-                    label="Statistics" 
-                    iconPosition="start"
-                  />
-                </Tabs>
-              </Box>
 
-              <TabPanel value={tabValue} index={0}>
-                <Box
+            <TabPanel value={tabValue} index={0}>
+              <Box
                   display="flex"
                   flexDirection="column"
                   justifyContent="center"

@@ -205,19 +205,26 @@ const handleCopyTodayWordsJson = async () => {
   if (loading) {
     return (
       <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          mb={2}
+          gap={1.5}
+        >
           <Skeleton variant="text" width={220} sx={{ fontSize: '1.5rem' }} />
-          <Box display="flex" gap={1}>
-            <Skeleton variant="rectangular" width={170} height={40} sx={{ borderRadius: '20px' }} />
-            <Skeleton variant="rectangular" width={130} height={40} sx={{ borderRadius: '20px' }} />
+          <Box display="flex" gap={1} width={{ xs: '100%', sm: 'auto' }}>
+            <Skeleton variant="rectangular" width="50%" height={36} sx={{ borderRadius: '10px' }} />
+            <Skeleton variant="rectangular" width="50%" height={36} sx={{ borderRadius: '10px' }} />
           </Box>
         </Box>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: { xs: 1.5, sm: 2.5 } }}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} sx={{ height: '100%' }}>
-              <CardContent>
-                <Skeleton variant="text" width="45%" />
-                <Skeleton variant="text" width="30%" sx={{ fontSize: '2rem' }} />
+            <Card key={i} sx={{ height: '100%', borderRadius: '12px' }}>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="text" width="40%" sx={{ fontSize: '2rem' }} />
               </CardContent>
             </Card>
           ))}
@@ -243,59 +250,75 @@ const handleCopyTodayWordsJson = async () => {
     {
       title: 'Total Words',
       value: stats.totalWords,
-      icon: <Book color="primary" />,
+      icon: <Book color="primary" fontSize="small" />,
       color: '#10B981',
     },
     {
       title: 'Learned Words',
       value: stats.learnedWords,
-      icon: <School color="success" />,
+      icon: <School color="success" fontSize="small" />,
       color: '#059669',
     },
     {
       title: 'Favorite Words',
       value: stats.favoriteWords,
-      icon: <Favorite color="error" />,
+      icon: <Favorite color="error" fontSize="small" />,
       color: '#d32f2f',
     },
     {
       title: 'Total Answers',
       value: stats.totalAnswers,
-      icon: <Psychology color="info" />,
+      icon: <Psychology color="info" fontSize="small" />,
       color: '#2563EB',
     },
     {
       title: 'Correct Answers',
       value: stats.correctAnswers,
-      icon: <CheckCircle color="success" />,
+      icon: <CheckCircle color="success" fontSize="small" />,
       color: '#059669',
     },
     {
       title: 'Accuracy',
       value: `${stats.accuracy}%`,
-      icon: <TrendingUp color="warning" />,
+      icon: <TrendingUp color="warning" fontSize="small" />,
       color: '#F59E0B',
     },
   ];
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">
+      {/* Шапка статистики: адаптивно перестраивается на смартфонах */}
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        mb={2.5}
+        gap={1.5}
+      >
+        <Typography variant="h5" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' }, fontWeight: 700 }}>
           Learning Statistics
         </Typography>
-        <Box display="flex" gap={1}>
+        <Box display="flex" gap={1} width={{ xs: '100%', sm: 'auto' }}>
           <Button
             variant="outlined"
             onClick={handleShowTodayCorrectWords}
             disabled={jsonLoading}
+            size="small"
+            sx={{
+              flex: { xs: 1, sm: 'initial' },
+              borderRadius: '10px',
+              py: 0.75,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              whiteSpace: 'nowrap',
+            }}
           >
             {jsonLoading ? (
-              <Box sx={{ minWidth: 130, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Skeleton variant="text" width={120} sx={{ fontSize: '0.875rem' }} />
+              <Box sx={{ minWidth: 100, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Skeleton variant="text" width={90} sx={{ fontSize: '0.8rem' }} />
               </Box>
             ) : (
-              'Today Correct Words'
+              'Today Correct'
             )}
           </Button>
           <Button
@@ -303,23 +326,40 @@ const handleCopyTodayWordsJson = async () => {
             color="error"
             onClick={() => setConfirmOpen(true)}
             disabled={loading || actionLoading || stats.totalAnswers === 0}
+            size="small"
+            sx={{
+              flex: { xs: 1, sm: 'initial' },
+              borderRadius: '10px',
+              py: 0.75,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              whiteSpace: 'nowrap',
+            }}
           >
             Clear Answers
           </Button>
         </Box>
       </Box>
       
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+      {/* Сетка карточек метрик: 2 колонки на смартфонах, 3 колонки на десктопе */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: { xs: 1.5, sm: 2.5 } }}>
         {statCards.map((card, index) => (
-          <Card key={index} sx={{ height: '100%' }}>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+          <Card key={index} sx={{ height: '100%', borderRadius: '12px' }}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2.5 }, '&:last-child': { pb: { xs: 1.5, sm: 2.5 } } }}>
+              <Box display="flex" alignItems="center" mb={{ xs: 1, sm: 1.5 }}>
                 {card.icon}
-                <Typography variant="h6" sx={{ ml: 1 }}>
+                <Typography variant="body2" sx={{ ml: 0.75, fontWeight: 600, fontSize: { xs: '0.78rem', sm: '0.95rem' } }}>
                   {card.title}
                 </Typography>
               </Box>
-              <Typography variant="h4" component="div" sx={{ color: card.color }}>
+              <Typography
+                variant="h4"
+                component="div"
+                sx={{
+                  color: card.color,
+                  fontWeight: 800,
+                  fontSize: { xs: '1.4rem', sm: '2rem' },
+                }}
+              >
                 {card.value}
               </Typography>
             </CardContent>
