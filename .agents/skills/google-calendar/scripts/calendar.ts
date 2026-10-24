@@ -302,36 +302,73 @@ export async function listGoogleTasks(category?: string) {
 /**
  * Пометить задачу выполненной (status: 'completed')
  */
-export async function completeGoogleTask(taskId: string, category?: string) {
+export async function completeGoogleTask(taskId: string, category?: string, listName = 'Tasks') {
   const tasks = await getTasksClient();
-  const normCategory = normalizeCategoryKey(category);
-  const tasklistId = await getOrCreateTaskList(normCategory);
+  // По умолчанию все задачи хранятся в общем списке 'Tasks'
+  const targetListName = listName || 'Tasks';
+  const tasklistId = await getOrCreateTaskList(targetListName);
 
-  const res = await tasks.tasks.patch({
-    tasklist: tasklistId,
-    task: taskId,
-    requestBody: {
-      status: 'completed',
-    },
-  });
-
-  return res.data;
+  try {
+    const res = await tasks.tasks.patch({
+      tasklist: tasklistId,
+      task: taskId,
+      requestBody: {
+        status: 'completed',
+      },
+    });
+    return res.data;
+  } catch (err: any) {
+    // Если в основном списке не найдено, ищем задачу по всем спискам пользователя
+    const listRes = await tasks.tasklists.list({ maxResults: 100 });
+    for (const l of listRes.data.items || []) {
+      if (!l.id || l.id === tasklistId) continue;
+      try {
+        const res = await tasks.tasks.patch({
+          tasklist: l.id,
+          task: taskId,
+          requestBody: {
+            status: 'completed',
+          },
+        });
+        return res.data;
+      } catch {
+        // Продолжаем поиск
+      }
+    }
+    throw err;
+  }
 }
 
 /**
  * Удалить задачу
  */
-export async function deleteGoogleTask(taskId: string, category?: string) {
+export async function deleteGoogleTask(taskId: string, category?: string, listName = 'Tasks') {
   const tasks = await getTasksClient();
-  const normCategory = normalizeCategoryKey(category);
-  const tasklistId = await getOrCreateTaskList(normCategory);
+  const targetListName = listName || 'Tasks';
+  const tasklistId = await getOrCreateTaskList(targetListName);
 
-  await tasks.tasks.delete({
-    tasklist: tasklistId,
-    task: taskId,
-  });
-
-  return { success: true, taskId };
+  try {
+    await tasks.tasks.delete({
+      tasklist: tasklistId,
+      task: taskId,
+    });
+    return { success: true, taskId };
+  } catch (err: any) {
+    const listRes = await tasks.tasklists.list({ maxResults: 100 });
+    for (const l of listRes.data.items || []) {
+      if (!l.id || l.id === tasklistId) continue;
+      try {
+        await tasks.tasks.delete({
+          tasklist: l.id,
+          task: taskId,
+        });
+        return { success: true, taskId };
+      } catch {
+        // Продолжаем поиск
+      }
+    }
+    throw err;
+  }
 }
 
 /**

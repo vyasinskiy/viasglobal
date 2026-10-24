@@ -33,16 +33,18 @@
 
 ---
 
-## Статус выполнения и ответ хестора (23.10.2026)
+## Статус выполнения и история взаимодействия с хестором
 
-- **Ответ от хестора (Jorge Dorado Rubio / Taxfix, 23.10.2026 12:51)**:
+- **23.10.2026 12:51 — Ответ от хестора (Jorge Dorado Rubio / Taxfix)**:
   > *«¡Hola VITALII! Buenos días, dame apoderamiento para poder realizarlo. Adjunto documento de como hacer el apoderamiento.»*
-- **Задача**: Оформить электронную доверенность (*apoderamiento electrónico*), чтобы хестор мог подать изменения в Seguridad Social (TGSS / RETA).
-- **План действий**:
-  1. Открыть личный кабинет или приложение Taxfix и ознакомиться с приложенным документом-инструкцией.
-  2. Перейти в Sede Electrónica (Seguridad Social / AEAT) и через цифровой сертификат (*Certificado Digital*) оформить *apoderamiento* для Jorge Dorado Rubio / Taxfix.
-  3. Подтвердить предоставление доверенности в чате Taxfix, чтобы хестор зарегистрировал код CNAE 4791 (торговля через интернет) с датой начала 21.09.2026.
-- **Задача в Google Tasks**: `[Legal]: Оформить apoderamiento для Taxfix (Jorge Dorado) для добавления CNAE 4791` (ID: `Q21nTDY4Y3BIRE5Fa0JTMg`, дедлайн: `2026-10-24`).
+- **24.10.2026 — Оформление доверенности (Выполнено)**:
+  - Электронная доверенность (*apoderamiento electrónico*) оформлена в Sede Electrónica Seguridad Social.
+  - Сообщение с подтверждением отправлено хестору в чат Taxfix.
+  - Предыдущая задача в Google Tasks `[Legal]: Оформить apoderamiento для Taxfix (Jorge Dorado)` (ID: `Q21nTDY4Y3BIRE5Fa0JTMg`) успешно выполнена и закрыта.
+- **28.10.2026 09:00 — Контроль внесения кодов (Среда)**:
+  - **Google Календарь**: `[Legal]: Taxfix — Проконтролировать добавление CNAE 4791 и адреса в Seguridad Social` (ID: `3j66lil4b571455gikfh2bvdko`, ссылка: [Google Calendar Event](https://www.google.com/calendar/event?eid=M2o2NmxpbDRiNTcxNDU1Z2lrZmgyYnZka28geWFzaW5za3k5M0Bt)).
+  - **Google Tasks**: `[Legal]: Taxfix — Проконтролировать внесение CNAE 4791 и адреса в Seguridad Social` (дедлайн: `2026-10-28`, ID: `T0ZDQW1tSV80OURId3lQVg`).
+  - **Цель**: Проверить в чате Taxfix квитанцию поданного изменения, скачать свежий *Informe de actividades declaradas* в Importass / TGSS и убедиться, что появилась активность CNAE 4791 (дата alta 21/09/2026) и актуализирован адрес деятельности.
 
 
 
