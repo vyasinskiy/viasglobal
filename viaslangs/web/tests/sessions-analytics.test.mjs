@@ -373,4 +373,40 @@ describe('2. Интеграционная логика сессий и анал�
     assert.strictEqual(formatDaysText(24), '24 дня');
     assert.strictEqual(formatDaysText(30), '30 дней');
   });
+
+  it('2.9. Логика долговременного сохранения языка и последнего тега в cookie браузера (срок 400 дней)', () => {
+    // Вспомогательные функции парсинга и форматирования cookies аналогично App.tsx
+    const parseCookie = (cookieHeader, name) => {
+      const match = cookieHeader.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+      return match ? decodeURIComponent(match[3]) : null;
+    };
+
+    const createCookieString = (name, value, days = 400) => {
+      const maxAge = days * 24 * 60 * 60;
+      return `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    };
+
+    // 1. Проверка срока жизни cookie (400 дней = 34560000 секунд)
+    const langCookie = createCookieString('vias_last_language_id', '1');
+    assert.ok(langCookie.includes('max-age=34560000'), 'Срок жизни cookie обязан составлять ровно 400 дней (34560000 сек)');
+    assert.ok(langCookie.includes('SameSite=Lax'), 'Флаг SameSite=Lax обязателен');
+    assert.ok(langCookie.includes('path=/'), 'Путь path=/ обязателен для действия на всем сайте');
+
+    // 2. Имитация cookie заголовка в браузере с несколькими куками
+    const mockCookieHeader = 'other_pref=dark; vias_last_language_id=1; vias_last_tag_id_1=42; vias_last_tag_id=42';
+
+    // 3. Чтение языка и тега
+    const restoredLangId = parseCookie(mockCookieHeader, 'vias_last_language_id');
+    const restoredTagIdForLang = parseCookie(mockCookieHeader, 'vias_last_tag_id_1');
+    const restoredGlobalTagId = parseCookie(mockCookieHeader, 'vias_last_tag_id');
+
+    assert.strictEqual(restoredLangId, '1', 'Язык обязан корректно считываться из cookie');
+    assert.strictEqual(restoredTagIdForLang, '42', 'Тег языка обязан корректно считываться из привязанного cookie');
+    assert.strictEqual(restoredGlobalTagId, '42', 'Глобальный тег обязан корректно считываться');
+
+    // 4. Очистка cookie при сбросе фильтра на "All words"
+    const deleteCookieString = (name) => `${name}=; path=/; max-age=0; SameSite=Lax`;
+    const cleared = deleteCookieString('vias_last_tag_id');
+    assert.ok(cleared.includes('max-age=0'), 'Сброс куки обязан выставлять max-age=0');
+  });
 });

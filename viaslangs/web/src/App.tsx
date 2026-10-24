@@ -63,7 +63,66 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const LANGUAGE_STORAGE_KEY = 'vias-langs-selected-language';
+// Имена cookie для долговременного сохранения выбранного языка и тега (срок: 400 дней)
+const LANGUAGE_COOKIE_KEY = 'vias_last_language_id';
+const TAG_COOKIE_KEY = 'vias_last_tag_id';
+
+/**
+ * Читает значение cookie по имени
+ */
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+  return match ? decodeURIComponent(match[3]) : null;
+}
+
+/**
+ * Записывает cookie со сроком жизни 400 дней (максимальный допустимый предел Chromium/WebKit)
+ */
+function setCookie(name: string, value: string, days: number = 400): void {
+  if (typeof document === 'undefined') return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+/**
+ * Удаляет cookie
+ */
+function deleteCookie(name: string): void {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+}
+
+/**
+ * Читает сохраненное значение с приоритетом cookie -> localStorage -> sessionStorage
+ */
+function getSavedValue(key: string): string | null {
+  const fromCookie = getCookie(key);
+  if (fromCookie) return fromCookie;
+  if (typeof localStorage !== 'undefined') {
+    const fromLocal = localStorage.getItem(key);
+    if (fromLocal) return fromLocal;
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    return sessionStorage.getItem(key);
+  }
+  return null;
+}
+
+/**
+ * Сохраняет значение в cookie и дублирует в локальное хранилище
+ */
+function saveValue(key: string, value: string | null): void {
+  if (value === null) {
+    deleteCookie(key);
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(key);
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(key);
+  } else {
+    setCookie(key, value);
+    if (typeof localStorage !== 'undefined') localStorage.setItem(key, value);
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(key, value);
+  }
+}
 
 function App() {
   const [tabValue, setTabValue] = useState(0);
@@ -75,8 +134,9 @@ function App() {
   const [selectedTagId, setSelectedTagId] = useState<number | undefined>(undefined);
   const [tagsLoading, setTagsLoading] = useState(false);
 
+  // 1. Восстановление языка и тега из cookie при первом монтировании приложения
   useEffect(() => {
-    const savedLanguageId = sessionStorage.getItem(LANGUAGE_STORAGE_KEY);
+    const savedLanguageId = getSavedValue(LANGUAGE_COOKIE_KEY);
 
     languagesApi.getAll()
       .then((langs) => {
@@ -84,16 +144,19 @@ function App() {
 
         const savedId = savedLanguageId ? Number(savedLanguageId) : undefined;
         const restored = langs.find((lang) => lang.id === savedId);
+        const activeLangId = restored ? restored.id : (langs.find((l) => l.code === 'es')?.id || langs[0]?.id);
 
-        if (restored) {
-          setSelectedLanguageId(restored.id);
-        } else {
-          // Если язык не был сохранен, выбираем испанский (где есть база слов) либо первый доступный
-          const fallback = langs.find((l) => l.code === 'es')?.id || langs[0]?.id;
-          setSelectedLanguageId(fallback);
-          if (fallback !== undefined) {
-            sessionStorage.setItem(LANGUAGE_STORAGE_KEY, String(fallback));
+        if (activeLangId !== undefined) {
+          // Сразу восстанавливаем сохраненный для языка тег из cookie
+          const savedTagStr =
+            getSavedValue(`vias_last_tag_id_${activeLangId}`) ||
+            getSavedValue(TAG_COOKIE_KEY);
+          if (savedTagStr) {
+            setSelectedTagId(Number(savedTagStr));
           }
+
+          setSelectedLanguageId(activeLangId);
+          saveValue(LANGUAGE_COOKIE_KEY, String(activeLangId));
         }
       })
       .catch(() => setLanguageError(true));
@@ -107,25 +170,64 @@ function App() {
     const newLanguageId = Number(event.target.value) || undefined;
     setSelectedLanguageId(newLanguageId);
     if (newLanguageId !== undefined) {
-      sessionStorage.setItem(LANGUAGE_STORAGE_KEY, String(newLanguageId));
+      saveValue(LANGUAGE_COOKIE_KEY, String(newLanguageId));
+      // Восстанавливаем ранее сохраненный тег для нового языка
+      const savedTagStr = getSavedValue(`vias_last_tag_id_${newLanguageId}`);
+      setSelectedTagId(savedTagStr ? Number(savedTagStr) : undefined);
+    } else {
+      setSelectedTagId(undefined);
     }
     setWordsUpdated(prev => prev + 1);
   };
 
   const handleTagChange = (event: SelectChangeEvent<string>) => {
-    const newTagId = event.target.value ? Number(event.target.value) : undefined;
+    const rawVal = event.target.value;
+    const newTagId = rawVal ? Number(rawVal) : undefined;
     setSelectedTagId(newTagId);
+
+    // Сохраняем последний выбранный тег в cookie (и глобально, и с привязкой к языку)
+    if (newTagId !== undefined && selectedLanguageId !== undefined) {
+      saveValue(TAG_COOKIE_KEY, String(newTagId));
+      saveValue(`vias_last_tag_id_${selectedLanguageId}`, String(newTagId));
+    } else {
+      saveValue(TAG_COOKIE_KEY, null);
+      if (selectedLanguageId !== undefined) {
+        saveValue(`vias_last_tag_id_${selectedLanguageId}`, null);
+      }
+    }
     setWordsUpdated(prev => prev + 1);
   };
 
+  // 2. Загрузка тегов и верификация последнего использованного тега
   useEffect(() => {
     if (selectedLanguageId === undefined) return;
     setTagsLoading(true);
-    setSelectedTagId(undefined);
     tagsApi
       .getAll(selectedLanguageId)
-      .then((loadedTags) => setTags(loadedTags || []))
-      .catch(() => setTags([]))
+      .then((loadedTags) => {
+        const tagList = loadedTags || [];
+        setTags(tagList);
+
+        // Ищем сохраненный в cookie тег для данного языка
+        const savedTagStr =
+          getSavedValue(`vias_last_tag_id_${selectedLanguageId}`) ||
+          getSavedValue(TAG_COOKIE_KEY);
+        const savedId = savedTagStr ? Number(savedTagStr) : undefined;
+
+        // Если сохраненный тег существует в списке доступных тегов - подтверждаем его
+        if (savedId !== undefined && tagList.some((t) => t.id === savedId)) {
+          setSelectedTagId(savedId);
+        } else {
+          // Если тег не найден в списке доступных (или отсутствовал), очищаем выбор
+          setSelectedTagId(undefined);
+          saveValue(TAG_COOKIE_KEY, null);
+          saveValue(`vias_last_tag_id_${selectedLanguageId}`, null);
+        }
+      })
+      .catch(() => {
+        setTags([]);
+        setSelectedTagId(undefined);
+      })
       .finally(() => setTagsLoading(false));
   }, [selectedLanguageId]);
 
