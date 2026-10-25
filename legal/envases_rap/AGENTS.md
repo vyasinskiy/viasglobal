@@ -27,7 +27,11 @@
   - `certificados/certificado_scrap_Procircular_Industrial_2026.pdf` (Категория Industrial — паллеты / оптовая тара)
 - **Реквизиты заявителя**: Vitalii Iasinskii, NIE Z1154366R, Ronda Albocacer 11, 12166 Els Ibarsos, Castellón.
 - **Реквизиты SCRAP**: PROCIRCULAR ENVASES, S.L. (NIF B-72918006, авторизация 13SCRA5000042205P, администратор RECLAY IBERIA, S.L., Calle Sevilla, 9, local 5, Pozuelo de Alarcón, Madrid - 28223).
-- **Следующий активный шаг**: Подача заявления в RPP (Sede MITERD, процедура SIA 1523222) с сертификатом FNMT и прикреплением сертификата членства для моментального присвоения государственного номера `ENV/2026/XXXXXXXXX`.
+- **Официальный государственный номер RPP (Sección Envases)**: **`ENV/2026/000121685`** (присвоен 25.10.2026 министерством MITERD, квитанция: `certificados/justificante_registro_RPP_2026-10-25.pdf`, регистрационная запись `REGAGE26e00091871330`, CSV: `MA5010KKVKDRAXN+Q6RY2WQA3S1792921061`).
+- **Следующий активный шаг**: 
+  1. Внести номер `ENV/2026/000121685` в личный кабинет Procircular (`Registration number RPP ID` -> `Edit`).
+  2. Внести номер `ENV/2026/000121685` в Amazon Seller Central (`Embalaje de España`).
+  3. Добавить номер в шаблон счетов-фактур (*facturas*).
 - **Обязательства и график отчетности (Key dates 2026)**:
   - **До 28 февраля**: Сдача годовой итоговой декларации (фактический вес кг) в ЛК Procircular (*Submission to SCRAP*).
   - **До 31 марта**: Сдача государственной декларации в госреестр RPP (*Upload to Producers Register MITECO*).

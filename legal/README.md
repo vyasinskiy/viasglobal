@@ -26,7 +26,7 @@
 - Оформление расширенной ответственности производителя (RAP) по упаковке в Испании (Real Decreto 1055/2022).
 - Договоры присоединения к Procircular по категориям Household, Commercial, Industrial ([`contrato_adhesion_Procircular_...pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/)).
 - Официальные сертификаты членства (*Membership Certificate*) по всем 3 категориям ([`certificado_scrap_Procircular_...pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/)).
-- Присвоенные номера `ENV/...`, годовые декларации по весу упаковки и шаблоны инвойсов.
+- Присвоенный государственный номер **`ENV/2026/000121685`**, официальная квитанция с цифровой подписью министерства MITERD ([`justificante_registro_RPP_2026-10-25.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/justificante_registro_RPP_2026-10-25.pdf)), годовые декларации по весу упаковки и шаблоны инвойсов.
 
 ### `autonomo/`
 - Официальные налоговые сертификаты и выписки предпринимателя (Agencia Tributaria / AEAT).

@@ -54,9 +54,15 @@ Directorio para самостоятельного оформления RAP-ном
     - **Household (Doméstico)**: [`certificado_scrap_Procircular_Household_2026.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/certificado_scrap_Procircular_Household_2026.pdf)
     - **Commercial**: [`certificado_scrap_Procircular_Commercial_2026.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/certificado_scrap_Procircular_Commercial_2026.pdf)
     - **Industrial**: [`certificado_scrap_Procircular_Industrial_2026.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/certificado_scrap_Procircular_Industrial_2026.pdf)
-- [ ] **Шаг 3 (Текущий шаг)**: Регистрация в RPP (Sede MITERD, процедура SIA 1523222) с сертификатом FNMT и прикреплением сертификата членства, мгновенное получение номера `ENV/2026/...` в файле `datosFormulario.pdf`.
-- [ ] **Шаг 4**: Внесение номера `ENV/...` в шаблоны счетов-фактур (*facturas*) и в Amazon Seller Central (*Embalaje de España*).
-- [ ] **Шаг 5**: Подача предварительной декларации в Procircular (в течение 30 дней с момента присоединения, ст. 9.1.b договора) и настройка учета кг (`registro_envases_kg_2026.xlsx`).
+- [x] **Шаг 3 (Выполнен 25.10.2026)**:
+  - Пройдена официальная регистрация в реестре производителей упаковки RPP (Sede MITERD, процедура SIA 1523222).
+  - Присвоен государственный постоянный номер утилизации: **`ENV/2026/000121685`**.
+  - Официальная квитанция с цифровой подписью министерства: [`justificante_registro_RPP_2026-10-25.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/justificante_registro_RPP_2026-10-25.pdf) (№ `REGAGE26e00091871330`, CSV: `MA5010KKVKDRAXN+Q6RY2WQA3S1792921061`).
+- [ ] **Шаг 4 (Текущий шаг)**:
+  - Внести номер **`ENV/2026/000121685`** в личный кабинет Procircular (раздел *DAILY MANAGEMENT / Membership* ➔ *Registration number (RPP ID)* ➔ *Edit*).
+  - Внести номер **`ENV/2026/000121685`** в Amazon Seller Central (*Embalaje de España*).
+  - Добавить номер в шаблоны счетов-фактур (*facturas*).
+- [ ] **Шаг 5**: Подача предварительной декларации в Procircular (в течение 30 дней с момента присоединения, до 22.11.2026) и настройка учета кг (`registro_envases_kg_2026.xlsx`).
 - [ ] **Ежегодно до 31.03**: Годовые декларации упаковки в Procircular (до 28.02) и в RPP (до 31.03).
 
 ## График отчетности и ключевые даты (Important! Key dates for 2026)
