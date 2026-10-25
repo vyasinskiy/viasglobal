@@ -40,3 +40,9 @@
   - Снапшоты цен: хранятся в `DistributorPriceSnapshot` с полями `priceNetto`, `ecoTasa`, `costPrice`, `unitsPerBox`, `minBoxOrder`.
   - Сопоставление с ASIN: 20 товаров привязаны к дистрибьютору и добавлены в `RequestProductQueue` с приоритетом `999999`.
   - Несопоставленные EAN: 8 новинок зафиксированы в `contractors/kuken/unmatched_eans.txt`.
+- **Юридическая верификация правообладателя KUKEN (OEPM & Registro Mercantil)**:
+  - Компания `ALFA DYSER, S.L.` является прямым владельцем и правообладателем бренда `KUKEN` (не сторонний дистрибьютор, а первоисточник).
+  - Реестр патентов и торговых марок Испании (OEPM): торговая марка `KÜKEN`, номер официального дела `M-3053663`, правообладатель `ALFA DYSER, S.L.` (CIF: B-60163441), классы 7, 8 (утюги), 11 (фены). Статус: `Concedida / En vigor`.
+  - Торговый реестр Барселоны (Registro Mercantil): Tomo 24772, Folio 181, Hoja B-67033.
+  - Публичное подтверждение: раздел Aviso Legal официального сайта бренда (`https://www.kuken.es/aviso-legal/`, п. 1 и п. 5).
+  - Инвойс от ALFA DYSER, S.L. на 20 единиц (по 10 шт утюгов и фенов) является прямым первичным инвойсом производителя для Brand Ungating на Amazon.

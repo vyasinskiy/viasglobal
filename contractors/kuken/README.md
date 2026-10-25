@@ -118,3 +118,19 @@
    ```bash
    cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx"
    ```
+
+---
+
+## Юридическая верификация правообладателя KUKEN (OEPM & Registro Mercantil)
+
+Для исключения рисков при разблокировке бренда (Brand Ungating) на Amazon подтверждена прямая юридическая связь между торговой маркой и юрлицом:
+- **Владелец марки и мастер-производитель:** `ALFA DYSER, S.L.` (CIF: B-60163441, Pol. Ind. Anoia, C/ Cooperativa nº 2, 08635 Sant Esteve Sesrovires, Barcelona).
+- **Государственный реестр патентов и торговых марок Испании (OEPM):**
+  - **Торговая марка:** `KÜKEN`
+  - **Expediente (номер дела):** `M-3053663`
+  - **Правообладатель (Titular):** `ALFA DYSER, S.L.`
+  - **Классы товаров (Niza):** 7 (кухонные приборы), 8 (утюги), 11 (фены и сушка волос).
+  - **Статус регистрации:** Concedida / En vigor (действующая регистрация).
+- **Торговый реестр Барселоны (Registro Mercantil):** Tomo 24772, Folio 181, Hoja B-67033.
+- **Официальный Aviso Legal бренда:** [https://www.kuken.es/aviso-legal/](https://www.kuken.es/aviso-legal/) (п. 1 «Datos identificativos» и п. 5 «Propiedad intelectual e industrial»).
+- **Вывод для Amazon:** Счета-фактуры от ALFA DYSER, S.L. на товары KUKEN являются прямыми счетами от производителя первого уровня (Tier 1 Direct Manufacturer Invoice) и гарантируют снятие ограничений без дополнительных писем авторизации.
