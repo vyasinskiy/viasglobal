@@ -288,10 +288,10 @@ describe('2. Интеграционная логика сессий и анал�
     const isDropping = todayActivities < averageDailyActivities * 0.4;
     assert.strictEqual(isDropping, true, 'Зафиксировано критическое падение активности (10 < 16)');
 
-    const expectedAlert = `H1, у тебя очень низкая активность сегодня: всего ${todayActivities} действий при среднем уровне ${averageDailyActivities}. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
+    const expectedAlert = `Виталий, у тебя очень низкая активность сегодня: всего ${todayActivities} действий при среднем уровне ${averageDailyActivities}. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
 
     assert.ok(
-      expectedAlert.includes('H1, у тебя очень низкая активность сегодня'),
+      expectedAlert.includes('Виталий, у тебя очень низкая активность сегодня'),
       'Алерт содержит обращение к пользователю'
     );
     assert.ok(
@@ -332,13 +332,14 @@ describe('2. Интеграционная логика сессий и анал�
     assert.strictEqual(isBelowMedian, true, 'Дневная активность хуже медианы (12 < 20)');
     assert.strictEqual(shouldRemind, true, 'Флаг отправки напоминания активирован');
 
-    const alertMessage = `H1, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${median} за последние 7 дней. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
+    const alertMessage = `Виталий, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${median} за последние 7 дней. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
 
     // Проверка текста напоминания и анти-AI стилистики (запрет длинных тире)
     assert.ok(!alertMessage.includes('—'), 'В тексте категорически запрещено длинное тире em-dash');
     assert.ok(!alertMessage.includes('–'), 'В тексте категорически запрещено среднее тире en-dash');
     assert.ok(alertMessage.includes('всего 12 действий при медианной норме 20'), 'Текст содержит точные числовые показатели');
     assert.ok(alertMessage.includes('Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!'), 'Текст содержит мотивирующий слоган');
+    assert.ok(alertMessage.startsWith('Виталий, '), 'Сообщение адресовано пользователю по имени Виталий');
   });
 
   it('2.7. Эталонный кейс OpenClaw («прибитый гвоздями»): активность на уровне нормы (22 >= 20) -> генерация похвалы praise, ответ NO_REPLY запрещен', () => {
@@ -352,16 +353,34 @@ describe('2. Интеграционная логика сессий и анал�
     const isBelowMedian = todayActivities < median;
     assert.strictEqual(isBelowMedian, false, 'Активность не ниже медианы');
 
-    const praiseMessage = `H1, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${median} за последние 7 дней. Регулярность - залог успеха!`;
+    const praiseMessage = `Виталий, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${median} за последние 7 дней. Регулярность - залог успеха!`;
 
     // Проверка текста похвалы и анти-AI стилистики
     assert.ok(!praiseMessage.includes('—'), 'В тексте похвалы категорически запрещено длинное тире em-dash');
     assert.ok(!praiseMessage.includes('–'), 'В тексте похвалы категорически запрещено среднее тире en-dash');
     assert.ok(praiseMessage.includes('уже 22 действий при медианной норме 20'), 'Текст похвалы содержит точные числовые показатели');
     assert.ok(praiseMessage.includes('Регулярность - залог успеха!'), 'Текст содержит ободряющий посыл');
+    assert.ok(praiseMessage.startsWith('Виталий, '), 'Похвала адресована пользователю по имени Виталий');
   });
 
-  it('2.8. Функция formatDaysText корректно склоняет слово «день» для различных значений параметра days', () => {
+  it('2.8. Пользовательский эталонный кейс («прибитый гвоздями»): 0 действий при медиане 0 за 7 дней -> имя Виталий вместо H1, shouldRemind: true', () => {
+    const previousDaysActivities = [0, 0, 0, 0, 0, 0, 0];
+    const median = calculateMedian(previousDaysActivities);
+    assert.strictEqual(median, 0, 'Медиана 7 нулевых дней равна 0');
+
+    const todayActivities = 0;
+    const isBelowMedian = todayActivities < median;
+    const shouldRemind = isBelowMedian || (median === 0 && todayActivities === 0);
+
+    assert.strictEqual(shouldRemind, true, 'Флаг напоминания true при нулевой активности');
+
+    const alertMessage = 'Виталий, за сегодня еще не было занятий по испанскому. Давай откроем приложение и прочитаем несколько примеров!';
+    assert.ok(!alertMessage.includes('H1'), 'Сообщение не содержит плейсхолдер H1');
+    assert.ok(alertMessage.startsWith('Виталий,'), 'Сообщение начинается с обращения по имени Виталий');
+    assert.ok(!alertMessage.includes('—'), 'Сообщение не содержит длинного тире');
+  });
+
+  it('2.9. Функция formatDaysText корректно склоняет слово «день» для различных значений параметра days', () => {
     assert.strictEqual(formatDaysText(1), '1 день');
     assert.strictEqual(formatDaysText(2), '2 дня');
     assert.strictEqual(formatDaysText(4), '4 дня');
@@ -374,7 +393,7 @@ describe('2. Интеграционная логика сессий и анал�
     assert.strictEqual(formatDaysText(30), '30 дней');
   });
 
-  it('2.9. Логика долговременного сохранения языка и последнего тега в cookie браузера (срок 400 дней)', () => {
+  it('2.10. Логика долговременного сохранения языка и последнего тега в cookie браузера (срок 400 дней)', () => {
     // Вспомогательные функции парсинга и форматирования cookies аналогично App.tsx
     const parseCookie = (cookieHeader, name) => {
       const match = cookieHeader.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));

@@ -437,16 +437,16 @@ export async function getSessionsHistory(
 
   if (isBelowMedian) {
     trend = "DROPPING";
-    alert = `H1, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
+    alert = `Виталий, у тебя сегодня низкая активность по испанскому: всего ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Давай позанимаемся испанским: это твое самое слабое место, иначе мы не разбогатеем!`;
   } else if (todayActivities === 0 && medianDailyActivities === 0) {
     trend = "INACTIVE";
-    alert = "H1, за сегодня еще не было занятий по испанскому. Давай откроем приложение и прочитаем несколько примеров!";
+    alert = "Виталий, за сегодня еще не было занятий по испанскому. Давай откроем приложение и прочитаем несколько примеров!";
   } else if (medianDailyActivities > 0 && todayActivities > medianDailyActivities * 1.3) {
     trend = "GROWING";
-    praise = `H1, великолепный прогресс по испанскому! Твоя дневная активность значительно превышает норму: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Отличный темп, так держать!`;
+    praise = `Виталий, великолепный прогресс по испанскому! Твоя дневная активность значительно превышает норму: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Отличный темп, так держать!`;
   } else if (todayActivities >= medianDailyActivities && medianDailyActivities > 0) {
     trend = "STABLE";
-    praise = `H1, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Регулярность - залог успеха!`;
+    praise = `Виталий, отличная работа! Твоя дневная активность сегодня на уровне нормы: уже ${todayActivities} действий при медианной норме ${medianDailyActivities} за последние ${periodText}. Регулярность - залог успеха!`;
   }
 
   return {

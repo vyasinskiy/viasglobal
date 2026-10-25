@@ -151,7 +151,7 @@
    - `GET /api/sessions/history?days=7`: мульти-дневная история, средняя и **медианная активность** за предыдущие 7 дней (`medianDailyActivities`), флаги `isBelowMedian` и `shouldRemind`, расчет тренда (`DROPPING`, `STABLE`, `GROWING`, `INACTIVE`) и текст предупреждения для Telegram при падении темпов.
 5. **Авторизация API**: AI-агенты вызывают эндпоинты с заголовком `x-app-password: viasglobal` или `Authorization: Bearer viasglobal`.
 6. **Регламентная проверка прогресса в OpenClaw (`openclaw/config/cron/jobs.json`)**:
-   - Расписание cron: `0 9,15,21 * * *` (раз в 6 часов с 9:00 до 23:00 по `Europe/Madrid`).
+   - Расписание cron: `0 11,17,23 * * *` (раз в 6 часов с 11:00 до 23:00 по `Europe/Madrid`).
    - Если дневная активность ниже медианной нормы за 7 дней (`todayActivities < medianDailyActivities`): Панклоу присылает напоминание с призывом позаниматься.
    - Если активность на уровне или выше нормы (`todayActivities >= medianDailyActivities`): бот обязательно хвалит пользователя за отличную работу и дисциплину. Ответ `NO_REPLY` не используется.
 
