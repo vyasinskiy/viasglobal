@@ -30,7 +30,9 @@
 - **Официальный государственный номер RPP (Sección Envases)**: **`ENV/2026/000121685`** (присвоен 25.10.2026 министерством MITERD, квитанция: `certificados/justificante_registro_RPP_2026-10-25.pdf`, регистрационная запись `REGAGE26e00091871330`, CSV: `MA5010KKVKDRAXN+Q6RY2WQA3S1792921061`).
 - **Текущий статус шагов**: 
   - Номер `ENV/2026/000121685` внесен в Procircular 25.10.2026: статус *«RPP validation is in progress»* (автоматическая сверка до 24 рабочих часов).
-  - Следующий шаг: внести номер в Amazon Seller Central (*Embalaje de España*) и в шаблоны счетов.
+  - Номер `ENV/2026/000121685` внесен в Amazon Seller Central 25.10.2026 (*Embalaje de España*): статус *«Verificaremos tu número de registro de EPR cuando se actualice el Registro Nacional. No es necesario que hagas nada»*.
+  - Шаблон обязательной строчки для фактур зафиксирован в `legal/envases_rap/facturas/README.md`.
+  - Следующий шаг: подача предварительной декларации за 2026 г. в Procircular (до 22.11.2026).
 - **Обязательства и график отчетности (Key dates 2026)**:
   - **До 28 февраля**: Сдача годовой итоговой декларации (фактический вес кг) в ЛК Procircular (*Submission to SCRAP*).
   - **До 31 марта**: Сдача государственной декларации в госреестр RPP (*Upload to Producers Register MITECO*).
