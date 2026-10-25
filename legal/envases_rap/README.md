@@ -59,9 +59,9 @@ Directorio para самостоятельного оформления RAP-ном
   - Присвоен государственный постоянный номер утилизации: **`ENV/2026/000121685`**.
   - Официальная квитанция с цифровой подписью министерства: [`justificante_registro_RPP_2026-10-25.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/justificante_registro_RPP_2026-10-25.pdf) (№ `REGAGE26e00091871330`, CSV: `MA5010KKVKDRAXN+Q6RY2WQA3S1792921061`).
 - [x] **Шаг 4 (Выполнен 25.10.2026)**:
-  - [x] Внести номер **`ENV/2026/000121685`** в личный кабинет Procircular (Выполнено 25.10.2026: статус *«RPP validation is in progress. This can take up to 24 hours on working days»*).
-  - [x] Внести номер **`ENV/2026/000121685`** в Amazon Seller Central (Раздел *Cumplimiento normativo / Embalaje de España*, отправлено 25.10.2026: статус *«Verificaremos tu número de registro de EPR cuando se actualice el Registro Nacional. No es necesario que hagas nada»*).
-  - [x] Подготовлен шаблон обязательной строки с номером RPP для счетов-фактур (*facturas*): `N.º de Registro de Productores de Producto (Sección Envases): ENV/2026/000121685`.
+  - [x] Внести номер **`ENV/2026/000121685`** в личный кабинет Procircular (Выполнено 25.10.2026: статус *«RPP validation is in progress. This can take up to 24 hours on working days»*). Контрольная задача на **27.10.2026**: Google Tasks `QWdHalRSZjlCUEk1c0lXNQ`, Calendar `r4bqin5o1gfi3b841rnkpnmulg`.
+  - [x] Внести номер **`ENV/2026/000121685`** в Amazon Seller Central (Раздел *Cumplimiento normativo / Embalaje de España*, отправлено 25.10.2026: статус *«Verificaremos tu número de registro de EPR cuando se actualice el Registro Nacional. No es necesario que hagas nada»*). Контрольная задача на **28.10.2026**: Google Tasks `REV3QlMtREpmSkJGd0xZTA`, Calendar `96hcag6umv9jtkcka9an9q8l8k`.
+  - [x] Подготовлен шаблон обязательной строки с номером RPP для счетов-фактур (*facturas*): `N.º de Registro de Productores de Producto (Sección Envases): ENV/2026/000121685` ([facturas/README.md](file:///Users/usuario/code/viasglobal/legal/envases_rap/facturas/README.md)).
 - [ ] **Шаг 5**: Подача предварительной декларации в Procircular (в течение 30 дней с момента присоединения, до 22.11.2026) и настройка учета кг (`registro_envases_kg_2026.xlsx`).
 - [ ] **Ежегодно до 31.03**: Годовые декларации упаковки в Procircular (до 28.02) и в RPP (до 31.03).
 
