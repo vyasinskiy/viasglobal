@@ -14,11 +14,20 @@
   - **IAE 763**: *Programadores y Analistas de Informática* (дата регистрации 01/07/2026, код активности A05) ➔ NACE 62.01 / 62.02.
   - Первоисточник сертификата: `contractors/safta/attachments/CERTIFICADO DE SITUACION CENSAL (1).pdf` (CSV: `B2LR8ME9RKYAX683`).
 
-## Текущий статус регистрации RAP (на 23.10.2026):
+## Текущий статус регистрации RAP (на 25.10.2026):
 - **SCRAP**: Procircular (`join.procircular.es`).
-- **Договор присоединения**: Подписан / принят 23.10.2026 (`certificados/contrato_adhesion_Procircular_2026-10-23.pdf`).
-- **Реквизиты организации**: PROCIRCULAR ENVASES, S.L. (NIF B-72918006, авторизация 13SCRA5000042205P, администратор RECLAY IBERIA, S.L., Calle Sevilla, 9, local 5, Pozuelo de Alarcón, Madrid - 28223).
-- **Следующий шаг**: Ожидание получения официального сертификата членства (*Certificado de pertenencia*) от Procircular для последующей подачи заявки в RPP (Sede MITERD, процедура SIA 1523222).
+- **Договоры присоединения**: Подписаны и приняты 23.10.2026 по трем категориям:
+  - `certificados/contrato_adhesion_Procircular_Household_2026-10-23.pdf`
+  - `certificados/contrato_adhesion_Procircular_Commercial_2026-10-23.pdf`
+  - `certificados/contrato_adhesion_Procircular_Industrial_2026-10-23.pdf`
+  - `certificados/contrato_adhesion_Procircular_2026-10-23.pdf` (общие условия T&C).
+- **Сертификаты членства (*Certificado de pertenencia*)**: Получены 25.10.2026 (датированы 23.10.2026):
+  - `certificados/certificado_scrap_Procircular_Household_2026.pdf` (Категория Household / Doméstico — B2C продажи Amazon)
+  - `certificados/certificado_scrap_Procircular_Commercial_2026.pdf` (Категория Commercial — опт / дистрибуция)
+  - `certificados/certificado_scrap_Procircular_Industrial_2026.pdf` (Категория Industrial — паллеты / оптовая тара)
+- **Реквизиты заявителя**: Vitalii Iasinskii, NIE Z1154366R, Ronda Albocacer 11, 12166 Els Ibarsos, Castellón.
+- **Реквизиты SCRAP**: PROCIRCULAR ENVASES, S.L. (NIF B-72918006, авторизация 13SCRA5000042205P, администратор RECLAY IBERIA, S.L., Calle Sevilla, 9, local 5, Pozuelo de Alarcón, Madrid - 28223).
+- **Следующий активный шаг**: Подача заявления в RPP (Sede MITERD, процедура SIA 1523222) с сертификатом FNMT и прикреплением сертификата членства для моментального присвоения государственного номера `ENV/2026/XXXXXXXXX`.
 - **Обязательства по договору Procircular**:
   - Подача предварительной декларации объемов упаковки в течение 30 дней с момента вступления (ст. 9.1.b).
   - Ежегодная итоговая декларация в Procircular — до 28 февраля (ст. 9.1.a).

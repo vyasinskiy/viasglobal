@@ -40,13 +40,21 @@ Directorio para самостоятельного оформления RAP-ном
 
 ## Статус
 
-- [x] **Шаг 1 (В процессе / Договор подписан 23.10.2026)**:
+- [x] **Шаг 1 (Выполнен 23.10.2026)**:
   - Выбран SCRAP **Procircular** (мультиматериальный: doméstico + comercial + industrial).
   - Оформлена заявка на `join.procircular.es` (деятельности: *Retail Distributor*, *Importer*; NACE: `47.91`).
-  - Согласован и принят договор присоединения (Terms and Conditions): [`contrato_adhesion_Procircular_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_2026-10-23.pdf).
+  - Подписаны и приняты договоры присоединения (Terms and Conditions):
+    - Бытовой / B2C: [`contrato_adhesion_Procircular_Household_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_Household_2026-10-23.pdf)
+    - Коммерческий / опт: [`contrato_adhesion_Procircular_Commercial_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_Commercial_2026-10-23.pdf)
+    - Промышленный: [`contrato_adhesion_Procircular_Industrial_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_Industrial_2026-10-23.pdf)
+    - Общие условия: [`contrato_adhesion_Procircular_2026-10-23.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/contrato_adhesion_Procircular_2026-10-23.pdf)
   - Реквизиты SCRAP: **PROCIRCULAR ENVASES, S.L.** (NIF B-72918006, авторизация 13SCRA5000042205P, администратор RECLAY IBERIA, S.L.).
-- [ ] **Шаг 2**: Ожидание и получение от Procircular сертификата членства (*Certificado de pertenencia / Certificado de adhesión*).
-- [ ] **Шаг 3**: Регистрация в RPP (Sede MITERD) с сертификатом FNMT, получение номера `ENV/...`.
+- [x] **Шаг 2 (Выполнен 25.10.2026)**:
+  - Получены официальные сертификаты членства (*Membership Certificate / Certificado de pertenencia*) от Procircular по всем 3 категориям:
+    - **Household (Doméstico)**: [`certificado_scrap_Procircular_Household_2026.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/certificado_scrap_Procircular_Household_2026.pdf)
+    - **Commercial**: [`certificado_scrap_Procircular_Commercial_2026.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/certificado_scrap_Procircular_Commercial_2026.pdf)
+    - **Industrial**: [`certificado_scrap_Procircular_Industrial_2026.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/certificado_scrap_Procircular_Industrial_2026.pdf)
+- [ ] **Шаг 3 (Текущий шаг)**: Регистрация в RPP (Sede MITERD, процедура SIA 1523222) с сертификатом FNMT и прикреплением сертификата членства, мгновенное получение номера `ENV/2026/...` в файле `datosFormulario.pdf`.
 - [ ] **Шаг 4**: Внесение номера `ENV/...` в шаблоны счетов-фактур (*facturas*) и в Amazon Seller Central (*Embalaje de España*).
 - [ ] **Шаг 5**: Подача предварительной декларации в Procircular (в течение 30 дней с момента присоединения, ст. 9.1.b договора) и настройка учета кг (`registro_envases_kg_2026.xlsx`).
 - [ ] **Ежегодно до 31.03**: Годовые декларации упаковки в Procircular (до 28.02) и в RPP (до 31.03).
