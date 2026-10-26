@@ -1,50 +1,92 @@
-# Добавление кода торговой деятельности в Seguridad Social
+# Добавление кода торговой деятельности в Seguridad Social (CNAE 4791)
 
-**Дата работы:** 23 октября 2026 г.
-
-## Содержимое папки
-
-1. `Informe actividades declaradas.pdf` — копия отчёта TGSS (Tesorería General de la Seguridad Social) от 23/10/2026, Id. CEA `2AE6KT5AECMW`. Оригинал: `legal/autonomo/`.
-2. `certificado_situacion_censal_2026-09-23.pdf` — копия certificado de situación censal AEAT от 23/09/2026, Nº ref. `20269409296`. Оригинал: `legal/autonomo/`.
-3. `carta_para_gestor.md` - письмо в онлайн-хесторию Taxfix ([taxfix.es](https://taxfix.es/)) на испанском языке с просьбой добавить CNAE торговли.
-
-## Выводы (на русском)
-
-**Проблема подтверждена.** В Seguridad Social сейчас только IT-коды (все с датой начала 15/01/2024):
-
-- CNAE 6290 — Otros servicios relacionados con las tecnologías de la información,
-- CNAE 6210 — Actividades de programación informática,
-- CNAE 6220 — Actividades de consultoría informática (указана дважды — вероятно, дубль в базе TGSS).
-
-Торговой деятельности в отчёте **нет**.
-
-**В Hacienda при этом уже две активности:**
-
-- Profesional 763 (Programadores y Analistas) — alta 01/07/2026,
-- Empresarial 665 (Comercio Menor Por Correo o Catálogo) — alta 21/09/2026, NACE 47.91 — это e-commerce / маркетплейсы.
-
-**Что нужно сделать:**
-
-1. Добавить в RETA новую активность CNAE **4791 / 47.91** (Comercio al por menor por correspondencia o por Internet) с датой начала **21/09/2026**, чтобы совпадало с Hacienda. Старые IT-коды не удалять.
-2. Заодно обновить domicilio de actividad: в TGSS числится `C/ Sant Antonio 22, Lucena del Cid`, а в Hacienda уже `Ronda Albocacer 11, Sierra Engarcerán`.
-3. Технически это variación de datos через Importass / Sede Electrónica (модель TA.0521). На размер cuota RETA не влияет, но влияет на корректный тариф AT/EP и когерентность AEAT ↔ TGSS (важно при проверках, bajas, ayudas, а также для Amazon / RAP / SCRAP / поставщиков, которые просят оба сертификата).
-
-Письмо для консультантов Taxfix (`carta_para_gestor.md`) уже содержит просьбу подтвердить необходимость TA.0521 и последствия для cotización / AT/EP.
+**Дата начала кейса:** 23 октября 2026 г.  
+**Текущий статус:** Основная часть выполнена (CNAE 4791 зарегистрирован 26.10.2026), на контроле финальная выписка в среду 28.10.2026.
 
 ---
 
-## Статус выполнения и история взаимодействия с хестором
+## 1. Суть проблемы и исходная ситуация (на 23.10.2026)
 
-- **23.10.2026 12:51 — Ответ от хестора (Jorge Dorado Rubio / Taxfix)**:
-  > *«¡Hola VITALII! Buenos días, dame apoderamiento para poder realizarlo. Adjunto documento de como hacer el apoderamiento.»*
-- **24.10.2026 — Оформление доверенности (Выполнено)**:
-  - Электронная доверенность (*apoderamiento electrónico*) оформлена в Sede Electrónica Seguridad Social.
-  - Сообщение с подтверждением отправлено хестору в чат Taxfix.
-  - Предыдущая задача в Google Tasks `[Legal]: Оформить apoderamiento для Taxfix (Jorge Dorado)` (ID: `Q21nTDY4Y3BIRE5Fa0JTMg`) успешно выполнена и закрыта.
-- **28.10.2026 09:00 — Контроль внесения кодов (Среда)**:
-  - **Google Календарь**: `[Legal]: Taxfix — Проконтролировать добавление CNAE 4791 и адреса в Seguridad Social` (ID: `3j66lil4b571455gikfh2bvdko`, ссылка: [Google Calendar Event](https://www.google.com/calendar/event?eid=M2o2NmxpbDRiNTcxNDU1Z2lrZmgyYnZka28geWFzaW5za3k5M0Bt)).
-  - **Google Tasks**: `[Legal]: Taxfix — Проконтролировать внесение CNAE 4791 и адреса в Seguridad Social` (дедлайн: `2026-10-28`, ID: `T0ZDQW1tSV80OURId3lQVg`).
-  - **Цель**: Проверить в чате Taxfix квитанцию поданного изменения, скачать свежий *Informe de actividades declaradas* в Importass / TGSS и убедиться, что появилась активность CNAE 4791 (дата alta 21/09/2026) и актуализирован адрес деятельности.
+При анализе официальных выписок предпринимателя было выявлено критическое расхождение между налоговой службой (AEAT) и фондом социального страхования (TGSS):
+
+1. **В налоговой службе (Hacienda / AEAT)**:
+   - С 21/09/2026 открыта торговая деятельность по эпиграфу **IAE 665** (*Comercio Menor Por Correo o Catálogo* - код активности A03, международный NACE 47.91) со спецрежимом *recargo de equivalencia*.
+   - Актуальный налоговый адрес: `Ronda Albocacer 11, 12166 Sierra Engarcerán (Castellón)`.
+2. **В социальном страховании (TGSS / RETA)**:
+   - В отчете `Informe actividades declaradas.pdf` от 23/10/2026 числились только IT-коды (6290, 6210, 6220 с 15/01/2024). Торговой деятельности не было.
+   - Адрес деятельности в базе TGSS устарел: числился старый адрес `C/ Sant Antonio 22, Lucena del Cid`.
+
+**Риски расхождения:** Несоответствие баз AEAT и TGSS блокирует авторизацию у европейских дистрибьюторов, создает проблемы при проверках Amazon/RAP/SCRAP и искажает расчет тарифов страхования от несчастных случаев (AT/EP).
+
+---
+
+## 2. Документы кейса
+
+1. `certificado_situacion_censal_2026-09-23.pdf` - официальный сертификат налогового статуса AEAT от 23/09/2026 (№ ref. `20269409296`, CSV: `B2LR8ME9RKYAX683`). Подтверждает открытие IAE 665 с 21/09/2026.
+2. `Informe actividades declaradas.pdf` - исходная выписка TGSS от 23/10/2026 12:12:46 (Id. CEA `2AE6KT5AECMW`). Зафиксировала отсутствие торгового кода в Seguridad Social.
+3. `carta_para_gestor.md` - официальное письмо-запрос в онлайн-хесторию Taxfix ([taxfix.es](https://taxfix.es/)) на испанском языке с требованием добавить CNAE 4791 ретроспективно с 21/09/2026 и актуализировать адрес.
+4. `justificante_nueva_actividad_2026-10-26.pdf` - официальная электронная квитанция TGSS от 26/10/2026 09:31:58 (Id. CEA `28DFII5B0DMY`, Código CEA `C7WLV-ONHXU-IV5FF-PDXI3-YN2HR-4GD3I`). Подтверждает успешную регистрацию новой деятельности CNAE 4791 / IAE 665.1.
+
+---
+
+## 3. Хроника событий и лог действий (Audit Log)
+
+- **23.10.2026 12:12 - Выявление расхождения**:
+  - В личном кабинете TGSS получен отчет `Informe actividades declaradas.pdf`. Подтверждено отсутствие торговых кодов.
+- **23.10.2026 12:30 - Подготовка обращения к хестору**:
+  - Составлено подробное письмо на испанском языке (`carta_para_gestor.md`) для хестора Jorge Dorado Rubio (Taxfix) с описанием расхождений, номерами справок и требованием внести CNAE 4791 с датой 21/09/2026.
+- **23.10.2026 12:51 - Ответ от хестора (Jorge Dorado Rubio / Taxfix)**:
+  - Хестор запросил оформить электронную доверенность:
+    > *«¡Hola VITALII! Buenos días, dame apoderamiento para poder realizarlo. Adjunto documento de como hacer el apoderamiento.»*
+- **24.10.2026 - Оформление электронной доверенности (Выполнено)**:
+  - В Sede Electrónica Seguridad Social оформлена доверенность (*apoderamiento electrónico*) на имя Jorge Dorado Rubio (NIF 70356526D).
+  - Хестору в чат отправлено подтверждение готовности доверенности.
+  - Закрыта задача в Google Tasks: `[Legal]: Оформить apoderamiento для Taxfix (Jorge Dorado)` (ID: `Q21nTDY4Y3BIRE5Fa0JTMg`).
+  - Создана контрольная задача на среду 28.10.2026 с расчетом на 2-3 рабочих дня ожидания подачи хестором.
+- **26.10.2026 09:31 - Подача изменений хестором в TGSS (Выполнено)**:
+  - Хестор Jorge Dorado Rubio внес в RETA новую деятельность от имени Vitalii Iasinskii:
+    - Дата начала: `21/09/2026` (совпадает день в день с Hacienda).
+    - Статус: `Trabajador por mi cuenta`.
+    - Код CNAE: `4791` (*Actividades de servicios de intermediación para el comercio al por menor no especializado*).
+    - Код IAE: `6651`.
+    - Референция документа: Id. CEA `28DFII5B0DMY`, Código CEA `C7WLV-ONHXU-IV5FF-PDXI3-YN2HR-4GD3I`.
+    - Файл квитанции: [justificante_nueva_actividad_2026-10-26.pdf](file:///Users/usuario/code/viasglobal/legal/autonomo/cnae-comercio-2026-10-23/justificante_nueva_actividad_2026-10-26.pdf).
+- **26.10.2026 10:28 - Проверка квитанции и оптимизация напоминаний**:
+  - ИИ проверил квитанцию и подтвердил корректность параметров (CNAE 4791, IAE 665.1, дата 21/09/2026).
+  - Дублирующее событие в Google Календаре (ID: `3j66lil4b571455gikfh2bvdko`) удалено по правилу разграничения задач и встреч.
+  - Контроль полностью перенесен в Google Tasks (ID: `T0ZDQW1tSV80OURId3lQVg`).
+- **26.10.2026 10:58 - Актуализация описания задачи в Google Tasks**:
+  - В задачу `[Legal]: Taxfix — Проконтролировать внесение CNAE 4791 и адреса в Seguridad Social` внесено обновленное описание с пошаговым чек-листом действий для проверки в среду.
+
+---
+
+## 4. Текущий статус
+
+- **CNAE 4791 / IAE 665.1**: Зарегистрирован в базе TGSS с даты 21/09/2026. Юридический факт подтвержден официальной квитанцией с кодом CEA.
+- **Адрес деятельности**: В форме новой активности поле адреса не выводится отдельно. Требуется финальная сверка по сводному отчету.
+- **Синхронизация баз**: Для полной консолидации данных во всех внутренних регистрах Seguridad Social требуется 24-48 часов (ночной цикл репликации).
+
+---
+
+## 5. Предстоящие действия (Roadmap)
+
+### Активная задача в Google Tasks:
+- **Задача**: `[Legal]: Taxfix — Проконтролировать внесение CNAE 4791 и адреса в Seguridad Social`
+- **Дедлайн**: `2026-10-28` (Среда)
+- **ID**: `T0ZDQW1tSV80OURId3lQVg`
+- **Прямая ссылка**: [Открыть в Google Tasks](https://tasks.google.com/task/OFCAmmI_49DHwyPV?sa=6)
+
+### Пошаговый чек-лист выполнения:
+- [ ] **28.10.2026 (Среда)**: Зайти в личный кабинет **Importass** (Sede Electrónica Seguridad Social) с помощью Cl@ve или цифрового сертификата.
+- [ ] Скачать свежий отчет в формате PDF: **«Informe de actividades declaradas»**.
+- [ ] Проверить в скачанном отчете:
+  1. Отображение активности CNAE 4791 с датой alta 21/09/2026.
+  2. Отображение актуального адреса деятельности: `Ronda Albocacer 11, Sierra Engarcerán`.
+- [ ] Сохранить полученный файл в директорию `legal/autonomo/` под именем `Informe actividades declaradas_2026-10-28.pdf`.
+- [ ] Отметить задачу в Google Tasks как выполненную (нажатием чекбокса в Google Tasks или через CLI `task:complete --id "T0ZDQW1tSV80OURId3lQVg"`).
+
+
+
 
 
 

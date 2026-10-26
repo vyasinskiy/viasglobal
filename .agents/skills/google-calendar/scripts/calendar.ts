@@ -366,6 +366,61 @@ export async function completeGoogleTask(taskId: string, category?: string, list
 }
 
 /**
+ * Обновление полей задачи в Google Tasks (заголовок, описание, дедлайн)
+ */
+export async function updateGoogleTask(
+  taskId: string,
+  params: { title?: string; notes?: string; due?: string },
+  category?: string,
+  listName = 'Tasks'
+) {
+  // Получаем авторизованный клиент Google Tasks
+  const tasks = await getTasksClient();
+  const targetListName = listName || 'Tasks';
+  const tasklistId = await getOrCreateTaskList(targetListName);
+
+  // Формируем тело запроса для частичного обновления (patch)
+  const requestBody: tasks_v1.Schema$Task = {};
+  if (params.title !== undefined) {
+    requestBody.title = params.title;
+  }
+  if (params.notes !== undefined) {
+    requestBody.notes = params.notes;
+  }
+  if (params.due !== undefined) {
+    // Приводим дату к ISO-формату RFC 3339
+    requestBody.due = params.due.includes('T') ? params.due : `${params.due}T00:00:00.000Z`;
+  }
+
+  try {
+    // Пробуем обновить задачу в основном списке
+    const res = await tasks.tasks.patch({
+      tasklist: tasklistId,
+      task: taskId,
+      requestBody,
+    });
+    return res.data;
+  } catch (err: any) {
+    // Если в основном списке не найдено, ищем задачу по всем спискам пользователя
+    const listRes = await tasks.tasklists.list({ maxResults: 100 });
+    for (const l of listRes.data.items || []) {
+      if (!l.id || l.id === tasklistId) continue;
+      try {
+        const res = await tasks.tasks.patch({
+          tasklist: l.id,
+          task: taskId,
+          requestBody,
+        });
+        return res.data;
+      } catch {
+        // Продолжаем поиск в следующем списке
+      }
+    }
+    throw err;
+  }
+}
+
+/**
  * Удалить задачу
  */
 export async function deleteGoogleTask(taskId: string, category?: string, listName = 'Tasks') {
@@ -396,6 +451,7 @@ export async function deleteGoogleTask(taskId: string, category?: string, listNa
     throw err;
   }
 }
+
 
 /**
  * Форматирование заголовка события в соответствии со стандартом категорий
@@ -619,10 +675,19 @@ async function main() {
                          --id <task_id>
                          --category "Legal" или "E-commerce"
 
+  task:update          Обновить поля задачи (название, описание, дедлайн)
+                       Опции:
+                         --id <task_id>
+                         --title "Новое название"
+                         --notes "Новое описание"
+                         --due "2026-10-28"
+                         --category "Legal" или "E-commerce"
+
   task:delete          Удалить задачу
                        Опции:
                          --id <task_id>
                          --category "Legal" или "E-commerce"
+
 `);
     return;
   }
@@ -772,7 +837,28 @@ async function main() {
       }
       await completeGoogleTask(id, category);
       console.log(`\n✅ Задача ${id} отмечена как выполненная (вычеркнута)!\n`);
+    } else if (command === 'task:update') {
+      const getArg = (flag: string): string | undefined => {
+        const idx = args.indexOf(flag);
+        return idx !== -1 ? args[idx + 1] : undefined;
+      };
+      const id = getArg('--id');
+      const title = getArg('--title');
+      const notes = getArg('--notes');
+      const due = getArg('--due');
+      const category = getArg('--category') || 'Legal';
+      if (!id) {
+        console.error('Ошибка: Необходимо указать --id <task_id>');
+        process.exit(1);
+      }
+      // Выполняем обновление задачи
+      const updated = await updateGoogleTask(id, { title, notes, due }, category);
+      console.log(`\n✏️ Задача ${id} успешно обновлена.`);
+      if (updated.title) console.log(`• Заголовок: ${updated.title}`);
+      if (updated.notes) console.log(`• Описание: ${updated.notes}`);
+      if (updated.due) console.log(`• Дедлайн: ${updated.due.split('T')[0]}\n`);
     } else if (command === 'task:delete') {
+
       const getArg = (flag: string): string | undefined => {
         const idx = args.indexOf(flag);
         return idx !== -1 ? args[idx + 1] : undefined;

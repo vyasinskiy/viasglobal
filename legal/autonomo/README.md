@@ -16,8 +16,7 @@
 - **Задекларированные CNAE** (все с датой начала 15/01/2024, только IT, торговли нет):
   - `6290` Otros servicios relacionados con las tecnologías de la información y la informática
   - `6210` Actividades de programación informática
-  - `6220` Actividades de consultoría informática y gestión de instalaciones informáticas (указана дважды)
-- **Статус по e-commerce**: код торговли `4791` (соответствует IAE 665) в отчёте **отсутствует** — требуется добавить с датой начала 21/09/2026 для соответствия certificado censal AEAT.
+- **Статус по e-commerce**: код торговли `4791` (IAE 665.1) добавлен хестором 26/10/2026 с датой начала 21/09/2026 (квитанция `cnae-comercio-2026-10-23/justificante_nueva_actividad_2026-10-26.pdf`, Id. CEA `28DFII5B0DMY`).
 
 ---
 
@@ -68,4 +67,17 @@
   - Администрирование взаимодействия с органом социального страхования (TGSS / Seguridad Social, система RETA).
   - Подача заявлений на изменение регистрационных данных (Modelo 036/037 в AEAT, вариация данных TA.0521 в TGSS, добавление новых кодов IAE и CNAE).
   - Консультации по применению спецрежима эквивалентной надбавки (*recargo de equivalencia*) и внутриевропейского реестра операторов *ROI / VIES*.
+
+---
+
+## Текущие юридические кейсы и история изменений (Audit Log)
+
+### 1. Добавление торгового кода CNAE 4791 в TGSS (Октябрь 2026)
+- **Папка кейса**: [cnae-comercio-2026-10-23/README.md](file:///Users/usuario/code/viasglobal/legal/autonomo/cnae-comercio-2026-10-23/README.md)
+- **Проблема**: В выписке TGSS от 23.10.2026 отсутствовал код торговли CNAE 4791 (числились только IT-коды 6290, 6210, 6220), а адрес был устаревшим (Lucena del Cid).
+- **Выполнено**: Хестор Jorge Dorado Rubio оформил изменение 26.10.2026 в 09:31, получен официальный квиток TGSS (Id. CEA: `28DFII5B0DMY`, дата начала 21/09/2026).
+- **Предстоящее действие**: 28.10.2026 выгрузить сводный отчет *Informe de actividades declaradas* в Importass для контроля адреса и финального закрытия задачи в Google Tasks.
+- **Активная задача в Google Tasks**: [Открыть задачу Taxfix в Google Tasks](https://tasks.google.com/task/OFCAmmI_49DHwyPV?sa=6) (Дедлайн: `2026-10-28`, ID: `T0ZDQW1tSV80OURId3lQVg`).
+
+
 
