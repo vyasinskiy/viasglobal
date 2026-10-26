@@ -107,4 +107,17 @@ redeploy-ecommerce:
 	@echo "Пересборка и перезапуск контейнеров ecommerce на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/ecommerce && docker compose up -d --build backend admin"
 
+deploy-sms:
+	@echo "Синхронизация файлов SMS Gateway на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'data' ./sms-gateway/ huawei@100.92.50.18:~/viasglobal/sms-gateway/
+	@echo "Сборка и запуск контейнера sms-gateway на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/sms-gateway && docker compose up -d --build sms-gateway"
+
+redeploy-sms:
+	@echo "Синхронизация файлов SMS Gateway на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'data' ./sms-gateway/ huawei@100.92.50.18:~/viasglobal/sms-gateway/
+	@echo "Перезапуск контейнера sms-gateway на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/sms-gateway && docker compose up -d --build sms-gateway"
+
+
 

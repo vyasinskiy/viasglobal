@@ -15,10 +15,10 @@
 
 Все микросервисы объединены в две основные изолированные bridge-сети Docker на сервере:
 
-1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, `ecommerce`, AI-агенты).
-   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `ecommerce-backend`, `ecommerce-admin`.
+1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, `ecommerce`, AI-агенты, SMS Gateway).
+   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `ecommerce-backend`, `ecommerce-admin`, `sms-gateway`.
 2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`).
-   - Контейнеры: `backend`, `viasglobal-openclaw`, `viasglobal-hermes`.
+   - Контейнеры: `backend`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
 
 AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подключены к **обеим сетям**, поэтому могут обращаться к любому сервису по его прямому Docker DNS-имени без выхода в публичный интернет.
 
@@ -42,6 +42,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | **Hermes Agent** | `viasglobal-hermes` | - | - | Голосовой AI-ассистент с локальным STT Whisper |
 | **OpenClaw Agent** | `viasglobal-openclaw` | `18789` | `18789` | Автономный AI-ассистент в Telegram |
 | **Viaslangs Service** | `viaslangs-web` / `localhost` | `3000` | `3000` (`https://langs.viasglobal.es`) | Тренажер испанского/английского, сессии, клики Next, ошибки по тегам и формам |
+| **SMS Gateway** | `sms-gateway` | `3040` | `3040` | Прием SMS с USB-телефона Meizu, Telegram-форвардер, health check, REST API |
 
 ---
 
@@ -904,7 +905,191 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 8. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
+## 8. API сервиса SMS Gateway (`sms-gateway:3040`)
+
+Базовый URL изнутри Docker-сети: `http://sms-gateway:3040`
+Базовый URL на хосте: `http://localhost:3040` или `http://100.92.50.18:3040`
+
+Сервис обеспечивает чтение входящих SMS с мобильного телефона Meizu U20, постоянно подключенного по USB к серверу Huawei. Телефон принимает SMS от банковских терминалов самообслуживания (CaixaBank, BBVA, Santander), через которые арендаторы вносят оплату наличными. Сервис форвардит новые SMS владельцу в Telegram (`743866013`), непрерывно отслеживает здоровье устройства (заряд батареи, питание USB, SIM-карту) и предоставляет REST API для OpenClaw.
+
+### 8.1. Комплексная проверка здоровья (`GET /health`)
+
+- **Описание**: Проверка статуса USB-подключения телефона, уровня заряда батареи, статуса зарядки, SIM-карты и счетчика принятых SMS.
+- **Пример запроса**:
+  ```bash
+  curl -s http://sms-gateway:3040/health
+  ```
+- **Пример ответа (200 OK при нормальной работе)**:
+  ```json
+  {
+    "status": "ok",
+    "message": "SMS Gateway и мобильный телефон функционируют в штатном режиме",
+    "service": "sms-gateway",
+    "uptimeSeconds": 14200,
+    "device": {
+      "connected": true,
+      "serial": "U20AVCPM22MQH",
+      "model": "Meizu U20",
+      "manufacturer": "Meizu",
+      "androidVersion": "6.0",
+      "state": "device",
+      "battery": {
+        "level": 87,
+        "isCharging": true,
+        "temperature": 28.5,
+        "voltage": 4150,
+        "usbPowered": true
+      },
+      "sim": {
+        "state": "READY",
+        "operator": "DIGI mobil",
+        "isReady": true
+      }
+    },
+    "stats": {
+      "totalSmsReceived": 14,
+      "lastSmsTimestamp": 1730005000000
+    },
+    "lastCheckedAt": 1730005060000
+  }
+  ```
+
+---
+
+### 8.2. Получение последнего SMS (`GET /sms/latest`)
+
+- **Описание**: Возвращает самое свежее входящее SMS сообщение. Используется OpenClaw для оперативной проверки кодов подтверждения и квитанций терминалов при сообщениях от арендаторов.
+- **Пример запроса**:
+  ```bash
+  curl -s http://sms-gateway:3040/sms/latest
+  ```
+- **Пример ответа (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "message": "Последнее входящее SMS успешно получено",
+    "data": {
+      "id": 14,
+      "androidId": "1042",
+      "sender": "CaixaBank",
+      "body": "Operacion terminal 450,00 EUR completada. Codigo autorizacion: 948271",
+      "receivedAt": 1730005000000,
+      "telegramSentAt": 1730005001200,
+      "telegramMessageId": 78912,
+      "createdAt": 1730005001000
+    }
+  }
+  ```
+- **Пример ответа при отсутствии SMS (404 Not Found)**:
+  ```json
+  {
+    "status": "error",
+    "message": "В базе данных пока нет входящих SMS сообщений",
+    "data": null
+  }
+  ```
+
+---
+
+### 8.3. Список входящих SMS (`GET /sms/list`)
+
+- **Описание**: Получение истории SMS с пагинацией и гибкой фильтрацией.
+- **Query-параметры**:
+  - `limit` (число, по умолчанию `20`, максимум `100`): размер выборки.
+  - `offset` (число, по умолчанию `0`): смещение.
+  - `sender` (строка, опционально): фильтрация по номеру или имени отправителя (подстрока, например `Caixa`).
+  - `search` (строка, опционально): поиск по тексту сообщения.
+  - `since` (число, опционально): фильтр по времени `received_at >= since` (Unix ms).
+- **Пример запроса**:
+  ```bash
+  curl -s "http://sms-gateway:3040/sms/list?limit=10&sender=Caixa"
+  ```
+- **Пример ответа**:
+  ```json
+  {
+    "status": "ok",
+    "message": "Найдено 2 из 2 сообщений",
+    "data": {
+      "items": [
+        {
+          "id": 14,
+          "androidId": "1042",
+          "sender": "CaixaBank",
+          "body": "Operacion terminal 450,00 EUR completada. Codigo autorizacion: 948271",
+          "receivedAt": 1730005000000,
+          "telegramSentAt": 1730005001200,
+          "telegramMessageId": 78912,
+          "createdAt": 1730005001000
+        }
+      ],
+      "pagination": {
+        "total": 2,
+        "limit": 10,
+        "offset": 0,
+        "hasMore": false
+      }
+    }
+  }
+  ```
+
+---
+
+### 8.4. Получение конкретного SMS по ID (`GET /sms/:id`)
+
+- **Описание**: Детальные данные конкретного SMS сообщения по числовому первичному ключу.
+- **Пример запроса**:
+  ```bash
+  curl -s http://sms-gateway:3040/sms/14
+  ```
+
+---
+
+### 8.5. Принудительная синхронизация с телефоном (`POST /sms/sync`)
+
+- **Описание**: Инициирует немедленный опрос базы Android через ADB без ожидания 5-секундного интервала поллинга.
+- **Пример запроса**:
+  ```bash
+  curl -s -X POST http://sms-gateway:3040/sms/sync
+  ```
+- **Пример ответа**:
+  ```json
+  {
+    "status": "ok",
+    "message": "Синхронизация завершена. Прочитано: 30, новых сообщений: 1",
+    "data": {
+      "fetched": 30,
+      "newCount": 1,
+      "newMessages": [
+        {
+          "id": 15,
+          "sender": "BBVA",
+          "body": "Su ingreso de 500 EUR ha sido procesado",
+          "receivedAt": 1730006000000
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+### 8.6. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+
+1. **Сценарий 1: Арендатор пишет «Я только что внес деньги через терминал, проверьте»**:
+   - Шаг 1: OpenClaw вызывает принудительную синхронизацию:
+     `curl -s -X POST http://sms-gateway:3040/sms/sync`
+   - Шаг 2: OpenClaw запрашивает последнее SMS:
+     `curl -s http://sms-gateway:3040/sms/latest`
+   - Шаг 3: Агент извлекает сумму операции (например, `450,00 EUR`), код авторизации и время, сверяет с ожидаемой суммой начисления арендатора (`accruals-accountant:3005`) и сообщает владельцу и арендатору результат.
+2. **Сценарий 2: Вопрос пользователя «Работает ли телефон для SMS?» / «Какой заряд у телефона?»**:
+   - OpenClaw вызывает `curl -s http://sms-gateway:3040/health`
+   - Анализирует статус:
+     - Если `device.connected === true`: «Телефон Meizu U20 на связи по USB, батарея X% (заряжается), SIM-карта Y активна, принято Z сообщений.»
+     - Если `device.connected === false`: «Внимание: телефон Meizu U20 отключен от USB или не авторизован в ADB! Проверьте физическое подключение кабеля к серверу.»
+
+---
+
+## 9. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
 
 При взаимодействии автономных языковых моделей (OpenClaw, Hermes, Antigravity) с бэкенд-сервисами критически важно предотвращать когнитивные искажения (галлюцинации) агентов. Если API возвращает неточный статус или неполную ошибку, LLM делает ложные выводы о состоянии системы и начинает деструктивные действия (создание фиктивных сущностей, попытки обхода проверок, удаление записей).
 
@@ -971,7 +1156,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 8. Правила использования для AI-ассистентов (OpenClaw, Hermes)
+## 10. Правила использования для AI-ассистентов (OpenClaw, Hermes)
 
 1. **Доступ через Bash и cURL**:
    - При выполнении запросов к микросервисам используй команду `curl -s` с передачей правильных заголовков `Content-Type: application/json`.

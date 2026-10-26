@@ -1,0 +1,21 @@
+{
+  "name": "sms-gateway",
+  "version": "1.0.0",
+  "description": "Сервис приема SMS с подключенного по USB мобильного телефона, форвардинга в Telegram и предоставления REST API для OpenClaw",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-strip-types src/index.ts",
+    "dev": "node --watch --experimental-strip-types src/index.ts",
+    "test": "node --experimental-strip-types --test tests/**/*.test.ts"
+  },
+  "keywords": [
+    "sms",
+    "adb",
+    "telegram",
+    "gateway",
+    "openclaw"
+  ],
+  "author": "Viasglobal",
+  "license": "ISC"
+}

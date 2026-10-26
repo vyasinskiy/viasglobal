@@ -1,0 +1,27 @@
+services:
+  sms-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sms-gateway
+    restart: unless-stopped
+    ports:
+      - '3040:3040'
+    env_file:
+      - .env
+    privileged: true
+    volumes:
+      - ./data:/app/data
+      - /dev/bus/usb:/dev/bus/usb
+      - ~/.android:/root/.android
+    networks:
+      - accruals-network
+      - backend-network
+
+networks:
+  accruals-network:
+    name: infra_accruals-network
+    external: true
+  backend-network:
+    name: backend_default
+    external: true
