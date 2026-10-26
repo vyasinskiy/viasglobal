@@ -31,3 +31,8 @@ make deploy-master
 
 - **Реестр микросервисов и API**: Полная документация Docker-сетей, контейнеров и HTTP REST эндпоинтов описана в [docs/SERVICES.md](file:///Users/usuario/code/viasglobal/docs/SERVICES.md).
 - **Паттерны проектирования API для LLM**: Архитектурные правила взаимодействия микросервисов с автономными AI-ассистентами (OpenClaw, Hermes, Antigravity) и защита от галлюцинаций (Fail-Fast HTTP 400 Bad Request, семантические статусы, Type Guarding) зафиксированы в [docs/SERVICES.md](file:///Users/usuario/code/viasglobal/docs/SERVICES.md) и [.agents/AGENTS.md](file:///Users/usuario/code/viasglobal/.agents/AGENTS.md).
+
+## Предстоящие технические задачи (Roadmap / To-Do)
+
+- [ ] [**[Tech]: Модульная декомпозиция AGENTS.md — разделение по подпроектам и оптимизация до 15 КБ**](https://tasks.google.com/) (Дедлайн: `2026-10-27`, ID: `VVRoZThUVVFKYUFCaVVqUA`)
+
