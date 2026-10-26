@@ -29,7 +29,7 @@ const pool = new Pool({
 
 // Импорт утилит проекта
 import { parseWordGrammar } from '../lib/grammar.ts';
-import { calculateMedian, getMadridDateString, formatDaysText } from '../lib/sessions.ts';
+import { calculateMedian, getMadridDateString, formatDaysText, getTodayTrainingPhrases } from '../lib/sessions.ts';
 
 describe('1. Модуль грамматического анализа испанских слов (parseWordGrammar)', () => {
   it('1.1. Корректно определяет 1-е лицо ед. ч. (yo) и время Pretérito Indefinido', () => {
@@ -428,4 +428,96 @@ describe('2. Интеграционная логика сессий и анал�
     const cleared = deleteCookieString('vias_last_tag_id');
     assert.ok(cleared.includes('max-age=0'), 'Сброс куки обязан выставлять max-age=0');
   });
+
+  it('2.11. Выборка предложений для тренировки (getTodayTrainingPhrases): приоритет ошибок над Next и unlearned', async () => {
+    // 1. Получаем слова abonó, aboné, abonaba
+    const wordsRes = await client.query(`
+      SELECT w.id, w.english, w.russian
+      FROM vy_words w
+      WHERE w.english IN ('abonó', 'aboné', 'abonaba')
+    `);
+    const abonoWord = wordsRes.rows.find(w => w.english === 'abonó');
+    const aboneWord = wordsRes.rows.find(w => w.english === 'aboné');
+    const abonabaWord = wordsRes.rows.find(w => w.english === 'abonaba');
+
+    assert.ok(abonoWord && aboneWord && abonabaWord, 'Все 3 тестовых слова найдены в БД');
+
+    // Очищаем активности сессии
+    await client.query(`DELETE FROM vy_session_activities WHERE session_id = $1`, [testSessionId]);
+
+    // 2. Добавляем 2 ошибки на abonó (ввод 'abono')
+    for (let i = 0; i < 2; i++) {
+      await client.query(
+        `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+         VALUES ($1, $2, 'ANSWER_ERROR', 'abono')`,
+        [testSessionId, abonoWord.id]
+      );
+    }
+
+    // 3. Добавляем 1 ошибку на aboné (ввод 'abone')
+    await client.query(
+      `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+       VALUES ($1, $2, 'ANSWER_ERROR', 'abone')`,
+      [testSessionId, aboneWord.id]
+    );
+
+    // 4. Добавляем 1 клик NEXT на abonaba
+    await client.query(
+      `INSERT INTO vy_session_activities (session_id, word_id, activity_type)
+       VALUES ($1, $2, 'NEXT')`,
+      [testSessionId, abonabaWord.id]
+    );
+
+    // 5. Запрашиваем 5 предложений напрямую из testSessionId
+    const result = await getTodayTrainingPhrases({
+      limit: 5,
+      languageId: spanishLangId,
+      sessionId: testSessionId,
+      client,
+    });
+
+    assert.strictEqual(result.languageId, spanishLangId, 'Язык должен совпадать с запрошенным');
+    assert.strictEqual(result.totalPhrases, 5, 'Должно быть возвращено ровно 5 предложений');
+    assert.strictEqual(result.errorCount, 2, 'В выборке ровно 2 слова с ошибками');
+    assert.strictEqual(result.skippedNextCount, 1, 'В выборке ровно 1 слово с пропуском Next');
+    assert.strictEqual(result.unlearnedCount, 2, 'В выборке ровно 2 неизученных слова для дополнения до 5');
+
+    // Первая фраза - abonó (наибольшее количество ошибок: 2)
+    const first = result.phrases[0];
+    assert.strictEqual(first.id, 1, 'ID первой фразы равен 1');
+    assert.strictEqual(first.wordId, abonoWord.id, 'Первое слово - abonó');
+    assert.strictEqual(first.targetWord, 'abonó', 'targetWord = abonó');
+    assert.strictEqual(first.reason, 'error', 'Причина - error');
+    assert.strictEqual(first.userErrorsCount, 2, '2 ошибки зафиксировано');
+    assert.strictEqual(first.lastUserAnswer, 'abono', 'Последний ошибочный ответ - abono');
+    assert.strictEqual(first.tense, 'Pretérito Indefinido', 'Время - Pretérito Indefinido');
+    assert.strictEqual(first.person, 'él/ella/usted', 'Лицо - él/ella/usted');
+    assert.ok(first.russianSentence.length > 0, 'Русское предложение не пустое');
+    assert.ok(first.spanishSentence.length > 0, 'Испанское предложение не пустое');
+
+    // Вторая фраза - aboné (1 ошибка)
+    const second = result.phrases[1];
+    assert.strictEqual(second.id, 2, 'ID второй фразы равен 2');
+    assert.strictEqual(second.wordId, aboneWord.id, 'Второе слово - aboné');
+    assert.strictEqual(second.reason, 'error', 'Причина - error');
+    assert.strictEqual(second.userErrorsCount, 1, '1 ошибка');
+    assert.strictEqual(second.lastUserAnswer, 'abone', 'Последний ответ - abone');
+
+    // Третья фраза - abonaba (пропуск через NEXT)
+    const third = result.phrases[2];
+    assert.strictEqual(third.id, 3, 'ID третьей фразы равен 3');
+    assert.strictEqual(third.wordId, abonabaWord.id, 'Третье слово - abonaba');
+    assert.strictEqual(third.reason, 'skipped_next', 'Причина - skipped_next');
+
+    // Четвертая и пятая фразы - unlearned
+    const fourth = result.phrases[3];
+    assert.strictEqual(fourth.id, 4, 'ID четвертой фразы равен 4');
+    assert.strictEqual(fourth.reason, 'unlearned', 'Причина - unlearned');
+
+    const fifth = result.phrases[4];
+    assert.strictEqual(fifth.id, 5, 'ID пятой фразы равен 5');
+    assert.strictEqual(fifth.reason, 'unlearned', 'Причина - unlearned');
+  });
 });
+
+

@@ -878,7 +878,54 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 7.4. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+### 7.4. Предложения для тренировки в лайв-режиме (`GET /api/sessions/training-phrases`)
+
+- **Описание**: Возвращает структурированный список предложений для тренировки разговорного испанского в режиме лайв-разговора (Gemini Gem / OpenClaw).
+  * **Приоритет 1**: слова с ошибками за сегодня (`ANSWER_ERROR`), отсортированные по убыванию числа ошибок.
+  * **Приоритет 2**: слова, пропущенные сегодня через кнопку Next (`NEXT`).
+  * **Приоритет 3**: если активностей сегодня было меньше запрошенного числа, список автоматически дополняется неизученными словами из базы данных.
+- **Query-параметры**:
+  * `limit` (число, опционально, по умолчанию `10`): желаемое количество предложений (максимум 100).
+  * `languageId` (число, опционально, по умолчанию `2` для испанского).
+- **Пример запроса**:
+  ```bash
+  curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/training-phrases?limit=10"
+  ```
+- **Пример ответа**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "sessionId": 15,
+      "date": "2026-10-26",
+      "languageId": 2,
+      "totalPhrases": 10,
+      "errorCount": 4,
+      "skippedNextCount": 6,
+      "unlearnedCount": 0,
+      "phrases": [
+        {
+          "id": 1,
+          "wordId": 80,
+          "russianSentence": "Банк зачислил сумму на наш счет.",
+          "spanishSentence": "El banco abonó el importe en nuestra cuenta.",
+          "targetWord": "abonó",
+          "targetWordRu": "зачислил (он / Вы)",
+          "tense": "Pretérito Indefinido",
+          "person": "él/ella/usted",
+          "personLabel": "3-е лицо ед. ч. (él/ella/usted)",
+          "reason": "error",
+          "userErrorsCount": 3,
+          "lastUserAnswer": "abono"
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+### 7.5. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
 
 1. **Сценарий 1: Ответ на вопрос «Какая у меня статистика по испанскому за сегодня?»**:
    - Выполни: `curl -s -H "x-app-password: viasglobal" http://localhost:3000/api/sessions/today`
@@ -902,6 +949,15 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
      * Количество активных дней с занятиями (`totalActivities > 0`).
      * Тренд: `trend`.
    - Сформируй структурированный отчет в Telegram со статистикой, подведением итогов и мотивирующей рекомендацией.
+4. **Сценарий 4: Запрос пользователя в диалоге: «Пришли предложения для тренировки сегодня» (или «скинь фразы для тренировки», «дай 15 предложений»)**:
+   - Определи запрошенное количество предложений `limit` (по умолчанию `10`).
+   - Выполни: `curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/training-phrases?limit=${limit}"`
+   - Сформируй ответ в Telegram:
+     * Краткое человекочитаемое превью: сколько предложений с ошибками, сколько пропущенных через Next.
+     * Компактный список предложений с указанием времени и целевого слова.
+     * **Готовый к копированию JSON-блок** с массивом `phrases` (поля: `id`, `russianSentence`, `spanishSentence`, `targetWord`, `targetWordRu`, `tense`, `person`, `reason`, `myMistake`), который пользователь может в один клик скопировать и отправить в Gemini Gem.
+     * Подсказка: «Скопируй JSON-блок выше и отправь в Gemini Gem для разговорной тренировки в голосовом режиме Live!»
+
 
 ---
 

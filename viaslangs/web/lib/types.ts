@@ -176,3 +176,29 @@ export interface SessionsHistory {
   praise: string | null;
   dailySessions: DailySessionSummary[];
 }
+
+export interface TrainingPhrase {
+  id: number;
+  wordId: number;
+  russianSentence: string;
+  spanishSentence: string;
+  targetWord: string;
+  targetWordRu: string;
+  tense: string | null;
+  person: string;
+  personLabel: string;
+  reason: 'error' | 'skipped_next' | 'unlearned';
+  userErrorsCount: number;
+  lastUserAnswer: string | null;
+}
+
+export interface TrainingPhrasesData {
+  sessionId: number;
+  date: string;
+  languageId: number;
+  totalPhrases: number;
+  errorCount: number;
+  skippedNextCount: number;
+  unlearnedCount: number;
+  phrases: TrainingPhrase[];
+}

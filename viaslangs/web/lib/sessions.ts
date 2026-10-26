@@ -9,6 +9,8 @@ import type {
   WeakWord,
   SessionsHistory,
   DailySessionSummary,
+  TrainingPhrase,
+  TrainingPhrasesData,
 } from "./types.ts";
 
 /**
@@ -460,5 +462,223 @@ export async function getSessionsHistory(
     alert,
     praise,
     dailySessions,
+  };
+}
+
+/**
+ * Выбирает предложения для тренировки в лайв-режиме (Gemini Gem / OpenClaw):
+ * 1. В первую очередь: слова с ошибками за сегодня (ANSWER_ERROR), отсортированные по убыванию числа ошибок.
+ * 2. Во вторую очередь: слова, пропущенные сегодня через кнопку Next (NEXT).
+ * 3. При необходимости дополняет неизученными словами из базы до запрошенного лимита.
+ *
+ * @param options - параметры выборки (limit, languageId, client)
+ */
+export async function getTodayTrainingPhrases(options?: {
+  limit?: number;
+  languageId?: number;
+  sessionId?: number;
+  client?: PoolClient | typeof pool;
+}): Promise<TrainingPhrasesData> {
+  const db = options?.client || pool;
+  const limit = options?.limit && options.limit > 0 ? Math.min(options.limit, 100) : 10;
+
+  // 1. Получаем или открываем сессию текущего дня (или используем переданный sessionId в тестах)
+  let sessionId = options?.sessionId || 0;
+  let resolvedLanguageId = options?.languageId || 2;
+  let sessionDate = new Date().toISOString().split("T")[0];
+
+  if (!sessionId) {
+    const todaySession = await getOrCreateTodaySession(db, options?.languageId);
+    sessionId = todaySession.sessionId;
+    resolvedLanguageId = todaySession.resolvedLanguageId;
+    sessionDate = todaySession.sessionDate;
+  }
+
+  interface CandidateItem {
+    wordId: number;
+    reason: "error" | "skipped_next" | "unlearned";
+    errorCount: number;
+    lastUserAnswer: string | null;
+  }
+
+  const selectedItems: CandidateItem[] = [];
+  const selectedWordIdsSet = new Set<number>();
+
+  // 2. Шаг 1: Ошибки за сегодня (ANSWER_ERROR)
+  const errorWordsRes = await db.query(
+    `SELECT
+       act.word_id,
+       COUNT(*)::int as error_count,
+       (ARRAY_AGG(act.user_answer ORDER BY act.created_at DESC))[1] as last_user_answer,
+       MAX(act.created_at) as latest_activity
+     FROM vy_session_activities act
+     WHERE act.session_id = $1 AND act.activity_type = 'ANSWER_ERROR'
+     GROUP BY act.word_id
+     ORDER BY error_count DESC, latest_activity DESC
+     LIMIT $2`,
+    [sessionId, limit]
+  );
+
+  for (const row of errorWordsRes.rows) {
+    selectedItems.push({
+      wordId: row.word_id,
+      reason: "error",
+      errorCount: row.error_count,
+      lastUserAnswer: row.last_user_answer || null,
+    });
+    selectedWordIdsSet.add(row.word_id);
+  }
+
+  // 3. Шаг 2: Пропущенные через кнопку Next (NEXT), если лимит еще не достигнут
+  const remainingForNext = limit - selectedItems.length;
+  if (remainingForNext > 0) {
+    const excludedIds = Array.from(selectedWordIdsSet);
+    const nextWordsRes = await db.query(
+      `SELECT
+         act.word_id,
+         MAX(act.created_at) as latest_activity
+       FROM vy_session_activities act
+       WHERE act.session_id = $1 AND act.activity_type = 'NEXT'
+         AND ($2::int[] IS NULL OR NOT (act.word_id = ANY($2::int[])))
+       GROUP BY act.word_id
+       ORDER BY latest_activity DESC
+       LIMIT $3`,
+      [sessionId, excludedIds.length > 0 ? excludedIds : null, remainingForNext]
+    );
+
+    for (const row of nextWordsRes.rows) {
+      selectedItems.push({
+        wordId: row.word_id,
+        reason: "skipped_next",
+        errorCount: 0,
+        lastUserAnswer: null,
+      });
+      selectedWordIdsSet.add(row.word_id);
+    }
+  }
+
+  // 4. Шаг 3: Если активностей сегодня было меньше лимита, дополняем неизученными словами
+  const remainingForUnlearned = limit - selectedItems.length;
+  if (remainingForUnlearned > 0) {
+    const excludedIds = Array.from(selectedWordIdsSet);
+    const unlearnedWordsRes = await db.query(
+      `SELECT w.id as word_id
+       FROM vy_words w
+       WHERE w.language_id = $1
+         AND ($2::int[] IS NULL OR NOT (w.id = ANY($2::int[])))
+         AND NOT EXISTS (
+           SELECT 1 FROM vy_answers a WHERE a.word_id = w.id AND a.is_correct = true
+         )
+       ORDER BY RANDOM()
+       LIMIT $3`,
+      [resolvedLanguageId, excludedIds.length > 0 ? excludedIds : null, remainingForUnlearned]
+    );
+
+    for (const row of unlearnedWordsRes.rows) {
+      selectedItems.push({
+        wordId: row.word_id,
+        reason: "unlearned",
+        errorCount: 0,
+        lastUserAnswer: null,
+      });
+      selectedWordIdsSet.add(row.word_id);
+    }
+  }
+
+  if (selectedItems.length === 0) {
+    return {
+      sessionId,
+      date: sessionDate,
+      languageId: resolvedLanguageId,
+      totalPhrases: 0,
+      errorCount: 0,
+      skippedNextCount: 0,
+      unlearnedCount: 0,
+      phrases: [],
+    };
+  }
+
+  // 5. Загружаем подробную информацию по всем выбранным словам
+  const allWordIds = selectedItems.map((item) => item.wordId);
+  const wordsRes = await db.query(
+    `SELECT
+       w.id,
+       w.english,
+       w.russian,
+       w.example_en,
+       w.example_ru,
+       COALESCE(
+         (SELECT array_agg(t.name)
+          FROM vy_word_tags wt
+          JOIN vy_tags t ON t.id = wt.tag_id
+          WHERE wt.word_id = w.id),
+         ARRAY[]::text[]
+       ) as tags
+     FROM vy_words w
+     WHERE w.id = ANY($1::int[])`,
+    [allWordIds]
+  );
+
+  const wordsMap = new Map<
+    number,
+    {
+      id: number;
+      english: string;
+      russian: string;
+      example_en: string | null;
+      example_ru: string | null;
+      tags: string[];
+    }
+  >();
+
+  for (const row of wordsRes.rows) {
+    wordsMap.set(row.id, row);
+  }
+
+  // 6. Формируем итоговый упорядоченный список фраз
+  const phrases: TrainingPhrase[] = [];
+  let errorCount = 0;
+  let skippedNextCount = 0;
+  let unlearnedCount = 0;
+  let phraseIndex = 1;
+
+  for (const item of selectedItems) {
+    const word = wordsMap.get(item.wordId);
+    if (!word) continue;
+
+    if (item.reason === "error") errorCount++;
+    else if (item.reason === "skipped_next") skippedNextCount++;
+    else if (item.reason === "unlearned") unlearnedCount++;
+
+    const grammar = parseWordGrammar(word.russian, word.english, word.tags);
+
+    const russianSentence = (word.example_ru && word.example_ru.trim()) || word.russian.trim();
+    const spanishSentence = (word.example_en && word.example_en.trim()) || word.english.trim();
+
+    phrases.push({
+      id: phraseIndex++,
+      wordId: word.id,
+      russianSentence,
+      spanishSentence,
+      targetWord: word.english.trim(),
+      targetWordRu: word.russian.trim(),
+      tense: grammar.tense,
+      person: grammar.person,
+      personLabel: grammar.personLabel,
+      reason: item.reason,
+      userErrorsCount: item.errorCount,
+      lastUserAnswer: item.lastUserAnswer,
+    });
+  }
+
+  return {
+    sessionId,
+    date: sessionDate,
+    languageId: resolvedLanguageId,
+    totalPhrases: phrases.length,
+    errorCount,
+    skippedNextCount,
+    unlearnedCount,
+    phrases,
   };
 }

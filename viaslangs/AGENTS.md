@@ -149,6 +149,7 @@
    - `POST /api/sessions/activity`: запись события (`NEXT`, `ANSWER_CORRECT`, `ANSWER_ERROR`).
    - `GET /api/sessions/today`: аналитика текущей сессии (сводка, группировка ошибок по временам/тегам, лицам, топ слабых слов, готовая рекомендация на русском языке).
    - `GET /api/sessions/history?days=7`: мульти-дневная история, средняя и **медианная активность** за предыдущие 7 дней (`medianDailyActivities`), флаги `isBelowMedian` и `shouldRemind`, расчет тренда (`DROPPING`, `STABLE`, `GROWING`, `INACTIVE`) и текст предупреждения для Telegram при падении темпов.
+   - `GET /api/sessions/training-phrases?limit=10`: выборка предложений для разговорной тренировки в голосовом режиме Gemini Gem (приоритет 1: ошибки `ANSWER_ERROR`, приоритет 2: пропущенные `NEXT`, приоритет 3: неизученные слова).
 5. **Авторизация API**: AI-агенты вызывают эндпоинты с заголовком `x-app-password: viasglobal` или `Authorization: Bearer viasglobal`.
 6. **Регламентная проверка прогресса в OpenClaw (`openclaw/config/cron/jobs.json`)**:
    - Расписание cron: `0 11,17,23 * * *` (раз в 6 часов с 11:00 до 23:00 по `Europe/Madrid`).
