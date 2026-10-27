@@ -13,7 +13,10 @@
 ### `energy-efficiency-deduction-2026/`
 - Материалы по налоговому вычету за энергоэффективность в жилье (DA 50ª Ley 35/2006 IRPF, RDL 19/2021).
 - Счета и подтверждения платежей (aires acondicionados, placas solares, tasas municipales).
-- Энергетические сертификаты до и после проведения работ.
+- Энергетические сертификаты (CEE) и регистрация IVACE:
+  - Сертификат до работ: [`certificado_anterior.pdf`](file:///Users/usuario/code/viasglobal/legal/energy-efficiency-deduction-2026/certificado_anterior.pdf) (E2024VI105123 от 02.12.2024, класс E / 178,21 кВт·ч/м²·год).
+  - Сертификат после работ: [`certificado_posterior.pdf`](file:///Users/usuario/code/viasglobal/legal/energy-efficiency-deduction-2026/certificado_posterior.pdf) (E2026VF098103 от 16.10.2026, наивысший класс **A** / 13,9 кВт·ч/м²·год — снижение невозобновляемой первичной энергии на 92,2%, право на вычет 40%).
+  - Официальный документ о регистрации сертификата в реестре IVACE / Generalitat Valenciana: [`registro_cee.pdf`](file:///Users/usuario/code/viasglobal/legal/energy-efficiency-deduction-2026/registro_cee.pdf).
 - Аналитические отчеты и юридические заключения по применимости ставок вычета (20%, 40%, 60%).
 
 ### `escritura_donacion/`

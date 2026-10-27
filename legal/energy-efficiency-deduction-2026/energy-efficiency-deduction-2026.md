@@ -8,7 +8,9 @@
 * Domicilio: 12166 Els Ibarsos, Ronda Albocasser 11 (Sierra Engarcerán, Castellón).
 * Vivienda habitual + 25% afecta a actividad económica, alta en modelo 036 desde 31.07.2026.
   * Fuente: `modelo_036_domicilio_fiscal_Ibarsos.pdf`.
-* Certificado eficiencia anterior: 22.07.2026 (`certificado_anterior.pdf`).
+* Certificado eficiencia anterior: 02.12.2024 (`certificado_anterior.pdf`, код IVACE `E2024VI105123`, класс E — 178,21 kWh/m²·año).
+* Certificado eficiencia posterior registrado: 16.10.2026 (`certificado_posterior.pdf`, код IVACE `E2026VF098103`, класс A — 13,9 kWh/m²·año, CO2 2,4 kgCO2/m²·año).
+* Justificante de Registro CEE: 16.10.2026 (`registro_cee.pdf`, IVACE / Generalitat Valenciana, comprobación web gcee.aven.es con código `E2026VF098103`).
 * Obras 07-09/2026:
   * Aires — Esteban Ferrando Gual: factura completa 6.797,48 EUR (factura_completa_aires.pdf). Desglose facturas 269/C y 289/C: Oficina despacho 1.357,62 + IVA 285,10 = 1.642,72; Oficina SMR 1.357,62 + IVA 285,10 = 1.642,72. Resto: salón-comedor, dormitorios.
   * Pagos aires: 29.07.2026 — 1.588,73 (269/C anticipo), 27.08.2026 — 1.588,73 (289/C), 15.09.2026 — 1.357,62 (269/C resto). Transferencia Santander.
@@ -51,8 +53,8 @@
   * Vivienda habitual o arrendada como vivienda / expectativa alquiler antes 31.12.2027. Domicilio fiscal en 036 no prueba habitualidad — guardar empadronamiento, consumos. Garaje, trastero, jardín, piscina excluidos.
   * Una misma obra — o ap.1 o ap.2, no ambos. Si mejora del edificio — solo ap.3.
   * Resta de cuota íntegra estatal después art.68 (DA 50ª.6).
-* Cálculo orientativo: base = 75% × (6.797,48 + 9.838,11 + factura_2 + 294,85 + honorarios certificados) − subvenciones. Cuota = base × 20% o 40% según umbral que acredite el certificado posterior.
-* Falta para aplicar: certificado posterior registrado, justificantes bancarios de todo, ausencia subvención.
+* Cálculo orientativo: base = 75% × (6.797,48 + 9.838,11 + factura_2 + 294,85 + honorarios certificados) − subvenciones. Cuota = base × 40% (порог снижения первичной энергии ≥30% и класс A подтверждены с запасом: факт 92,2% снижения).
+* Falta para aplicar: justificantes bancarios de todo, prueba de ausencia/cuantía de subvención (si se solicitó). Certificado posterior y registro IVACE — ВЫПОЛНЕНО (16.10.2026, código E2026VF098103).
 
 ## 4. ¿25% como gasto autónomo? No
 
@@ -83,7 +85,7 @@ Aplicación:
 ## 5. Cómo actuar
 
 1. Pedir desglose: a) equipos + mano obra oficinas, b) equipos vivienda, c) común. Solo a) candidato a inmovilizado actividad.
-2. Obtener certificado posterior y registro IVACE/Generalitat antes 01.01.2027. Sin él no hay 20%/40%.
+2. [ВЫПОЛНЕНО] Получен certificado posterior и официальная регистрация IVACE/Generalitat (código `E2026VF098103` от 16.10.2026, класс A). Выполнены условия для максимального вычета 40% (DA 50ª.2).
 3. Contabilidad ED: alta inmovilizado solo desglose oficina (cuenta 215/217), amortización desde 09.2026. Resto no tocar en libros actividad.
 4. Renta 2026: base deducción = 75% cantidades bancarias 2026 − subvenciones, sin parte oficina afecta. Casillas DA 50ª. Guardar transferencias, facturas a Ronda Albocasser 11, certificados anterior/posterior.
 5. IVA mod.303: solo IVA facturas oficina. IVA placas no deducir.
@@ -102,7 +104,10 @@ Aplicación:
 ## 7. Documentos del expediente
 
 * `modelo_036_domicilio_fiscal_Ibarsos.pdf` — 25% desde 31.07.2026.
-* `certificado_anterior.pdf` — 22.07.2026.
+* `certificado_anterior.pdf` — 02.12.2024, код IVACE `E2024VI105123` (calificación E, 178,21 kWh/m²·año).
+* `certificado_posterior.pdf` — 16.10.2026, код IVACE `E2026VF098103` (calificación A, 13,9 kWh/m²·año, 2,4 kgCO2/m²·año).
+* `registro_cee.pdf` — Documento de Registro CEE oficial emitido por IVACE / Generalitat Valenciana (código `E2026VF098103` a 16.10.2026).
+* `certificado_posterior_borrador.pdf` — предварительный расчет CE3X от 14.10.2026 (сохранен для истории).
 * `aires/factura_completa_aires.pdf` + `pago_aires_1/2/3.pdf`.
 * `placas/factura_placas_1.pdf`, `factura_placas_2.pdf`, `factura_placas_tasas.pdf`, `proyecto_placas.pdf`, `pago_placas_1/2.pdf`.
-* Pendiente: `factura_placas_2` importe, certificado posterior, desglose oficina/vivienda, prueba subvenciones.
+* Pendiente: `factura_placas_2` importe, desglose oficina/vivienda, подтверждение отсутствия/размера субсидии (если оформлялась).
