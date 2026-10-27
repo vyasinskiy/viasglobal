@@ -60,6 +60,8 @@ $$\text{Объёмный вес (кг)} = \frac{\text{Длина (см)} \times 
    Каталог упаковочных материалов, параметры плотности (*galga*), конструкция коробок (*automontable*) и проверенные испанские B2B-поставщики (Raja, Pedrosa, Cajeando).
 3. **[checklist.md](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/checklist.md)**:
    Универсальные чек-листы выходного контроля упаковки перед отправкой курьеру и протокол проведения приёмочных дроп-тестов.
+4. **[offers.md](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/offers.md)**:
+   Реестр и сравнительный анализ конкретных коммерческих предложений поставщиков упаковки в Испании (цены, тиражи, доставка).
 
 ---
 
@@ -67,3 +69,4 @@ $$\text{Объёмный вес (кг)} = \frac{\text{Длина (см)} \times 
 
 Спецификации упаковки конкретных позиций хранятся в папках соответствующих поставщиков со ссылкой на общие регламенты:
 * Рюкзак Safta 3D K-POP: [`contractors/safta/packaging_mochila.md`](file:///Users/usuario/code/viasglobal/contractors/safta/packaging_mochila.md).
+* Официальный поставщик упаковки Viasglobal: [`contractors/embalaje24/README.md`](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md) (EMBALAJE24, S.L., Мадрид — курьерские пакеты 40×50 см и 23×32 см).
