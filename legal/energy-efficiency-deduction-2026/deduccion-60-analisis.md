@@ -81,8 +81,7 @@ https://www.boe.es/buscar/act.php?id=BOE-A-2021-9176
 
 ## 5. Практические следствия
 
-* Текущий пакет — только 20% или 40% на 75% базы.
-* 60% не всегда выгоднее: лимит 5.000 против 7.500 у 40%. При ~17.900 + factura_2, 40% на 75% уже упирается в потолок.
+* 60% не всегда выгоднее: лимит 5.000 против 7.500 у 40%. При фактических затратах 15.640,93 EUR, 40% на 75% базы (11.730,70 EUR) уже полностью упирается в максимальный годовой потолок 7.500 EUR.
 * Чтобы получить 60% в будущем: решение comunidad (SATE, cubierta, fotovoltaica comunitaria), proyecto, certificado edificio antes, ejecución hasta 31.12.2027, certificado edificio después antes 01.01.2028, оплата derrama через cuenta comunidad, вычет 7,1% минус 25% afecto, declaración 2021–2027 + carry 4 года до 15.000.
 * Сохранить для 20%/40% и против претензий: escritura pp.4–5, nota registral с cuota 7,1%, certificación catastral 18.02.2026 — доказывают habitual + residencial + PH и одновременно объясняют, почему 60% не заявлен.
 

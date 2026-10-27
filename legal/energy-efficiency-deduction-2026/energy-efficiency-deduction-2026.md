@@ -12,14 +12,15 @@
 * Certificado eficiencia posterior registrado: 16.10.2026 (`certificado_posterior.pdf`, код IVACE `E2026VF098103`, класс A — 13,9 kWh/m²·año, CO2 2,4 kgCO2/m²·año).
 * Justificante de Registro CEE: 16.10.2026 (`registro_cee.pdf`, IVACE / Generalitat Valenciana, comprobación web gcee.aven.es con código `E2026VF098103`).
 * Obras 07-09/2026:
-  * Aires — Esteban Ferrando Gual: factura completa 6.797,48 EUR (factura_completa_aires.pdf). Desglose facturas 269/C y 289/C: Oficina despacho 1.357,62 + IVA 285,10 = 1.642,72; Oficina SMR 1.357,62 + IVA 285,10 = 1.642,72. Resto: salón-comedor, dormitorios.
-  * Pagos aires: 29.07.2026 — 1.588,73 (269/C anticipo), 27.08.2026 — 1.588,73 (289/C), 15.09.2026 — 1.357,62 (269/C resto). Transferencia Santander.
+  * Aires — Esteban Ferrando Gual: factura 269/C от 15.09.2026 на сумму 4.535,08 EUR (base 3.748,00 + IVA 21% 787,08).
+  * Pagos aires: 29.07.2026 — 1.588,73 (269/C anticipo), 27.08.2026 — 1.588,73 (289/C), 15.09.2026 — 1.357,62 (269/C resto). Transferencia Santander. Итого платежи по кондиционерам: 4.535,08 EUR (100% оплачено).
   * Placas — BE ENERGY PART, S.L. (SotySolar), ref P1464558:
-    * factura_placas_1.pdf: base 9.838,11 + IVA 983,81 = 10.821,92.
-    * factura_placas_2.pdf: pendiente leer importe exacto (segunda factura instalación).
-    * factura_placas_tasas.pdf: 31.08.2026, licencias y tasas 294,85 EUR.
-    * proyecto_placas.pdf: descripción técnica campo + inversor + baterías.
-  * Pagos placas: 13.07.2026 — 6.486,60 inicial; 29.08.2026 — 4.324,40 final. Transferencia Santander/Sabadell.
+    * `factura_placas_2.pdf` (FES26_001646 от 14.07.2026, Pago Inicial): base 5.896,91 + IVA 10% (589,69) = 6.486,60 EUR.
+    * `factura_placas_1.pdf` (FES26_002046 от 31.08.2026, Pago Final): base 3.931,27 + IVA 10% (393,13) = 4.324,40 EUR.
+    * Итого установка: base 9.828,18 + IVA 982,82 = 10.811,00 EUR.
+    * `factura_placas_tasas.pdf`: 31.08.2026, licencias y tasas 294,85 EUR.
+    * `proyecto_placas.pdf`: описание тех. проекта (поле 3,54 кВт + инвертор GoodWe + батарея 10 кВт·ч).
+  * Pagos placas: 13.07.2026 — 6.486,60 (Santander); 29.08.2026 — 4.324,40 (Sabadell); 31.08.2026 — 294,85 (Santander). Безналичные переводы 100%.
 * Preguntas:
   1. ¿Deducción IRPF eficiencia solo sobre 75%?
   2. ¿25% restante como gasto autónomo?
@@ -53,8 +54,8 @@
   * Vivienda habitual o arrendada como vivienda / expectativa alquiler antes 31.12.2027. Domicilio fiscal en 036 no prueba habitualidad — guardar empadronamiento, consumos. Garaje, trastero, jardín, piscina excluidos.
   * Una misma obra — o ap.1 o ap.2, no ambos. Si mejora del edificio — solo ap.3.
   * Resta de cuota íntegra estatal después art.68 (DA 50ª.6).
-* Cálculo orientativo: base = 75% × (6.797,48 + 9.838,11 + factura_2 + 294,85 + honorarios certificados) − subvenciones. Cuota = base × 40% (порог снижения первичной энергии ≥30% и класс A подтверждены с запасом: факт 92,2% снижения).
-* Falta para aplicar: justificantes bancarios de todo, prueba de ausencia/cuantía de subvención (si se solicitó). Certificado posterior y registro IVACE — ВЫПОЛНЕНО (16.10.2026, código E2026VF098103).
+* Cálculo orientativo: base = 75% × (4.535,08 [aires] + 10.811,00 [placas] + 294,85 [tasas] + honorarios certificados) − subvenciones = 75% × 15.640,93 − subvenciones = 11.730,70 − subvenciones. Base máxima legal aplicable por año: 7.500 EUR → Cuota deducción (40%) = 3.000 EUR (порог снижения первичной энергии ≥30% и класс A подтверждены с запасом: факт 92,2% снижения).
+* Falta para aplicar: justificantes bancarios de todo (все переводы Santander/Sabadell в деле), prueba de ausencia/cuantía de subvención (si se solicitó). Certificado posterior y registro IVACE — ВЫПОЛНЕНО (16.10.2026, código E2026VF098103).
 
 ## 4. ¿25% como gasto autónomo? No
 
@@ -110,4 +111,4 @@ Aplicación:
 * `certificado_posterior_borrador.pdf` — предварительный расчет CE3X от 14.10.2026 (сохранен для истории).
 * `aires/factura_completa_aires.pdf` + `pago_aires_1/2/3.pdf`.
 * `placas/factura_placas_1.pdf`, `factura_placas_2.pdf`, `factura_placas_tasas.pdf`, `proyecto_placas.pdf`, `pago_placas_1/2.pdf`.
-* Pendiente: `factura_placas_2` importe, desglose oficina/vivienda, подтверждение отсутствия/размера субсидии (если оформлялась).
+* Pendiente: desglose oficina/vivienda по кондиционерам от Esteban Ferrando, подтверждение отсутствия/размера субсидии (если оформлялась).
