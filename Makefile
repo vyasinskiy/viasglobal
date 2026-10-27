@@ -1,4 +1,4 @@
-.PHONY: backup backup-all backup-health backup-sync backup-verify restore-local deploy-backup test db-reset redeploy-back deploy-huawei
+.PHONY: backup backup-all backup-health backup-sync backup-verify restore-local deploy-backup dr-failover dr-rollback dr-status test db-reset redeploy-back deploy-huawei
 
 backup:
 	@echo "Запуск бэкапа всех баз данных на сервере Huawei..."
@@ -21,6 +21,18 @@ deploy-backup:
 	rsync -avz ./backup/ huawei@100.92.50.18:~/viasglobal/backup/
 	@echo "Установка cron-расписания на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal && bash backup/cron/install-cron.sh"
+
+dr-failover:
+	@echo "Запуск аварийного переключения на локальный Mac (Disaster Recovery)..."
+	@bash backup/scripts/dr-drill.sh failover
+
+dr-rollback:
+	@echo "Возврат работы и трафика на боевой сервер Huawei..."
+	@bash backup/scripts/dr-drill.sh rollback
+
+dr-status:
+	@echo "Проверка текущего статуса узлов и Cloudflare туннелей..."
+	@bash backup/scripts/dr-drill.sh status
 
 test:
 	@echo "Запуск всех тестов..."

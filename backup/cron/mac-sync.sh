@@ -21,13 +21,15 @@ echo "======================================================================"
 mkdir -p "${LOCAL_BACKUP_DIR}/viasglobal"
 mkdir -p "${LOCAL_BACKUP_DIR}/rent"
 mkdir -p "${LOCAL_BACKUP_DIR}/ecommerce"
+mkdir -p "${LOCAL_BACKUP_DIR}/configs"
 
-# Запускаем rsync для скачивания свежих архивов по подпроектам и отчетов JSON
+# Запускаем rsync для скачивания свежих архивов по подпроектам, конфигураций .env и отчетов JSON
 # Исключаем старые неструктурированные дампы корня backups/
 rsync -avz --progress \
   --include="viasglobal/***" \
   --include="rent/***" \
   --include="ecommerce/***" \
+  --include="configs/***" \
   --include="*.json" \
   --exclude="backup_*.sql.gz" \
   --exclude="*" \

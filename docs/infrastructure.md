@@ -27,59 +27,28 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
 
 ## Топология кластера
 
-### Узел 1: Primary (Домашний ПК - Linux)
+### Узел 1: Primary (Домашний ПК Huawei MateStation S - Linux)
 **IP:** `100.92.50.18`
-Файл развертывания: `docker-compose.primary.yml`
 
-*   **База данных (Master):** Работает в режиме `wal_level=replica`. Принимает все запросы на запись (INSERT, UPDATE) от всех парсеров в сети.
-*   **Бэкенд:** Запускает основной цикл парсинга Keepa.
+*   **Базы данных (Master):** 3 изолированные СУБД:
+    * `backend-db-1` (Postgres 15, порт `5432`) — `viasglobal_db` (Wholesale каталог, 100k+ ASIN).
+    * `accruals-postgres` (Postgres 16, порт `5433`) — сервис аренды (`accountant_db`, `watcher_db`, `telegram_bot_db`, `kvartplata_watcher`).
+    * `ecommerce-db` (Postgres 16, порт `5434`) — CRM/ERP закупки (`ecommerce_db`).
+*   **Микросервисы и веб-интерфейсы:**
+    * `backend-backend-1` (порт `3001`) — API Wholesale каталога.
+    * `accruals-admin-ui` (порт `3000`) — веб-панель аренды (`rent.viasglobal.es`).
+    * `ecommerce-admin` (порт `3020`) — веб-панель CRM (`crm.viasglobal.es`).
+    * `accruals-accountant` (порт `3005`), `accruals-watcher` (порт `4500`), `accruals-rabbitmq` (порты `5672`, `15672`).
+    * `sms-gateway` (порт `3040`), `viasglobal-openclaw` (порт `18789`), `viasglobal-hermes`.
+*   **Внешний доступ (Cloudflare Tunnel):** Контейнер `cloudflared` (токен туннеля `fad800a3-f97e-4b41-8f24-df8168b1211b`).
 
-### Узел 2: Standby (Mac)
+### Узел 2: Standby / Disaster Recovery (Mac)
 **IP:** `100.65.210.51`
-Файл развертывания: `docker-compose.standby.yml`
 
-*   **База данных (Реплика):** При старте скачивает копию БД с Мастера (`pg_basebackup`) и работает в режиме только для чтения, применяя логи изменений (Streaming Replication). Это обеспечивает горячий резерв на случай поломки ПК.
-*   **Бэкенд:** Запускает дополнительный парсер. Подключается напрямую к БД на ПК для выполнения операций записи.
-
-## Руководство по развертыванию с нуля (Disaster Recovery)
-
-Если вам придется полностью переустанавливать систему, купив новый ПК или сбросив настройки, следуйте этой инструкции:
-
-### 1. Подготовка нового Linux ПК (Мастер)
-1. Установите **Tailscale** и авторизуйтесь под своим аккаунтом:
-   ```bash
-   curl -fsSL https://tailscale.com/install.sh | sh
-   sudo tailscale up --ssh
-   ```
-2. Установите **Docker**:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y docker.io docker-compose
-   sudo usermod -aG docker $USER
-   ```
-3. Перезагрузите ПК (`sudo reboot`), чтобы применились права пользователя Docker.
-
-### 2. Синхронизация кода с Мака на ПК
-Так как код хранится на вашем Маке, его нужно перенести на ПК.
-На Маке в терминале (находясь в корне проекта `viasglobal`) выполните команду `rsync`:
-```bash
-# Замените IP-адрес на новый Tailscale IP вашего ПК, а 'huawei' на новое имя пользователя
-rsync -avz --exclude 'node_modules' --exclude 'dist' --exclude '.git' ./backend/ huawei@100.92.50.18:~/viasglobal/backend/
-```
-
-### 3. Запуск Мастер-узла
-Прямо с терминала Мака подключитесь к ПК и запустите сборку:
-```bash
-ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && docker compose -f docker-compose.primary.yml up -d --build"
-```
-После этого база данных инициализируется, создаст пользователя для репликации и запустит основной парсер.
-
-### 4. Подключение Мака (Резервный узел)
-Когда Мастер на ПК будет запущен, вы сможете в любой момент запустить Реплику на Маке.
-В терминале Мака в папке `backend`:
-```bash
-docker compose -f docker-compose.standby.yml up -d --build
-```
+*   **Резервная среда мгновенного развертывания (Disaster Recovery):** Все Docker-образы (`ecommerce-admin`, `backend`, `rent`, `cloudflared`) предсобраны и закэшированы локально.
+*   **Синхронизация бэкапов:** Ежедневно через `make backup-sync` свежие копии всех 3 БД скачиваются в `backend/backups/`.
+*   **Аварийное переключение в 1 команду:** При выходе Huawei из строя команда `make dr-failover` за 2 минуты разворачивает все СУБД, восстанавливает данные и запускает локальный `cloudflared-failover`. Трафик внешних сайтов переключается на Mac без изменения DNS.
+*   **Возврат работы на Huawei:** Команда `make dr-rollback`.
 
 ---
 
@@ -88,12 +57,16 @@ docker compose -f docker-compose.standby.yml up -d --build
 Для безопасного внешнего доступа к веб-интерфейсам кластера (без открытия портов на роутере и без белого статического IP) используется **Cloudflare Tunnel** (`cloudflared`).
 
 ### Конфигурация туннеля:
-- **Контейнер**: `cloudflared` (на сервере Huawei).
-- **Сетевое окружение**: Контейнер подключен к Docker-сетям `bridge` и `infra_accruals-network`.
-- **Токен авторизации Cloudflare**: Сохранен в файле окружения `rent/infra/.env` в переменной `CLOUDFLARE_API_TOKEN`. Шаблон указан в `rent/infra/.env.example`.
-- **Маршрутизация поддоменов**:
-  - `portainer.viasglobal.es` -> `http://172.17.0.1:9000` (панель управления Docker контейнерами).
-  - `rent.viasglobal.es` -> `http://accruals-admin-ui:3000` (веб-панель управления учетом аренды и начислений).
-  - `browser.viasglobal.es` -> `http://172.17.0.1:3002` (удаленный визуальный браузер для SMS-авторизаций).
-  - `crm.viasglobal.es` -> `http://ecommerce-admin:3000` или `http://172.17.0.1:3020` (веб-панель управления E-Commerce CRM / ERP).
+- **Туннель**: `fad800a3-f97e-4b41-8f24-df8168b1211b` (аккаунт `ac8ad485b5af13d1cfdf0e7b1adfdb12`).
+- **Сетевое окружение**: Контейнер подключен к Docker-сети `infra_accruals-network`.
+- **Маршрутизация поддоменов Cloudflare**:
+  - `rent.viasglobal.es` -> `http://100.92.50.18:3000` (панель управления учетом аренды и начислений).
+  - `crm.viasglobal.es` -> `http://ecommerce-admin:3000` (панель управления E-Commerce CRM / ERP).
+  - `browser.viasglobal.es` -> `http://100.92.50.18:3002` (удаленный визуальный браузер для SMS-авторизаций).
+  - `portainer.viasglobal.es` -> `http://100.92.50.18:9000` (панель управления Docker контейнерами).
+
+### Регламент аварийного восстановления (Disaster Recovery Runbook):
+Подробный пошаговый регламент действий при отказе сервера, восстановление баз и Cloudflare failover документированы в подпроекте:
+👉 **[`backup/README.md`](../backup/README.md)**.
+
 

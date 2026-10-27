@@ -7,11 +7,19 @@
 ### Быстрые ссылки (Мониторинг и Управление)
 - 🖥 **Portainer (Логи бэкенда):** [Смотреть логи онлайн](http://100.92.50.18:9000/#!/3/docker/containers/d7d6f557e8176abc051947db1e5f880e71ec78c8c9e282894ddb93b83d4888c6/logs)
 - 💓 **Healthchecks (Статус сервера):** [Панель мониторинга](https://healthchecks.io/projects/bd96a452-0e1c-4413-842d-797ccdb2462b/checks/)
-- 🗄 **Amazon S3 (Бэкапы БД):** [Корзина с архивами](https://eu-north-1.console.aws.amazon.com/s3/buckets/home-postrges?region=eu-north-1&tab=objects)
+- ☁️ **Cloudflare R2 (Бэкапы БД):** [Бакет viasglobal-backups](https://dash.cloudflare.com/?to=/:account/r2/overview)
+- 🚨 **Disaster Recovery (Аварийное восстановление):** [Руководство Runbook](backup/README.md) (`make dr-failover` / `make dr-rollback`)
 
 ### Подключение
 - **SSH (Терминал):** `ssh huawei@100.92.50.18`
 - **Portainer (Главная):** [http://100.92.50.18:9000](http://100.92.50.18:9000)
+
+### Экстренное переключение на Mac при отказе сервера:
+```bash
+make dr-failover   # Развернуть весь кластер на Mac и переключить Cloudflare Tunnel
+make dr-rollback   # Вернуть работу на боевой сервер Huawei
+make dr-status     # Проверить статус узлов и сайтов
+```
 
 ### Деплой нового кода с Mac
 В корне проекта (папка `viasglobal`):

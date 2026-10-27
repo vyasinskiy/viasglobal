@@ -17,6 +17,9 @@
 - `make backup-sync`: Скачать свежие бэкапы с сервера Huawei на текущий ПК (Mac).
 - `make backup-verify`: Запустить сверку контрольных сумм и количества строк между боевой базой и локальной копией.
 - `make deploy-backup`: Синхронизировать скрипты бэкапа и обновить crontab на сервере Huawei.
+- `make dr-failover`: Симулировать отказ Huawei, восстановить базы на Mac и переключить Cloudflare Tunnel на Mac.
+- `make dr-rollback`: Вернуть работу и внешний трафик Cloudflare Tunnel обратно на сервер Huawei.
+- `make dr-status`: Проверить статус активности узлов Mac и Huawei, а также доступность внешних сайтов.
 
 ## Проверка статуса бэкапов из кода / агента
 
@@ -24,3 +27,4 @@
 - Статус последнего хелсчека: `cat backend/backups/health_status.json`
 - Журнал выполнения бэкапов: `tail -n 50 backend/backups/backup.log`
 - Журнал выполнения хелсчеков: `tail -n 50 backend/backups/health.log`
+
