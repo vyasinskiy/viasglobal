@@ -129,6 +129,13 @@ until docker exec "${CONTAINER_NAME}" pg_isready -U "${DB_USER}" > /dev/null 2>&
   sleep 1
 done
 
+# Если СУБД запущена в режиме реплики (standby), переводим её в режим master (read-write)
+if docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d "${DB_NAME}" -t -A -c "SELECT pg_is_in_recovery();" 2>/dev/null | grep -q 't'; then
+  echo "⚡ База данных в режиме standby (recovery). Выполняем pg_promote() в режим master..."
+  docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT pg_promote();" >/dev/null 2>&1 || true
+  sleep 2
+fi
+
 # 4. Выполняем восстановление
 echo "🚀 Импорт дампа в базу данных..."
 START_RESTORE="$(date +%s)"

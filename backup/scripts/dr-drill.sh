@@ -42,11 +42,25 @@ do_failover() {
   LATEST_ECOM="$(find "${BACKUP_BASE_DIR}/ecommerce" -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
 
   if [ -z "${LATEST_VIAS}" ] || [ -z "${LATEST_RENT}" ] || [ -z "${LATEST_ECOM}" ]; then
-    echo "⚠️ Не найдены все локальные бэкапы. Запускаем экспресс-синхронизацию..."
-    bash "${SCRIPT_DIR}/../cron/mac-sync.sh" || true
+    echo "⚠️ Не найдены все локальные бэкапы. Попытка синхронизации с сервера Huawei..."
+    bash "${SCRIPT_DIR}/../cron/mac-sync.sh" 2>/dev/null || true
     LATEST_VIAS="$(find "${BACKUP_BASE_DIR}/viasglobal" -name "*viasglobal*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     LATEST_RENT="$(find "${BACKUP_BASE_DIR}/rent" -name "*rent*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     LATEST_ECOM="$(find "${BACKUP_BASE_DIR}/ecommerce" -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
+
+    # Если сервер недоступен и локальных дампов все еще нет - скачиваем напрямую из Cloudflare R2
+    if [ -z "${LATEST_VIAS}" ] || [ -z "${LATEST_RENT}" ] || [ -z "${LATEST_ECOM}" ]; then
+      echo "☁️  Сервер Huawei недоступен. Скачивание бэкапов напрямую из Cloudflare R2..."
+      mkdir -p "${BACKUP_BASE_DIR}/viasglobal" "${BACKUP_BASE_DIR}/rent" "${BACKUP_BASE_DIR}/ecommerce" "${BACKUP_BASE_DIR}/configs"
+      docker run --rm -v "${BACKUP_BASE_DIR}:/data" \
+        -e AWS_ACCESS_KEY_ID="6a3ced5995c20be21a57b57b37a2e55f" \
+        -e AWS_SECRET_ACCESS_KEY="0632f67591532233b84ebdbb4405db554f1fc10567dc6ea34cff6e4a857e6352" \
+        -e AWS_DEFAULT_REGION="auto" \
+        amazon/aws-cli s3 sync s3://viasglobal-backups /data --endpoint-url https://ac8ad485b5af13d1cfdf0e7b1adfdb12.r2.cloudflarestorage.com
+      LATEST_VIAS="$(find "${BACKUP_BASE_DIR}/viasglobal" -name "*viasglobal*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
+      LATEST_RENT="$(find "${BACKUP_BASE_DIR}/rent" -name "*rent*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
+      LATEST_ECOM="$(find "${BACKUP_BASE_DIR}/ecommerce" -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
+    fi
   fi
 
   echo "   ✅ viasglobal_db: $(basename "${LATEST_VIAS}")"
@@ -105,12 +119,20 @@ do_failover() {
   # 5. Запуск Cloudflare Tunnel на Mac
   echo "☁️  [5/6] Подключение локального Cloudflare Tunnel к edge-сети..."
   docker rm -f cloudflared-failover 2>/dev/null || true
+
+  # Создаем bridge-сеть failover-net с подсетью 100.92.50.0/24 для перехвата IP 100.92.50.18
+  # (так как Cloudflare ingress настроен на http://100.92.50.18:3000, сетевой стек ядра
+  # направит трафик прямо в контейнер accruals-admin-ui с IP 100.92.50.18)
+  docker network create --subnet 100.92.50.0/24 failover-net 2>/dev/null || true
+  docker network connect --ip 100.92.50.18 failover-net accruals-admin-ui 2>/dev/null || true
+
   docker run -d \
     --name cloudflared-failover \
     --network infra_accruals-network \
-    --add-host 100.92.50.18:host-gateway \
     --restart unless-stopped \
     cloudflare/cloudflared:latest tunnel --no-autoupdate run --token "${CF_TUNNEL_TOKEN}"
+
+  docker network connect failover-net cloudflared-failover 2>/dev/null || true
 
   # Даем 5 секунд на регистрацию туннеля в Cloudflare Edge
   echo "⏳ Ожидание переключения edge-маршрутов Cloudflare (7 сек)..."
@@ -146,6 +168,8 @@ do_rollback() {
   # 1. Отключаем локальный Cloudflare Tunnel на Mac
   echo "🛑 [1/3] Остановка локального Cloudflare Tunnel на Mac..."
   docker rm -f cloudflared-failover 2>/dev/null || true
+  docker network disconnect failover-net accruals-admin-ui 2>/dev/null || true
+  docker network rm failover-net 2>/dev/null || true
 
   # 2. Запуск сервисов на боевом сервере Huawei
   echo "🚀 [2/3] Запуск всех контейнеров на сервере Huawei..."
