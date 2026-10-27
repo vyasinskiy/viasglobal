@@ -45,5 +45,6 @@
 
 В случае ручной проверки поддержкой Amazon:
 1. Прикладывается инвойс от ALFA DYSER, S.L. (от 10 единиц товара).
-2. Прикладывается ссылка или выписка из OEPM по номеру дела `M-3053663`.
-3. Прикладывается ссылка на Aviso Legal (`https://www.kuken.es/aviso-legal/`).
+2. Прикладывается ссылка или выписка из OEPM по номеру дела `M-3053663` (локальный файл: [`oepm_kuken_M3053663.pdf`](oepm_kuken_M3053663.pdf)).
+3. Прикладывается ссылка на Aviso Legal (`https://www.kuken.es/aviso-legal/`) и сохраненный PDF (локальный файл: [`aviso_legal_kuken.pdf`](aviso_legal_kuken.pdf)).
+

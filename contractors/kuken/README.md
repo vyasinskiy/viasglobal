@@ -151,6 +151,8 @@
   - **Правообладатель (Titular):** `ALFA DYSER, S.L.`
   - **Классы товаров (Niza):** 7 (кухонные приборы), 8 (утюги), 11 (фены и сушка волос).
   - **Статус регистрации:** Concedida / En vigor (действующая регистрация).
+  - **Официальная выписка:** сохранен PDF-документ [`legal/oepm_kuken_M3053663.pdf`](legal/oepm_kuken_M3053663.pdf).
 - **Торговый реестр Барселоны (Registro Mercantil):** Tomo 24772, Folio 181, Hoja B-67033.
-- **Официальный Aviso Legal бренда:** [https://www.kuken.es/aviso-legal/](https://www.kuken.es/aviso-legal/) (п. 1 «Datos identificativos» и п. 5 «Propiedad intelectual e industrial»).
+- **Официальный Aviso Legal бренда:** [https://www.kuken.es/aviso-legal/](https://www.kuken.es/aviso-legal/) (п. 1 «Datos identificativos» и п. 5 «Propiedad intelectual e industrial»; сохранен PDF-документ [`legal/aviso_legal_kuken.pdf`](legal/aviso_legal_kuken.pdf)).
 - **Вывод для Amazon:** Счета-фактуры от ALFA DYSER, S.L. на товары KUKEN являются прямыми счетами от производителя первого уровня (Tier 1 Direct Manufacturer Invoice) и гарантируют снятие ограничений без дополнительных писем авторизации.
+
