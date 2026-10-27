@@ -785,7 +785,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 - **Query-параметры**: `languageId` (опционально, по умолчанию `2` для испанского).
 - **Пример запроса**:
   ```bash
-  curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/today"
+  curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/today"
   ```
 - **Пример ответа**:
   ```json
@@ -838,7 +838,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
   * `languageId` (число, опционально): ID языка.
 - **Пример запроса**:
   ```bash
-  curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/history?days=7"
+  curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/history?days=7"
   ```
 - **Пример ответа при спаде активности ниже медианной нормы**:
   ```json
@@ -887,9 +887,14 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 - **Query-параметры**:
   * `limit` (число, опционально, по умолчанию `10`): желаемое количество предложений (максимум 100).
   * `languageId` (число, опционально, по умолчанию `2` для испанского).
-- **Пример запроса**:
+  * `format` (строка, опционально): при значении `raw_compact` возвращает сырой компактный JSON-массив из одной строки на объект (для Telegram / OpenClaw без лишней обертки).
+- **Пример запроса со стандартным ответом**:
   ```bash
-  curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/training-phrases?limit=10"
+  curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/training-phrases?limit=10"
+  ```
+- **Пример запроса компактного сырого JSON (для Telegram)**:
+  ```bash
+  curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/training-phrases?limit=10&format=raw_compact"
   ```
 - **Пример ответа**:
   ```json
@@ -903,15 +908,20 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
       "errorCount": 4,
       "skippedNextCount": 6,
       "unlearnedCount": 0,
+      "compactJson": "[\n  {\"id\": 1, \"ru\": \"Банк зачислил сумму на наш счет.\", \"es\": \"El banco abonó el importe en nuestra cuenta.\", \"target\": \"abonó\", \"tense\": \"Pretérito Indefinido\", \"mistake\": \"abono\"}\n]",
       "phrases": [
         {
           "id": 1,
           "wordId": 80,
+          "ru": "Банк зачислил сумму на наш счет.",
+          "es": "El banco abonó el importe en nuestra cuenta.",
+          "target": "abonó",
+          "tense": "Pretérito Indefinido",
+          "mistake": "abono",
           "russianSentence": "Банк зачислил сумму на наш счет.",
           "spanishSentence": "El banco abonó el importe en nuestra cuenta.",
           "targetWord": "abonó",
           "targetWordRu": "зачислил (он / Вы)",
-          "tense": "Pretérito Indefinido",
           "person": "él/ella/usted",
           "personLabel": "3-е лицо ед. ч. (él/ella/usted)",
           "reason": "error",
@@ -928,7 +938,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 ### 7.5. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
 
 1. **Сценарий 1: Ответ на вопрос «Какая у меня статистика по испанскому за сегодня?»**:
-   - Выполни: `curl -s -H "x-app-password: viasglobal" http://localhost:3000/api/sessions/today`
+   - Выполни: `curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/today"`
    - Извлеки `summary` и `recommendation`:
      «Сегодня сделано N активностей (X кликов Next, Y верных ответов, Z ошибок). Точность: A%.»
    - Сообщи вывод из поля `recommendation` (например: «Больше всего ошибок во времени Pretérito Indefinido (7 ошибок) на форме yo. Слабое слово: abonó»).
@@ -951,12 +961,20 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
    - Сформируй структурированный отчет в Telegram со статистикой, подведением итогов и мотивирующей рекомендацией.
 4. **Сценарий 4: Запрос пользователя в диалоге: «Пришли предложения для тренировки сегодня» (или «скинь фразы для тренировки», «дай 15 предложений»)**:
    - Определи запрошенное количество предложений `limit` (по умолчанию `10`).
-   - Выполни: `curl -s -H "x-app-password: viasglobal" "http://localhost:3000/api/sessions/training-phrases?limit=${limit}"`
-   - Сформируй ответ в Telegram:
-     * Краткое человекочитаемое превью: сколько предложений с ошибками, сколько пропущенных через Next.
-     * Компактный список предложений с указанием времени и целевого слова.
-     * **Готовый к копированию JSON-блок** с массивом `phrases` (поля: `id`, `russianSentence`, `spanishSentence`, `targetWord`, `targetWordRu`, `tense`, `person`, `reason`, `myMistake`), который пользователь может в один клик скопировать и отправить в Gemini Gem.
-     * Подсказка: «Скопируй JSON-блок выше и отправь в Gemini Gem для разговорной тренировки в голосовом режиме Live!»
+   - Выполни:
+     ```bash
+     curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/training-phrases?limit=${limit}&format=raw_compact"
+     ```
+   - **Строгий формат ответа в Telegram (строго 1 сообщение ONLY JSON для копирования со смартфона)**:
+     Пользователь копирует сообщение со смартфона в Telegram. Если в сообщении есть хоть одно слово текста до или после кода (приветствие, подсказка), при долгом тапе копируется весь пузырь сообщения, что ломает парсинг JSON в Gemini Gem.
+     Поэтому ответ OpenClaw обязан состоять **СТРОГО И ИСКЛЮЧИТЕЛЬНО ИЗ ОДНОГО СООБЩЕНИЯ С БЛОКОМ КОДА JSON** без единого символа лишнего текста до и после:
+     ```
+     ```json
+     <ВСТАВИТЬ ВЫВОД CURL КАК ЕСТЬ БЕЗ ИЗМЕНЕНИЙ И БЕЗ ПЕРЕНОСОВ>
+     ```
+     ```
+     Категорически запрещено добавлять любые приветствия, превью («Виталий, вот фразы...»), завершающие подсказки («Скопируй в Gem...») или дублировать предложения обычным текстом. Только блок с чистым JSON.
+
 
 
 ---

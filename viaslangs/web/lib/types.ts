@@ -180,11 +180,15 @@ export interface SessionsHistory {
 export interface TrainingPhrase {
   id: number;
   wordId: number;
+  ru: string;
+  es: string;
+  target: string;
+  tense: string | null;
+  mistake: string | null;
   russianSentence: string;
   spanishSentence: string;
   targetWord: string;
   targetWordRu: string;
-  tense: string | null;
   person: string;
   personLabel: string;
   reason: 'error' | 'skipped_next' | 'unlearned';
@@ -200,5 +204,6 @@ export interface TrainingPhrasesData {
   errorCount: number;
   skippedNextCount: number;
   unlearnedCount: number;
+  compactJson: string;
   phrases: TrainingPhrase[];
 }

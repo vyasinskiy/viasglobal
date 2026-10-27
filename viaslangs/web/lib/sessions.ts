@@ -594,6 +594,7 @@ export async function getTodayTrainingPhrases(options?: {
       errorCount: 0,
       skippedNextCount: 0,
       unlearnedCount: 0,
+      compactJson: "[]",
       phrases: [],
     };
   }
@@ -654,15 +655,23 @@ export async function getTodayTrainingPhrases(options?: {
 
     const russianSentence = (word.example_ru && word.example_ru.trim()) || word.russian.trim();
     const spanishSentence = (word.example_en && word.example_en.trim()) || word.english.trim();
+    const targetWord = word.english.trim();
+    const targetWordRu = word.russian.trim();
 
     phrases.push({
       id: phraseIndex++,
       wordId: word.id,
+      // Компактные поля для голосовой тренировки и мессенджеров (Telegram)
+      ru: russianSentence,
+      es: spanishSentence,
+      target: targetWord,
+      tense: grammar.tense,
+      mistake: item.lastUserAnswer,
+      // Полные поля для обратной совместимости и детальной аналитики
       russianSentence,
       spanishSentence,
-      targetWord: word.english.trim(),
-      targetWordRu: word.russian.trim(),
-      tense: grammar.tense,
+      targetWord,
+      targetWordRu,
       person: grammar.person,
       personLabel: grammar.personLabel,
       reason: item.reason,
@@ -670,6 +679,20 @@ export async function getTodayTrainingPhrases(options?: {
       lastUserAnswer: item.lastUserAnswer,
     });
   }
+
+  // 7. Формируем компактное строковое JSON-представление (по 1 строке на элемент)
+  // Это гарантирует, что 10-15 предложений целиком уложатся в лимит Telegram (4096 символов)
+  const compactItems = phrases.map((p) =>
+    JSON.stringify({
+      id: p.id,
+      ru: p.ru,
+      es: p.es,
+      target: p.target,
+      tense: p.tense,
+      mistake: p.mistake,
+    })
+  );
+  const compactJson = "[\n  " + compactItems.join(",\n  ") + "\n]";
 
   return {
     sessionId,
@@ -679,6 +702,7 @@ export async function getTodayTrainingPhrases(options?: {
     errorCount,
     skippedNextCount,
     unlearnedCount,
+    compactJson,
     phrases,
   };
 }

@@ -22,6 +22,16 @@ export async function GET(req: Request) {
 
     const data = await getTodayTrainingPhrases({ limit, languageId });
 
+    // Если запрошен сырой компактный JSON (для OpenClaw / Telegram без лишней обертки)
+    if (searchParams.get("format") === "raw_compact") {
+      return new Response(data.compactJson, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      });
+    }
+
     return NextResponse.json({
       success: true,
       data,

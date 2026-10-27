@@ -481,17 +481,24 @@ describe('2. Интеграционная логика сессий и анал�
     assert.strictEqual(result.errorCount, 2, 'В выборке ровно 2 слова с ошибками');
     assert.strictEqual(result.skippedNextCount, 1, 'В выборке ровно 1 слово с пропуском Next');
     assert.strictEqual(result.unlearnedCount, 2, 'В выборке ровно 2 неизученных слова для дополнения до 5');
+    assert.ok(typeof result.compactJson === 'string', 'compactJson является строкой');
+    assert.ok(result.compactJson.startsWith('[\n'), 'compactJson начинается с [\\n');
+    assert.ok(result.compactJson.endsWith('\n]'), 'compactJson заканчивается на \\n]');
 
     // Первая фраза - abonó (наибольшее количество ошибок: 2)
     const first = result.phrases[0];
     assert.strictEqual(first.id, 1, 'ID первой фразы равен 1');
     assert.strictEqual(first.wordId, abonoWord.id, 'Первое слово - abonó');
     assert.strictEqual(first.targetWord, 'abonó', 'targetWord = abonó');
+    assert.strictEqual(first.target, 'abonó', 'target = abonó');
     assert.strictEqual(first.reason, 'error', 'Причина - error');
     assert.strictEqual(first.userErrorsCount, 2, '2 ошибки зафиксировано');
     assert.strictEqual(first.lastUserAnswer, 'abono', 'Последний ошибочный ответ - abono');
+    assert.strictEqual(first.mistake, 'abono', 'mistake = abono');
     assert.strictEqual(first.tense, 'Pretérito Indefinido', 'Время - Pretérito Indefinido');
     assert.strictEqual(first.person, 'él/ella/usted', 'Лицо - él/ella/usted');
+    assert.strictEqual(first.ru, first.russianSentence, 'ru совпадает с russianSentence');
+    assert.strictEqual(first.es, first.spanishSentence, 'es совпадает с spanishSentence');
     assert.ok(first.russianSentence.length > 0, 'Русское предложение не пустое');
     assert.ok(first.spanishSentence.length > 0, 'Испанское предложение не пустое');
 
@@ -502,12 +509,14 @@ describe('2. Интеграционная логика сессий и анал�
     assert.strictEqual(second.reason, 'error', 'Причина - error');
     assert.strictEqual(second.userErrorsCount, 1, '1 ошибка');
     assert.strictEqual(second.lastUserAnswer, 'abone', 'Последний ответ - abone');
+    assert.strictEqual(second.mistake, 'abone', 'mistake = abone');
 
     // Третья фраза - abonaba (пропуск через NEXT)
     const third = result.phrases[2];
     assert.strictEqual(third.id, 3, 'ID третьей фразы равен 3');
     assert.strictEqual(third.wordId, abonabaWord.id, 'Третье слово - abonaba');
     assert.strictEqual(third.reason, 'skipped_next', 'Причина - skipped_next');
+    assert.strictEqual(third.mistake, null, 'mistake для пропуска = null');
 
     // Четвертая и пятая фразы - unlearned
     const fourth = result.phrases[3];
