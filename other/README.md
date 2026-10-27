@@ -8,4 +8,6 @@
 - [`welcome_letter/`](file:///Users/usuario/code/viasglobal/other/welcome_letter) — Шаблон приветственного B2B письма-запроса поставщикам и дистрибьюторам.
 - [`first_call/`](file:///Users/usuario/code/viasglobal/other/first_call) - Скрипты звонков, чек-листы для не-носителей английского и шаблоны ответов на проверочные опросники дистрибьюторов.
 - [`distributor_screening/`](file:///Users/usuario/code/viasglobal/other/distributor_screening) - Предварительный скрининг европейских дистрибьюторов через Google NotebookLM перед отправкой писем.
+- [`company_profile.md`](file:///Users/usuario/code/viasglobal/other/company_profile.md) — Официальные регистрационные и налоговые реквизиты компании, эталонный адрес для Amazon Seller Central и регламент защиты от ошибок ввода фамилии (`Iasinskii` vs `Lasinskii`) при онбординге контрагентов.
+
 

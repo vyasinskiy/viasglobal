@@ -92,3 +92,27 @@ cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "<Им�
    - Приведи точную цитату фрагмента письма на испанском языке.
    - Дай перевод и вывод на русском языке.
    - Укажи дату письма и контакт менеджера.
+
+---
+
+### Шаг 4. Переход к онбордингу и отправка документов (Ficha de Cliente / Alta / SEPA / Первый заказ)
+
+> [!IMPORTANT]
+> **Разделение этапов**: Первичное приветственное письмо (*Welcome Letter*) служит только для запроса прайса и условий. Но когда поставщик согласовал сотрудничество и переходит к **открытию карточки клиента (Ficha de cliente / Alta de cliente / Mandato SEPA / первый заказ)**, начинается передача юридических документов и реквизитов, на основе которых формируются фактуры для Amazon.
+
+#### ⚠️ Критическая ошибка европейских менеджеров при регистрации (Фамилия IASINSKII vs LASINSKII)
+- **Суть проблемы**: В гротескных шрифтах без засечек заглавная английская буква **`I`** неотличима от строчной **`l`**. Менеджеры и операторы поставщиков систематически путают первую букву и заводят карточку клиента на имя **`LASINSKII`** вместо **`IASINSKII`**.
+- **Последствия**: В счетах-фактурах (*Factura*) это приводит к ошибке **Name Mismatch** при проверке в Amazon Seller Central, из-за чего заявка на Brand Ungating / Category Approval гарантированно отклоняется.
+- **Обязательное правило при подготовке любых ответов и форм онбординга**:
+  Включать явное примечание с расшифровкой первой буквы фамилии и эталонные реквизиты из [`other/company_profile.md`](file:///Users/usuario/code/viasglobal/other/company_profile.md):
+  ```markdown
+  Datos para la ficha de cliente y facturación:
+  - Razón Social / Nombre: Vitalii Iasinskii
+    *Nota: El apellido comienza por la letra "I" mayúscula (I de Iglesia), no por "L".
+  - NIF: Z1154366R
+  - Dirección fiscal y de entrega: Ronda Albocacer 11, 12166 Ibarsos (Castellón), España
+  - Teléfono: +34 641 064 851
+  - Email de facturación: info@viasglobal.es
+  ```
+- **Проверка первого Albarán / Factura**: При получении первой накладной (Albarán) или фактуры ИИ обязан немедленно сверить ФИО (`IASINSKII`), адрес (`12166 Ibarsos`) и NIF (`Z1154366R`). Если обнаружена ошибка, сразу сформировать вежливое письмо поставщику с просьбой исправить карточку в ERP до выставления закрывающих документов.
+
