@@ -21,6 +21,9 @@
     * `factura_placas_tasas.pdf`: 31.08.2026, licencias y tasas 294,85 EUR.
     * `proyecto_placas.pdf`: описание тех. проекта (поле 3,54 кВт + инвертор GoodWe + батарея 10 кВт·ч).
   * Pagos placas: 13.07.2026 — 6.486,60 (Santander); 29.08.2026 — 4.324,40 (Sabadell); 31.08.2026 — 294,85 (Santander). Безналичные переводы 100%.
+  * Certificado CEE posterior — Patricia Lluch Marza (arquitecta colegiada):
+    * `factura_certificado_posterior.pdf` (factura FAQ260097 от 26.10.2026): base 120,00 + IVA 21% (25,20) = 145,20 EUR.
+    * Pago: 27.10.2026 — 145,20 EUR (transferencia inmediata Santander, ref 004962166320003J14).
 * Preguntas:
   1. ¿Deducción IRPF eficiencia solo sobre 75%?
   2. ¿25% restante como gasto autónomo?
@@ -28,7 +31,7 @@
 ## 2. Resumen ejecutivo
 
 1. **Sí, 75%** — la parte afecta (25%) debe excluirse de la base de la deducción de cuota DA 50ª.1-2 LIRPF.
-2. **No, 25% automático en gasto — no.** Placas/inversor/baterías e instalación común = bien indivisible de uso mixto → 0% en actividad (ni gasto, ni amortización, ni IVA). Solo los equipos individualizados que sirvan **exclusivamente** al 25% oficina (los 2 splits Oficina despacho + Oficina SMR, si están físicamente allí y probado) pueden activarse como inmovilizado afecto y amortizarse, nunca como gasto corriente del 25% del total. Prohibido doble cómputo del mismo euro en deducción cuota + gasto.
+2. **No, en gasto autónomo — 0%.** В доме 3 этажа (planta baja, 1-й этаж, 2-й этаж). Установлены 2 канальные машины кондиционирования (Kosner conductos): отдельная на planta baja и отдельная на 1-м этаже, а также единая фотоэлектрическая станция с инвертором и батареей. Это неделимые системы общего назначения (art. 29.2 LIRPF, art. 22 RD 439/2007) → 0% в расходах autónomo (ни амортизация, ни текущие расходы, ни вычет НДС). Все затраты в полном объеме относятся к благоустройству жилья и участвуют в вычете IRPF 40% (в пропорции 75% за вычетом доли офиса).
 
 ## 3. Deducción por eficiencia — DA 50ª Ley 35/2006
 
@@ -54,42 +57,34 @@
   * Vivienda habitual o arrendada como vivienda / expectativa alquiler antes 31.12.2027. Domicilio fiscal en 036 no prueba habitualidad — guardar empadronamiento, consumos. Garaje, trastero, jardín, piscina excluidos.
   * Una misma obra — o ap.1 o ap.2, no ambos. Si mejora del edificio — solo ap.3.
   * Resta de cuota íntegra estatal después art.68 (DA 50ª.6).
-* Cálculo orientativo: base = 75% × (4.535,08 [aires] + 10.811,00 [placas] + 294,85 [tasas] + honorarios certificados) − subvenciones = 75% × 15.640,93 − subvenciones = 11.730,70 − subvenciones. Base máxima legal aplicable por año: 7.500 EUR → Cuota deducción (40%) = 3.000 EUR (порог снижения первичной энергии ≥30% и класс A подтверждены с запасом: факт 92,2% снижения).
+* Cálculo orientativo: base = 75% × (4.535,08 [aires] + 10.811,00 [placas] + 294,85 [tasas] + 145,20 [certificado posterior]) − subvenciones = 75% × 15.786,13 − subvenciones = 11.839,60 − subvenciones. Base máxima legal aplicable por año: 7.500 EUR → Cuota deducción (40%) = 3.000 EUR (порог снижения первичной энергии ≥30% и класс A подтверждены с запасом: факт 92,2% снижения).
 * Falta para aplicar: justificantes bancarios de todo (все переводы Santander/Sabadell в деле), prueba de ausencia/cuantía de subvención (si se solicitó). Certificado posterior y registro IVACE — ВЫПОЛНЕНО (16.10.2026, código E2026VF098103).
 
 ## 4. ¿25% como gasto autónomo? No
 
 Normas:
 
-* Art.28 LIRPF — rendimiento neto según IS + reglas especiales:
-  https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764
-* Art.29 LIRPF elementos afectos, ap.2:
-  > En ningún caso serán susceptibles de afectación parcial elementos patrimoniales indivisibles.
-* Art.30.2.5ª LIRPF — única regla pro-vivienda parcial: solo suministros (agua, gas, electricidad, telefonía, internet) en % = 30% × (m² afectos / total). Nada más automático.
-* Art.22 RD 439/2007 Reglamento IRPF:
-  https://www.boe.es/buscar/act.php?id=BOE-A-2007-6820
-  * Ap.2.1º: uso simultáneo actividad + privado = no afecto, salvo uso privado accesorio e irrelevante. 75% privado no es irrelevante.
-  * Ap.3: solo partes susceptibles de aprovechamiento separado e independiente. Indivisibles — no.
+* Art. 28 y 29 LIRPF (elementos afectos, ap. 2): «En ningún caso serán susceptibles de afectación parcial elementos patrimoniales indivisibles».
+* Art. 30.2.5ª LIRPF: única regla para vivienda compartida — suministros corrientes (luz, agua, internet) al 30% × % de afectación (30% × 25% = 7,5%).
+* Art. 22 RD 439/2007 (Reglamento IRPF, ap. 2.1º): el uso simultáneo para actividad económica y necesidades privadas determina la no afectación del elemento indivisible.
 
 Aplicación:
 
-* Instalación común (fotovoltaica con único inversor, climatización común, mano obra común) = indivisible mixta. Doctrina AEAT/DGT constante: no admite afectación parcial → 0% gasto, 0% amortización, 0% IVA. Tomar 25% proporcional de placas es incorrecto.
-* Divisible: splits Oficina despacho y Oficina SMR (1.357,62 + IVA c/u). Si están físicamente en las habitaciones del 25%, con circuito propio y sirven solo a la actividad → afectos al 100% de su coste individual, no al 25%. Entonces se excluyen totalmente de la base DA 50ª y van a inmovilizado actividad.
-* Splits salón/dormitorios = privado → van al 75% base DA 50ª, 0% actividad.
-* Mano obra común/canalización sin desglose = mixto indivisible = 0% actividad. Pedir a Esteban Ferrando Gual factura desglosada por equipo.
-* Placas + inversor + baterías: un campo, un inversor, consumo toda la casa. Indivisible. Todo su coste — solo 75% base DA 50ª, 0% actividad. Solo cabría afectación si hubiera dos instalaciones independientes con contador/inversor propio para oficina — según proyecto no hay.
-* Mejora ≠ gasto: placas y aires son inversión (más valor/vida útil) → activación y amortización lineal por tablas (ED simplificada: tabla simplificada Orden Hacienda), no gasto 2026. Orientativo: instalaciones 10-12%, clima 10%, placas 7-10%. Incluso lo afecto exclusivo oficina: ~10% × 2.627,05 base en 2026 prorrateado desde puesta en marcha, resto años siguientes.
-* Fecha: afectación desde 31.07.2026. Pago inicial Sotysolar 6.486,60 de 13.07.2026 es anterior → no deducible como actividad con efecto retroactivo.
-* Doble cómputo prohibido: mismo euro no puede estar en base deducción cuota + gasto/amortización. Solo split: 75% cuota / parte exclusiva oficina amortización. Incumplimiento = regularización + intereses + sanción art.191 LGT.
-* IVA Ley 37/1992 art.95: solo bienes afectos exclusiva y directamente, con prueba. Mixto indivisible — IVA no deducible. IVA splits oficina 21% (231,11+231,11) deducible 100% si afecto exclusivo y factura a NIE autónomo; IVA resto aires + IVA placas — 0% como autónomo, se queda en base IRPF particular. 25% proporcional del IVA de placas — no.
+* Instalación común (fotovoltaica con único inversor, climatización por conductos por plantas de la vivienda):
+  * La vivienda adosada consta de 3 niveles: planta baja, primera planta y buhardilla.
+  * Se han instalado 2 máquinas de conductos (Kosner conductos): una para climatizar la planta baja completa y otra para la primera planta completa.
+  * Al tratarse de sistemas canalizados de climatización general de plantas completas y una única instalación fotovoltaica común, son bienes indivisibles de uso común/mixto (art. 29.2 LIRPF y art. 22 RD 439/2007).
+  * Doctrina constante de la Dirección General de Tributos (DGT) y AEAT: los bienes indivisibles de uso simultáneo no admiten afectación parcial → 0% gasto, 0% amortización en actividad económica, 0% deducción de IVA en mod. 303.
+  * Por tanto, no procede solicitar ningún desglose ficticio a Esteban Ferrando Gual ni activar nada en libros de autónomo.
+  * Todo el coste de ambas instalaciones (15.640,93 EUR) se canaliza exclusivamente a la deducción de cuota de vivienda en IRPF (al 75% por la cuota no afecta: 11.730,70 EUR), donde cubre con holgura el límite máximo legal de 7.500 EUR (máxima deducción de 3.000 EUR).
+* IVA Ley 37/1992 art. 95: solo bienes afectos exclusiva y directamente permiten deducir IVA. Al ser mixto indivisible, el IVA no se deduce en el mod. 303 de autónomo, sino que se integra como mayor coste de obra para la base de deducción del IRPF particular.
 
 ## 5. Cómo actuar
 
-1. Pedir desglose: a) equipos + mano obra oficinas, b) equipos vivienda, c) común. Solo a) candidato a inmovilizado actividad.
+1. No tocar los libros de autónomo con facturas de clima ni placas (0% gasto, 0% amortización). Únicamente deducir el 7,5% de suministros corrientes (luz, agua, internet).
 2. [ВЫПОЛНЕНО] Получен certificado posterior и официальная регистрация IVACE/Generalitat (código `E2026VF098103` от 16.10.2026, класс A). Выполнены условия для максимального вычета 40% (DA 50ª.2).
-3. Contabilidad ED: alta inmovilizado solo desglose oficina (cuenta 215/217), amortización desde 09.2026. Resto no tocar en libros actividad.
-4. Renta 2026: base deducción = 75% cantidades bancarias 2026 − subvenciones, sin parte oficina afecta. Casillas DA 50ª. Guardar transferencias, facturas a Ronda Albocasser 11, certificados anterior/posterior.
-5. IVA mod.303: solo IVA facturas oficina. IVA placas no deducir.
+3. Renta 2026: base deducción = 75% × 15.640,93 = 11.730,70 EUR − subvenciones públicas recibidas. Se aplica el tope máximo anual de 7.500 EUR → deducción directa de 3.000 EUR en cuota.
+4. IVA mod.303: IVA de placas y clima NO se deduce en autónomo, forma parte íntegra del coste computable en IRPF particular.
 6. Probar uso exclusivo 25%: plano con m², fotos oficinas, libro visitas. El 036 solo no basta en comprobación.
 7. No intentar completar 25% con placas si splits oficina valen menos — motivo típico de requerimiento.
 
@@ -111,4 +106,6 @@ Aplicación:
 * `certificado_posterior_borrador.pdf` — предварительный расчет CE3X от 14.10.2026 (сохранен для истории).
 * `aires/factura_completa_aires.pdf` + `pago_aires_1/2/3.pdf`.
 * `placas/factura_placas_1.pdf`, `factura_placas_2.pdf`, `factura_placas_tasas.pdf`, `proyecto_placas.pdf`, `pago_placas_1/2.pdf`.
-* Pendiente: desglose oficina/vivienda по кондиционерам от Esteban Ferrando, подтверждение отсутствия/размера субсидии (если оформлялась).
+* `factura_certificado_posterior.pdf` — фактура FAQ260097 архитектора Patricia Lluch Marza на 145,20 EUR от 26.10.2026.
+* `pago_certificado_posterior.pdf` — квитанция перевода Santander на 145,20 EUR от 27.10.2026 (ref `004962166320003J14`).
+* Pendiente: подтверждение отсутствия/размера субсидии (если оформлялась через SotySolar в IVACE).

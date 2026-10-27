@@ -12,12 +12,18 @@
 
 ### `energy-efficiency-deduction-2026/`
 - Материалы по налоговому вычету за энергоэффективность в жилье (DA 50ª Ley 35/2006 IRPF, RDL 19/2021).
-- Счета и подтверждения платежей (aires acondicionados, placas solares, tasas municipales).
+- Счета и подтверждения платежей (aires acondicionados, placas solares, tasas municipales, honorarios del certificado CEE posterior).
 - Энергетические сертификаты (CEE) и регистрация IVACE:
   - Сертификат до работ: [`certificado_anterior.pdf`](file:///Users/usuario/code/viasglobal/legal/energy-efficiency-deduction-2026/certificado_anterior.pdf) (E2024VI105123 от 02.12.2024, класс E / 178,21 кВт·ч/м²·год).
   - Сертификат после работ: [`certificado_posterior.pdf`](file:///Users/usuario/code/viasglobal/legal/energy-efficiency-deduction-2026/certificado_posterior.pdf) (E2026VF098103 от 16.10.2026, наивысший класс **A** / 13,9 кВт·ч/м²·год — снижение невозобновляемой первичной энергии на 92,2%, право на вычет 40%).
   - Официальный документ о регистрации сертификата в реестре IVACE / Generalitat Valenciana: [`registro_cee.pdf`](file:///Users/usuario/code/viasglobal/legal/energy-efficiency-deduction-2026/registro_cee.pdf).
 - Аналитические отчеты и юридические заключения по применимости ставок вычета (20%, 40%, 60%).
+
+### [`declaraciones/`](file:///Users/usuario/code/viasglobal/legal/declaraciones/)
+- Единый структурированный архив и реестр налоговых деклараций индивидуального предпринимателя (*Autónomo*) и физического лица в Испании (AEAT).
+- **Квартальные декларации (Trimestrales)**: распределение по годам (`2024/`, `2025/`, `2026/`) и кварталам (`1T/`, `2T/`, `3T/`, `4T/`) для Modelo 130 (аванс IRPF 20%), Modelo 303 (IVA), Modelo 349 (внутриевропейский ROI/VIES).
+- **Годовые декларации (Anuales)**: годовые сводки Modelo 390 (IVA).
+- **Renta 2026**: специальный раздел подготовки к годовой декларации подоходного налога (*Modelo 100*) в [`declaraciones/2026/renta/`](file:///Users/usuario/code/viasglobal/legal/declaraciones/2026/renta/) с вычетом по энергоэффективности (3 000 €) и пошаговым чек-листом по субсидии на солнечные панели.
 
 ### `escritura_donacion/`
 - Документы для оформления нотариального акта дарения (escritura de donación).
