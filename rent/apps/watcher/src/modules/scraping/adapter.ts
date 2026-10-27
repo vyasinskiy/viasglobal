@@ -724,24 +724,30 @@ export function isExpectedPendingInvoice(
     const periodMonths = parsed.year * 12 + parsed.month;
     const diffMonths = nowMonths - periodMonths;
 
-    // 1. Текущий месяц или будущий период (diffMonths <= 0):
-    // Квитанции текущего месяца никогда не готовы до окончания расчетного периода.
+    // Проверяем, есть ли для данного лицевого счета более свежий период в выгрузке
+    const accountInvoices = allInvoices.filter(i => i.accountExternalId === invoice.accountExternalId);
+    const hasNewerPeriod = accountInvoices.some(other => {
+      const otherParsed = parsePeriodYearMonth(other.periodId) || parsePeriodYearMonth(other.periodLabel);
+      return otherParsed && (otherParsed.year * 12 + otherParsed.month) > periodMonths;
+    });
+
+    // 1. Если по данному лицевому счету уже появился более свежий период (следующий месяц),
+    // то старый инвойс обязан быть сформирован и доступен. Его отсутствие — это сбой системы.
+    if (hasNewerPeriod) {
+      return false;
+    }
+
+    // 2. Текущий месяц или будущий период (diffMonths <= 0):
+    // Квитанции самого свежего периода текущего месяца могут быть еще не сформированы УК.
     if (diffMonths <= 0) {
       return true;
     }
 
-    // 2. Предыдущий месяц (diffMonths === 1, например октябрь в начале ноября):
-    // В первой половине месяца квитанции за прошлый месяц могут еще не быть опубликованы УК.
-    // Проверяем, что для данного лицевого счета это самый свежий период в выгрузке.
+    // 3. Предыдущий месяц (diffMonths === 1, например октябрь в начале ноября),
+    // когда более свежий период еще не появился на портале:
+    // В начале следующего месяца квитанция за прошлый месяц может еще формироваться УК.
     if (diffMonths === 1) {
-      const accountInvoices = allInvoices.filter(i => i.accountExternalId === invoice.accountExternalId);
-      const hasNewerPeriod = accountInvoices.some(other => {
-        const otherParsed = parsePeriodYearMonth(other.periodId) || parsePeriodYearMonth(other.periodLabel);
-        return otherParsed && (otherParsed.year * 12 + otherParsed.month) > periodMonths;
-      });
-      if (!hasNewerPeriod) {
-        return true;
-      }
+      return true;
     }
 
     // Периоды двухмесячной давности и старше (diffMonths > 1) должны быть уже загружены

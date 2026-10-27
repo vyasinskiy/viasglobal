@@ -394,6 +394,123 @@ describe('ScrapingService', () => {
       }));
     });
 
+    it('должен переводить статус в warning и фиксировать сбой системы, если эти инвойсы за 202610 (л/с 6603378, 3475821, 464655) не прогрузились и в следующем месяце (появился период 202611)', async () => {
+      // Период октября (202610) и следующий месяц (202611)
+      const octoberInvoices = [
+        {
+          accountExternalId: '6603378',
+          periodId: '202610',
+          periodLabel: '202610',
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-6603378-oct.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+        {
+          accountExternalId: '3475821',
+          periodId: '202610',
+          periodLabel: '202610',
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-3475821-oct.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+        {
+          accountExternalId: '464655',
+          periodId: '202610',
+          periodLabel: '202610',
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-464655-oct.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+      ];
+
+      // В следующем месяце по лицевым счетам уже выставлены начисления за ноябрь (202611)
+      const novemberInvoices = [
+        {
+          accountExternalId: '6603378',
+          periodId: '202611',
+          periodLabel: '202611',
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-6603378-nov.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+        {
+          accountExternalId: '3475821',
+          periodId: '202611',
+          periodLabel: '202611',
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-3475821-nov.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+        {
+          accountExternalId: '464655',
+          periodId: '202611',
+          periodLabel: '202611',
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-464655-nov.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+      ];
+
+      const allDiscoveredInvoices = [...octoberInvoices, ...novemberInvoices];
+
+      jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
+        apartments: [{ externalId: 'apt-1', address: 'ул. Тестовая 1' } as any],
+        accounts: [
+          { externalId: '6603378', apartmentExternalId: 'apt-1' } as any,
+          { externalId: '3475821', apartmentExternalId: 'apt-1' } as any,
+          { externalId: '464655', apartmentExternalId: 'apt-1' } as any,
+        ],
+        accruals: [],
+        invoices: allDiscoveredInvoices as any,
+        needsLogin: false,
+        degraded: false,
+        message: 'Scanned 1 apartment(s), 3 account(s).',
+      });
+
+      // Инвойсы за октябрь по-прежнему отдают 404, а ноябрь успешно скачивается
+      const mockPdfBuffer = Buffer.from('nov pdf');
+      jest.spyOn(KvartplataAdapter.prototype, 'downloadInvoice').mockImplementation(async (url: string) => {
+        if (url.includes('oct')) {
+          throw new InvoiceNotFoundError(404, 'Failed to download invoice: 404');
+        }
+        return mockPdfBuffer;
+      });
+
+      mockAccountantClientService.findApartments.mockResolvedValue([]);
+      mockAccountantClientService.findInvoices.mockResolvedValue([]);
+      mockAccountantClientService.getUploadUrl.mockImplementation(async (accountId, period) => ({
+        url: `http://storage.internal/upload?key=invoices/${accountId}/${period}.pdf`,
+        key: `invoices/${accountId}/${period}.pdf`
+      }));
+
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true, status: 200 });
+
+      // Запускаем сканирование
+      const summary = await service.scan({ trigger: 'cron' });
+
+      // Так как наступил следующий месяц и октябрьские квитанции не появились, это сбой -> статус warning
+      expect(summary.status).toBe('warning');
+      expect(summary.error).toBeDefined();
+      expect(summary.error).toContain('Invoice 202610 (6603378): Failed to download invoice: 404');
+      expect(summary.error).toContain('Invoice 202610 (3475821): Failed to download invoice: 404');
+      expect(summary.error).toContain('Invoice 202610 (464655): Failed to download invoice: 404');
+      expect(summary.errors).toHaveLength(3);
+
+      // Проверяем сохранение статуса сбоя в БД (runs)
+      expect(mockPrismaService.run.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          status: 'warning',
+          message: expect.stringContaining('Invoice 202610 (6603378): Failed to download invoice: 404')
+        })
+      }));
+    });
+
     it('должен переводить статус в warning, если ошибка скачивания 404 произошла по старому периоду (202601)', async () => {
       // Инвойс за старый период (январь)
       const oldInvoice = {

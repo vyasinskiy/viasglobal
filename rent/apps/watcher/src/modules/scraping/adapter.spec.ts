@@ -292,6 +292,46 @@ describe('Логика извлечения данных KvartplataAdapter', () 
       expect(result).toBe(true);
     });
 
+    it('должен возвращать false для инвойса 202610, если в следующем месяце (ноябре) уже появился более свежий период (202611), а октябрь так и не сформирован', () => {
+      // Ноябрь 2026 года, уже выставлен период 202611, но квитанция за 202610 все еще 404
+      const nowInNovember = new Date('2026-11-20T12:00:00Z');
+      const invoiceOctober = {
+        accountExternalId: '3475821',
+        periodLabel: '202610',
+        periodId: '202610',
+        available: true,
+        uploadedToStorage: false
+      };
+      const invoiceNovember = {
+        accountExternalId: '3475821',
+        periodLabel: '202611',
+        periodId: '202611',
+        available: true,
+        uploadedToStorage: false
+      };
+      const allInvoices = [
+        invoiceOctober,
+        invoiceNovember
+      ];
+      // Для октября 202610 при наличии более свежего периода 202611 это уже сбой -> false
+      const result = isExpectedPendingInvoice(invoiceOctober, allInvoices, nowInNovember);
+      expect(result).toBe(false);
+    });
+
+    it('должен возвращать false для инвойса 202610 через месяц (в декабре 2026), если он так и не сформирован', () => {
+      // Декабрь 2026 года (прошло 2 месяца), квитанция за октябрь все еще возвращает 404
+      const nowInDecember = new Date('2026-12-05T12:00:00Z');
+      const invoiceOctober = {
+        accountExternalId: '6603378',
+        periodLabel: '202610',
+        periodId: '202610',
+        available: true,
+        uploadedToStorage: false
+      };
+      const result = isExpectedPendingInvoice(invoiceOctober, [invoiceOctober], nowInDecember);
+      expect(result).toBe(false);
+    });
+
     it('должен возвращать false для старых периодов (например, 202607 в октябре 2026)', () => {
       // Старая квитанция за июль, отсутствующая в конце октября, свидетельствует о реальной проблеме
       const oldInvoice = {
