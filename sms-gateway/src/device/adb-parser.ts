@@ -140,11 +140,16 @@ export function parseAdbDevices(output: string): AdbDeviceItem[] {
  *   temperature: 290
  *   technology: Li-ion
  */
-export function parseBatteryInfo(output: string): AdbBatteryInfo {
+export function parseBatteryInfo(output: string): AdbBatteryInfo | null {
+  // Если вывод пустой или не содержит ключевого поля level, считаем данные невалидными
+  if (!output || !output.toLowerCase().includes('level:')) {
+    return null;
+  }
+
   // Значения по умолчанию
-  let level = 0;
-  let status = 1; // 1 = UNKNOWN, 2 = CHARGING, 3 = DISCHARGING, 5 = FULL
-  let present = true;
+  let level: number | null = null;
+  let status: number | null = null; // 1 = UNKNOWN, 2 = CHARGING, 3 = DISCHARGING, 5 = FULL
+  let present: boolean | null = null;
   let acPowered = false;
   let usbPowered = false;
   let voltage = 0;
@@ -158,29 +163,49 @@ export function parseBatteryInfo(output: string): AdbBatteryInfo {
     const key = match[1].trim().toLowerCase();
     const val = match[2].trim();
 
+    // Для полей, которые могут дублироваться на некоторых прошивках (Flyme/MediaTek),
+    // сохраняем первое непустое значение первичного источника питания (где present: true).
     if (key === 'level') {
-      level = parseInt(val, 10) || 0;
+      if (level === null) {
+        level = parseInt(val, 10);
+      }
     } else if (key === 'status') {
-      status = parseInt(val, 10) || 1;
+      if (status === null) {
+        status = parseInt(val, 10);
+      }
     } else if (key === 'present') {
-      present = val.toLowerCase() === 'true';
+      if (present === null) {
+        present = val.toLowerCase() === 'true';
+      }
     } else if (key === 'ac powered') {
-      acPowered = val.toLowerCase() === 'true';
+      if (val.toLowerCase() === 'true') acPowered = true;
     } else if (key === 'usb powered') {
-      usbPowered = val.toLowerCase() === 'true';
+      if (val.toLowerCase() === 'true') usbPowered = true;
     } else if (key === 'voltage') {
-      voltage = parseInt(val, 10) || 0;
+      if (voltage === 0) {
+        voltage = parseInt(val, 10) || 0;
+      }
     } else if (key === 'temperature') {
-      rawTemperature = parseInt(val, 10) || 0;
+      if (rawTemperature === 0) {
+        rawTemperature = parseInt(val, 10) || 0;
+      }
     }
   }
+
+  // Если уровень заряда не был извлечен
+  if (level === null || isNaN(level)) {
+    return null;
+  }
+
+  const finalStatus = status !== null && !isNaN(status) ? status : 1;
+  const finalPresent = present !== null ? present : true;
 
   // В Android температура отдается в десятых долях градуса Цельсия (например, 290 = 29.0°C)
   const temperature = rawTemperature > 0 ? parseFloat((rawTemperature / 10).toFixed(1)) : 25.0;
 
   // Флаг зарядки: либо статус равен 2 (CHARGING) или 5 (FULL), либо идет питание по USB/AC
   const isPowered = acPowered || usbPowered;
-  const isCharging = status === 2 || (isPowered && status !== 3);
+  const isCharging = finalStatus === 2 || finalStatus === 5 || (isPowered && finalStatus !== 3);
 
   return {
     level,
@@ -190,8 +215,8 @@ export function parseBatteryInfo(output: string): AdbBatteryInfo {
     voltage,
     usbPowered,
     acPowered,
-    present,
-    rawStatus: status,
+    present: finalPresent,
+    rawStatus: finalStatus,
   };
 }
 

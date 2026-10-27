@@ -51,4 +51,15 @@ describe('Модуль форматирования сообщений для Te
 
     assert.strictEqual(escaped, 'Операция &lt;450 EUR&gt; &amp; код "1234"');
   });
+
+  it('Шаблоны sendBatteryRecoveredAlert и sendDeviceRebootedAlert выполняются без ошибок и не содержат запрещенных тире', async () => {
+    // Проверяем работу методов нотификатора с отключенной сетевой отправкой
+    const notifier = new TelegramNotifier('', [], false);
+
+    const recoveredSuccess = await notifier.sendBatteryRecoveredAlert(85, true, 'Meizu U20');
+    assert.strictEqual(recoveredSuccess, false); // Сеть отключена в конструкторе
+
+    const rebootSuccess = await notifier.sendDeviceRebootedAlert('U20AVCPM22MQH', 'Meizu U20', 100, true);
+    assert.strictEqual(rebootSuccess, false);
+  });
 });

@@ -96,10 +96,49 @@ Current Battery Service state:
 `;
       const info = parseBatteryInfo(output);
 
-      assert.strictEqual(info.level, 12);
-      assert.strictEqual(info.isCharging, false);
-      assert.strictEqual(info.usbPowered, false);
-      assert.strictEqual(info.temperature, 31.0);
+      assert.strictEqual(info?.level, 12);
+      assert.strictEqual(info?.isCharging, false);
+      assert.strictEqual(info?.usbPowered, false);
+      assert.strictEqual(info?.temperature, 31.0);
+    });
+
+    it('Возвращает null при пустом или некорректном выводе dumpsys battery (защита от ложного 0%)', () => {
+      // Имитируем ошибку/пустой вывод во время сбоя или перезагрузки служб Android
+      assert.strictEqual(parseBatteryInfo(''), null);
+      assert.strictEqual(parseBatteryInfo('error: closed'), null);
+      assert.strictEqual(parseBatteryInfo('Current Battery Service state:\n'), null);
+    });
+
+    it('Корректно извлекает параметры первичной батареи при дублирующихся строках MediaTek/Flyme на Meizu U20', () => {
+      // Реальный снимок вывода команды dumpsys battery с телефона Meizu U20
+      const output = `
+Current Battery Service state:
+  AC powered: false
+  USB powered: true
+  Wireless powered: false
+  status: 5
+  status: 1
+  health: 2
+  present: true
+  present: false
+  level: 100
+  level: 50
+  scale: 100
+  voltage: 4396
+  temperature: 320
+  technology: Li-ion
+`;
+      const info = parseBatteryInfo(output);
+      assert.ok(info !== null);
+
+      // Проверяем, что взяты параметры первичной батареи (100%, статус 5 FULL, present: true)
+      assert.strictEqual(info.level, 100);
+      assert.strictEqual(info.present, true);
+      assert.strictEqual(info.rawStatus, 5);
+      assert.strictEqual(info.usbPowered, true);
+      assert.strictEqual(info.isCharging, true);
+      assert.strictEqual(info.voltage, 4396);
+      assert.strictEqual(info.temperature, 32.0);
     });
   });
 

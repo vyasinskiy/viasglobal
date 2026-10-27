@@ -169,6 +169,27 @@ export class AdbClient {
   }
 
   /**
+   * Запрос времени непрерывной работы устройства (uptime) в секундах из /proc/uptime.
+   * Возвращает null при ошибке или недоступности устройства.
+   */
+  public async getDeviceUptime(serial: string): Promise<number | null> {
+    try {
+      const stdout = await this.runAdb(['-s', serial, 'shell', 'cat', '/proc/uptime']);
+      const parts = stdout.trim().split(/\s+/);
+      if (parts.length > 0) {
+        const uptimeSeconds = parseFloat(parts[0]);
+        if (!isNaN(uptimeSeconds) && uptimeSeconds >= 0) {
+          return uptimeSeconds;
+        }
+      }
+      return null;
+    } catch (error: any) {
+      console.warn(`[AdbClient] Ошибка получения uptime (${serial}): ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Запрос списка входящих SMS из системного хранилища Android через Content Provider.
    *
    * Используется проекция: _id,address,date,type,body

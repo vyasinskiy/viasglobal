@@ -56,6 +56,10 @@ export class HealthMonitor {
   private lastWasConnected: boolean | null = null;
   // Время последней отправки алерта о низком заряде (для ограничения частоты раз в 30 минут)
   private lastLowBatteryAlertTime: number = 0;
+  // Флаг активного состояния тревоги о низком заряде батареи
+  private hasActiveLowBatteryAlert: boolean = false;
+  // Время непрерывной работы устройства (uptime в секундах) для фиксации перезагрузок
+  private lastDeviceUptime: number | null = null;
 
   // Кэшированные последние данные
   private cachedBattery: AdbBatteryInfo | null = null;
@@ -168,27 +172,91 @@ export class HealthMonitor {
         // Поддерживаем проброс портов через USB-кабель
         await this.adbClient.setupPortForwarding(targetDevice.serial);
 
-        // 3. Запрашиваем информацию о батарее
+        // 3. Отслеживаем время непрерывной работы устройства (uptime) для фиксации перезагрузки
+        const currentUptime = await this.adbClient.getDeviceUptime(targetDevice.serial);
+        let deviceJustRebooted = false;
+        if (currentUptime !== null) {
+          // Если текущий uptime существенно меньше предыдущего (с запасом 15 сек), значит устройство перезагрузилось
+          if (this.lastDeviceUptime !== null && currentUptime + 15 < this.lastDeviceUptime) {
+            console.log(
+              `[HealthMonitor] Зафиксирована перезагрузка устройства ${targetDevice.serial} (uptime: ${currentUptime}с < ${this.lastDeviceUptime}с)`
+            );
+            deviceJustRebooted = true;
+          }
+          this.lastDeviceUptime = currentUptime;
+        }
+
+        // 4. Запрашиваем информацию о батарее
         const battery = await this.adbClient.getBatteryStatus(targetDevice.serial);
         this.cachedBattery = battery;
 
         if (battery) {
-          batteryLevel = battery.level;
-          isCharging = battery.isCharging;
-          temperature = battery.temperature;
+          // Проверяем на аномалию: 0% при напряжении > 3500 мВ (неинициализированный контроллер при загрузке)
+          const isSuspiciousZero = battery.level === 0 && battery.voltage > 3500;
 
-          // Проверяем уровень заряда на критический порог
-          if (battery.level <= this.lowBatteryThreshold && !battery.isCharging) {
-            status = 'warning';
-            // Отправляем алерт не чаще раза в 30 минут
-            if (now - this.lastLowBatteryAlertTime > 30 * 60 * 1000) {
-              this.lastLowBatteryAlertTime = now;
-              await this.notifier.sendLowBatteryAlert(battery.level, battery.isCharging, this.cachedDeviceModel);
+          if (isSuspiciousZero) {
+            console.warn(
+              `[HealthMonitor] Игнорируем недостоверные показания батареи: 0% при ${battery.voltage} мВ (переходный процесс контроллера питания)`
+            );
+          } else {
+            batteryLevel = battery.level;
+            isCharging = battery.isCharging;
+            temperature = battery.temperature;
+
+            // Проверяем уровень заряда на критический порог (<= lowBatteryThreshold и не заряжается)
+            if (battery.level <= this.lowBatteryThreshold && !battery.isCharging) {
+              // Защита от дребезга (debounce): проводим повторный контрольный замер через 3 секунды
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+              const verifyBattery = await this.adbClient.getBatteryStatus(targetDevice.serial);
+
+              if (
+                verifyBattery &&
+                verifyBattery.level <= this.lowBatteryThreshold &&
+                !verifyBattery.isCharging &&
+                !(verifyBattery.level === 0 && verifyBattery.voltage > 3500)
+              ) {
+                status = 'warning';
+                // Отправляем алерт не чаще раза в 30 минут
+                if (now - this.lastLowBatteryAlertTime > 30 * 60 * 1000) {
+                  this.lastLowBatteryAlertTime = now;
+                  this.hasActiveLowBatteryAlert = true;
+                  await this.notifier.sendLowBatteryAlert(
+                    verifyBattery.level,
+                    verifyBattery.isCharging,
+                    this.cachedDeviceModel
+                  );
+                }
+              }
+            } else if (
+              this.hasActiveLowBatteryAlert &&
+              (battery.level > this.lowBatteryThreshold || battery.isCharging)
+            ) {
+              // Питание восстановилось после тревоги!
+              this.hasActiveLowBatteryAlert = false;
+              this.lastLowBatteryAlertTime = 0;
+              console.log(
+                `[HealthMonitor] Питание телефона ${this.cachedSerial} восстановилось (${battery.level}%, зарядка: ${battery.isCharging})`
+              );
+              await this.notifier.sendBatteryRecoveredAlert(
+                battery.level,
+                battery.isCharging,
+                this.cachedDeviceModel
+              );
             }
           }
         }
 
-        // 4. Запрашиваем информацию о SIM-карте
+        // Если зафиксирована перезагрузка устройства, отправляем оповещение
+        if (deviceJustRebooted) {
+          await this.notifier.sendDeviceRebootedAlert(
+            targetDevice.serial,
+            this.cachedDeviceModel,
+            batteryLevel ?? undefined,
+            isCharging ?? undefined
+          );
+        }
+
+        // 5. Запрашиваем информацию о SIM-карте
         const telephony = await this.adbClient.getTelephonyStatus(targetDevice.serial);
         this.cachedTelephony = telephony;
         if (telephony) {
@@ -199,7 +267,7 @@ export class HealthMonitor {
           }
         }
 
-        // 5. Запрашиваем модель устройства (если еще не была определена)
+        // 6. Запрашиваем модель устройства (если еще не была определена)
         if (this.cachedDeviceModel === 'Meizu U20') {
           const info = await this.adbClient.getDeviceInfo(targetDevice.serial);
           if (info.model && info.model !== 'Android Phone') {

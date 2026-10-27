@@ -220,6 +220,49 @@ ${batteryText}
   }
 
   /**
+   * Отправка оповещения о восстановлении нормального питания и заряда батареи.
+   */
+  public async sendBatteryRecoveredAlert(
+    level: number,
+    isCharging: boolean,
+    model: string = 'Телефон'
+  ): Promise<boolean> {
+    const chargingIcon = isCharging ? '⚡ Заряжается от USB' : '🔋 Работа от батареи';
+    const html = `🟢 <b>Питание телефона восстановлено!</b>
+
+📱 <b>Устройство:</b> ${model}
+🔋 <b>Текущий заряд:</b> ${level}%
+🔌 <b>Статус питания:</b> ${chargingIcon}
+
+Угроза отключения устранена, прием SMS от арендаторов продолжается в штатном режиме.`;
+
+    const { success } = await this.sendMessage(html);
+    return success;
+  }
+
+  /**
+   * Отправка оповещения об успешной перезагрузке телефона и готовности к работе.
+   */
+  public async sendDeviceRebootedAlert(
+    serial: string,
+    model: string = 'Телефон',
+    batteryLevel?: number,
+    isCharging?: boolean
+  ): Promise<boolean> {
+    const chargingText = isCharging ? ' (⚡ Заряжается)' : '';
+    const batteryText = batteryLevel !== undefined ? `\n🔋 <b>Заряд батареи:</b> ${batteryLevel}%${chargingText}` : '';
+    const html = `🔄 <b>Телефон перезагрузился и снова в строю!</b>
+
+✅ <b>Устройство:</b> ${model} (${serial})
+🔌 USB-соединение с сервером активно, система Android загружена.${batteryText}
+
+Прием и форвардинг входящих SMS продолжаются в штатном режиме.`;
+
+    const { success } = await this.sendMessage(html);
+    return success;
+  }
+
+  /**
    * Отправка периодического отчета о здоровье системы (Health Check).
    */
   public async sendHealthReport(
