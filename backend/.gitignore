@@ -5,3 +5,11 @@ node_modules
 /generated/prisma
 /dist
 !.env.example
+
+# Backup archives, logs and temporary status files
+backups/*.sql*
+backups/*.log
+backups/*.json
+backups/*/*.sql*
+backups/*/*.json
+

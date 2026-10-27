@@ -589,7 +589,44 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
+### 5.6. Мониторинг резервных копий (`/health/backups`)
+
+- **`GET /health/backups`**
+  - **Описание**: Получить структурированный статус здоровья ежедневных бэкапов всех баз данных кластера (`viasglobal_db`, `rent`, `ecommerce_db`), сформированный автоматическими проверками `check-health.sh`.
+  - **Пример запроса**:
+    ```bash
+    curl -s http://backend:3000/health/backups
+    ```
+  - **Пример ответа**:
+    ```json
+    {
+      "status": "healthy",
+      "checksPassed": true,
+      "timestamp": "2026-10-27T03:30:00Z",
+      "health": {
+        "status": "healthy",
+        "checksPassed": true,
+        "details": [
+          "viasglobal_db: viasglobal_db_20261027_030001.sql.gz (829 МБ, 0.5 ч назад, CRC OK)",
+          "rent (accruals): rent_all_20261027_030001.sql.gz (0 МБ, 0.5 ч назад, CRC OK)",
+          "ecommerce: ecommerce_db_20261027_030001.sql.gz (0 МБ, 0.5 ч назад, CRC OK)"
+        ],
+        "errors": [],
+        "warnings": []
+      },
+      "lastBackup": {
+        "timestamp": "2026-10-27T03:00:00Z",
+        "durationSeconds": 124,
+        "overallStatus": "healthy"
+      },
+      "message": "Все резервные копии баз данных актуальны и проверены"
+    }
+    ```
+
+---
+
 ## 6. API сервиса E-Commerce CRM (`ecommerce-backend:3001`)
+
 
 Базовый URL изнутри Docker-сети: `http://ecommerce-backend:3001`
 Базовый URL извне через веб-панель: `https://crm.viasglobal.es/api`

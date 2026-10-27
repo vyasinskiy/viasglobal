@@ -1,8 +1,26 @@
-.PHONY: backup test db-reset redeploy-back deploy-huawei
+.PHONY: backup backup-all backup-health backup-sync backup-verify restore-local deploy-backup test db-reset redeploy-back deploy-huawei
 
 backup:
-	@echo "Запуск бэкапа базы данных на сервере Huawei..."
-	ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && bash scripts/backup.sh"
+	@echo "Запуск бэкапа всех баз данных на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal && bash backup/scripts/backup-all.sh"
+
+backup-health:
+	@echo "Запуск хелсчека резервных копий на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal && bash backup/scripts/check-health.sh"
+
+backup-sync:
+	@echo "Синхронизация бэкапов с сервера Huawei на Mac..."
+	@bash backup/cron/mac-sync.sh
+
+backup-verify:
+	@echo "Сверка контрольных сумм и количества строк между Huawei и локальной базой..."
+	@bash backup/scripts/verify-checksums.sh 100.92.50.18 5432 5435
+
+deploy-backup:
+	@echo "Синхронизация скриптов бэкапа и cron-задач на сервер Huawei..."
+	rsync -avz ./backup/ huawei@100.92.50.18:~/viasglobal/backup/
+	@echo "Установка cron-расписания на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal && bash backup/cron/install-cron.sh"
 
 test:
 	@echo "Запуск всех тестов..."
