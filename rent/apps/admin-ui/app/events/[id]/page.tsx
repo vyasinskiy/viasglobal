@@ -44,7 +44,7 @@ interface EventTriggerItem {
 interface EventAttachmentItem {
   id: number;
   fileName: string;
-  s3Key: string;
+  storageKey: string;
   fileSize?: number | null;
   mimeType?: string | null;
   telegramFileId?: string | null;

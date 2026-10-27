@@ -259,9 +259,10 @@ export class AccountantService {
       },
     });
 
-    // We only update 'uploadedToS3' if it's true in the incoming data. 
+    // We only update 'uploadedToStorage' if it's true in the incoming data. 
     // We don't want to revert it to false if it's already true in DB.
-    const shouldUpdateUploaded = data.uploadedToS3 === true || (existing ? existing.uploadedToS3 : false);
+    const incomingUploaded = data.uploadedToStorage === true;
+    const shouldUpdateUploaded = incomingUploaded || (existing ? existing.uploadedToStorage : false);
 
     // Если сумма в событии квитанции не указана или равна 0, ищем связанное начисление в таблице accruals
     let resolvedAmount = data.amount;
@@ -314,7 +315,7 @@ export class AccountantService {
         utilitiesUrl: data.utilitiesUrl,
         localFilePath: data.localFilePath,
         available: data.available,
-        uploadedToS3: data.uploadedToS3 || false,
+        uploadedToStorage: data.uploadedToStorage || false,
         rawJson: data.rawJson,
         accountId: account.id,
         firstSeenAt: new Date(),
@@ -326,14 +327,14 @@ export class AccountantService {
         utilitiesUrl: data.utilitiesUrl,
         localFilePath: data.localFilePath,
         available: data.available,
-        uploadedToS3: shouldUpdateUploaded,
+        uploadedToStorage: shouldUpdateUploaded,
         rawJson: data.rawJson,
         lastSeenAt: new Date(),
       },
     });
 
-    const wasReady = existing ? (existing.available && this.storage.isUploaded(existing.uploadedToS3)) : false;
-    const nowReady = result.available && this.storage.isUploaded(result.uploadedToS3);
+    const wasReady = existing ? (existing.available && this.storage.isUploaded(existing.uploadedToStorage)) : false;
+    const nowReady = result.available && this.storage.isUploaded(result.uploadedToStorage);
 
     if (!wasReady && nowReady) {
       const activeTenant = account.apartment?.tenants?.[0];
@@ -603,7 +604,7 @@ export class AccountantService {
       throw new BadRequestException('Не переданы данные чека (fileBufferBase64, dataUri, telegramFileId или receiptUrl).');
     }
 
-    // Если старый чек был в S3 и мы загружаем новый, удаляем старый файл
+    // Если старый чек был в хранилище и мы загружаем новый, удаляем старый файл
     if (payment.receiptPhotoId && payment.receiptPhotoId.includes('/') && payment.receiptPhotoId !== receiptPhotoId) {
       await this.storage.deleteObject(payment.receiptPhotoId);
     }
@@ -989,7 +990,7 @@ export class AccountantService {
           account: a.account,
           rawJson: a.rawJson,
           invoiceId: matchingInv?.id,
-          invoiceAvailable: matchingInv ? (matchingInv.available && matchingInv.uploadedToS3) : false
+          invoiceAvailable: matchingInv ? (matchingInv.available && matchingInv.uploadedToStorage) : false
         };
       });
     }
@@ -1003,7 +1004,7 @@ export class AccountantService {
     periodLabel?: string;
     periodId?: string;
     available?: boolean | string;
-    uploadedToS3?: boolean | string;
+    uploadedToStorage?: boolean | string;
     take?: number | string;
   }) {
     const where: any = {
@@ -1020,8 +1021,8 @@ export class AccountantService {
     if (filters.available !== undefined) {
       where.available = filters.available === 'true' || filters.available === true;
     }
-    if (filters.uploadedToS3 !== undefined) {
-      where.uploadedToS3 = filters.uploadedToS3 === 'true' || filters.uploadedToS3 === true;
+    if (filters.uploadedToStorage !== undefined) {
+      where.uploadedToStorage = filters.uploadedToStorage === 'true' || filters.uploadedToStorage === true;
     }
 
     const results = await this.prisma.invoice.findMany({
@@ -1136,7 +1137,7 @@ export class AccountantService {
     }
 
     const parsedRaw = safeJsonParse<Record<string, unknown>>(invoice.rawJson);
-    const storageKey = parsedRaw?.s3Key as string || (isS3Key(invoice.localFilePath) ? invoice.localFilePath : null);
+    const storageKey = (parsedRaw?.storageKey as string) || (isStorageKey(invoice.localFilePath) ? invoice.localFilePath : null);
 
     let downloadUrl: string | null = null;
     if (storageKey) {
@@ -1168,7 +1169,7 @@ export class AccountantService {
         periodLabel: periodClean,
         amount: data.amount,
         available: true,
-        uploadedToS3: false,
+        uploadedToStorage: false,
         firstSeenAt: new Date(),
         lastSeenAt: new Date(),
         rawJson: JSON.stringify({
@@ -1206,7 +1207,7 @@ export class AccountantService {
     }
 
     const parsedRaw = safeJsonParse<Record<string, unknown>>(invoice.rawJson);
-    const storageKey = parsedRaw?.s3Key as string || (isS3Key(invoice.localFilePath) ? invoice.localFilePath : null);
+    const storageKey = (parsedRaw?.storageKey as string) || (isStorageKey(invoice.localFilePath) ? invoice.localFilePath : null);
     const downloadUrl = storageKey ? this.storage.getDownloadUrl(storageKey) : null;
 
     return this.serialize({ account, invoice, storageKey, downloadUrl });
@@ -1527,7 +1528,7 @@ export class AccountantService {
               amount: tenant.rentAmount,
               invoiceType: 'rent',
               available: false,
-              uploadedToS3: false,
+              uploadedToStorage: false,
               tenantId: tenant.id,
               firstSeenAt: new Date(),
               lastSeenAt: new Date(),
@@ -1613,7 +1614,7 @@ function normalizePeriod(period: string): string {
   return trimmed;
 }
 
-function isS3Key(value?: string | null): value is string {
+function isStorageKey(value?: string | null): value is string {
   return Boolean(value && !value.startsWith('/') && !value.startsWith('.') && value.toLowerCase().endsWith('.pdf'));
 }
 

@@ -76,7 +76,7 @@ describe('AccountantClientService', () => {
 
   describe('getUploadUrl', () => {
     it('should request upload URL with correct params', async () => {
-      const mockResult = { url: 'http://s3', key: 'key.pdf' };
+      const mockResult = { url: 'http://storage-upload-url', key: 'key.pdf' };
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue(mockResult),

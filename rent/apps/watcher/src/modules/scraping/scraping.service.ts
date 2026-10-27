@@ -8,7 +8,7 @@ import { AccountantClientService } from '../../common/services/accountant-client
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { config } from '../../config';
 import type { AccrualSnapshot, ApartmentSnapshot, AccountSnapshot, InvoiceSnapshot, RunStatus, ScanSummary } from '../../types';
-import { KvartplataAdapter } from './adapter';
+import { KvartplataAdapter, InvoiceNotFoundError, isExpectedPendingInvoice } from './adapter';
 import { ManualScanDto } from './dto/manual-scan.dto';
 import { printSwaggerUrl } from '../../common/utils/swagger';
 
@@ -208,14 +208,15 @@ export class ScrapingService implements OnApplicationBootstrap {
 
       let uploadedInvoicesCount = 0;
       let skippedInvoices = 0;
+      let expectedPendingInvoicesCount = 0;
       const uploadErrors: string[] = [];
 
-      // 4. Process Invoices (Involves S3 upload which takes time, ensuring accounts are likely processed by now)
+      // 4. Process Invoices (Involves storage upload which takes time, ensuring accounts are likely processed by now)
       // Optimized: Fetch all already uploaded invoices for these accounts to avoid N+1 requests
       const accountIds = accounts.map(a => a.externalId);
       const existingUploadedInvoices = await this.accountantClientService.findInvoices({
         accountExternalId: accountIds,
-        uploadedToS3: true
+        uploadedToStorage: true
       });
       const uploadedMap = new Set(existingUploadedInvoices.map((inv: any) => `${inv.accountExternalId}_${inv.periodId}`));
 
@@ -254,20 +255,34 @@ export class ScrapingService implements OnApplicationBootstrap {
 
               // 4. Enrich metadata
               const raw = JSON.parse(invoice.rawJson || '{}');
-              raw.s3Key = key;
+              raw.storageKey = key;
               invoice.rawJson = JSON.stringify(raw);
-              invoice.uploadedToS3 = true;
+              invoice.uploadedToStorage = true;
               invoice.localFilePath = key;
               uploadedInvoicesCount++;
             }
           } catch (err: any) {
-            const red = '\x1b[31m';
-            const reset = '\x1b[0m';
-            const errorMsg = `Invoice ${invoice.periodLabel} (${invoice.accountExternalId}): ${err.message.trim()}`;
-            log(`${red}Failed to process upload for ${errorMsg}${reset}`);
-            uploadErrors.push(errorMsg);
+            // Проверяем, является ли ошибка 404 ожидаемой для последнего/текущего месяца
+            const is404 = err instanceof InvoiceNotFoundError ||
+              (typeof err?.message === 'string' && err.message.includes('404')) ||
+              err?.status === 404;
+            const isExpectedPending = is404 && isExpectedPendingInvoice(invoice, invoices);
+
             invoice.available = false;
-            invoice.uploadedToS3 = false;
+            invoice.uploadedToStorage = false;
+
+            if (isExpectedPending) {
+              const yellow = '\x1b[33m';
+              const reset = '\x1b[0m';
+              expectedPendingInvoicesCount++;
+              log(`${yellow}Invoice ${invoice.periodLabel} (${invoice.accountExternalId}) is not yet published on portal (HTTP 404, expected for recent period)${reset}`);
+            } else {
+              const red = '\x1b[31m';
+              const reset = '\x1b[0m';
+              const errorMsg = `Invoice ${invoice.periodLabel} (${invoice.accountExternalId}): ${err.message.trim()}`;
+              log(`${red}Failed to process upload for ${errorMsg}${reset}`);
+              uploadErrors.push(errorMsg);
+            }
           }
         }
 
@@ -288,6 +303,9 @@ export class ScrapingService implements OnApplicationBootstrap {
       log(`Invoices discovered: ${invoices.length}`);
       log(`${green}Successfully processed/uploaded: ${uploadedInvoicesCount}${reset}`);
       log(`${yellow}Skipped (already in storage): ${skippedInvoices}${reset}`);
+      if (expectedPendingInvoicesCount > 0) {
+        log(`${yellow}Pending publication (expected 404 for recent period): ${expectedPendingInvoicesCount}${reset}`);
+      }
 
       if (uploadErrors.length > 0) {
         log(`${red}Errors encountered: ${uploadErrors.length}${reset}`);

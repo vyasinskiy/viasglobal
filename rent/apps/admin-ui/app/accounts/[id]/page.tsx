@@ -42,7 +42,7 @@ interface Invoice {
   firstSeenAt: string;
   invoiceUrl: string | null;
   available: boolean;
-  uploadedToS3: boolean;
+  uploadedToStorage?: boolean;
 }
 
 interface Payment {
@@ -176,7 +176,7 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
               }
               const displayAmount = parsedAmount !== null ? `${Number(parsedAmount).toFixed(2)} руб.` : '—';
               
-              const isAvailable = inv.uploadedToS3 || inv.invoiceUrl || inv.available;
+              const isAvailable = Boolean(inv.uploadedToStorage || inv.invoiceUrl || inv.available);
               
               return (
               <Paper key={inv.id} style={{ padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: 'none' }}>

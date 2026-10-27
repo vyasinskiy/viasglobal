@@ -150,7 +150,7 @@ export class EventsService {
       ...this.serialize(event),
       attachments: (event.attachments || []).map((att: any) => ({
         ...this.serialize(att),
-        downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
+        downloadUrl: this.storage.getDownloadUrl(att.storageKey) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
       }))
     }));
   }
@@ -178,7 +178,7 @@ export class EventsService {
       ...this.serialize(event),
       attachments: (event.attachments || []).map((att: any) => ({
         ...this.serialize(att),
-        downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
+        downloadUrl: this.storage.getDownloadUrl(att.storageKey) || `/api/accountant/events/${event.id}/attachments/${att.id}/download`
       }))
     };
   }
@@ -414,7 +414,7 @@ export class EventsService {
         scheduledEventId,
         eventTriggerId: eventTriggerId || null,
         fileName: data.fileName,
-        s3Key: attachmentKey,
+        storageKey: attachmentKey,
         fileSize: data.fileBuffer.length,
         mimeType: data.mimeType || 'application/octet-stream',
         telegramFileId: data.telegramFileId || null,
@@ -457,7 +457,7 @@ export class EventsService {
       ...this.serialize(event),
       attachments: (event.attachments || []).map((att: any) => ({
         ...this.serialize(att),
-        downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/attachments/${att.id}/download`
+        downloadUrl: this.storage.getDownloadUrl(att.storageKey) || `/api/accountant/events/attachments/${att.id}/download`
       }))
     }));
   }
@@ -470,7 +470,7 @@ export class EventsService {
 
     return attachments.map((att) => ({
       ...this.serialize(att),
-      downloadUrl: this.storage.getDownloadUrl(att.s3Key) || `/api/accountant/events/attachments/${att.id}/download`
+      downloadUrl: this.storage.getDownloadUrl(att.storageKey) || `/api/accountant/events/attachments/${att.id}/download`
     }));
   }
 

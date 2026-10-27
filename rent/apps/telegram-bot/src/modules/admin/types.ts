@@ -65,7 +65,7 @@ export interface Invoice {
   amount?: number;
   invoiceUrl?: string;
   available: boolean;
-  uploadedToS3: boolean;
+  uploadedToStorage: boolean;
   firstSeenAt: string;
   lastSeenAt: string;
 }

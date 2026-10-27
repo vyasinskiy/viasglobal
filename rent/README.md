@@ -10,7 +10,7 @@ The system consists of three main services communicating via RabbitMQ:
     *   The core backend handling business logic and data persistence.
     *   Manages users, tenants, apartments, accounts, and accruals.
     *   Integrates with Prisma ORM and PostgreSQL.
-    *   Handles S3 integration for storing payment receipts and invoices.
+    *   Handles local file storage for storing payment receipts and invoices.
 
 2.  **Telegram Bot Service (`apps/telegram-bot`)**:
     *   Telegram Bot interface for tenants and administrators.
@@ -31,7 +31,7 @@ The system consists of three main services communicating via RabbitMQ:
 *   **Message Broker**: RabbitMQ
 *   **Bot Framework**: [Telegraf](https://telegraf.js.org/)
 *   **Browser Automation**: Playwright
-*   **Storage**: AWS S3 / S3-compatible storage
+*   **Storage**: Local storage on server disk (apps/accountant/data/uploads/)
 *   **Containerization**: Docker & Docker Compose
 
 ## Project Structure
@@ -179,6 +179,15 @@ When authorization is required:
 * **Разделение данных счета и расписания**: В модели `Account` хранятся свойства лицевого счета (`customLabel`, `accountNumber`, `accountLabel`, `balance`).
 * **Обновление через REST API**: Эндпоинт `PUT /accountant/accounts/:id` принимает `{ customLabel }` и обновляет только пользовательское название счета в таблице `accounts`.
 * **Интерфейс Admin UI (`/accounts`, `/accounts/:id`)**: В модальном окне редактирования лицевого счета и в карточке администратор может быстро задать или изменить понятное название счета (`customLabel`). Все расписания подачи показаний и уведомлений изолированы и настраиваются в профильном разделе **«События»** (`/events`).
+
+### Обработка квитанций за текущий и последний расчетный месяц (Watcher & Invoices)
+* **Ожидаемая ошибка 404 (Expected Pending Invoices)**: В конце текущего расчетного периода (например, в октябре за период `202610`) или в начале следующего месяца управляющие компании производят начисления ЖКУ, но PDF файлы квитанций формируются и загружаются на портал с задержкой (в начале или середине следующего месяца).
+* **Предотвращение ложных алертов**: При получении ошибки `HTTP 404` при скачивании инвойса за текущий месяц (или за последний расчетный месяц лицевого счета) сервис `watcher` идентифицирует это как штатное состояние ожидания публикации (`isExpectedPendingInvoice`).
+* **Поведение системы**:
+  * Запись инвойса сохраняется в базе данных со статусом `available: false` (файл ожидает публикации и сохранения в локальное хранилище), чтобы файл был автоматически скачан в следующем цикле сканирования после его фактической публикации УК.
+  * Статус сканирования (`RunStatus`) остается `success` (не переходит в `warning`), а поле `error` не заполняется.
+  * Telegram-бот присылает штатный статус `✅ Успешно` вместо тревожного предупреждения `⚠️ Предупреждение / ⚠️ Ошибка`.
+
 
 
 

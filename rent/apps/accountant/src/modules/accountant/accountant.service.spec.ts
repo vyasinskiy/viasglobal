@@ -194,26 +194,26 @@ describe('AccountantService', () => {
   });
 
   describe('findInvoices', () => {
-    it('should filter by uploadedToS3 as boolean', async () => {
+    it('должен фильтровать по uploadedToStorage как boolean', async () => {
         mockPrisma.invoice.findMany.mockResolvedValue([]);
-        await service.findInvoices({ uploadedToS3: true });
+        await service.findInvoices({ uploadedToStorage: true });
         expect(mockPrisma.invoice.findMany).toHaveBeenCalledWith(expect.objectContaining({
-            where: expect.objectContaining({ uploadedToS3: true })
+            where: expect.objectContaining({ uploadedToStorage: true })
         }));
     });
 
-    it('should filter by uploadedToS3 as string "true"', async () => {
+    it('должен фильтровать по uploadedToStorage как строка "true"', async () => {
         mockPrisma.invoice.findMany.mockResolvedValue([]);
-        await service.findInvoices({ uploadedToS3: 'true' });
+        await service.findInvoices({ uploadedToStorage: 'true' });
         expect(mockPrisma.invoice.findMany).toHaveBeenCalledWith(expect.objectContaining({
-            where: expect.objectContaining({ uploadedToS3: true })
+            where: expect.objectContaining({ uploadedToStorage: true })
         }));
     });
   });
 
   describe('createPayment & updatePayment receipt handling', () => {
     beforeEach(() => {
-      jest.spyOn(service, 'attachReceipt').mockResolvedValue({ id: 1, receiptPhotoId: 's3-key' } as any);
+      jest.spyOn(service, 'attachReceipt').mockResolvedValue({ id: 1, receiptPhotoId: 'storage-key' } as any);
       (mockPrisma as any).payment = {
         create: jest.fn().mockResolvedValue({ id: 1 }),
         update: jest.fn().mockResolvedValue({ id: 1 }),
@@ -261,7 +261,7 @@ describe('AccountantService', () => {
       }));
     });
 
-    it('should allow short S3 keys directly in updatePayment', async () => {
+    it('должен сохранять короткие ключи хранилища напрямую в updatePayment', async () => {
       await service.updatePayment(1, {
         receiptPhotoId: 'payments/1/receipt.pdf',
       });

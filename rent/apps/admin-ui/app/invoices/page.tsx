@@ -54,7 +54,7 @@ interface Invoice {
   invoiceType?: string | null;
   invoiceUrl: string | null;
   available: boolean;
-  uploadedToS3: boolean;
+  uploadedToStorage?: boolean;
   firstSeenAt: string;
   rawJson?: string | null;
   account?: {
@@ -449,7 +449,7 @@ export default function InvoicesPage() {
                   <TableCell>
                     {row.invoiceType === 'rent' ? (
                       <span className={styles.statusConfirmed}>Начислен</span>
-                    ) : row.uploadedToS3 ? (
+                    ) : row.uploadedToStorage ? (
                       <span className={styles.statusConfirmed}>Загружен</span>
                     ) : row.invoiceUrl || row.available ? (
                       <span className={styles.statusConfirmed}>Доступен</span>
@@ -464,7 +464,7 @@ export default function InvoicesPage() {
                         <span className={`${styles.downloadLink} ${styles.disabledLink}`}>
                           Без PDF
                         </span>
-                      ) : row.uploadedToS3 || row.invoiceUrl || row.available ? (
+                      ) : (row.uploadedToStorage || row.invoiceUrl || row.available) ? (
                         <a
                           href={`/api/invoices/${row.id}/download`}
                           target="_blank"

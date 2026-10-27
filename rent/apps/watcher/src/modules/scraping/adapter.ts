@@ -15,6 +15,18 @@ export class ExpiredSessionError extends Error {
 }
 
 /**
+ * Ошибка, выбрасываемая при отсутствии файла квитанции на сервере (HTTP 404).
+ * Для инвойсов за текущий или последний месяц это является ожидаемым поведением,
+ * так как управляющие компании формируют PDF квитанции с задержкой.
+ */
+export class InvoiceNotFoundError extends Error {
+  constructor(public readonly status: number = 404, message?: string) {
+    super(message || `Failed to download invoice: ${status}`);
+    this.name = 'InvoiceNotFoundError';
+  }
+}
+
+/**
  * Проверяет, требуется ли авторизация на портале kvartplata.online.
  * Проверка учитывает редиректы на промо-лендинг, наличие кнопок входа
  * и предотвращает ложноположительные срабатывания от маркетинговых текстов.
@@ -257,7 +269,7 @@ export class KvartplataAdapter {
                     invoiceUrl: invoiceUrl.toString(),
                     utilitiesUrl: undefined,
                     available: true,
-                    uploadedToS3: false,
+                    uploadedToStorage: false,
                     rawJson: JSON.stringify({
                         accountId: account.externalId,
                         apartmentExternalId: apartment.externalId,
@@ -335,6 +347,9 @@ export class KvartplataAdapter {
         headers: { accept: 'application/pdf, application/octet-stream, */*' }
       });
       if (!response.ok()) {
+        if (response.status() === 404) {
+          throw new InvoiceNotFoundError(404, `Failed to download invoice: 404`);
+        }
         throw new Error(`Failed to download invoice: ${response.status()}`);
       }
       return await response.body();
@@ -605,3 +620,140 @@ function cleanProfileSingletonLocks(profilePath: string): void {
     // Игнорируем ошибки доступа
   }
 }
+
+/**
+ * Извлекает год и месяц из строки периода (periodId или periodLabel).
+ * Поддерживает форматы:
+ * - '202610' (YYYYMM)
+ * - '2026-10' (YYYY-MM)
+ * - '10.2026' (MM.YYYY)
+ * - 'Октябрь 2026', 'Май 2026', 'October 2026', 'May 2026'
+ */
+export function parsePeriodYearMonth(period: string | undefined | null): { year: number; month: number } | null {
+  if (!period || typeof period !== 'string') return null;
+  const str = period.trim();
+
+  // Формат YYYYMM (например, '202610')
+  const yyyymmMatch = str.match(/^(\d{4})(\d{2})$/);
+  if (yyyymmMatch) {
+    const year = Number(yyyymmMatch[1]);
+    const month = Number(yyyymmMatch[2]);
+    if (month >= 1 && month <= 12) return { year, month };
+  }
+
+  // Формат YYYY-MM или YYYY/MM или YYYY.MM
+  const yyyyMmSepMatch = str.match(/^(\d{4})[-/. ](\d{1,2})$/);
+  if (yyyyMmSepMatch) {
+    const year = Number(yyyyMmSepMatch[1]);
+    const month = Number(yyyyMmSepMatch[2]);
+    if (month >= 1 && month <= 12) return { year, month };
+  }
+
+  // Формат MM.YYYY или MM/YYYY
+  const mmYyyyMatch = str.match(/^(\d{1,2})[-/. ](\d{4})$/);
+  if (mmYyyyMatch) {
+    const month = Number(mmYyyyMatch[1]);
+    const year = Number(mmYyyyMatch[2]);
+    if (month >= 1 && month <= 12) return { year, month };
+  }
+
+  // Текстовые названия месяцев на русском и английском
+  const monthNames: Record<string, number> = {
+    январь: 1, янв: 1, january: 1, jan: 1,
+    февраль: 2, фев: 2, february: 2, feb: 2,
+    март: 3, мар: 3, march: 3, mar: 3,
+    апрель: 4, апр: 4, april: 4, apr: 4,
+    май: 5, may: 5,
+    июнь: 6, июн: 6, june: 6, jun: 6,
+    июль: 7, июл: 7, july: 7, jul: 7,
+    август: 8, авг: 8, august: 8, aug: 8,
+    сентябрь: 9, сен: 9, september: 9, sep: 9,
+    октябрь: 10, окт: 10, october: 10, oct: 10,
+    ноябрь: 11, ноя: 11, november: 11, nov: 11,
+    декабрь: 12, дек: 12, december: 12, dec: 12,
+  };
+
+  const lower = str.toLowerCase();
+  for (const [name, m] of Object.entries(monthNames)) {
+    if (lower.includes(name)) {
+      const yearMatch = str.match(/\b(20\d{2})\b/);
+      if (yearMatch) {
+        return { year: Number(yearMatch[1]), month: m };
+      }
+    }
+  }
+
+  // Очистка от всех нецифровых символов, если осталось 6 цифр (например, '2026-10')
+  const cleanDigits = str.replace(/\D/g, '');
+  if (cleanDigits.length === 6) {
+    const year = Number(cleanDigits.slice(0, 4));
+    const month = Number(cleanDigits.slice(4, 6));
+    if (year >= 2000 && month >= 1 && month <= 12) {
+      return { year, month };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Определяет, является ли ошибка 404 при скачивании инвойса ожидаемой.
+ * Ошибка 404 ожидаема для инвойсов за текущий расчетный месяц или за последний
+ * завершившийся месяц (если это самый свежий период по лицевому счету),
+ * поскольку управляющие компании и портал ЖКХ выставляют начисления раньше,
+ * чем генерируют и прикрепляют PDF файлы квитанций.
+ *
+ * @param invoice Снимок инвойса, вызвавшего ошибку
+ * @param allInvoices Все инвойсы из текущей сессии сканирования (для проверки максимального периода лицевого счета)
+ * @param now Опорная дата для проверки (по умолчанию текущая дата)
+ * @returns true, если ошибка 404 для данного периода ожидаема и не должна вызывать алерт
+ */
+export function isExpectedPendingInvoice(
+  invoice: InvoiceSnapshot,
+  allInvoices: InvoiceSnapshot[] = [],
+  now: Date = new Date()
+): boolean {
+  // Пытаемся извлечь год и месяц из periodId или periodLabel
+  const parsed = parsePeriodYearMonth(invoice.periodId) || parsePeriodYearMonth(invoice.periodLabel);
+
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const nowMonths = currentYear * 12 + currentMonth;
+
+  if (parsed) {
+    const periodMonths = parsed.year * 12 + parsed.month;
+    const diffMonths = nowMonths - periodMonths;
+
+    // 1. Текущий месяц или будущий период (diffMonths <= 0):
+    // Квитанции текущего месяца никогда не готовы до окончания расчетного периода.
+    if (diffMonths <= 0) {
+      return true;
+    }
+
+    // 2. Предыдущий месяц (diffMonths === 1, например октябрь в начале ноября):
+    // В первой половине месяца квитанции за прошлый месяц могут еще не быть опубликованы УК.
+    // Проверяем, что для данного лицевого счета это самый свежий период в выгрузке.
+    if (diffMonths === 1) {
+      const accountInvoices = allInvoices.filter(i => i.accountExternalId === invoice.accountExternalId);
+      const hasNewerPeriod = accountInvoices.some(other => {
+        const otherParsed = parsePeriodYearMonth(other.periodId) || parsePeriodYearMonth(other.periodLabel);
+        return otherParsed && (otherParsed.year * 12 + otherParsed.month) > periodMonths;
+      });
+      if (!hasNewerPeriod) {
+        return true;
+      }
+    }
+
+    // Периоды двухмесячной давности и старше (diffMonths > 1) должны быть уже загружены
+    return false;
+  }
+
+  // Запасной вариант при невозможности разобрать формат даты:
+  // Если инвойс содержит текущий год и является лексикографически максимальным для данного счета
+  const accountInvoices = allInvoices.filter(i => i.accountExternalId === invoice.accountExternalId);
+  const isLatestLexicographically = accountInvoices.every(other => other.periodId <= invoice.periodId);
+  const containsCurrentYear = invoice.periodId?.includes(String(currentYear)) || invoice.periodLabel?.includes(String(currentYear));
+
+  return isLatestLexicographically && containsCurrentYear;
+}
+

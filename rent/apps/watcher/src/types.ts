@@ -34,7 +34,7 @@ export interface InvoiceSnapshot {
   invoiceUrl?: string;
   utilitiesUrl?: string;
   available: boolean;
-  uploadedToS3: boolean;
+  uploadedToStorage: boolean;
   localFilePath?: string;
   rawJson?: string;
 }

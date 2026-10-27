@@ -13,7 +13,7 @@ export async function GET(
 
     const { data } = await accountantClient.get(`/invoices/${id}`);
     if (data && data.downloadUrl) {
-      // Проверяем, является ли ссылка внешней публичной (например реальный S3 bucket в облаке)
+      // Проверяем, является ли ссылка внешней публичной (например внешний CDN в облаке)
       const isExternalPublic = data.downloadUrl.startsWith('https://') &&
         !data.downloadUrl.includes('accountant') &&
         !data.downloadUrl.includes('localhost');

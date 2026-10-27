@@ -1,4 +1,13 @@
-import { extractApartments, extractAccounts, extractAccruals, checkIsLoginRequired, ExpiredSessionError } from './adapter';
+import {
+  extractApartments,
+  extractAccounts,
+  extractAccruals,
+  checkIsLoginRequired,
+  ExpiredSessionError,
+  InvoiceNotFoundError,
+  parsePeriodYearMonth,
+  isExpectedPendingInvoice
+} from './adapter';
 
 describe('Логика извлечения данных KvartplataAdapter', () => {
   describe('extractApartments (Извлечение квартир)', () => {
@@ -196,6 +205,104 @@ describe('Логика извлечения данных KvartplataAdapter', () 
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe('ExpiredSessionError');
       expect(error.message).toBe('Сессия истекла');
+    });
+  });
+
+  describe('Класс ошибки InvoiceNotFoundError', () => {
+    it('должен содержать HTTP статус 404 и корректное имя класса', () => {
+      // Создаем экземпляр ошибки отсутствия квитанции
+      const error = new InvoiceNotFoundError(404, 'Failed to download invoice: 404');
+      // Проверяем статус и прототип
+      expect(error).toBeInstanceOf(Error);
+      expect(error.name).toBe('InvoiceNotFoundError');
+      expect(error.status).toBe(404);
+      expect(error.message).toBe('Failed to download invoice: 404');
+    });
+  });
+
+  describe('Функция parsePeriodYearMonth (Парсинг периода начислений)', () => {
+    it('должен корректно разбирать числовой формат YYYYMM (202610)', () => {
+      // Разбор периода из пользовательского отчета
+      const result = parsePeriodYearMonth('202610');
+      expect(result).toEqual({ year: 2026, month: 10 });
+    });
+
+    it('должен корректно разбирать формат с дефисом YYYY-MM (2026-10)', () => {
+      // Разбор периода через разделитель
+      const result = parsePeriodYearMonth('2026-10');
+      expect(result).toEqual({ year: 2026, month: 10 });
+    });
+
+    it('должен корректно разбирать формат с точкой MM.YYYY (10.2026)', () => {
+      // Разбор периода в европейском формате
+      const result = parsePeriodYearMonth('10.2026');
+      expect(result).toEqual({ year: 2026, month: 10 });
+    });
+
+    it('должен корректно разбирать текстовое название месяца на русском (Октябрь 2026, Май 2026)', () => {
+      // Разбор текстовых периодов
+      expect(parsePeriodYearMonth('Октябрь 2026')).toEqual({ year: 2026, month: 10 });
+      expect(parsePeriodYearMonth('Май 2026')).toEqual({ year: 2026, month: 5 });
+    });
+
+    it('должен корректно разбирать текстовое название месяца на английском (July 2026)', () => {
+      // Разбор английского месяца
+      expect(parsePeriodYearMonth('July 2026')).toEqual({ year: 2026, month: 7 });
+    });
+
+    it('должен возвращать null для некорректных или пустых строк', () => {
+      // Проверка некорректных значений
+      expect(parsePeriodYearMonth('')).toBeNull();
+      expect(parsePeriodYearMonth(undefined)).toBeNull();
+      expect(parsePeriodYearMonth('invalid')).toBeNull();
+    });
+  });
+
+  describe('Функция isExpectedPendingInvoice (Проверка ожидаемой ошибки 404)', () => {
+    const fixedNow = new Date('2026-10-27T12:00:00Z');
+
+    it('должен возвращать true для инвойса текущего месяца (период 202610 в октябре 2026)', () => {
+      // Эталонный случай из запроса пользователя
+      const invoice = {
+        accountExternalId: '6603378',
+        periodLabel: '202610',
+        periodId: '202610',
+        available: true,
+        uploadedToStorage: false
+      };
+      const result = isExpectedPendingInvoice(invoice, [invoice], fixedNow);
+      expect(result).toBe(true);
+    });
+
+    it('должен возвращать true для предыдущего месяца, если это самый свежий период счета (октябрь в начале ноября)', () => {
+      // Ноябрь 2026 года, квитанция за октябрь еще не опубликована управляющей компанией
+      const nowInNovember = new Date('2026-11-05T12:00:00Z');
+      const invoice = {
+        accountExternalId: '3475821',
+        periodLabel: '202610',
+        periodId: '202610',
+        available: true,
+        uploadedToStorage: false
+      };
+      const allInvoices = [
+        { accountExternalId: '3475821', periodLabel: '202609', periodId: '202609', available: true, uploadedToStorage: true },
+        invoice
+      ];
+      const result = isExpectedPendingInvoice(invoice, allInvoices, nowInNovember);
+      expect(result).toBe(true);
+    });
+
+    it('должен возвращать false для старых периодов (например, 202607 в октябре 2026)', () => {
+      // Старая квитанция за июль, отсутствующая в конце октября, свидетельствует о реальной проблеме
+      const oldInvoice = {
+        accountExternalId: '464655',
+        periodLabel: '202607',
+        periodId: '202607',
+        available: true,
+        uploadedToStorage: false
+      };
+      const result = isExpectedPendingInvoice(oldInvoice, [oldInvoice], fixedNow);
+      expect(result).toBe(false);
     });
   });
 });

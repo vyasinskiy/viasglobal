@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ScrapingService } from './scraping.service';
 import { AccountantClientService } from '../../common/services/accountant-client.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { KvartplataAdapter } from './adapter';
+import { KvartplataAdapter, InvoiceNotFoundError } from './adapter';
 import { ClientProxy } from '@nestjs/microservices';
 import * as fs from 'node:fs';
 import { of } from 'rxjs';
@@ -62,14 +62,14 @@ describe('ScrapingService', () => {
     global.fetch = jest.fn();
   });
 
-  it('should skip invoice if it is already uploaded to S3', async () => {
+  it('should skip invoice if it is already uploaded to storage', async () => {
     const mockInvoice = {
       accountExternalId: 'acc-1',
       periodId: '202605',
       periodLabel: 'May 2026',
       available: true,
       invoiceUrl: 'http://example.com/invoice.pdf',
-      uploadedToS3: false,
+      uploadedToStorage: false,
     };
 
     jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
@@ -86,7 +86,7 @@ describe('ScrapingService', () => {
     mockAccountantClientService.findInvoices.mockResolvedValue([{ 
         accountExternalId: 'acc-1', 
         periodId: '202605',
-        uploadedToS3: true 
+        uploadedToStorage: true 
     }]);
 
     const summary = await service.scan({ trigger: 'manual' });
@@ -94,11 +94,11 @@ describe('ScrapingService', () => {
     expect(summary.status).toBe('success');
     expect(mockAccountantClientService.findInvoices).toHaveBeenCalledWith(expect.objectContaining({
       accountExternalId: ['acc-1'],
-      uploadedToS3: true,
+      uploadedToStorage: true,
     }));
     expect(mockAccountantClientService.getUploadUrl).not.toHaveBeenCalled();
     expect(global.fetch).not.toHaveBeenCalled();
-    // It should still emit upsert_invoice to keep accountant updated, but without uploadedToS3: true change if it was already true?
+    // It should still emit upsert_invoice to keep accountant updated, but without uploadedToStorage: true change if it was already true?
     // Actually the code emits it anyway.
     expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
         accountExternalId: 'acc-1',
@@ -106,14 +106,14 @@ describe('ScrapingService', () => {
     }));
   });
 
-  it('should download and upload invoice if it is not in S3', async () => {
+  it('should download and upload invoice if it is not in storage', async () => {
     const mockInvoice = {
       accountExternalId: 'acc-1',
       periodId: '202605',
       periodLabel: 'May 2026',
       available: true,
       invoiceUrl: 'http://example.com/invoice.pdf',
-      uploadedToS3: false,
+      uploadedToStorage: false,
       rawJson: '{}',
     };
 
@@ -133,7 +133,7 @@ describe('ScrapingService', () => {
     mockAccountantClientService.findApartments.mockResolvedValue([]);
     mockAccountantClientService.findInvoices.mockResolvedValue([]); // No existing invoice
     mockAccountantClientService.getUploadUrl.mockResolvedValue({
-      url: 'http://s3-upload-url',
+      url: 'http://storage-upload-url',
       key: 'invoices/acc-1/202605.pdf',
     });
 
@@ -147,13 +147,13 @@ describe('ScrapingService', () => {
     expect(summary.status).toBe('success');
     expect(mockAccountantClientService.getUploadUrl).toHaveBeenCalledWith('acc-1', 'May 2026');
     expect(KvartplataAdapter.prototype.downloadInvoice).toHaveBeenCalledWith('http://example.com/invoice.pdf');
-    expect(global.fetch).toHaveBeenCalledWith('http://s3-upload-url', expect.objectContaining({
+    expect(global.fetch).toHaveBeenCalledWith('http://storage-upload-url', expect.objectContaining({
       method: 'PUT',
       body: new Uint8Array(mockPdfBuffer),
     }));
     expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
       accountExternalId: 'acc-1',
-      uploadedToS3: true,
+      uploadedToStorage: true,
       localFilePath: 'invoices/acc-1/202605.pdf',
     }));
   });
@@ -165,7 +165,7 @@ describe('ScrapingService', () => {
       periodLabel: 'June 2026',
       available: true,
       invoiceUrl: 'http://example.com/invoice2.pdf',
-      uploadedToS3: false,
+      uploadedToStorage: false,
       rawJson: '{}',
     };
 
@@ -183,9 +183,9 @@ describe('ScrapingService', () => {
     jest.spyOn(KvartplataAdapter.prototype, 'downloadInvoice').mockResolvedValue(mockPdfBuffer);
 
     mockAccountantClientService.findApartments.mockResolvedValue([]);
-    mockAccountantClientService.findInvoices.mockResolvedValue([]); // uploadedToS3 filter is true, so it should return empty
+    mockAccountantClientService.findInvoices.mockResolvedValue([]); // uploadedToStorage filter is true, so it should return empty
     mockAccountantClientService.getUploadUrl.mockResolvedValue({
-      url: 'http://s3-upload-url-2',
+      url: 'http://storage-upload-url-2',
       key: 'invoices/acc-2/202606.pdf',
     });
 
@@ -201,7 +201,7 @@ describe('ScrapingService', () => {
     expect(global.fetch).toHaveBeenCalled();
     expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
       accountExternalId: 'acc-2',
-      uploadedToS3: true,
+      uploadedToStorage: true,
     }));
   });
 
@@ -212,7 +212,7 @@ describe('ScrapingService', () => {
       periodLabel: 'July 2026',
       available: true,
       invoiceUrl: 'http://example.com/fail.pdf',
-      uploadedToS3: false,
+      uploadedToStorage: false,
       rawJson: '{}',
     };
 
@@ -236,7 +236,7 @@ describe('ScrapingService', () => {
     expect(summary.status).toBe('warning');
     expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
       accountExternalId: 'acc-3',
-      uploadedToS3: false,
+      uploadedToStorage: false,
     }));
   });
 
@@ -301,6 +301,182 @@ describe('ScrapingService', () => {
         summaryJson: expect.stringContaining(fatalError.message)
       })
     }));
+  });
+
+  describe('Ожидаемая ошибка 404 для инвойсов за текущий и последний месяц (Golden Snapshot Test)', () => {
+    it('должен сохранять статус success и не создавать предупреждений при ошибке 404 по инвойсам за текущий месяц (кейс 202610, л/с 6603378, 3475821, 464655)', async () => {
+      // Подготавливаем эталонные инвойсы из реального отчета пользователя за период 202610
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+      const currentPeriodId = `${currentYear}${currentMonth}`;
+
+      const mockInvoices = [
+        {
+          accountExternalId: '6603378',
+          periodId: currentPeriodId,
+          periodLabel: currentPeriodId,
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-6603378.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+        {
+          accountExternalId: '3475821',
+          periodId: currentPeriodId,
+          periodLabel: currentPeriodId,
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-3475821.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+        {
+          accountExternalId: '464655',
+          periodId: currentPeriodId,
+          periodLabel: currentPeriodId,
+          available: true,
+          invoiceUrl: 'http://example.com/invoice-464655.pdf',
+          uploadedToStorage: false,
+          rawJson: '{}',
+        },
+      ];
+
+      // Мокируем результат сканирования адаптера со всеми тремя инвойсами
+      jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
+        apartments: [{ externalId: 'apt-1', address: 'ул. Тестовая 1' } as any],
+        accounts: [
+          { externalId: '6603378', apartmentExternalId: 'apt-1' } as any,
+          { externalId: '3475821', apartmentExternalId: 'apt-1' } as any,
+          { externalId: '464655', apartmentExternalId: 'apt-1' } as any,
+        ],
+        accruals: [],
+        invoices: mockInvoices as any,
+        needsLogin: false,
+        degraded: false,
+        message: 'Scanned 1 apartment(s), 3 account(s).',
+      });
+
+      // Имитируем ошибку 404 от портала квартплаты (файл квитанции еще не сформирован УК)
+      jest.spyOn(KvartplataAdapter.prototype, 'downloadInvoice')
+        .mockRejectedValue(new InvoiceNotFoundError(404, 'Failed to download invoice: 404'));
+
+      mockAccountantClientService.findApartments.mockResolvedValue([]);
+      mockAccountantClientService.findInvoices.mockResolvedValue([]);
+      mockAccountantClientService.getUploadUrl.mockImplementation(async (accountId, period) => ({
+        url: `http://storage.internal/upload?key=invoices/${accountId}/${period}.pdf`,
+        key: `invoices/${accountId}/${period}.pdf`
+      }));
+
+      // Запускаем процесс сканирования
+      const summary = await service.scan({ trigger: 'cron' });
+
+      // Статус должен оставаться строго 'success', а не 'warning'
+      expect(summary.status).toBe('success');
+      // Поля ошибок должны отсутствовать, предотвращая отправку ложных алертов в Telegram
+      expect(summary.error).toBeUndefined();
+      expect(summary.errors).toBeUndefined();
+
+      // Проверяем, что все инвойсы сохранены в БД со статусом available=false
+      expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
+        accountExternalId: '6603378',
+        available: false,
+        uploadedToStorage: false,
+      }));
+      expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
+        accountExternalId: '3475821',
+        available: false,
+        uploadedToStorage: false,
+      }));
+      expect(accountantClient.emit).toHaveBeenCalledWith('upsert_invoice', expect.objectContaining({
+        accountExternalId: '464655',
+        available: false,
+        uploadedToStorage: false,
+      }));
+    });
+
+    it('должен переводить статус в warning, если ошибка скачивания 404 произошла по старому периоду (202601)', async () => {
+      // Инвойс за старый период (январь)
+      const oldInvoice = {
+        accountExternalId: '6603378',
+        periodId: '202601',
+        periodLabel: '202601',
+        available: true,
+        invoiceUrl: 'http://example.com/invoice-old.pdf',
+        uploadedToStorage: false,
+        rawJson: '{}',
+      };
+
+      jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
+        apartments: [],
+        accounts: [{ externalId: '6603378', apartmentExternalId: 'apt-1' } as any],
+        accruals: [],
+        invoices: [oldInvoice as any],
+        needsLogin: false,
+        degraded: false,
+        message: 'Scan successful',
+      });
+
+      // Ошибка 404 по старому инвойсу
+      jest.spyOn(KvartplataAdapter.prototype, 'downloadInvoice')
+        .mockRejectedValue(new Error('Failed to download invoice: 404'));
+
+      mockAccountantClientService.findApartments.mockResolvedValue([]);
+      mockAccountantClientService.findInvoices.mockResolvedValue([]);
+      mockAccountantClientService.getUploadUrl.mockResolvedValue({
+        url: 'http://storage.internal/upload',
+        key: 'invoices/6603378/202601.pdf'
+      });
+
+      const summary = await service.scan({ trigger: 'manual' });
+
+      // Для старого периода отсутствие квитанции является сбоем -> warning
+      expect(summary.status).toBe('warning');
+      expect(summary.error).toContain('Failed to download invoice: 404');
+    });
+
+    it('должен переводить статус в warning, если инвойс текущего месяца завершился серверной ошибкой 500', async () => {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+      const currentPeriodId = `${currentYear}${currentMonth}`;
+
+      const currentInvoice = {
+        accountExternalId: '6603378',
+        periodId: currentPeriodId,
+        periodLabel: currentPeriodId,
+        available: true,
+        invoiceUrl: 'http://example.com/invoice-current.pdf',
+        uploadedToStorage: false,
+        rawJson: '{}',
+      };
+
+      jest.spyOn(KvartplataAdapter.prototype, 'scan').mockResolvedValue({
+        apartments: [],
+        accounts: [{ externalId: '6603378', apartmentExternalId: 'apt-1' } as any],
+        accruals: [],
+        invoices: [currentInvoice as any],
+        needsLogin: false,
+        degraded: false,
+        message: 'Scan successful',
+      });
+
+      // Серверная ошибка 500 (не 404)
+      jest.spyOn(KvartplataAdapter.prototype, 'downloadInvoice')
+        .mockRejectedValue(new Error('Failed to download invoice: 500'));
+
+      mockAccountantClientService.findApartments.mockResolvedValue([]);
+      mockAccountantClientService.findInvoices.mockResolvedValue([]);
+      mockAccountantClientService.getUploadUrl.mockResolvedValue({
+        url: 'http://storage.internal/upload',
+        key: `invoices/6603378/${currentPeriodId}.pdf`
+      });
+
+      const summary = await service.scan({ trigger: 'manual' });
+
+      // Ошибка 500 не является ожидаемой -> warning
+      expect(summary.status).toBe('warning');
+      expect(summary.error).toContain('Failed to download invoice: 500');
+    });
   });
 });
 

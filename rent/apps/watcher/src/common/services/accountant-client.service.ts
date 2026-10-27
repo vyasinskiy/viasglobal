@@ -59,7 +59,7 @@ export class AccountantClientService {
     }
   }
 
-  async findInvoices(filters: { accountExternalId?: string | string[]; periodId?: string; periodLabel?: string; available?: boolean; uploadedToS3?: boolean }) {
+  async findInvoices(filters: { accountExternalId?: string | string[]; periodId?: string; periodLabel?: string; available?: boolean; uploadedToStorage?: boolean }) {
     const url = new URL('/accountant/invoices', config.ACCOUNTANT_API_URL);
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined) {

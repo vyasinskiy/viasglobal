@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(fileId);
     }
 
-    // Сначала пробуем получить файл чека из хранилища S3 или локального каталога uploads accountant
+    // Сначала пробуем получить файл чека из хранилища файлов или локального каталога uploads accountant
     try {
       const { accountantClient } = await import('../../../../lib/accountant-client');
       const { data } = await accountantClient.get(`/payments/receipt/signed-url?key=${encodeURIComponent(fileId)}`);
       if (data?.downloadUrl) {
-        // Если это внешний публичный URL (например реальный S3 bucket https://...)
+        // Если это внешний публичный URL (например https://...)
         const isExternal = data.downloadUrl.startsWith('https://') &&
           !data.downloadUrl.includes('accountant') &&
           !data.downloadUrl.includes('localhost');
