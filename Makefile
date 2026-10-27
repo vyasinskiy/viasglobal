@@ -28,7 +28,7 @@ dr-failover:
 
 dr-rollback:
 	@echo "Возврат работы и трафика на боевой сервер Huawei..."
-	@bash backup/scripts/dr-drill.sh rollback
+	@bash backup/scripts/dr-drill.sh rollback $(if $(filter 1 true,$(NO_SYNC)),--no-sync,--sync)
 
 dr-status:
 	@echo "Проверка текущего статуса узлов и Cloudflare туннелей..."

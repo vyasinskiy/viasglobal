@@ -137,8 +137,17 @@ if docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d "${DB_NAME}" -t -A -c
 fi
 
 # 4. Выполняем восстановление
-echo "🚀 Импорт дампа в базу данных..."
+echo "🚀 Подготовка базы и импорт дампа..."
 START_RESTORE="$(date +%s)"
+
+# Закрываем активные подключения к восстанавливаемой базе данных
+docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();" >/dev/null 2>&1 || true
+
+# Для баз с отдельной схемой (viasglobal и ecommerce) пересоздаем чистую схему public во избежание конфликтов ключей
+if [[ "${TARGET_DB}" == "viasglobal" ]] || [[ "${TARGET_DB}" == "ecommerce" ]]; then
+  echo "🧹 Очистка старых таблиц перед импортом (DROP SCHEMA public CASCADE)..."
+  docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d "${DB_NAME}" -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"${DB_USER}\";" >/dev/null 2>&1 || true
+fi
 
 # Если дамп создан через pg_dumpall, заливаем в postgres, иначе в конкретную БД
 if [[ "${TARGET_DB}" == "rent" ]]; then

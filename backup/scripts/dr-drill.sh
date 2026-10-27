@@ -158,38 +158,100 @@ do_failover() {
 }
 
 # ------------------------------------------------------------------------------
-# Команда: rollback (Возврат работы на сервер Huawei)
+# Команда: rollback (Возврат работы на сервер Huawei с обратной синхронизацией)
 # ------------------------------------------------------------------------------
 do_rollback() {
+  local DO_SYNC=true
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --no-sync)
+        DO_SYNC=false
+        shift
+        ;;
+      --sync)
+        DO_SYNC=true
+        shift
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
   echo "======================================================================"
   echo "🔄 [DR DRILL] ВОЗВРАТ РАБОТЫ НА БОЕВОЙ СЕРВЕР HUAWEI..."
   echo "======================================================================"
 
-  # 1. Отключаем локальный Cloudflare Tunnel на Mac
-  echo "🛑 [1/3] Остановка локального Cloudflare Tunnel на Mac..."
+  # 1. Отключаем локальный Cloudflare Tunnel на Mac, чтобы прекратить прием новых внешних запросов
+  echo "🛑 [1/5] Остановка локального Cloudflare Tunnel на Mac..."
   docker rm -f cloudflared-failover 2>/dev/null || true
   docker network disconnect failover-net accruals-admin-ui 2>/dev/null || true
   docker network rm failover-net 2>/dev/null || true
 
-  # 2. Запуск сервисов на боевом сервере Huawei
-  echo "🚀 [2/3] Запуск всех контейнеров на сервере Huawei..."
-  if ssh -o ConnectTimeout=5 "${HUAWEI_SERVER}" "echo ping" >/dev/null 2>&1; then
-    ssh "${HUAWEI_SERVER}" "docker start backend-db-1 backend-backend-1 accruals-postgres accruals-rabbitmq accruals-accountant accruals-watcher accruals-admin-ui accruals-telegram-bot ecommerce-db ecommerce-backend ecommerce-admin cloudflared 2>/dev/null || true"
-    echo "   ✅ Контейнеры на Huawei запущены."
+  # 2. Обратная синхронизация баз данных с локального Mac на боевой сервер Huawei
+  if [ "${DO_SYNC}" = "true" ]; then
+    echo "🔄 [2/5] Выполнение обратной синхронизации баз данных (Mac ➔ Huawei)..."
+
+    # Проверяем доступность сервера Huawei по SSH
+    if ! ssh -o ConnectTimeout=5 "${HUAWEI_SERVER}" "echo ping" >/dev/null 2>&1; then
+      echo "❌ Сервер Huawei недоступен по сети! Прерывание отката во избежание потери данных."
+      exit 1
+    fi
+
+    local SYNC_TS
+    SYNC_TS="$(date +%Y%m%d_%H%M%S)"
+    local TMP_DIR="${PROJECT_ROOT}/scratch/reverse_sync_${SYNC_TS}"
+    mkdir -p "${TMP_DIR}"
+
+    echo "   📦 [1/3] Экспорт viasglobal_db с локального Mac..."
+    docker exec backend-db-1 pg_dump -U viasuser -d viasglobal_db --clean --if-exists --no-owner --no-acl | gzip -9 > "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz"
+
+    echo "   📦 [2/3] Экспорт rent (все БД кластера) с локального Mac..."
+    docker exec accruals-postgres pg_dumpall -U postgres --clean | gzip -9 > "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz"
+
+    echo "   📦 [3/3] Экспорт ecommerce_db с локального Mac..."
+    docker exec ecommerce-db pg_dump -U viasuser -d ecommerce_db --clean --if-exists --no-owner --no-acl | gzip -9 > "${TMP_DIR}/failover_ecommerce_${SYNC_TS}.sql.gz"
+
+    echo "   🚀 Передача дампов на сервер Huawei по защищенной сети Tailscale..."
+    ssh "${HUAWEI_SERVER}" "mkdir -p /home/huawei/viasglobal/backend/backups/viasglobal /home/huawei/viasglobal/backend/backups/rent /home/huawei/viasglobal/backend/backups/ecommerce"
+    scp "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/viasglobal/"
+    scp "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/rent/"
+    scp "${TMP_DIR}/failover_ecommerce_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/ecommerce/"
+
+    echo "   🔄 Восстановление баз данных на сервере Huawei..."
+    # Синхронизируем обновленный скрипт restore.sh на сервер
+    scp "${SCRIPT_DIR}/restore.sh" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backup/scripts/restore.sh"
+
+    # Приостанавливаем прикладные сервисы на Huawei, чтобы избежать параллельной записи во время импорта
+    ssh "${HUAWEI_SERVER}" "docker stop backend-backend-1 accruals-watcher accruals-accountant accruals-telegram-bot accruals-admin-ui ecommerce-backend ecommerce-admin 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker start backend-db-1 accruals-postgres ecommerce-db 2>/dev/null || true"
+
+    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db viasglobal --file /home/huawei/viasglobal/backend/backups/viasglobal/failover_viasglobal_${SYNC_TS}.sql.gz"
+    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db rent --file /home/huawei/viasglobal/backend/backups/rent/failover_rent_${SYNC_TS}.sql.gz"
+    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db ecommerce --file /home/huawei/viasglobal/backend/backups/ecommerce/failover_ecommerce_${SYNC_TS}.sql.gz"
+
+    rm -rf "${TMP_DIR}"
+    echo "   ✅ Обратная синхронизация баз данных на Huawei успешно завершена!"
   else
-    echo "   ❌ Сервер Huawei недоступен по сети!"
-    exit 1
+    echo "ℹ️  [2/5] Обратная синхронизация пропущена по флагу --no-sync."
   fi
 
-  # 3. Остановка локальных контейнеров на Mac
-  echo "🧹 [3/3] Остановка локальных контейнеров Mac..."
+  # 3. Запуск всех сервисов на боевом сервере Huawei
+  echo "🚀 [3/5] Запуск всех контейнеров на сервере Huawei..."
+  ssh "${HUAWEI_SERVER}" "docker start backend-db-1 backend-backend-1 accruals-postgres accruals-rabbitmq accruals-accountant accruals-watcher accruals-admin-ui accruals-telegram-bot ecommerce-db ecommerce-backend ecommerce-admin cloudflared 2>/dev/null || true"
+  echo "   ✅ Контейнеры на Huawei запущены."
+
+  # 4. Остановка локальных контейнеров на Mac
+  echo "🧹 [4/5] Остановка локальных контейнеров Mac..."
   cd "${PROJECT_ROOT}/backend" && docker compose stop backend db || true
   cd "${PROJECT_ROOT}/rent/infra" && docker compose stop admin-ui accountant watcher telegram-bot rabbitmq postgres || true
   cd "${PROJECT_ROOT}/ecommerce" && docker compose stop admin backend db || true
 
-  echo "⏳ Ожидание переключения трафика обратно на Huawei (5 сек)..."
-  sleep 5
+  echo "⏳ Ожидание переключения трафика обратно на Huawei (7 сек)..."
+  sleep 7
 
+  # 5. Проверка доступности публичных доменов через Cloudflare
+  echo "🔍 [5/5] Проверка доступности публичных доменов..."
   local RENT_STATUS
   local CRM_STATUS
   RENT_STATUS="$(curl -s -o /dev/null -w "%{http_code}" https://rent.viasglobal.es || echo "ERR")"
@@ -237,7 +299,8 @@ case "${1:-status}" in
     do_failover
     ;;
   rollback)
-    do_rollback
+    shift || true
+    do_rollback "$@"
     ;;
   status)
     do_status
