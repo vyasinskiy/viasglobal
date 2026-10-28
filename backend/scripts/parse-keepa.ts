@@ -84,7 +84,8 @@ function normalizeEntityName(str: string | undefined | null): string | null {
   return clean.toUpperCase();
 }
 
-export { normalizeManufacturerName } from '../src/keepa/manufacturer-normalization';
+import { normalizeManufacturerName } from '../src/keepa/manufacturer-normalization';
+export { normalizeManufacturerName };
 
 
 /**
@@ -165,15 +166,29 @@ async function main(filePath?: string) {
     console.log(`\nУникальных ASIN: ${uniqueAsins.size}`);
     console.log(`Уникальных Брендов: ${uniqueBrands.size}`);
     console.log(`Уникальных Производителей: ${uniqueManufacturers.size}`);
+
+    // Проверка подозрительного равенства размера выборки лимиту пагинации (100 или 5000 строк)
+    if (uniqueAsins.size === 100 || rows.length === 100) {
+      console.warn('\n⚠️ ВНИМАНИЕ: Количество строк в выгрузке ровно 100!');
+      console.warn('Это подозрительно и похоже на техническую ошибку: выгрузилась только первая страница из-за дефолтного лимита пагинации (100 rows). Перепроверьте переключение на 5000 строк в Keepa.');
+    } else if (uniqueAsins.size === 5000 || rows.length === 5000) {
+      console.warn('\n⚠️ ВНИМАНИЕ: Количество строк в выгрузке достигло максимального лимита Keepa (5000 строк)!');
+      console.warn('Каталог бренда превышает лимит одной выборки. Для полного охвата рекомендуется разбивка по диапазонам BSR.');
+    }
+
     console.log('\nДобавляем новые записи в базу данных...');
 
     // 1. Добавляем Бренды
     let newBrandsCount = 0;
     for (const brand of uniqueBrands) {
       if (!brand) continue;
-      const existing = await prisma.brand.findUnique({ where: { name: brand } });
+      // Регистронезависимый поиск существующего бренда
+      const existing = await prisma.brand.findFirst({
+        where: { name: { equals: brand, mode: 'insensitive' } },
+        select: { id: true },
+      });
       if (!existing) {
-        await prisma.brand.create({ data: { name: brand } });
+        await prisma.brand.create({ data: { name: brand }, select: { id: true } });
         newBrandsCount++;
       }
     }
@@ -182,7 +197,11 @@ async function main(filePath?: string) {
     let newManufacturersCount = 0;
     for (const manufacturer of uniqueManufacturers) {
       if (!manufacturer) continue;
-      const existing = await prisma.manufacturer.findUnique({ where: { name: manufacturer } });
+      // Регистронезависимый поиск существующего производителя
+      const existing = await prisma.manufacturer.findFirst({
+        where: { name: { equals: manufacturer, mode: 'insensitive' } },
+        select: { id: true },
+      });
       if (!existing) {
         await prisma.manufacturer.create({ data: { name: manufacturer } });
         newManufacturersCount++;
@@ -214,12 +233,18 @@ async function main(filePath?: string) {
         let manufacturerId = null;
 
         if (brandName) {
-          const b = await prisma.brand.findUnique({ where: { name: brandName } });
+          const b = await prisma.brand.findFirst({
+            where: { name: { equals: brandName, mode: 'insensitive' } },
+            select: { id: true },
+          });
           if (b) brandId = b.id;
         }
 
         if (manufacturerName) {
-          const m = await prisma.manufacturer.findUnique({ where: { name: manufacturerName } });
+          const m = await prisma.manufacturer.findFirst({
+            where: { name: { equals: manufacturerName, mode: 'insensitive' } },
+            select: { id: true },
+          });
           if (m) manufacturerId = m.id;
         }
 
@@ -920,7 +945,10 @@ async function main(filePath?: string) {
       const brandPct = ((topBrandCount / totalRowsCount) * 100).toFixed(1);
       
       if (topBrandCount / totalRowsCount >= 0.80) {
-        const brandObj = await prisma.brand.findUnique({ where: { name: topBrandName } });
+        const brandObj = await prisma.brand.findFirst({
+          where: { name: { equals: topBrandName, mode: 'insensitive' } },
+          select: { id: true },
+        });
         if (brandObj) {
           finalBrandId = brandObj.id;
           console.log(`🔍 Авто-определение бренда: Бренд "${topBrandName}" составляет ${brandPct}% позиций (${topBrandCount} из ${totalRowsCount}). Выгрузка привязана к бренду.`);

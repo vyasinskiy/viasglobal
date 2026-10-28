@@ -57,10 +57,16 @@ async function resolveEntity(
   try {
     if (isNumeric) {
       if (isManufacturer) {
-        const m = await prisma.manufacturer.findUnique({ where: { id: numericId } });
+        const m = await prisma.manufacturer.findUnique({
+          where: { id: numericId },
+          select: { id: true, name: true },
+        });
         if (m) return { entityName: m.name, entityId: m.id };
       } else {
-        const brand = await prisma.brand.findUnique({ where: { id: numericId } });
+        const brand = await prisma.brand.findUnique({
+          where: { id: numericId },
+          select: { id: true, name: true },
+        });
         if (brand) return { entityName: brand.name, entityId: brand.id };
       }
     }
@@ -69,6 +75,7 @@ async function resolveEntity(
     if (isManufacturer) {
       const records = await prisma.manufacturer.findMany({
         where: { name: { contains: trimmed, mode: 'insensitive' } },
+        select: { id: true, name: true },
         take: 5,
       });
       if (records.length === 0) {
@@ -79,6 +86,7 @@ async function resolveEntity(
     } else {
       const brands = await prisma.brand.findMany({
         where: { name: { contains: trimmed, mode: 'insensitive' } },
+        select: { id: true, name: true },
         take: 5,
       });
       if (brands.length === 0) {
@@ -256,55 +264,102 @@ async function main() {
     await findButton.click({ force: true });
 
     console.log('Ожидание формирования результатов поиска...');
+    await page.waitForFunction(() => {
+      const summary = document.querySelector('.ag-paging-row-summary-panel')?.textContent?.trim();
+      return !!summary && summary.includes('of');
+    }, { timeout: 45000 }).catch(() => {});
 
-    // ПРОПУСК: Не переключаем на 5000 строк для гигантских брендов, чтобы не вешать Keepa
-    // console.log('Проверяем и переключаем лимит отображения таблицы на 5000 строк...');
-    // const rowMenuTrigger = page.locator('.tool__row .trigger, .tool__row').first();
-    // if (await rowMenuTrigger.isVisible({ timeout: 15000 }).catch(() => false)) {
-    // ...
-    // }
-    // Ожидание стабилизации таблицы (Анти-0 rows экспорт)
-    console.log('Ожидание стабилизации данных в таблице Keepa...');
-    let tableReady = false;
-    for (let waitSec = 0; waitSec < 90; waitSec++) {
+    // Устанавливаем фильтр отображения на 5000 строк (максимум для одной страницы Keepa Finder),
+    // чтобы экспорт гарантированно содержал полный каталог до 5000 товаров, а не стандартные 100
+    console.log('Проверяем и переключаем лимит отображения таблицы на 5000 строк...');
+    const currentLimit = await page.evaluate(() => {
+      const trigger = document.querySelector('#grid-tools-finder .tool__row, .tool__row') as HTMLElement;
+      if (!trigger) return '';
+      // Берем только первую строку текста (например "100 rows"), игнорируя пункты выпадающего списка в DOM
+      const rawText = trigger.innerText || trigger.textContent || '';
+      return rawText.split(/[\n\r]+/)[0].trim();
+    });
+
+    console.log(`Текущий активный лимит таблицы: "${currentLimit}".`);
+
+    if (!currentLimit.startsWith('5000')) {
+      console.log(`Переключаем лимит таблицы на 5000 строк через DOM-клик...`);
+      await page.evaluate(() => {
+        const trigger = document.querySelector('#grid-tools-finder .tool__row, .tool__row') as HTMLElement;
+        if (trigger) trigger.click();
+      });
       await page.waitForTimeout(1000);
-      const state = await page.evaluate(() => {
-        const overlay = document.querySelector('.ag-overlay-loading-center, .ag-loading-panel, .ag-loading');
-        const rows = document.querySelectorAll('.ag-center-cols-container .ag-row, .ag-row');
-        const summary = document.querySelector('.ag-paging-row-summary-panel')?.textContent?.trim() || '';
-        const r0 = document.querySelector('.ag-row[row-index="0"]');
-        const r0Text = r0 ? (r0.textContent || '').trim() : '';
-        const isSkeleton = /^[\s\-0–—_]+$/.test(r0Text) || r0Text.includes('- 0 - -') || r0Text.includes('-0--');
-        const hasRealData = r0Text.length > 15 && !isSkeleton;
-        return { summary, rowsCount: rows.length, hasOverlay: !!overlay, hasRealData, r0Snippet: r0Text.slice(0, 50) };
+
+      const switched = await page.evaluate(() => {
+        const option = (document.querySelector('li.ctl-menu__item[data-value="5000"]') ||
+                        document.querySelector('li[data-value="5000"]') ||
+                        document.querySelector('#tool-row-menu li[data-value="5000"]')) as HTMLElement;
+        if (option) {
+          option.click();
+          return true;
+        }
+        return false;
       });
 
-      if (state.hasRealData && !state.hasOverlay && state.rowsCount > 0) {
-        console.log(`Таблица готова: "${state.summary}" (строк в DOM: ${state.rowsCount}, первый товар: "${state.r0Snippet}")`);
+      if (switched) {
+        console.log('Успешно кликнута опция: 5000 строк!');
+      } else {
+        console.warn('Опция 5000 строк не найдена в выпадающем меню.');
+      }
+    } else {
+      console.log('Лимит 5000 строк уже активен.');
+    }
+
+    // Ожидание стабилизации таблицы (отслеживаем индикатор прогресса Keepa и заполнение ag-row)
+    console.log('Ожидание стабилизации данных в таблице Keepa...');
+    let tableReady = false;
+    for (let waitSec = 0; waitSec < 60; waitSec++) {
+      await page.waitForTimeout(1000);
+      const state = await page.evaluate(() => {
+        const rows = document.querySelectorAll('.ag-center-cols-container .ag-row').length;
+        const summary = document.querySelector('.ag-paging-row-summary-panel')?.textContent?.trim() || '';
+        const pageDescr = document.querySelector('.ag-paging-page-summary-panel')?.textContent?.trim() || '';
+        const bodyText = document.body.innerText;
+        const progressMatch = bodyText.match(/(\d+\s*%\s*\n*\s*\d+\s*\/\s*\d+)/);
+
+        // Проверяем общее число товаров из summary (например "1 to 100 of 1,783" -> total = 1783)
+        const totalMatch = summary.match(/of\s+([\d,]+)/i);
+        const totalCount = totalMatch ? parseInt(totalMatch[1].replace(/,/g, ''), 10) : 0;
+        const isStill100 = totalCount > 100 && (summary.startsWith('1 to 100 of') || summary.startsWith('1 - 100 of'));
+
+        return {
+          rows,
+          summary,
+          pageDescr,
+          progress: progressMatch ? progressMatch[0].replace(/\s+/g, ' ') : null,
+          totalCount,
+          isStill100,
+        };
+      });
+
+      if (waitSec % 5 === 0 || state.progress) {
+        console.log(`[Секунда ${waitSec + 1}] Строк: ${state.rows}, Summary: "${state.summary}", Прогресс: "${state.progress || 'готов'}"`);
+      }
+
+      // Таблица готова, если есть строки в DOM, нет индикатора прогресса, страница не Page 0 и применился лимит 5000 (не висит старый срез 100 строк)
+      if (state.rows > 0 && !state.progress && state.pageDescr && !state.pageDescr.includes('Page 0') && !state.isStill100) {
+        console.log(`Таблица готова: "${state.summary}" (строк в DOM: ${state.rows})`);
         tableReady = true;
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(2000);
         break;
       }
     }
 
     if (!tableReady) {
-      console.warn('Предупреждение: Таблица не подтвердила полную стабильность за 35с, пробуем продолжить.');
+      console.warn('Предупреждение: Таблица не подтвердила полную стабильность за 60с, пробуем продолжить.');
     }
 
     // Ожидаем появление кнопки "Export" в верхней панели результатов (.tool__export)
     let foundExport = false;
-    for (let attempt = 0; attempt < 30; attempt++) {
-      await page.waitForTimeout(1500);
+    for (let attempt = 0; attempt < 25; attempt++) {
+      await page.waitForTimeout(1000);
 
-      // Закрываем и удаляем модалки и оверлеи (#popup3 и т.д.)
-      await page.keyboard.press('Escape');
-      await page.evaluate(() => {
-        document.querySelectorAll('#popup3, .popup, [id^="popup"]:not(#table-export-dialog), .modal, .ui-widget-overlay').forEach((el) => {
-          (el as HTMLElement).style.display = 'none';
-        });
-      }).catch(() => {});
-
-      const exportTrigger = page.locator('#grid-tools-finder .tool__export, .tool__export .trigger, span.tool__export').first();
+      const exportTrigger = page.locator('#grid-tools-finder .tool__export, .tool__export .trigger, span.tool__export, .tool__export').first();
       if (await exportTrigger.isVisible({ timeout: 1000 }).catch(() => false)) {
         console.log('Кнопка "Export" найдена в панели таблицы!');
         await exportTrigger.scrollIntoViewIfNeeded().catch(() => {});
@@ -376,6 +431,46 @@ async function main() {
   }
 
   console.log(`\nВыгрузка завершена. Файл готов: ${targetOutputFile}`);
+
+  // Проверка подозрительного равенства размера выборки лимиту пагинации (100 или 5000 строк)
+  const xlsxModule = requireBackendModule('xlsx');
+  const workbook = xlsxModule.readFile(targetOutputFile, { sheetRows: 5005 });
+  const firstSheetName = workbook.SheetNames[0];
+  const sheetData = xlsxModule.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+  const itemsCount = sheetData.length;
+
+  console.log(`\nПроверка размера выгрузки: найдено ${itemsCount} товаров.`);
+  if (itemsCount === 100) {
+    console.warn('\n⚠️ ВНИМАНИЕ: Количество товаров в выгрузке ровно 100!');
+    console.warn('Это подозрительно и указывает на техническую ошибку: лимит пагинации таблицы не переключился на 5000 строк, и выгрузилась только первая страница.');
+  } else if (itemsCount === 5000) {
+    console.warn('\n⚠️ ВНИМАНИЕ: Количество товаров в выгрузке достигло максимального потолка Keepa (5000 строк)!');
+    console.warn('Каталог бренда превышает лимит одной выборки. Для полного охвата рекомендуется разбивка по диапазонам BSR.');
+  }
+
+  // Автоматический парсинг в базу данных, если не указан флаг --no-parse
+  if (!noParse) {
+    console.log('\n=============================================================');
+    console.log('Запуск автоматического сохранения выгрузки в базу данных...');
+    console.log('=============================================================\n');
+
+    const parseScriptPath = path.join(backendDir, 'scripts/parse-keepa.ts');
+    try {
+      execSync(`npx tsx "${parseScriptPath}" "${targetOutputFile}"`, {
+        cwd: backendDir,
+        stdio: 'inherit',
+        env: process.env,
+      });
+      console.log('\n Данные каталога бренда успешно сохранены в базе данных!');
+    } catch (parseErr: any) {
+      console.error('\n Ошибка при парсинге файла в БД:', parseErr.message);
+      process.exit(1);
+    }
+  } else {
+    console.log('\nФлаг --no-parse активен. Парсинг в базу данных пропущен.');
+    console.log(`Для ручного парсинга запустите:`);
+    console.log(`  cd backend && npx tsx scripts/parse-keepa.ts "${targetOutputFile}"`);
+  }
 }
 
 main().catch((err) => {
