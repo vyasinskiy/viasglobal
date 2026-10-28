@@ -59,8 +59,8 @@ Directorio para самостоятельного оформления RAP-ном
   - Присвоен государственный постоянный номер утилизации: **`ENV/2026/000121685`**.
   - Официальная квитанция с цифровой подписью министерства: [`justificante_registro_RPP_2026-10-25.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/justificante_registro_RPP_2026-10-25.pdf) (№ `REGAGE26e00091871330`, CSV: `MA5010KKVKDRAXN+Q6RY2WQA3S1792921061`).
 - [x] **Шаг 4 (Выполнен 25.10.2026)**:
-  - [x] Внести номер **`ENV/2026/000121685`** в личный кабинет Procircular (Выполнено 25.10.2026: статус *«RPP validation is in progress. This can take up to 24 hours on working days»*). Контрольная задача на **27.10.2026**: [Google Tasks: QWdHalRSZjlCUEk1c0lXNQ](https://tasks.google.com/task/AgGjTRf9BPI5sIW5?sa=6).
-  - [x] Внести номер **`ENV/2026/000121685`** в Amazon Seller Central (Раздел *Cumplimiento normativo / Embalaje de España*, отправлено 25.10.2026: статус *«Verificaremos tu número de registro de EPR когда se actualice el Registro Nacional»*). Контрольная задача на **28.10.2026**: [Google Tasks: REV3QlMtREpmSkJGd0xZTA](https://tasks.google.com/task/DEwBS-DJfJBFwLYL?sa=6).
+  - [x] Внести номер **`ENV/2026/000121685`** в личный кабинет Procircular (Внесен 25.10.2026; **успешно верифицирован 28.10.2026**: валидация завершена, номер RPP официально привязан к NIF `Z1154366R` по категориям Household, Commercial, Industrial, доступна генерация сертификатов *Create Certificate*). Контрольная задача выполнена: [Google Tasks: QWdHalRSZjlCUEk1c0lXNQ](https://tasks.google.com/task/AgGjTRf9BPI5sIW5?sa=6).
+  - [x] Внести номер **`ENV/2026/000121685`** в Amazon Seller Central (Раздел *Cumplimiento normativo / Embalaje de España*, отправлено 25.10.2026; на 28.10.2026 статус *«Under review»*: номер принят и находится на плановой сверке Amazon с государственной базой MITERD, средний регламент валидации — 5–10 рабочих дней). Контрольная задача на **03.11.2026**: [Google Tasks: Wkk0MEFnV0tzZ3Z1dG42Qg](https://tasks.google.com/task/ZI40AgWKsgvutn6B?sa=6).
   - [x] Подготовлен шаблон обязательной строки с номером RPP для счетов-фактур (*facturas*): `N.º de Registro de Productores de Producto (Sección Envases): ENV/2026/000121685` ([facturas/README.md](file:///Users/usuario/code/viasglobal/legal/envases_rap/facturas/README.md)).
 - [ ] **Шаг 5 (В процессе, дедлайн 20.11.2026)**: Подача предварительной декларации в Procircular (в течение 30 дней с момента присоединения, до 20.11.2026) и настройка учета кг (`registro_envases_kg_2026.xlsx`).
   - **Активная задача в Google Tasks**: [`[Legal]: Envases RAP — Дедлайн предварительной декларации упаковки в Procircular (30 дней)`](https://tasks.google.com/task/yDo3Dk_eDPnl7D0p?sa=6) (Дедлайн: `2026-11-20`, ID: `eURvM0RrX2VEUG5sN0QwcA`).
@@ -105,11 +105,22 @@ Directorio para самостоятельного оформления RAP-ном
 4. **Обязанность новых участников (в течение 30 дней)**:
    - По п. 9.1.b договора: участники, присоединившиеся после 28 февраля (договор от 23.10.2026), обязаны в течение **30 дней** с момента вступления подать предварительную декларацию (*declaración provisional*) с прогнозом килограммов упаковки на текущий 2026 год.
 
-5. **Обязательное внесение номера RPP ID в личный кабинет Procircular (дедлайн 30 дней — до 22.11.2026)**:
-   - В разделе ЛК `DAILY MANAGEMENT / Membership` действует строгое предписание:
-     `❌ Please note that registration is mandatory. Kindly submit your registration number within 30 days.`
-   - Напротив строки `Registration number (RPP ID)` активна кнопка `[Edit]`.
-   - Как только министерство MITERD выдаст номер `ENV/2026/XXXXXXXXX`, его необходимо внести в эту строку в ЛК Procircular, подтвердив исполнение государственной регистрации. Дедлайн: **22 ноября 2026 года** (30 дней от даты договора 23.10.2026).
+5. **Внесение номера RPP ID в личный кабинет Procircular (Выполнено 25.10.2026, верифицировано 28.10.2026)**:
+   - Номер `ENV/2026/000121685` внесен и успешно подтвержден в системе Procircular. Статус проверки завершен, номер привязан к NIF `Z1154366R` по категориям Household, Commercial, Industrial.
+
+6. **Вкладка «Prevention Plan» (PEPE 2024–2028) — Платить НЕ нужно**:
+   - **Что это такое**: План предотвращения образования отходов упаковки и экодизайна (*Plan Empresarial de Prevención y Ecodiseño — PEPE*, ст. 18 Real Decreto 1055/2022).
+   - **Пороги обязательности по закону (в год)**:
+     - Картон и бумага (*Paper/Cardboard*): **от 15 тонн** (15 000 кг)
+     - Пластик (*Plastics*): **от 20 тонн** (20 000 кг)
+     - Дерево (*Wood*): **от 20 тонн**
+     - Алюминий (*Aluminium*): **от 30 тонн**
+     - Сталь (*Steel*): **от 50 тонн**
+     - Стекло (*Glass*): **от 250 тонн**
+   - **Статус для Viasglobal (autónomo)**: Объем упаковки составляет `0 t` (а при рабочих объемах исчисляется сотнями килограммов), что на порядки ниже минимального порога закона.
+   - **Официальный вердикт Procircular**: В верхней синей плашке системы прямо зафиксировано: *«Considering the available data, you are NOT REQUIRED to submit a prevention plan»* (С учетом доступных данных, вам НЕ требуется подавать план предотвращения).
+   - **Платная услуга «+ Join PEPE»**: Предложение вступить в коллективный план за **90 €** (составление) + **100 €/год** (мониторинг) является чисто добровольной коммерческой опцией Procircular.
+   - **Правило**: Кнопку `+ Join PEPE` **НЕ нажимать**, платить **НЕ нужно**. Никаких обязательств по оплате этих сумм у компании нет.
 
 Контакты MITERD: `bzn-rpp@miteco.es` (регистр, декларации),
 `buzon-sgr@miteco.es` (толкование RD 1055/2022), тел. 917284813.
