@@ -17,7 +17,6 @@
 | `accruals-rabbitmq` | `accruals-rabbitmq` | `5672`, `15672` | Брокер сообщений RabbitMQ и веб-консоль управления |
 | `accruals-postgres` | `accruals-postgres` | `5432` | База данных PostgreSQL (`accountant_db`, `watcher_db`, `telegram_bot_db`) |
 | `accruals-telegram-bot` | `accruals-telegram-bot` | - | Бот учета аренды для арендаторов |
-| `viasglobal-hermes` | `viasglobal-hermes` | - | Голосовой AI-ассистент с локальным STT Whisper |
 | `viasglobal-openclaw` | `viasglobal-openclaw` | `18789` | Твой собственный контейнер (OpenClaw шлюз) |
 | `viaslangs` | `viaslangs-web` / `localhost` | `3000` | **Тренажер языков Viaslangs**: сессии изучения, клики Next, статистика ошибок по временам/формам лица, динамика активности |
 | `sms-gateway` | `sms-gateway` | `3040` | **Приемник SMS (SMS Gateway)**: чтение входящих SMS с телефона Meizu U20, коды подтверждения терминалов, статус батареи |

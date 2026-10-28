@@ -97,17 +97,6 @@ redeploy-rent-services: redeploy-rent-accountant redeploy-rent-watcher redeploy-
 	@echo "Все сервисы rent успешно обновлены и перезапущены!"
 
 
-deploy-hermes:
-	@echo "Синхронизация файлов Hermes на сервер Huawei..."
-	rsync -avz --exclude 'data' --exclude '__pycache__' ./hermes/ huawei@100.92.50.18:~/viasglobal/hermes/
-	@echo "Развертывание сервиса viasglobal-hermes на сервере Huawei..."
-	ssh huawei@100.92.50.18 "cd ~/viasglobal/hermes && make deploy"
-
-redeploy-hermes:
-	@echo "Синхронизация обновлений Hermes на сервер Huawei..."
-	rsync -avz --exclude 'data' --exclude '__pycache__' ./hermes/ huawei@100.92.50.18:~/viasglobal/hermes/
-	@echo "Перезапуск контейнера viasglobal-hermes..."
-	ssh huawei@100.92.50.18 "cd ~/viasglobal/hermes && docker compose up -d --build hermes"
 
 deploy-openclaw:
 	@echo "Синхронизация документации на сервер Huawei..."

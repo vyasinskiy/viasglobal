@@ -37,7 +37,7 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
     * `backend-backend-1` (порт `3001`) — API Wholesale каталога, заказов и остатков.
     * `accruals-admin-ui` (порт `3000`) — веб-панель аренды (`rent.viasglobal.es`).
     * `accruals-accountant` (порт `3005`), `accruals-watcher` (порт `4500`), `accruals-rabbitmq` (порты `5672`, `15672`).
-    * `sms-gateway` (порт `3040`), `viasglobal-openclaw` (порт `18789`), `viasglobal-hermes`.
+    * `sms-gateway` (порт `3040`), `viasglobal-openclaw` (порт `18789`).
 *   **Внешний доступ (Cloudflare Tunnel):** Контейнер `cloudflared` (токен туннеля `fad800a3-f97e-4b41-8f24-df8168b1211b`).
 
 ### Узел 2: Standby / Disaster Recovery (Mac)

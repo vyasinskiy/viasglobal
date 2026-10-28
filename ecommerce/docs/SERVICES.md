@@ -3,7 +3,7 @@
 В данном документе описана архитектура локальной инфраструктуры кластера Viasglobal, перечень запущенных Docker-контейнеров, сетевые связки и спецификация всех доступных внутренних HTTP REST эндпоинтов.
 
 > [!IMPORTANT]
-> Данный файл является единым источником правды для AI-агентов (OpenClaw, Hermes) и разработчиков.
+> Данный файл является единым источником правды для AI-агента (OpenClaw) и разработчиков.
 > Управление микросервисами может осуществляться по HTTP с помощью автономных ИИ-агентов.
 > **Критическое требование**: любые эндпоинты обязаны всегда возвращать полный структурированный ответ (`status`, `message`, `error`, `errors`, сводные счетчики) для качественной диагностики без необходимости чтения сырых логов.
 > При добавлении, изменении или удалении сервисов, портов или эндпоинтов в репозитории **обязательно** синхронно обновлять этот документ.
@@ -16,11 +16,11 @@
 Все микросервисы объединены в две основные изолированные bridge-сети Docker на сервере:
 
 1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, AI-агенты, SMS Gateway).
-   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
+   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `sms-gateway`.
 2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`, исходный код в `ecommerce/backend`).
-   - Контейнеры: `backend`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
+   - Контейнеры: `backend`, `viasglobal-openclaw`, `sms-gateway`.
 
-AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подключены к **обеим сетям**, поэтому могут обращаться к любому сервису по его прямому Docker DNS-имени без выхода в публичный интернет.
+AI-ассистент `viasglobal-openclaw` подключен к **обеим сетям**, поэтому может обращаться к любому сервису по его прямому Docker DNS-имени без выхода в публичный интернет.
 
 ---
 
@@ -36,7 +36,6 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | **PostgreSQL (Rent)** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |
 | **Telegram Bot Rent** | `accruals-telegram-bot`| - | - | Бот арендаторов и администраторов аренды |
 | **Visual Browser** | `accruals-visual-browser` | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
-| **Hermes Agent** | `viasglobal-hermes` | - | - | Голосовой AI-ассистент с локальным STT Whisper |
 | **OpenClaw Agent** | `viasglobal-openclaw` | `18789` | `18789` | Автономный AI-ассистент в Telegram |
 | **Viaslangs Service** | `viaslangs-web` / `localhost` | `3000` | `3000` (`https://langs.viasglobal.es`) | Тренажер испанского/английского, сессии, клики Next, ошибки по тегам и формам |
 | **SMS Gateway** | `sms-gateway` | `3040` | `3040` | Прием SMS с USB-телефона Meizu, Telegram-форвардер, health check, REST API |
@@ -880,7 +879,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 6.5. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+### 6.5. Сценарии использования для AI-ассистента (OpenClaw)
 
 1. **Сценарий 1: Ответ на вопрос «Какая у меня статистика по испанскому за сегодня?»**:
    - Выполни: `curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/today"`
@@ -1092,7 +1091,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 7.6. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+### 7.6. Сценарии использования для AI-ассистента (OpenClaw)
 
 1. **Сценарий 1: Арендатор пишет «Я только что внес деньги через терминал, проверьте»**:
    - Шаг 1: OpenClaw вызывает принудительную синхронизацию:
@@ -1110,7 +1109,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ## 8. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
 
-При взаимодействии автономных языковых моделей (OpenClaw, Hermes, Antigravity) с бэкенд-сервисами критически важно предотвращать когнитивные искажения (галлюцинации) агентов. Если API возвращает неточный статус или неполную ошибку, LLM делает ложные выводы о состоянии системы и начинает деструктивные действия (создание фиктивных сущностей, попытки обхода проверок, удаление записей).
+При взаимодействии автономных языковых моделей (OpenClaw, Antigravity) с бэкенд-сервисами критически важно предотвращать когнитивные искажения (галлюцинации) агентов. Если API возвращает неточный статус или неполную ошибку, LLM делает ложные выводы о состоянии системы и начинает деструктивные действия (создание фиктивных сущностей, попытки обхода проверок, удаление записей).
 
 Ниже приведены обязательные паттерны проектирования API для всех микросервисов Viasglobal.
 
@@ -1175,7 +1174,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 9. Правила использования для AI-ассистентов (OpenClaw, Hermes)
+## 9. Правила использования для AI-ассистента (OpenClaw)
 
 1. **Доступ через Bash и cURL**:
    - При выполнении запросов к микросервисам используй команду `curl -s` с передачей правильных заголовков `Content-Type: application/json`.
