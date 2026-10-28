@@ -134,7 +134,7 @@ if (isMainModule) {
   
   // Если путь не передан, выводим подсказку и завершаем скрипт
   if (!filePath) {
-    console.error("Пожалуйста, укажите путь к Excel файлу. Например: npx tsx extract.ts keepa/data.xlsx");
+    console.error("Пожалуйста, укажите путь к Excel файлу. Например: npx tsx extract.ts ecommerce/keepa/data.xlsx");
     process.exit(1);
   }
   

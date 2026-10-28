@@ -174,7 +174,7 @@ async function main() {
 
   const safeSlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   const timestamp = Date.now();
-  const exportDir = path.resolve(__dirname, '../../../../keepa/exports');
+  const exportDir = path.resolve(__dirname, '../../../../ecommerce/keepa/exports');
   fs.mkdirSync(exportDir, { recursive: true });
 
   const storageStatePath = findStorageStatePath();

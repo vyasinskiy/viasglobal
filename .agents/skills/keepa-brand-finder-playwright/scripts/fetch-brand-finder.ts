@@ -153,7 +153,7 @@ async function main() {
   const prefix = isManufacturer ? 'manufacturer' : 'brand';
   const defaultOutputFile = path.resolve(
     __dirname,
-    `../../../../keepa/exports/${prefix}_${safeSlug}_${Date.now()}.xlsx`
+    `../../../../ecommerce/keepa/exports/${prefix}_${safeSlug}_${Date.now()}.xlsx`
   );
   const targetOutputFile = filteredArgs[1]
     ? path.resolve(process.cwd(), filteredArgs[1])

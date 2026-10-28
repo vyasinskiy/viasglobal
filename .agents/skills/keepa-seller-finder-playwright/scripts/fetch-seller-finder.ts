@@ -130,7 +130,7 @@ async function main() {
   // Путь для сохранения файла
   const defaultOutputFile = path.resolve(
     __dirname,
-    `../../../../keepa/exports/seller_${sellerId}_${Date.now()}.xlsx`
+    `../../../../ecommerce/keepa/exports/seller_${sellerId}_${Date.now()}.xlsx`
   );
   const targetOutputFile = filteredArgs[1]
     ? path.resolve(process.cwd(), filteredArgs[1])

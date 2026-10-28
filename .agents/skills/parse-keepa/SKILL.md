@@ -24,7 +24,7 @@ description: Парсинг выгрузки Keepa, добавление нов�
      ```
    - Пример использования:
      ```bash
-     cd ecommerce/backend && npx tsx scripts/parse-keepa.ts ../../keepa/exports/file.xlsx
+     cd ecommerce/backend && npx tsx scripts/parse-keepa.ts ../keepa/exports/file.xlsx
      ```
 
 2. **Результат**:

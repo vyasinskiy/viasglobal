@@ -174,8 +174,8 @@ async function main() {
   let targetFile = inputFileArg;
 
   if (!targetFile) {
-    // Ищем самую свежую выгрузку Cofan в keepa/exports/
-    const exportsDir = path.resolve(__dirname, '../../../../keepa/exports');
+    // Ищем самую свежую выгрузку Cofan в ecommerce/keepa/exports/
+    const exportsDir = path.resolve(__dirname, '../../../../ecommerce/keepa/exports');
     if (fs.existsSync(exportsDir)) {
       const files = fs.readdirSync(exportsDir).filter(f => f.includes('cofan') && f.endsWith('.xlsx'));
       if (files.length > 0) {

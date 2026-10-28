@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { extractBrands } from './extract.js';
 
 test('Извлечение брендов из реального файла Keepa', () => {
-  const testFilePath = '/Users/usuario/code/viasglobal/keepa/exports/KeepaExport-2026-08-12-ProductFinder.xlsx';
+  const testFilePath = '/Users/usuario/code/viasglobal/ecommerce/keepa/exports/KeepaExport-2026-08-12-ProductFinder.xlsx';
   const brandsData = extractBrands(testFilePath);
 
   assert.strictEqual(Array.isArray(brandsData), true, 'Должен возвращать массив объектов');

@@ -64,7 +64,7 @@ cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/ski
    - Ожидается формирование таблицы результатов.
    - **Автоматически переключается лимит отображения таблицы на 5000 строк** (`.tool__row` -> `5000 rows`), гарантируя захват до 5000 товаров, а не 100 по умолчанию.
    - Нажимается кнопка *"Export"*.
-   - Скачивается файл `.xlsx` в директорию `keepa/exports/`.
+   - Скачивается файл `.xlsx` в директорию `ecommerce/keepa/exports/`.
 3. **Сохранение в БД**:
    - Скрипт сразу запускает `scripts/parse-keepa.ts` с полученным файлом.
    - Заполняются таблицы `Seller`, `SellerSnapshot`, `Brand`, `Manufacturer`, `ASIN`, `ASINSnapshot` и `KeepaExport`.

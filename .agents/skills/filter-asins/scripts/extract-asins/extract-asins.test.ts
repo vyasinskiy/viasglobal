@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { extractAsins } from './extract-asins.js';
 
 test('Извлечение ASIN по заданному бренду из реального файла', () => {
-  const testFilePath = '/Users/usuario/code/viasglobal/keepa/exports/KeepaExport-2026-08-12-ProductFinder.xlsx';
+  const testFilePath = '/Users/usuario/code/viasglobal/ecommerce/keepa/exports/KeepaExport-2026-08-12-ProductFinder.xlsx';
   
   const asinsVerybarista = extractAsins(testFilePath, 'verybarista');
   assert.strictEqual(Array.isArray(asinsVerybarista), true, 'Должен возвращать массив строк');

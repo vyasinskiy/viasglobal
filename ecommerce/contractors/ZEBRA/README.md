@@ -41,7 +41,7 @@
 
 ## Результаты полной выгрузки Keepa Product Finder (KeepaExport ID: 63)
 
-- **Файл выгрузки:** `keepa/exports/brand_zebra_pen_1793180393665.xlsx`
+- **Файл выгрузки:** `ecommerce/keepa/exports/brand_zebra_pen_1793180393665.xlsx`
 - **Количество товаров:** 1,784 строки (1,783 уникальных ASIN)
 - **Распределение по BSR (Sales Rank на Amazon ES):**
   - Топ до 5,000 (ультра-бестселлеры): 5 товаров (BSR от 2,870)

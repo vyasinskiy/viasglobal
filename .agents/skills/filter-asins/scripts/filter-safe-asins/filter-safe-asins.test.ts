@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import xlsx from 'xlsx';
 import { isBrandOrAmazonSelling } from './filter-logic.js';
 
-const testFile = '/Users/usuario/code/viasglobal/keepa/exports/KeepaExport-2026-08-12-ProductFinder.xlsx';
+const testFile = '/Users/usuario/code/viasglobal/ecommerce/keepa/exports/KeepaExport-2026-08-12-ProductFinder.xlsx';
 
 test('E2E Filter Logic on Keepa Export', () => {
   const workbook = xlsx.readFile(testFile);
