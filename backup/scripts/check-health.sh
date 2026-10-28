@@ -3,7 +3,7 @@
 # Скрипт ежедневной проверки здоровья (Healthcheck) резервных копий Viasglobal
 #
 # Проверяет:
-# 1. Наличие свежих бэкапов за последние 26 часов для всех баз (viasglobal_db, rent, ecommerce).
+# 1. Наличие свежих бэкапов за последние 26 часов для всех баз (viasglobal_db, rent).
 # 2. Адекватность размеров файлов (защита от пустых дампов).
 # 3. Целостность архивов (проверка CRC через gzip -t).
 # 4. Уведомляет владельца через Telegram при сбое (бот 8489630295 в чат 743866013).
@@ -135,8 +135,6 @@ if [ ${#DETAILS[@]} -lt 2 ]; then
   check_database_backup "rent (accruals)" "rent" 51200 "db_backup_*.sql.gz"
 fi
 
-# 3. ecommerce (ecommerce-db, ожидаем минимум 1 КБ)
-check_database_backup "ecommerce" "ecommerce" 1024 "*ecommerce*.sql.gz"
 
 
 # Проверяем журнал выгрузки в S3 (если был сбой)

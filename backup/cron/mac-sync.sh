@@ -2,7 +2,7 @@
 # ==============================================================================
 # Скрипт синхронизации бэкапов с сервера Huawei на текущий ПК (Mac)
 #
-# Скачивает свежие архивы всех баз данных (viasglobal_db, rent, ecommerce)
+# Скачивает свежие архивы всех баз данных (viasglobal_db, rent)
 # и статус-файлы хелсчека с сервера Huawei через rsync по защищенной сети Tailscale.
 # ==============================================================================
 
@@ -20,7 +20,6 @@ echo "======================================================================"
 
 mkdir -p "${LOCAL_BACKUP_DIR}/viasglobal"
 mkdir -p "${LOCAL_BACKUP_DIR}/rent"
-mkdir -p "${LOCAL_BACKUP_DIR}/ecommerce"
 mkdir -p "${LOCAL_BACKUP_DIR}/configs"
 
 # Запускаем rsync для скачивания свежих архивов по подпроектам, конфигураций .env и отчетов JSON
@@ -28,7 +27,6 @@ mkdir -p "${LOCAL_BACKUP_DIR}/configs"
 rsync -avz --progress \
   --include="viasglobal/***" \
   --include="rent/***" \
-  --include="ecommerce/***" \
   --include="configs/***" \
   --include="*.json" \
   --exclude="backup_*.sql.gz" \

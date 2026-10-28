@@ -5,7 +5,6 @@
 # Резервируемые базы данных:
 # 1. viasglobal_db (PostgreSQL 15, контейнер backend-db-1) - каталог wholesale/Keepa
 # 2. rent (PostgreSQL 16, контейнер accruals-postgres) - учет аренды, ЖКХ, бот
-# 3. ecommerce_db (PostgreSQL 16, контейнер ecommerce-db) - CRM/ERP заказы и товары
 # ==============================================================================
 
 # Строгий режим выполнения: прерывание при ошибках, не объявленных переменных и ошибках в пайпах
@@ -19,7 +18,6 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BACKUP_BASE_DIR="${PROJECT_ROOT}/backend/backups"
 mkdir -p "${BACKUP_BASE_DIR}/viasglobal"
 mkdir -p "${BACKUP_BASE_DIR}/rent"
-mkdir -p "${BACKUP_BASE_DIR}/ecommerce"
 
 # Загружаем переменные окружения для S3 / R2 и Telegram (если файлы существуют)
 if [ -f "${PROJECT_ROOT}/backend/.env" ]; then
@@ -51,7 +49,6 @@ echo "======================================================================"
 # Массив для сбора статусов по каждой БД
 STATUS_VIASGLOBAL="unknown"
 STATUS_RENT="unknown"
-STATUS_ECOMMERCE="unknown"
 ERROR_MESSAGES=()
 
 # ------------------------------------------------------------------------------
@@ -162,42 +159,9 @@ else
 fi
 
 # ==============================================================================
-# 3. Резервное копирование БД E-Commerce: ecommerce-db (ecommerce_db)
+# 3. Резервное копирование конфигурационных файлов (.env) в Cloudflare R2
 # ==============================================================================
-echo "📦 [3/3] Создание дампа ecommerce-db..."
-ECOM_FILE="${BACKUP_BASE_DIR}/ecommerce/ecommerce_db_${DATE_STR}.sql.gz"
-if docker ps --format '{{.Names}}' | grep -q '^ecommerce-db$'; then
-  # Снимаем дамп базы ecommerce_db
-  if docker exec ecommerce-db pg_dump -U viasuser ecommerce_db | gzip > "${ECOM_FILE}"; then
-    if gzip -t "${ECOM_FILE}"; then
-      ECOM_SIZE="$(stat -f%z "${ECOM_FILE}" 2>/dev/null || stat -c%s "${ECOM_FILE}" 2>/dev/null || echo 0)"
-      echo "✅ Дамп ecommerce_db успешно создан и проверен (размер: $((ECOM_SIZE / 1024 / 1024)) МБ)"
-      if upload_to_s3 "${ECOM_FILE}" "ecommerce/$(basename "${ECOM_FILE}")"; then
-        STATUS_ECOMMERCE="success"
-      else
-        STATUS_ECOMMERCE="warning_s3_failed"
-        ERROR_MESSAGES+=("ecommerce: сбой выгрузки в S3")
-      fi
-    else
-      echo "❌ Архив ${ECOM_FILE} поврежден (ошибка gzip)!"
-      STATUS_ECOMMERCE="corrupted"
-      ERROR_MESSAGES+=("ecommerce: битый gzip архив")
-    fi
-  else
-    echo "❌ Ошибка при выполнении pg_dump для ecommerce_db"
-    STATUS_ECOMMERCE="dump_failed"
-    ERROR_MESSAGES+=("ecommerce: ошибка pg_dump")
-  fi
-else
-  echo "⚠️ Контейнер ecommerce-db не запущен, пропуск ecommerce!"
-  STATUS_ECOMMERCE="container_down"
-  ERROR_MESSAGES+=("ecommerce: контейнер ecommerce-db остановлен")
-fi
-
-# ==============================================================================
-# 4. Резервное копирование конфигурационных файлов (.env) в Cloudflare R2
-# ==============================================================================
-echo "📦 [4/4] Создание резервной копии конфигурационных файлов (.env)..."
+echo "📦 [3/3] Создание резервной копии конфигурационных файлов (.env)..."
 if [ -f "${SCRIPT_DIR}/backup-configs.sh" ]; then
   bash "${SCRIPT_DIR}/backup-configs.sh" || echo "⚠️ Предупреждение: сбой при архивировании .env файлов"
 fi
@@ -229,11 +193,6 @@ cat <<EOF > "${STATUS_FILE}"
       "status": "${STATUS_RENT}",
       "file": "$(basename "${RENT_FILE}")",
       "sizeBytes": $(stat -f%z "${RENT_FILE}" 2>/dev/null || stat -c%s "${RENT_FILE}" 2>/dev/null || echo 0)
-    },
-    "ecommerce": {
-      "status": "${STATUS_ECOMMERCE}",
-      "file": "$(basename "${ECOM_FILE}")",
-      "sizeBytes": $(stat -f%z "${ECOM_FILE}" 2>/dev/null || stat -c%s "${ECOM_FILE}" 2>/dev/null || echo 0)
     }
   },
   "errors": $(if [ ${#ERROR_MESSAGES[@]} -eq 0 ]; then echo "[]"; else printf '%s\n' "${ERROR_MESSAGES[@]}" | jq -R . | jq -s . 2>/dev/null || echo "[]"; fi)

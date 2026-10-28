@@ -39,19 +39,17 @@ do_failover() {
   echo "📦 [1/6] Проверка наличия локальных резервных копий..."
   LATEST_VIAS="$(find "${BACKUP_BASE_DIR}/viasglobal" -name "*viasglobal*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
   LATEST_RENT="$(find "${BACKUP_BASE_DIR}/rent" -name "*rent*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
-  LATEST_ECOM="$(find "${BACKUP_BASE_DIR}/ecommerce" -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
 
-  if [ -z "${LATEST_VIAS}" ] || [ -z "${LATEST_RENT}" ] || [ -z "${LATEST_ECOM}" ]; then
+  if [ -z "${LATEST_VIAS}" ] || [ -z "${LATEST_RENT}" ]; then
     echo "⚠️ Не найдены все локальные бэкапы. Попытка синхронизации с сервера Huawei..."
     bash "${SCRIPT_DIR}/../cron/mac-sync.sh" 2>/dev/null || true
     LATEST_VIAS="$(find "${BACKUP_BASE_DIR}/viasglobal" -name "*viasglobal*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     LATEST_RENT="$(find "${BACKUP_BASE_DIR}/rent" -name "*rent*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
-    LATEST_ECOM="$(find "${BACKUP_BASE_DIR}/ecommerce" -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
 
     # Если сервер недоступен и локальных дампов все еще нет - скачиваем напрямую из Cloudflare R2
-    if [ -z "${LATEST_VIAS}" ] || [ -z "${LATEST_RENT}" ] || [ -z "${LATEST_ECOM}" ]; then
+    if [ -z "${LATEST_VIAS}" ] || [ -z "${LATEST_RENT}" ]; then
       echo "☁️  Сервер Huawei недоступен. Скачивание бэкапов напрямую из Cloudflare R2..."
-      mkdir -p "${BACKUP_BASE_DIR}/viasglobal" "${BACKUP_BASE_DIR}/rent" "${BACKUP_BASE_DIR}/ecommerce" "${BACKUP_BASE_DIR}/configs"
+      mkdir -p "${BACKUP_BASE_DIR}/viasglobal" "${BACKUP_BASE_DIR}/rent" "${BACKUP_BASE_DIR}/configs"
       docker run --rm -v "${BACKUP_BASE_DIR}:/data" \
         -e AWS_ACCESS_KEY_ID="6a3ced5995c20be21a57b57b37a2e55f" \
         -e AWS_SECRET_ACCESS_KEY="0632f67591532233b84ebdbb4405db554f1fc10567dc6ea34cff6e4a857e6352" \
@@ -59,18 +57,16 @@ do_failover() {
         amazon/aws-cli s3 sync s3://viasglobal-backups /data --endpoint-url https://ac8ad485b5af13d1cfdf0e7b1adfdb12.r2.cloudflarestorage.com
       LATEST_VIAS="$(find "${BACKUP_BASE_DIR}/viasglobal" -name "*viasglobal*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
       LATEST_RENT="$(find "${BACKUP_BASE_DIR}/rent" -name "*rent*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
-      LATEST_ECOM="$(find "${BACKUP_BASE_DIR}/ecommerce" -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     fi
   fi
 
   echo "   ✅ viasglobal_db: $(basename "${LATEST_VIAS}")"
   echo "   ✅ rent (accruals): $(basename "${LATEST_RENT}")"
-  echo "   ✅ ecommerce_db: $(basename "${LATEST_ECOM}")"
 
   # 2. Симуляция отключения сервера Huawei (остановка туннеля и веб-сервисов)
   echo "🔌 [2/6] Симуляция отказа сервера Huawei (остановка туннеля и сервисов)..."
   if ssh -o ConnectTimeout=4 "${HUAWEI_SERVER}" "echo ping" >/dev/null 2>&1; then
-    ssh "${HUAWEI_SERVER}" "docker stop cloudflared backend-backend-1 accruals-admin-ui ecommerce-admin 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker stop cloudflared backend-backend-1 accruals-admin-ui 2>/dev/null || true"
     echo "   ✅ Сервисы на Huawei остановлены. Трафик Cloudflare освобожден."
   else
     echo "   ℹ️ Сервер Huawei уже недоступен или выключен физически."
@@ -102,15 +98,10 @@ do_failover() {
   cd "${PROJECT_ROOT}/rent/infra"
   docker compose up -d postgres rabbitmq accountant admin-ui watcher telegram-bot
 
-  # Запуск инфраструктуры E-Commerce (БД, бэкенд API и веб-панель CRM)
-  cd "${PROJECT_ROOT}/ecommerce"
-  docker compose up -d db backend admin
-
   # 4. Восстановление данных из дампов
   echo "🔄 [4/6] Восстановление данных из резервных копий на локальном Mac..."
   bash "${SCRIPT_DIR}/restore.sh" --db viasglobal --file "${LATEST_VIAS}"
   bash "${SCRIPT_DIR}/restore.sh" --db rent --file "${LATEST_RENT}"
-  bash "${SCRIPT_DIR}/restore.sh" --db ecommerce --file "${LATEST_ECOM}"
 
   # Запуск основного API бэкенда Wholesale
   cd "${PROJECT_ROOT}/backend"
@@ -141,16 +132,13 @@ do_failover() {
   # 6. Проверка доступности публичных доменов через Cloudflare
   echo "🔍 [6/6] Проверка работы сайтов через защищенный Cloudflare Tunnel..."
   local RENT_STATUS
-  local CRM_STATUS
   RENT_STATUS="$(curl -s -o /dev/null -w "%{http_code}" https://rent.viasglobal.es || echo "ERR")"
-  CRM_STATUS="$(curl -s -o /dev/null -w "%{http_code}" https://crm.viasglobal.es || echo "ERR")"
 
   echo "======================================================================"
   echo "🏁 АВАРИЙНОЕ РАЗВЕРТЫВАНИЕ НА MAC УСПЕШНО ЗАВЕРШЕНО!"
   echo "======================================================================"
   echo "🌐 https://rent.viasglobal.es  ➔ HTTP ${RENT_STATUS} (обслуживается локальным Mac)"
-  echo "🌐 https://crm.viasglobal.es   ➔ HTTP ${CRM_STATUS} (обслуживается локальным Mac)"
-  echo "📊 Локальные БД: viasglobal (5432), rent (5433), ecommerce (5434)"
+  echo "📊 Локальные БД: viasglobal (5432), rent (5433)"
   echo ""
   echo "👉 Для возврата трафика обратно на сервер Huawei выполните:"
   echo "   make dr-rollback"
@@ -209,26 +197,21 @@ do_rollback() {
     echo "   📦 [2/3] Экспорт rent (все БД кластера) с локального Mac..."
     docker exec accruals-postgres pg_dumpall -U postgres --clean | gzip -9 > "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz"
 
-    echo "   📦 [3/3] Экспорт ecommerce_db с локального Mac..."
-    docker exec ecommerce-db pg_dump -U viasuser -d ecommerce_db --clean --if-exists --no-owner --no-acl | gzip -9 > "${TMP_DIR}/failover_ecommerce_${SYNC_TS}.sql.gz"
-
     echo "   🚀 Передача дампов на сервер Huawei по защищенной сети Tailscale..."
-    ssh "${HUAWEI_SERVER}" "mkdir -p /home/huawei/viasglobal/backend/backups/viasglobal /home/huawei/viasglobal/backend/backups/rent /home/huawei/viasglobal/backend/backups/ecommerce"
+    ssh "${HUAWEI_SERVER}" "mkdir -p /home/huawei/viasglobal/backend/backups/viasglobal /home/huawei/viasglobal/backend/backups/rent"
     scp "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/viasglobal/"
     scp "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/rent/"
-    scp "${TMP_DIR}/failover_ecommerce_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/ecommerce/"
 
     echo "   🔄 Восстановление баз данных на сервере Huawei..."
     # Синхронизируем обновленный скрипт restore.sh на сервер
     scp "${SCRIPT_DIR}/restore.sh" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backup/scripts/restore.sh"
 
     # Приостанавливаем прикладные сервисы на Huawei, чтобы избежать параллельной записи во время импорта
-    ssh "${HUAWEI_SERVER}" "docker stop backend-backend-1 accruals-watcher accruals-accountant accruals-telegram-bot accruals-admin-ui ecommerce-backend ecommerce-admin 2>/dev/null || true"
-    ssh "${HUAWEI_SERVER}" "docker start backend-db-1 accruals-postgres ecommerce-db 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker stop backend-backend-1 accruals-watcher accruals-accountant accruals-telegram-bot accruals-admin-ui 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker start backend-db-1 accruals-postgres 2>/dev/null || true"
 
     ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db viasglobal --file /home/huawei/viasglobal/backend/backups/viasglobal/failover_viasglobal_${SYNC_TS}.sql.gz"
     ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db rent --file /home/huawei/viasglobal/backend/backups/rent/failover_rent_${SYNC_TS}.sql.gz"
-    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db ecommerce --file /home/huawei/viasglobal/backend/backups/ecommerce/failover_ecommerce_${SYNC_TS}.sql.gz"
 
     rm -rf "${TMP_DIR}"
     echo "   ✅ Обратная синхронизация баз данных на Huawei успешно завершена!"
@@ -238,14 +221,13 @@ do_rollback() {
 
   # 3. Запуск всех сервисов на боевом сервере Huawei
   echo "🚀 [3/5] Запуск всех контейнеров на сервере Huawei..."
-  ssh "${HUAWEI_SERVER}" "docker start backend-db-1 backend-backend-1 accruals-postgres accruals-rabbitmq accruals-accountant accruals-watcher accruals-admin-ui accruals-telegram-bot ecommerce-db ecommerce-backend ecommerce-admin cloudflared 2>/dev/null || true"
+  ssh "${HUAWEI_SERVER}" "docker start backend-db-1 backend-backend-1 accruals-postgres accruals-rabbitmq accruals-accountant accruals-watcher accruals-admin-ui accruals-telegram-bot cloudflared 2>/dev/null || true"
   echo "   ✅ Контейнеры на Huawei запущены."
 
   # 4. Остановка локальных контейнеров на Mac
   echo "🧹 [4/5] Остановка локальных контейнеров Mac..."
   cd "${PROJECT_ROOT}/backend" && docker compose stop backend db || true
   cd "${PROJECT_ROOT}/rent/infra" && docker compose stop admin-ui accountant watcher telegram-bot rabbitmq postgres || true
-  cd "${PROJECT_ROOT}/ecommerce" && docker compose stop admin backend db || true
 
   echo "⏳ Ожидание переключения трафика обратно на Huawei (7 сек)..."
   sleep 7
@@ -253,15 +235,12 @@ do_rollback() {
   # 5. Проверка доступности публичных доменов через Cloudflare
   echo "🔍 [5/5] Проверка доступности публичных доменов..."
   local RENT_STATUS
-  local CRM_STATUS
   RENT_STATUS="$(curl -s -o /dev/null -w "%{http_code}" https://rent.viasglobal.es || echo "ERR")"
-  CRM_STATUS="$(curl -s -o /dev/null -w "%{http_code}" https://crm.viasglobal.es || echo "ERR")"
 
   echo "======================================================================"
   echo "✅ ВОЗВРАТ НА HUAWEI ЗАВЕРШЕН!"
   echo "======================================================================"
   echo "🌐 https://rent.viasglobal.es  ➔ HTTP ${RENT_STATUS} (обслуживается Huawei)"
-  echo "🌐 https://crm.viasglobal.es   ➔ HTTP ${CRM_STATUS} (обслуживается Huawei)"
   echo "======================================================================"
 }
 
@@ -289,7 +268,6 @@ do_status() {
   echo ""
   echo "🌐 Проверка публичных доменов:"
   echo "   rent.viasglobal.es: HTTP $(curl -s -o /dev/null -w "%{http_code}" https://rent.viasglobal.es || echo "ERR")"
-  echo "   crm.viasglobal.es:  HTTP $(curl -s -o /dev/null -w "%{http_code}" https://crm.viasglobal.es || echo "ERR")"
   echo "======================================================================"
 }
 

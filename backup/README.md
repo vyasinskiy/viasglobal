@@ -6,13 +6,12 @@
 
 ## 1. Архитектура баз данных кластера
 
-На боевом сервере Huawei (`100.92.50.18`) развернуты 3 независимых СУБД в изолированных Docker-контейнерах:
+На боевом сервере Huawei (`100.92.50.18`) развернуты 2 независимых СУБД в изолированных Docker-контейнерах:
 
 | Контейнер Docker | База данных | СУБД | Назначение | Примерный объем | Внешний домен |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`backend-db-1`** | `viasglobal_db` | PostgreSQL 15 | Каталог Wholesale, товары, 100k+ ASIN, Keepa очереди, снапшоты дистрибьюторов | ~1.75 ГБ (gzip ~791 МБ) | `api.viasglobal.es` / порт `3001` |
+| **`backend-db-1`** | `viasglobal_db` | PostgreSQL 15 | Каталог Wholesale, товары, 100k+ ASIN, Keepa очереди, закупки, остатки | ~1.75 ГБ (gzip ~791 МБ) | `api.viasglobal.es` / порт `3001` |
 | **`accruals-postgres`** | `accountant_db`, `watcher_db`, `telegram_bot_db`, `kvartplata_watcher` | PostgreSQL 16 | Сервис учета аренды: жильцы, квитанции, начисления, платежи, парсер ЖКХ | ~35 МБ (gzip ~220 КБ) | **`https://rent.viasglobal.es`** (порт `3000`) |
-| **`ecommerce-db`** | `ecommerce_db` | PostgreSQL 16 | CRM/ERP система: закупки, поставщики, остатки складов, заказы | ~8.6 МБ (gzip ~5 КБ) | **`https://crm.viasglobal.es`** (порт `3020`) |
 
 ---
 
@@ -68,7 +67,6 @@ backup/
   s3://viasglobal-backups/
   ├── viasglobal/viasglobal_db_YYYYMMDD_HHMMSS.sql.gz
   ├── rent/rent_all_YYYYMMDD_HHMMSS.sql.gz
-  ├── ecommerce/ecommerce_db_YYYYMMDD_HHMMSS.sql.gz
   └── configs/configs_YYYYMMDD_HHMMSS.tar.gz   # Полный слепок всех .env файлов кластера
   ```
 
@@ -105,14 +103,13 @@ make dr-failover
 3. Поднимет локальные базы данных в Docker на Mac:
    - `backend-db-1` (Postgres 15, порт `5432`)
    - `accruals-postgres` (Postgres 16, порт `5433`)
-   - `ecommerce-db` (Postgres 16, порт `5434`)
-3. Автоматически распакует и импортирует самые свежие дампы всех 3 баз через `restore.sh`.
-4. Запустит локальные веб-сервисы и API (`admin-ui`, `accountant`, `ecommerce-admin`, `backend`).
+3. Автоматически распакует и импортирует самые свежие дампы всех баз через `restore.sh`.
+4. Запустит локальные веб-сервисы и API (`admin-ui`, `accountant`, `backend`).
 5. Запустит локальный контейнер **`cloudflared-failover`**.
 
 #### Как сайты продолжают работать БЕЗ смены DNS:
 - Контейнер `cloudflared-failover` и `accruals-admin-ui` подключаются к специальной bridge-сети `failover-net` (подсеть `100.92.50.0/24`), благодаря чему вызовы Cloudflare Ingress к `http://100.92.50.18:3000` перехватываются сетевым стеком ядра и мгновенно попадают в веб-панель Mac без каких-либо задержек и без необходимости менять настройки в дашборде Cloudflare.
-- Сайты **`https://rent.viasglobal.es`** и **`https://crm.viasglobal.es`** продолжают открываться в браузере без единой секунды простоя!
+- Сайт **`https://rent.viasglobal.es`** продолжает открываться в браузере без единой секунды простоя!
 
 #### Шаг 2. Проверка статуса:
 ```bash
@@ -124,7 +121,6 @@ make dr-status
 🏢 Боевой сервер Huawei (cloudflared):     🔴 НЕ АКТИВЕН
 🌐 Проверка публичных доменов:
    rent.viasglobal.es: HTTP 307
-   crm.viasglobal.es:  HTTP 200
 ```
 
 ---
@@ -139,11 +135,11 @@ make dr-rollback
 #### Что происходит автоматически:
 1. **Остановка внешнего трафика на Mac**: Отключается локальный коннектор `cloudflared-failover` и вспомогательная сеть `failover-net`, чтобы новые входящие запросы не попадали на Mac.
 2. **Обратная синхронизация баз данных (Mac ➔ Huawei)**:
-   - Создаются свежие дампы всех 3 баз данных с локальных контейнеров Mac (`viasglobal_db`, `rent` / все базы кластера, `ecommerce_db`).
+   - Создаются свежие дампы баз данных с локальных контейнеров Mac (`viasglobal_db`, `rent` / все базы кластера).
    - Дампы автоматически передаются на сервер Huawei по защищенной Tailscale-сети (`scp`).
    - На сервере Huawei автоматически восстанавливаются актуальные данные через `restore.sh`. Все изменения, накопившиеся на Mac за время аварии, гарантированно переносятся на Huawei!
 3. **Запуск боевых контейнеров на Huawei**: Запускаются все бэкенды, веб-панели и основной `cloudflared`.
-4. **Остановка резервных контейнеров на Mac**: Освобождаются локальные порты 3000, 5432, 5433, 5434 и оперативная память.
+4. **Остановка резервных контейнеров на Mac**: Освобождаются локальные порты 3000, 5432, 5433 и оперативная память.
 5. **Проверка**: Проверяется код ответа (`HTTP 200`) через Cloudflare Edge.
 
 > [!NOTE]
@@ -185,9 +181,6 @@ make dr-rollback
 
 # Восстановление базы аренды (accruals-postgres)
 ./backup/scripts/restore.sh --db rent [--file /path/to/backup.sql.gz] [--container accruals-postgres]
-
-# Восстановление CRM базы (ecommerce-db)
-./backup/scripts/restore.sh --db ecommerce [--file /path/to/backup.sql.gz] [--container ecommerce-db]
 ```
 
 ---

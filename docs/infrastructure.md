@@ -30,14 +30,12 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
 ### Узел 1: Primary (Домашний ПК Huawei MateStation S - Linux)
 **IP:** `100.92.50.18`
 
-*   **Базы данных (Master):** 3 изолированные СУБД:
-    * `backend-db-1` (Postgres 15, порт `5432`) — `viasglobal_db` (Wholesale каталог, 100k+ ASIN).
+*   **Базы данных (Master):** 2 изолированные СУБД:
+    * `backend-db-1` (Postgres 15, порт `5432`) — `viasglobal_db` (Wholesale каталог, 100k+ ASIN, закупки, остатки СВХ/склада, продажи).
     * `accruals-postgres` (Postgres 16, порт `5433`) — сервис аренды (`accountant_db`, `watcher_db`, `telegram_bot_db`, `kvartplata_watcher`).
-    * `ecommerce-db` (Postgres 16, порт `5434`) — CRM/ERP закупки (`ecommerce_db`).
 *   **Микросервисы и веб-интерфейсы:**
-    * `backend-backend-1` (порт `3001`) — API Wholesale каталога.
+    * `backend-backend-1` (порт `3001`) — API Wholesale каталога, заказов и остатков.
     * `accruals-admin-ui` (порт `3000`) — веб-панель аренды (`rent.viasglobal.es`).
-    * `ecommerce-admin` (порт `3020`) — веб-панель CRM (`crm.viasglobal.es`).
     * `accruals-accountant` (порт `3005`), `accruals-watcher` (порт `4500`), `accruals-rabbitmq` (порты `5672`, `15672`).
     * `sms-gateway` (порт `3040`), `viasglobal-openclaw` (порт `18789`), `viasglobal-hermes`.
 *   **Внешний доступ (Cloudflare Tunnel):** Контейнер `cloudflared` (токен туннеля `fad800a3-f97e-4b41-8f24-df8168b1211b`).
@@ -45,8 +43,8 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
 ### Узел 2: Standby / Disaster Recovery (Mac)
 **IP:** `100.65.210.51`
 
-*   **Резервная среда мгновенного развертывания (Disaster Recovery):** Все Docker-образы (`ecommerce-admin`, `backend`, `rent`, `cloudflared`) предсобраны и закэшированы локально.
-*   **Синхронизация бэкапов:** Ежедневно через `make backup-sync` свежие копии всех 3 БД скачиваются в `backend/backups/`.
+*   **Резервная среда мгновенного развертывания (Disaster Recovery):** Все Docker-образы (`backend`, `rent`, `cloudflared`) предсобраны и закэшированы локально.
+*   **Синхронизация бэкапов:** Ежедневно через `make backup-sync` свежие копии всех БД скачиваются в `backend/backups/`.
 *   **Аварийное переключение в 1 команду:** При выходе Huawei из строя команда `make dr-failover` за 2 минуты разворачивает все СУБД, восстанавливает данные и запускает локальный `cloudflared-failover`. Трафик внешних сайтов переключается на Mac без изменения DNS.
 *   **Возврат работы на Huawei:** Команда `make dr-rollback`.
 
@@ -61,7 +59,6 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
 - **Сетевое окружение**: Контейнер подключен к Docker-сети `infra_accruals-network`.
 - **Маршрутизация поддоменов Cloudflare**:
   - `rent.viasglobal.es` -> `http://100.92.50.18:3000` (панель управления учетом аренды и начислений).
-  - `crm.viasglobal.es` -> `http://ecommerce-admin:3000` (панель управления E-Commerce CRM / ERP).
   - `browser.viasglobal.es` -> `http://100.92.50.18:3002` (удаленный визуальный браузер для SMS-авторизаций).
   - `portainer.viasglobal.es` -> `http://100.92.50.18:9000` (панель управления Docker контейнерами).
 

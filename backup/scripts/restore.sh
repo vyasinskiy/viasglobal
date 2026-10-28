@@ -4,13 +4,12 @@
 #
 # Поддерживает:
 # - Восстановление на боевом сервере Huawei или локально на Mac.
-# - Выбор конкретной базы (viasglobal_db, rent, ecommerce) или всех сразу.
+# - Выбор конкретной базы (viasglobal_db, rent) или всех сразу.
 # - Автоматический выбор самого свежего бэкапа или указание конкретного файла.
 #
 # Использование:
 #   ./restore.sh --db viasglobal [--file /path/to/backup.sql.gz] [--container backend-db-1]
 #   ./restore.sh --db rent [--file /path/to/backup.sql.gz] [--container accruals-postgres]
-#   ./restore.sh --db ecommerce [--file /path/to/backup.sql.gz] [--container ecommerce-db]
 # ==============================================================================
 
 # Строгий режим выполнения
@@ -47,7 +46,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "Использование: $0 --db <viasglobal|rent|ecommerce> [--file <путь>] [--container <имя>]"
+      echo "Использование: $0 --db <viasglobal|rent> [--file <путь>] [--container <имя>]"
       exit 0
       ;;
     *)
@@ -58,7 +57,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "${TARGET_DB}" ]; then
-  echo "❌ Ошибка: укажите базу данных через флаг --db (viasglobal, rent или ecommerce)"
+  echo "❌ Ошибка: укажите базу данных через флаг --db (viasglobal или rent)"
   exit 1
 fi
 
@@ -84,16 +83,8 @@ case "${TARGET_DB}" in
       BACKUP_FILE="$(find "${BACKUP_BASE_DIR}/rent" "${PROJECT_ROOT}/rent/infra/backups" -type f -name "*rent*.sql.gz" -o -name "db_backup_*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     fi
     ;;
-  ecommerce)
-    CONTAINER_NAME="${CONTAINER_NAME:-ecommerce-db}"
-    DB_USER="${DB_USER:-viasuser}"
-    DB_NAME="${DB_NAME:-ecommerce_db}"
-    if [ -z "${BACKUP_FILE}" ]; then
-      BACKUP_FILE="$(find "${BACKUP_BASE_DIR}/ecommerce" -type f -name "*ecommerce*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
-    fi
-    ;;
   *)
-    echo "❌ Неверное имя базы: ${TARGET_DB}. Допустимые: viasglobal, rent, ecommerce"
+    echo "❌ Неверное имя базы: ${TARGET_DB}. Допустимые: viasglobal, rent"
     exit 1
     ;;
 esac
@@ -143,8 +134,8 @@ START_RESTORE="$(date +%s)"
 # Закрываем активные подключения к восстанавливаемой базе данных
 docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();" >/dev/null 2>&1 || true
 
-# Для баз с отдельной схемой (viasglobal и ecommerce) пересоздаем чистую схему public во избежание конфликтов ключей
-if [[ "${TARGET_DB}" == "viasglobal" ]] || [[ "${TARGET_DB}" == "ecommerce" ]]; then
+# Для базы с отдельной схемой (viasglobal) пересоздаем чистую схему public во избежание конфликтов ключей
+if [[ "${TARGET_DB}" == "viasglobal" ]]; then
   echo "🧹 Очистка старых таблиц перед импортом (DROP SCHEMA public CASCADE)..."
   docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -d "${DB_NAME}" -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"${DB_USER}\";" >/dev/null 2>&1 || true
 fi

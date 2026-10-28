@@ -15,8 +15,8 @@
 
 Все микросервисы объединены в две основные изолированные bridge-сети Docker на сервере:
 
-1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, `ecommerce`, AI-агенты, SMS Gateway).
-   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `ecommerce-backend`, `ecommerce-admin`, `sms-gateway`.
+1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, AI-агенты, SMS Gateway).
+   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
 2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`).
    - Контейнеры: `backend`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
 
@@ -32,9 +32,6 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | **Watcher Service** | `accruals-watcher` | `4500` | `4500` | Парсинг коммунальных порталов через Playwright |
 | **Backend API** | `backend` | `3000` | `3000` | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди |
 | **Admin UI (Rent)** | `accruals-admin-ui` | `3000` | `3000` (`https://rent.viasglobal.es`) | Веб-интерфейс панели администратора аренды (Next.js/MUI) |
-| **E-Commerce Backend** | `ecommerce-backend` | `3001` | `3010` | REST API CRM/ERP: товары, закупки, поставщики, остатки, заказы |
-| **E-Commerce Admin UI** | `ecommerce-admin` | `3000` | `3020` (`https://crm.viasglobal.es`) | Веб-интерфейс CRM/ERP (Next.js 16/MUI) |
-| **E-Commerce PostgreSQL**| `ecommerce-db` | `5432` | `5434` | База данных `ecommerce_db` |
 | **RabbitMQ** | `accruals-rabbitmq` | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
 | **PostgreSQL (Rent)** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |
 | **Telegram Bot Rent** | `accruals-telegram-bot`| - | - | Бот арендаторов и администраторов аренды |
@@ -592,7 +589,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 ### 5.6. Мониторинг резервных копий (`/health/backups`)
 
 - **`GET /health/backups`**
-  - **Описание**: Получить структурированный статус здоровья ежедневных бэкапов всех баз данных кластера (`viasglobal_db`, `rent`, `ecommerce_db`), сформированный автоматическими проверками `check-health.sh`.
+  - **Описание**: Получить структурированный статус здоровья ежедневных бэкапов всех баз данных кластера (`viasglobal_db`, `rent`), сформированный автоматическими проверками `check-health.sh`.
   - **Пример запроса**:
     ```bash
     curl -s http://backend:3000/health/backups
@@ -608,8 +605,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
         "checksPassed": true,
         "details": [
           "viasglobal_db: viasglobal_db_20261027_030001.sql.gz (829 МБ, 0.5 ч назад, CRC OK)",
-          "rent (accruals): rent_all_20261027_030001.sql.gz (0 МБ, 0.5 ч назад, CRC OK)",
-          "ecommerce: ecommerce_db_20261027_030001.sql.gz (0 МБ, 0.5 ч назад, CRC OK)"
+          "rent (accruals): rent_all_20261027_030001.sql.gz (0 МБ, 0.5 ч назад, CRC OK)"
         ],
         "errors": [],
         "warnings": []
@@ -696,171 +692,12 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 6. API сервиса E-Commerce CRM (`ecommerce-backend:3001`)
-
-
-Базовый URL изнутри Docker-сети: `http://ecommerce-backend:3001`
-Базовый URL извне через веб-панель: `https://crm.viasglobal.es/api`
-
-### 6.1. Авторизация (`/auth`)
-
-- **`POST /auth/login`**
-  - **Описание**: Вход пользователя в систему.
-  - **Тело запроса (JSON)**: `{"email": "admin@viasglobal.com", "password": "..."}`
-  - **Ответ**: `{ "access_token": "...", "user": { "id": 1, "email": "...", "name": "...", "role": "ADMIN" } }`
-
-- **`POST /auth/register`**
-  - **Описание**: Регистрация нового менеджера/администратора.
-  - **Тело запроса (JSON)**: `{"email": "user@example.com", "password": "...", "name": "Имя"}`
-
----
-
-### 6.2. Поставщики (`/suppliers`)
-
-- **`GET /suppliers`**
-  - **Описание**: Список всех поставщиков CRM.
-  - **Query-параметры**: `status` (`NEW`, `RESEARCHING`, `FORM_SUBMITTED`, `EMAIL_SENT`, `CALLED`, `NEGOTIATING`, `ACCOUNT_OPENED`, `REJECTED`, `INACTIVE`).
-  - **Пример**: `curl -s "http://ecommerce-backend:3001/suppliers?status=ACCOUNT_OPENED"`
-
-- **`POST /suppliers`**
-  - **Описание**: Добавление нового поставщика в воронку.
-  - **Тело запроса**: `{"name": "Поставщик", "website": "https://...", "country": "ES", "email": "info@...", "phone": "..."}`
-
-- **`GET /suppliers/funnel`**
-  - **Описание**: Сводная статистика воронки работы с поставщиками по статусам.
-
-- **`GET /suppliers/:id`**
-  - **Описание**: Полная карточка поставщика с контактами, историей коммуникаций и привязанными товарами.
-
-- **`PATCH /suppliers/:id/status`**
-  - **Описание**: Смена этапа воронки поставщика.
-  - **Тело запроса**: `{"status": "NEGOTIATING", "notes": "Получен оптовый прайс-лист"}`
-
-- **`POST /suppliers/:id/contacts`**
-  - **Описание**: Добавление контактного лица к поставщику (`name`, `role`, `email`, `phone`, `isPrimary`).
-
-- **`POST /suppliers/:id/communications`**
-  - **Описание**: Фиксация факта коммуникации (`type`: `CALL`/`EMAIL`/`MEETING`/`FORM`, `notes`, `nextContactDate`).
-
-- **`DELETE /suppliers/:id`**
-  - **Описание**: Удаление поставщика.
-
----
-
-### 6.3. Каталог товаров (`/products`)
-
-- **`GET /products`**
-  - **Описание**: Каталог товаров с артикулами (SKU), ценами, габаритами и остатками.
-
-- **`POST /products`**
-  - **Описание**: Создание товара.
-  - **Тело запроса**: `{"sku": "PROD-001", "name": "Наименование", "costPrice": 12.5, "retailPrice": 29.99, "weight": 0.35}`
-
-- **`GET /products/:id`**
-  - **Описание**: Детальная информация о товаре, привязанных платформах (ASIN Amazon, Etsy ID) и поставщиках.
-
-- **`PATCH /products/:id`**
-  - **Описание**: Обновление характеристик или цен товара.
-
-- **`DELETE /products/:id`**
-  - **Описание**: Удаление товара из каталога.
-
-- **`POST /products/:id/external-ids`**
-  - **Описание**: Привязка внешнего ID платформы (Amazon ASIN, Etsy ID).
-
----
-
-### 6.4. Закупки у поставщиков (`/purchases`)
-
-- **`GET /purchases`**
-  - **Описание**: Список заказов на закупку. Фильтр: `?status=CONFIRMED`.
-  - **Статусы**: `DRAFT`, `SENT`, `CONFIRMED`, `PAID`, `SHIPPED`, `PARTIALLY_RECEIVED`, `RECEIVED`, `CANCELLED`.
-
-- **`POST /purchases`**
-  - **Описание**: Создание заказа на закупку с перечнем позиций и закупочными ценами.
-
-- **`GET /purchases/:id`**
-  - **Описание**: Детальный заказ закупки со строками и статусом поставки.
-
-- **`PATCH /purchases/:id/status`**
-  - **Описание**: Смена статуса закупки. При переводе в `RECEIVED` автоматически приходуются остатки на склад.
-
-- **`DELETE /purchases/:id`**
-  - **Описание**: Отмена заказа на закупку.
-
----
-
-### 6.5. Заказы и продажи (`/sales`)
-
-- **`GET /sales`**
-  - **Описание**: Список заказов покупателей с маркетплейсов.
-
-- **`POST /sales`**
-  - **Описание**: Регистрация заказа продажи (платформа, номер заказа, состав, комиссия площадки).
-
-- **`GET /sales/:id`**
-  - **Описание**: Детали заказа продажи с расчетом себестоимости и чистой прибыли.
-
-- **`PATCH /sales/:id/status`**
-  - **Описание**: Обновление статуса заказа (`PENDING`, `SHIPPED`, `DELIVERED`, `CANCELLED`). При отправке автоматически списываются остатки со склада.
-
----
-
-### 6.6. Складской учет и остатки (`/inventory`)
-
-- **`GET /inventory`**
-  - **Описание**: Текущие складские остатки по складам (`OWN`, `FBA`, `THIRD_PARTY`).
-
-- **`GET /inventory/movements`**
-  - **Описание**: Журнал движений товаров (приход, списание, резерв, возврат).
-
-- **`POST /inventory/movements`**
-  - **Описание**: Ручное создание складского движения (инвентаризация, списание, корректировка).
-
-- **`GET /inventory/low-stock`**
-  - **Описание**: Список товаров с остатком ниже минимального страхового порога.
-
----
-
-### 6.7. Документооборот (`/documents`)
-
-- **`POST /documents/upload`**
-  - **Описание**: Загрузка файла (PDF, скан, инвойс, накладная) с привязкой к сущности (`SUPPLIER`, `PURCHASE`, `SALE`, `PRODUCT`).
-  - **Формат**: `multipart/form-data` (файл в поле `file`, метаданные в теле).
-
-- **`GET /documents/:entityType/:entityId`**
-  - **Описание**: Список прикрепленных документов для выбранной сущности.
-
-- **`GET /documents/:id/download`**
-  - **Описание**: Скачивание файла документа по ID.
-
-- **`DELETE /documents/:id`**
-  - **Описание**: Удаление документа из системы и дискового хранилища.
-
----
-
-### 6.8. Аналитика и маржинальность (`/analytics`)
-
-- **`GET /analytics/kpis`**
-  - **Описание**: Ключевые метрики бизнеса (выручка, маржа, чистая прибыль, средний чек).
-
-- **`GET /analytics/sales-by-platform`**
-  - **Описание**: Распределение продаж и комиссий по площадкам (Amazon vs Etsy).
-
-- **`GET /analytics/top-products`**
-  - **Описание**: Рейтинг наиболее маржинальных и популярных товаров.
-
-- **`GET /analytics/margin-analysis`**
-  - **Описание**: Построчный расчет прибыльности и удержаний комиссий.
-
----
-
-## 7. API сервиса Viaslangs — Тренажер испанского и аналитика сессий (`viaslangs-web:3000`)
+## 6. API сервиса Viaslangs — Тренажер испанского и аналитика сессий (`viaslangs-web:3000`)
 
 Базовый URL: `http://localhost:3000` (локально) или `https://langs.viasglobal.es`
 Авторизация для AI-агентов: Заголовок `x-app-password: viasglobal` или `Authorization: Bearer viasglobal`.
 
-### 7.1. Фиксация активности в сессионном дне (`POST /api/sessions/activity`)
+### 6.1. Фиксация активности в сессионном дне (`POST /api/sessions/activity`)
 
 - **Описание**: Фиксирует активность пользователя в рамках текущего дня (нажатие кнопки `Next`, успешный ответ или ошибку). Если на сегодня сессия еще не открыта, она создается автоматически.
 - **Тело запроса (JSON)**:
@@ -887,7 +724,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 7.2. Статистика по текущей сессии за сегодня (`GET /api/sessions/today`)
+### 6.2. Статистика по текущей сессии за сегодня (`GET /api/sessions/today`)
 
 - **Описание**: Возвращает полную аналитику сегодняшней сессии изучения: число кликов Next (прочитанные примеры), количество верных ответов и ошибок, группировку ошибок по тегам (времена глаголов), по грамматическим лицам (`yo`, `tú`, `él/ella/usted`, `nosotros`, `vosotros`, `ellos/ellas/ustedes`), список слабых слов и готовую текстовую рекомендацию для ассистента.
 - **Query-параметры**: `languageId` (опционально, по умолчанию `2` для испанского).
@@ -938,7 +775,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 7.3. Мульти-дневная динамика активности (`GET /api/sessions/history`)
+### 6.3. Мульти-дневная динамика активности (`GET /api/sessions/history`)
 
 - **Описание**: Анализирует историю сессий за последние N дней (по умолчанию 7). Вычисляет среднюю и **медианную дневную активность** за предыдущие 7 дней (заполняя дни отсутствия занятий нулями), сравнивает её с сегодняшним днем (`isBelowMedian`), выявляет спад темпов и формирует флаг `shouldRemind` и готовый текст напоминания для OpenClaw.
 - **Query-параметры**:
@@ -986,7 +823,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 7.4. Предложения для тренировки в лайв-режиме (`GET /api/sessions/training-phrases`)
+### 6.4. Предложения для тренировки в лайв-режиме (`GET /api/sessions/training-phrases`)
 
 - **Описание**: Возвращает структурированный список предложений для тренировки разговорного испанского в режиме лайв-разговора (Gemini Gem / OpenClaw).
   * **Приоритет 1**: слова с ошибками за сегодня (`ANSWER_ERROR`), отсортированные по убыванию числа ошибок.
@@ -1043,7 +880,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 7.5. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+### 6.5. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
 
 1. **Сценарий 1: Ответ на вопрос «Какая у меня статистика по испанскому за сегодня?»**:
    - Выполни: `curl -s -H "x-app-password: viasglobal" "https://langs.viasglobal.es/api/sessions/today"`
@@ -1087,14 +924,14 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 8. API сервиса SMS Gateway (`sms-gateway:3040`)
+## 7. API сервиса SMS Gateway (`sms-gateway:3040`)
 
 Базовый URL изнутри Docker-сети: `http://sms-gateway:3040`
 Базовый URL на хосте: `http://localhost:3040` или `http://100.92.50.18:3040`
 
 Сервис обеспечивает чтение входящих SMS с мобильного телефона Meizu U20, постоянно подключенного по USB к серверу Huawei. Телефон принимает SMS от банковских терминалов самообслуживания (CaixaBank, BBVA, Santander), через которые арендаторы вносят оплату наличными. Сервис форвардит новые SMS владельцу в Telegram (`743866013`), непрерывно отслеживает здоровье устройства (заряд батареи, питание USB, SIM-карту) и предоставляет REST API для OpenClaw.
 
-### 8.1. Комплексная проверка здоровья (`GET /health`)
+### 7.1. Комплексная проверка здоровья (`GET /health`)
 
 - **Описание**: Проверка статуса USB-подключения телефона, уровня заряда батареи, статуса зарядки, SIM-карты и счетчика принятых SMS.
 - **Пример запроса**:
@@ -1138,7 +975,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 8.2. Получение последнего SMS (`GET /sms/latest`)
+### 7.2. Получение последнего SMS (`GET /sms/latest`)
 
 - **Описание**: Возвращает самое свежее входящее SMS сообщение. Используется OpenClaw для оперативной проверки кодов подтверждения и квитанций терминалов при сообщениях от арендаторов.
 - **Пример запроса**:
@@ -1173,7 +1010,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 8.3. Список входящих SMS (`GET /sms/list`)
+### 7.3. Список входящих SMS (`GET /sms/list`)
 
 - **Описание**: Получение истории SMS с пагинацией и гибкой фильтрацией.
 - **Query-параметры**:
@@ -1216,7 +1053,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 8.4. Получение конкретного SMS по ID (`GET /sms/:id`)
+### 7.4. Получение конкретного SMS по ID (`GET /sms/:id`)
 
 - **Описание**: Детальные данные конкретного SMS сообщения по числовому первичному ключу.
 - **Пример запроса**:
@@ -1226,7 +1063,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 8.5. Принудительная синхронизация с телефоном (`POST /sms/sync`)
+### 7.5. Принудительная синхронизация с телефоном (`POST /sms/sync`)
 
 - **Описание**: Инициирует немедленный опрос базы Android через ADB без ожидания 5-секундного интервала поллинга.
 - **Пример запроса**:
@@ -1255,7 +1092,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-### 8.6. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
+### 7.6. Сценарии использования для AI-ассистента (OpenClaw / Hermes)
 
 1. **Сценарий 1: Арендатор пишет «Я только что внес деньги через терминал, проверьте»**:
    - Шаг 1: OpenClaw вызывает принудительную синхронизацию:
@@ -1271,7 +1108,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 9. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
+## 8. Паттерны проектирования API для автономных LLM-агентов (Anti-Hallucination Design Patterns)
 
 При взаимодействии автономных языковых моделей (OpenClaw, Hermes, Antigravity) с бэкенд-сервисами критически важно предотвращать когнитивные искажения (галлюцинации) агентов. Если API возвращает неточный статус или неполную ошибку, LLM делает ложные выводы о состоянии системы и начинает деструктивные действия (создание фиктивных сущностей, попытки обхода проверок, удаление записей).
 
@@ -1338,7 +1175,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 
 ---
 
-## 10. Правила использования для AI-ассистентов (OpenClaw, Hermes)
+## 9. Правила использования для AI-ассистентов (OpenClaw, Hermes)
 
 1. **Доступ через Bash и cURL**:
    - При выполнении запросов к микросервисам используй команду `curl -s` с передачей правильных заголовков `Content-Type: application/json`.
