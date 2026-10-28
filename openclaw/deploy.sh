@@ -26,7 +26,11 @@ rm -f data/openclaw.json.bak* data/openclaw.json.clobbered*
 
 # 5. Синхронизируем документацию сервисов и инструкции в workspace OpenClaw
 echo "📚 Копирование документации по сервисам и инструкций в workspace..."
-if [ -f ../docs/SERVICES.md ]; then
+if [ -f ../ecommerce/docs/SERVICES.md ]; then
+  cp ../ecommerce/docs/SERVICES.md data/workspace/SERVICES.md
+elif [ -f ecommerce/docs/SERVICES.md ]; then
+  cp ecommerce/docs/SERVICES.md data/workspace/SERVICES.md
+elif [ -f ../docs/SERVICES.md ]; then
   cp ../docs/SERVICES.md data/workspace/SERVICES.md
 elif [ -f docs/SERVICES.md ]; then
   cp docs/SERVICES.md data/workspace/SERVICES.md

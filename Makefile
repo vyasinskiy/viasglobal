@@ -111,7 +111,7 @@ redeploy-hermes:
 
 deploy-openclaw:
 	@echo "Синхронизация документации на сервер Huawei..."
-	rsync -avz ./docs/ huawei@100.92.50.18:~/viasglobal/docs/
+	rsync -avz ./ecommerce/docs/ huawei@100.92.50.18:~/viasglobal/ecommerce/docs/
 	@echo "Синхронизация файлов OpenClaw на сервер Huawei..."
 	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
 	@echo "Развертывание сервиса viasglobal-openclaw на сервере Huawei..."
@@ -119,7 +119,7 @@ deploy-openclaw:
 
 redeploy-openclaw:
 	@echo "Синхронизация документации на сервер Huawei..."
-	rsync -avz ./docs/ huawei@100.92.50.18:~/viasglobal/docs/
+	rsync -avz ./ecommerce/docs/ huawei@100.92.50.18:~/viasglobal/ecommerce/docs/
 	@echo "Синхронизация файлов OpenClaw на сервер Huawei..."
 	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
 	@echo "Развертывание и перезапуск сервиса viasglobal-openclaw..."

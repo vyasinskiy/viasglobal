@@ -37,8 +37,8 @@ make deploy-master
 
 ## Архитектура и управление через AI-агентов
 
-- **Реестр микросервисов и API**: Полная документация Docker-сетей, контейнеров и HTTP REST эндпоинтов описана в [docs/SERVICES.md](file:///Users/usuario/code/viasglobal/docs/SERVICES.md).
-- **Паттерны проектирования API для LLM**: Архитектурные правила взаимодействия микросервисов с автономными AI-ассистентами (OpenClaw, Hermes, Antigravity) и защита от галлюцинаций (Fail-Fast HTTP 400 Bad Request, семантические статусы, Type Guarding) зафиксированы в [docs/SERVICES.md](file:///Users/usuario/code/viasglobal/docs/SERVICES.md) и [.agents/AGENTS.md](file:///Users/usuario/code/viasglobal/.agents/AGENTS.md).
+- **Реестр микросервисов и API**: Полная документация Docker-сетей, контейнеров и HTTP REST эндпоинтов описана в [ecommerce/docs/SERVICES.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/SERVICES.md).
+- **Паттерны проектирования API для LLM**: Архитектурные правила взаимодействия микросервисов с автономными AI-ассистентами (OpenClaw, Hermes, Antigravity) и защита от галлюцинаций (Fail-Fast HTTP 400 Bad Request, семантические статусы, Type Guarding) зафиксированы в [ecommerce/docs/SERVICES.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/SERVICES.md) и [.agents/AGENTS.md](file:///Users/usuario/code/viasglobal/.agents/AGENTS.md).
 
 ## Предстоящие технические задачи (Roadmap / To-Do)
 

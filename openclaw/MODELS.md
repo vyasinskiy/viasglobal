@@ -41,7 +41,7 @@
 * **Файл пресета**: [`config/models/claude-haiku-5.5.json`](file:///Users/usuario/code/viasglobal/openclaw/config/models/claude-haiku-5.5.json)
 * **Статус**: Рекомендуется для критически важных финансовых операций и сложных манипуляций с API.
 * **Почему выбрана**:
-  * Семейство Claude обладает наивысшей дисциплиной следования системным инструкциям ([SERVICES.md](file:///Users/usuario/code/viasglobal/docs/SERVICES.md) и [AGENTS.md](file:///Users/usuario/code/viasglobal/openclaw/.agents/AGENTS.md)).
+  * Семейство Claude обладает наивысшей дисциплиной следования системным инструкциям ([SERVICES.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/SERVICES.md) и [AGENTS.md](file:///Users/usuario/code/viasglobal/openclaw/.agents/AGENTS.md)).
   * Минимальный риск галлюцинаций в параметрах и структурах JSON.
   * Самый быстрый ответ среди конкурентов (39 секунд).
 * **Особенности тарификации и риска**:

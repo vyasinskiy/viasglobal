@@ -6,7 +6,7 @@
 > **Связанный заказ:** Заказ №1 ([`safta-order-1.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/safta-order-1.md)) — пробная партия 20 шт.  
 > **Канал сбыта:** Amazon ES, Fulfilled by Merchant (FBM) — отправка конечному покупателю.
 
-Общие правила, стандарты Amazon и расчет объёмного веса описаны в базовом модуле: **[`docs/logistics/packaging/`](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/)**.
+Общие правила, стандарты Amazon и расчет объёмного веса описаны в базовом модуле: **[`ecommerce/docs/logistics/packaging/`](file:///Users/usuario/code/viasglobal/ecommerce/docs/logistics/packaging/)**.
 
 ---
 
@@ -48,4 +48,4 @@
 ## 3. Операционный контроль
 
 Перед отправкой каждой единицы покупателю применяется стандартный чек-лист:  
-👉 **[Чек-лист контроля и тестирования упаковки](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/checklist.md)**.
+👉 **[Чек-лист контроля и тестирования упаковки](file:///Users/usuario/code/viasglobal/ecommerce/docs/logistics/packaging/checklist.md)**.

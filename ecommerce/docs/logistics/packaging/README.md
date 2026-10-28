@@ -54,13 +54,13 @@ $$\text{Объёмный вес (кг)} = \frac{\text{Длина (см)} \times 
 
 ## 4. Структура логистической документации
 
-1. **[amazon_standards.md](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/amazon_standards.md)**:
+1. **[amazon_standards.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/logistics/packaging/amazon_standards.md)**:
    Официальные регламенты Amazon по FBM (метрики ODR, VTR, Buy Shipping) и FBA (FNSKU, Polybag, предупреждения об удушье, дроп-тесты), а также законодательство ЕС (EPR/RAP и PPWR).
-2. **[materials_guide.md](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/materials_guide.md)**:
+2. **[materials_guide.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/logistics/packaging/materials_guide.md)**:
    Каталог упаковочных материалов, параметры плотности (*galga*), конструкция коробок (*automontable*) и проверенные испанские B2B-поставщики (Raja, Pedrosa, Cajeando).
-3. **[checklist.md](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/checklist.md)**:
+3. **[checklist.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/logistics/packaging/checklist.md)**:
    Универсальные чек-листы выходного контроля упаковки перед отправкой курьеру и протокол проведения приёмочных дроп-тестов.
-4. **[offers.md](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/offers.md)**:
+4. **[offers.md](file:///Users/usuario/code/viasglobal/ecommerce/docs/logistics/packaging/offers.md)**:
    Реестр и сравнительный анализ конкретных коммерческих предложений поставщиков упаковки в Испании (цены, тиражи, доставка).
 
 ---
