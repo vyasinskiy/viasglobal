@@ -21,9 +21,23 @@
    - Поля: `id`, `brandId`, `sellerId`, `brandName`, `sellerName`, `notes` (текст и результаты детального анализа связки), `createdAt`, `updatedAt`.
 
 3. **`CandidatesProductsView`** и **`WholesaleCandidatesView`**:
-   - Назначение: сводный анализ и группировка товаров ASIN по производителям, брендам, продавцам, дистрибьюторам и причинам фильтрации для отбора новых кандидатов под оптовую торговлю (Wholesale). `WholesaleCandidatesView` является официальным синонимом (алиасом) к `CandidatesProductsView` для удобства аналитики.
+   - Назначение: сводный анализ и группировка каталога под оптовую торговлю (Wholesale). Строго **1 запись на бренд и производителя** (`GROUP BY m.name, b.name, a."brandId"`). `WholesaleCandidatesView` является официальным синонимом (алиасом) к `CandidatesProductsView`.
    - Фильтрация: **строго исключаются** бренды, уже находящиеся в работе (`status = 'CONTRACTED'`, такие как Safta, Kuken, Cofan), а также бренды без дистрибьютора в ЕС (`status = 'NO_EU_DISTRIBUTOR'`), чтобы не засорять выдачу поиска новых позиций.
-   - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `eans`, `distributors`, `brandId`, `sellerId`.
+   - Сортировка: сначала отображаются бренды, у которых есть чистые товары (`cleanAsinCount > 0`, по убыванию `cleanAsinCount`), а ниже располагаются полностью отфильтрованные бренды (`cleanAsinCount = 0`, по `asinCount DESC`) для анализа после отработки основного пула.
+   - Поля:
+     * `manufacturer` (Text) — название производителя.
+     * `brand` (Text) — название бренда.
+     * `sellerCount` (Int) — количество уникальных продавцов бренда (индикатор рыночной Wholesale-конкуренции).
+     * `sellerNames` (Text) — список всех продавцов через запятую (`string_agg`).
+     * `cleanAsinCount` (Int) — количество чистых ASIN, подходящих для оптовой закупки (`filterReason IS NULL`).
+     * `asinCount` (Int) — общее количество отобранных ASIN бренда.
+     * `filterReasons` (Text) — причины отсева товаров бренда через запятую (или `NULL`, если все товары чистые).
+     * `cleanAsins` (Text) — список только чистых ASIN через запятую для быстрого копирования и работы.
+     * `asins` (Text) — список всех ASIN бренда через запятую.
+     * `eans` (Text) — список штрихкодов EAN через запятую.
+     * `distributors` (Text) — список привязанных дистрибьюторов через запятую.
+     * `brandId` (Int) — ID бренда в таблице Brand.
+     * `sellerIds` (Text) — список ID селлеров через запятую.
 
 4. **`ContractedFilteredProductsView`** и **`ContractedAllProductsView`**:
    - Назначение: поштучный вывод товаров брендов, находящихся в работе (`BrandStatus = 'CONTRACTED'`), с расчетом чистой оптовой цены дистрибьютора (`netPrice`), себестоимости закупки с налогами (`grossPrice` / `costPrice`), комиссий Amazon (`amazonFees`), НДС на комиссии Amazon (`vatOnFees`: 21% IVA при авто-реперкуссии в Modelo 309, учитываемого в расходах на спецрежиме Autónomo Recargo de Equivalencia), чистой расчетной прибыли (`netProfitPerUnit`), ROI (%) и маржинальности (Margin %). Отсортирован по убыванию чистой прибыли.

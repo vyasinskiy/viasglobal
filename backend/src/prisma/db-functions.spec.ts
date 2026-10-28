@@ -425,6 +425,29 @@ describe('Smoke-тесты SQL-представлений (Views) и функц�
     expect(saftaAllCount[0].count).toBeGreaterThan(3000);
   }, 30000);
 
+  it('в CandidatesProductsView и WholesaleCandidatesView данные должны строго группироваться по бренду (1 строка на бренд) со схлопыванием селлеров (sellerCount, sellerNames)', async () => {
+    // 1. Проверяем выборку для бренда с множеством селлеров (на примере Scheepjes)
+    const scheepjesRows: any = await prisma.$queryRawUnsafe(`
+      SELECT * FROM "CandidatesProductsView" 
+      WHERE UPPER("brand") = 'SCHEEPJES' AND UPPER("manufacturer") = 'SCHEEPJES';
+    `);
+    // Строго 1 строка на связку (Производитель, Бренд)
+    expect(scheepjesRows.length).toBe(1);
+    const scheepjes = scheepjesRows[0];
+    expect(scheepjes.sellerCount).toBeGreaterThanOrEqual(3);
+    expect(scheepjes.sellerNames).toContain(',');
+    expect(scheepjes.asinCount).toBeGreaterThanOrEqual(10);
+    expect(scheepjes.cleanAsinCount).toBeGreaterThanOrEqual(1);
+    expect(scheepjes.cleanAsins).toBeDefined();
+
+    // 2. Проверяем сортировку: первая запись обязана иметь cleanAsinCount > 0
+    const topCandidates: any = await prisma.$queryRawUnsafe(`
+      SELECT * FROM "WholesaleCandidatesView" LIMIT 1;
+    `);
+    expect(topCandidates.length).toBe(1);
+    expect(topCandidates[0].cleanAsinCount).toBeGreaterThan(0);
+  }, 30000);
+
   it('все ключевые табличные функции БД должны успешно вызываться с параметрами по умолчанию', async () => {
     // Проверяем вызовы табличных функций с параметрами по умолчанию
     await expect(prisma.$queryRaw`SELECT * FROM public.get_contracted_products() LIMIT 1`).resolves.toBeDefined();

@@ -1,11 +1,13 @@
 -- ==============================================================================
 -- Функция: get_candidates_products
--- Назначение: Возвращает сводный список ASIN для оптовой торговли с учетом
---             параметров фильтрации (BSR и процент владения BuyBox Amazon).
---             Возвращает таблицу (Table-Valued Function).
+-- Назначение: Возвращает сводный список брендов и производителей для оптовой торговли
+--             (Wholesale) со схлопыванием селлеров в одну запись (sellerNames) и подсчетом
+--             их количества (sellerCount), а также разделением на чистые (cleanAsinCount, cleanAsins)
+--             и отфильтрованные товары (filterReasons).
+--             Строго 1 запись на бренд и производителя.
+--             Сортировка: сначала бренды с чистыми товарами (cleanAsinCount DESC),
+--             затем отфильтрованные (cleanAsinCount = 0) по общему числу ASIN.
 -- ==============================================================================
-
-
 
 CREATE OR REPLACE FUNCTION public.get_candidates_products(
     p_max_bsr INT DEFAULT 50000,
@@ -14,28 +16,34 @@ CREATE OR REPLACE FUNCTION public.get_candidates_products(
 RETURNS TABLE (
     "manufacturer" TEXT,
     "brand" TEXT,
-    "sellerName" TEXT,
-    "filterReason" TEXT,
+    "sellerCount" INT,
+    "sellerNames" TEXT,
+    "cleanAsinCount" INT,
     "asinCount" INT,
+    "filterReasons" TEXT,
+    "cleanAsins" TEXT,
     "asins" TEXT,
     "eans" TEXT,
     "distributors" TEXT,
     "brandId" INT,
-    "sellerId" TEXT
+    "sellerIds" TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
       m.name AS "manufacturer",
       b.name AS "brand",
-      s.name AS "sellerName",
-      public.get_asin_filter_reason(a.id) AS "filterReason",
+      COUNT(DISTINCT s."sellerId")::INT AS "sellerCount",
+      string_agg(DISTINCT s.name, ', ') AS "sellerNames",
+      COUNT(DISTINCT CASE WHEN public.get_asin_filter_reason(a.id) IS NULL THEN a.id END)::INT AS "cleanAsinCount",
       COUNT(DISTINCT a.id)::INT AS "asinCount",
+      string_agg(DISTINCT public.get_asin_filter_reason(a.id), ', ') AS "filterReasons",
+      string_agg(DISTINCT CASE WHEN public.get_asin_filter_reason(a.id) IS NULL THEN a.code END, ', ') AS "cleanAsins",
       string_agg(DISTINCT a.code, ', ') AS "asins",
       string_agg(DISTINCT s."productCodesEAN", ', ') AS "eans",
       string_agg(DISTINCT d.name, ', ') AS "distributors",
       a."brandId" AS "brandId",
-      s."sellerId" AS "sellerId"
+      string_agg(DISTINCT s."sellerId", ', ') AS "sellerIds"
     FROM "ASIN" a
     JOIN "Brand" b ON a."brandId" = b.id
     JOIN "Manufacturer" m ON a."manufacturerId" = m.id
@@ -60,9 +68,11 @@ BEGIN
       )
       AND b.status NOT IN ('NO_EU_DISTRIBUTOR', 'CONTRACTED')
     GROUP BY 
-      m.name, b.name, s.name, public.get_asin_filter_reason(a.id), a."brandId", s."sellerId"
+      m.name, b.name, a."brandId"
     ORDER BY 
-      public.get_asin_filter_reason(a.id) ASC NULLS FIRST, 
-      COUNT(DISTINCT a.id) DESC;
+      CASE WHEN COUNT(DISTINCT CASE WHEN public.get_asin_filter_reason(a.id) IS NULL THEN a.id END) > 0 THEN 0 ELSE 1 END ASC,
+      COUNT(DISTINCT CASE WHEN public.get_asin_filter_reason(a.id) IS NULL THEN a.id END) DESC,
+      COUNT(DISTINCT a.id) DESC,
+      COUNT(DISTINCT s."sellerId") DESC;
 END;
 $$ LANGUAGE plpgsql STABLE;
