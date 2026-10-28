@@ -56,7 +56,7 @@ description: Формирует приветственное B2B письмо п
 
 ## Формирование письма
 
-1. Прочитай актуальный шаблон из [`other/welcome_letter/template.md`](file:///Users/usuario/code/viasglobal/other/welcome_letter/template.md).
+1. Прочитай актуальный шаблон из [`ecommerce/contractors/onboarding/welcome_letter/template.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/welcome_letter/template.md).
 2. Заполни адрес получателя `To: {recipient_email}` (например, `To: info@jfabrics.cz`).
 3. Замени плейсхолдер `{Manufacturer_name_or_distributor_name}` на название компании поставщика.
 4. Замени блок `- EAN {number}` на реальный список полученных EAN (каждый с новой строки):

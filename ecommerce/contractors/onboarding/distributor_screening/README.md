@@ -31,7 +31,7 @@
 3. *Если сайт блокирует парсинг*: просто скопируйте текст условий (T&C) и регистрационной формы вручную и добавьте в блокнот через «Copied Text».
 
 ### Шаг 2. Запуск мастер-промта
-1. Откройте файл [`prompt_notebooklm.md`](file:///Users/usuario/code/viasglobal/other/distributor_screening/prompt_notebooklm.md).
+1. Откройте файл [`prompt_notebooklm.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/distributor_screening/prompt_notebooklm.md).
 2. Скопируйте текст промта и отправьте его в чат блокнота NotebookLM.
 
 ### Шаг 3. Анализ отчета и выбор стратегии
@@ -59,7 +59,7 @@ NotebookLM структурирует факты из правил постав�
 ---
 
 ## Связанные разделы
-- [`prompt_notebooklm.md`](file:///Users/usuario/code/viasglobal/other/distributor_screening/prompt_notebooklm.md) - готовый мастер-промт (русский язык, компактная и полная версии).
-- [`prompt.md`](file:///Users/usuario/code/viasglobal/other/distributor_screening/prompt.md) - версия промта для поиска на русском языке (для европейских ИИ-поисковиков).
-- [`other/welcome_letter/`](file:///Users/usuario/code/viasglobal/other/welcome_letter) - шаблоны приветственных B2B писем.
-- [`other/first_call/`](file:///Users/usuario/code/viasglobal/other/first_call) - скрипты звонков и ответы на анкеты дистрибьюторов.
+- [`prompt_notebooklm.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/distributor_screening/prompt_notebooklm.md) - готовый мастер-промт (русский язык, компактная и полная версии).
+- [`prompt.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/distributor_screening/prompt.md) - версия промта для поиска на русском языке (для европейских ИИ-поисковиков).
+- [`welcome_letter/`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/welcome_letter) - шаблоны приветственных B2B писем.
+- [`first_call/`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/first_call) - скрипты звонков и ответы на анкеты дистрибьюторов.

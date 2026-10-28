@@ -12,7 +12,7 @@
  * Использование:
  *   npx tsx scripts/import-distributor-prices.ts <путь_к_файлу> <название_дистрибьютора>
  * Пример:
- *   npx tsx scripts/import-distributor-prices.ts ../../other/distributor_screening/safta/TARIFA.CAT\ SEPT\ 300626\ xls.xls Safta
+ *   npx tsx scripts/import-distributor-prices.ts ../contractors/safta/TARIFA.CAT\ SEPT\ 300626\ xls.xls Safta
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -422,19 +422,19 @@ async function main() {
   if (unmatchedEans.length > 0) {
     const uniqueUnmatched = Array.from(new Set(unmatchedEans));
     const distributorSlug = distributorNameArg.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    const outDir = path.resolve(__dirname, `../../../other/distributor_screening/${distributorSlug}`);
+    const outDir = path.resolve(__dirname, `../../contractors/${distributorSlug}`);
     
     if (!fs.existsSync(outDir)) {
       fs.mkdirSync(outDir, { recursive: true });
     }
 
-    const eansFilePath = path.join(outDir, `${distributorSlug}_unmatched_eans.txt`);
+    const eansFilePath = path.join(outDir, 'unmatched_eans.txt');
     fs.writeFileSync(eansFilePath, uniqueUnmatched.join('\n'), 'utf-8');
     console.log(`\n📋 Список несопоставленных EAN (${uniqueUnmatched.length} шт.) сохранен в: ${eansFilePath}`);
 
-    // Если файл импортируется из папки contractors, также сохраняем локально
+    // Если файл импортируется из конкретной папки, также проверяем локальное сохранение
     const fileDir = path.dirname(resolvedPath);
-    if (fileDir.includes('contractors')) {
+    if (fileDir !== outDir && fileDir.includes('contractors')) {
       const localEansPath = path.join(fileDir, 'unmatched_eans.txt');
       fs.writeFileSync(localEansPath, uniqueUnmatched.join('\n'), 'utf-8');
       console.log(`📋 Также сохранен локально в папке поставщика: ${localEansPath}`);

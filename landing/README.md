@@ -34,7 +34,7 @@ npm run dev
 
 ## Сборка и экспорт
 
-При запуске `npm run dev` или `npm run build` автоматически отрабатывает скрипт `scripts/sync-pdf.mjs` (`predev` / `prebuild`), копирующий актуальные PDF-карточки из первоисточника `other/welcome_letter/attachments/` в `public/`.
+При запуске `npm run dev` или `npm run build` автоматически отрабатывает скрипт `scripts/sync-pdf.mjs` (`predev` / `prebuild`), копирующий актуальные PDF-карточки из первоисточника `ecommerce/contractors/onboarding/welcome_letter/attachments/` в `public/`.
 
 ```bash
 cd landing

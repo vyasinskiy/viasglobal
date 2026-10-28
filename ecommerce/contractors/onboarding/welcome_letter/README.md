@@ -3,9 +3,9 @@
 В этой директории содержится шаблон первого обращения к европейским производителям и дистрибьюторам для запроса оптовых условий, открытия B2B аккаунта и получения прайс-листов.
 
 ## Структура файлов
-- [`template.md`](file:///Users/usuario/code/viasglobal/other/welcome_letter/template.md) — шаблон письма на английском языке с плейсхолдерами для заполнения.
+- [`template.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/welcome_letter/template.md) — шаблон письма на английском языке с плейсхолдерами для заполнения.
 - `ecommerce/contractors/<company-name>/welcome_letter.md` — файл для сохранения готовых сформированных писем по названиям компаний (например, `ecommerce/contractors/jerry-fabrics/welcome_letter.md`).
-- [`attachments/`](file:///Users/usuario/code/viasglobal/other/welcome_letter/attachments) — официальные документы компании (Autónomo Испания), карточка предприятия и выписки для отправки поставщикам.
+- [`attachments/`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/welcome_letter/attachments) — официальные документы компании (Autónomo Испания), карточка предприятия и выписки для отправки поставщикам.
 
 ## Плейсхолдеры для подстановки
 - `{recipient_email}` — адрес электронной почты поставщика/дистрибьютора для отправки (например: `info@jfabrics.cz`).

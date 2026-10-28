@@ -104,7 +104,7 @@ cd ecommerce/backend && npx tsx scripts/search-distributor-emails.ts --distribut
 - **Суть проблемы**: В гротескных шрифтах без засечек заглавная английская буква **`I`** неотличима от строчной **`l`**. Менеджеры и операторы поставщиков систематически путают первую букву и заводят карточку клиента на имя **`LASINSKII`** вместо **`IASINSKII`**.
 - **Последствия**: В счетах-фактурах (*Factura*) это приводит к ошибке **Name Mismatch** при проверке в Amazon Seller Central, из-за чего заявка на Brand Ungating / Category Approval гарантированно отклоняется.
 - **Обязательное правило при подготовке любых ответов и форм онбординга**:
-  Включать явное примечание с расшифровкой первой буквы фамилии и эталонные реквизиты из [`other/company_profile.md`](file:///Users/usuario/code/viasglobal/other/company_profile.md):
+  Включать явное примечание с расшифровкой первой буквы фамилии и эталонные реквизиты из [`ecommerce/contractors/onboarding/company_profile.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/onboarding/company_profile.md):
   ```markdown
   Datos para la ficha de cliente y facturación:
   - Razón Social / Nombre: Vitalii Iasinskii

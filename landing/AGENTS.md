@@ -22,7 +22,7 @@
 - **Стек**: Next.js (App Router, SSG export), Material-UI (MUI) + Vanilla CSS.
 - **Локализация (i18n)**: 5 языков (`en`, `es`, `de`, `fr`, `it`) с синхронизированными словарями для лендинга и юридических страниц (`legalContent.ts`).
 - **SEO & Social Sharing**: Полная разметка OpenGraph и Twitter Cards с абсолютными ссылками на `https://viasglobal.es/og-image.jpg`.
-- **Мультиязычные ассеты (Single Source of Truth)**: Первоисточник PDF и HTML-шаблонов хранится в `other/welcome_letter/attachments/`. При `npm run dev` / `npm run build` срабатывает `prebuild` скрипт (`scripts/sync-pdf.mjs`), который автоматически синхронизирует PDF в `landing/public/` (сами сгенерированные файлы в `public/` добавлены в `.gitignore` во избежание дублирования в git).
+- **Мультиязычные ассеты (Single Source of Truth)**: Первоисточник PDF и HTML-шаблонов хранится в `ecommerce/contractors/onboarding/welcome_letter/attachments/`. При `npm run dev` / `npm run build` срабатывает `prebuild` скрипт (`scripts/sync-pdf.mjs`), который автоматически синхронизирует PDF в `landing/public/` (сами сгенерированные файлы в `public/` добавлены в `.gitignore` во избежание дублирования в git).
 
 ## Особенности деплоя (Vercel)
 - Проект деплоится из подпапки `landing` (Root Directory в Vercel: `landing`).
