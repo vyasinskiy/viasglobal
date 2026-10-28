@@ -20,8 +20,9 @@
    - Назначение: просмотр связок брендов и продавцов (приватные лейблы).
    - Поля: `id`, `brandId`, `sellerId`, `brandName`, `sellerName`, `notes` (текст и результаты детального анализа связки), `createdAt`, `updatedAt`.
 
-3. **`CandidatesProductsView`**:
-   - Назначение: сводный анализ и группировка товаров ASIN по производителям, брендам, продавцам, дистрибьюторам и причинам фильтрации для отбора кандидатов под оптовую торговлю (Wholesale).
+3. **`CandidatesProductsView`** и **`WholesaleCandidatesView`**:
+   - Назначение: сводный анализ и группировка товаров ASIN по производителям, брендам, продавцам, дистрибьюторам и причинам фильтрации для отбора новых кандидатов под оптовую торговлю (Wholesale). `WholesaleCandidatesView` является официальным синонимом (алиасом) к `CandidatesProductsView` для удобства аналитики.
+   - Фильтрация: **строго исключаются** бренды, уже находящиеся в работе (`status = 'CONTRACTED'`, такие как Safta, Kuken, Cofan), а также бренды без дистрибьютора в ЕС (`status = 'NO_EU_DISTRIBUTOR'`), чтобы не засорять выдачу поиска новых позиций.
    - Поля: `manufacturer`, `brand`, `sellerName`, `filterReason`, `asinCount`, `asins`, `eans`, `distributors`, `brandId`, `sellerId`.
 
 4. **`ContractedFilteredProductsView`** и **`ContractedAllProductsView`**:

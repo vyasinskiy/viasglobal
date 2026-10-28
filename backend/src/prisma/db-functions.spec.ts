@@ -379,8 +379,50 @@ describe('Smoke-тесты SQL-представлений (Views) и функц�
     await expect(prisma.$queryRaw`SELECT * FROM "ContractedAllProductsView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "AsinView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "CandidatesProductsView" LIMIT 1`).resolves.toBeDefined();
+    await expect(prisma.$queryRaw`SELECT * FROM "WholesaleCandidatesView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "KeepaExportView" LIMIT 1`).resolves.toBeDefined();
     await expect(prisma.$queryRaw`SELECT * FROM "PrivateLabelView" LIMIT 1`).resolves.toBeDefined();
+  }, 30000);
+
+  it('бренд SAFTA со статусом CONTRACTED не должен отображаться в представлениях кандидатов (WholesaleCandidatesView / CandidatesProductsView) и наоборот обязан отображаться в представлениях товаров в работе (ContractedFilteredProductsView / ContractedAllProductsView)', async () => {
+    // 1. Проверяем статус бренда SAFTA в таблице Brand
+    const saftaBrand: any = await prisma.$queryRawUnsafe(`
+      SELECT id, name, status FROM "Brand" WHERE UPPER("name") = 'SAFTA' LIMIT 1;
+    `);
+    expect(saftaBrand.length).toBe(1);
+    expect(saftaBrand[0].status).toBe('CONTRACTED');
+
+    // 2. Проверяем, что в представлениях кандидатов (WholesaleCandidatesView и CandidatesProductsView) бренд SAFTA полностью отсутствует
+    const saftaWholesaleRows: any = await prisma.$queryRawUnsafe(`
+      SELECT * FROM "WholesaleCandidatesView" WHERE UPPER("brand") = 'SAFTA';
+    `);
+    expect(saftaWholesaleRows.length).toBe(0);
+
+    const saftaCandidatesRows: any = await prisma.$queryRawUnsafe(`
+      SELECT * FROM "CandidatesProductsView" WHERE UPPER("brand") = 'SAFTA';
+    `);
+    expect(saftaCandidatesRows.length).toBe(0);
+
+    // 3. Проверяем, что в ContractedFilteredProductsView (товары в работе с оптовыми фильтрами) бренд SAFTA наоборот отображается
+    const saftaFilteredRows: any = await prisma.$queryRawUnsafe(`
+      SELECT asin, ean, brand, "salesRank", "buyBoxPrice"
+      FROM "ContractedFilteredProductsView"
+      WHERE UPPER("brand") = 'SAFTA';
+    `);
+    expect(saftaFilteredRows.length).toBeGreaterThan(1000);
+    // Проверяем наличие эталонного товара Safta (пенал B01N4SDF1W)
+    const sampleFilteredItem = saftaFilteredRows.find((r: any) => r.asin === 'B01N4SDF1W');
+    expect(sampleFilteredItem).toBeDefined();
+    expect(sampleFilteredItem.brand).toBe('Safta');
+    expect(sampleFilteredItem.salesRank).toBeLessThanOrEqual(100000);
+
+    // 4. Проверяем, что в ContractedAllProductsView (полный каталог бренда в работе) присутствуют все товары Safta
+    const saftaAllCount: any = await prisma.$queryRawUnsafe(`
+      SELECT count(*)::int as count
+      FROM "ContractedAllProductsView"
+      WHERE UPPER("brand") = 'SAFTA';
+    `);
+    expect(saftaAllCount[0].count).toBeGreaterThan(3000);
   }, 30000);
 
   it('все ключевые табличные функции БД должны успешно вызываться с параметрами по умолчанию', async () => {
