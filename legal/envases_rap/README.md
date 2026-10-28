@@ -17,7 +17,7 @@ Directorio para самостоятельного оформления RAP-ном
   для подтверждения учёта упаковки.
 
 ## Данные из Certificado de Situación Censal (AEAT)
-- **Файл сертификата**: `contractors/safta/attachments/CERTIFICADO DE SITUACION CENSAL (1).pdf` (CSV: `B2LR8ME9RKYAX683`).
+- **Файл сертификата**: `ecommerce/contractors/safta/attachments/CERTIFICADO DE SITUACION CENSAL (1).pdf` (CSV: `B2LR8ME9RKYAX683`).
 - **Зарегистрированные виды деятельности (IAE)**:
   - **Epígrafe 665**: *Comercio Menor Por Correo o Catálogo* (Código A03, alta 21/09/2026) ➔ международный код **NACE 47.91** (*Retail sale via mail order houses or via Internet*).
   - **Epígrafe 763**: *Programadores y Analistas de Informática* (Código A05, alta 01/07/2026).

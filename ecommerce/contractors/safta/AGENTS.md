@@ -4,9 +4,9 @@
 
 - **Компания / Бренд**: Safta S.A. (Испания).
 - **Специализация**: Лицензионные и школьные рюкзаки, пеналы, сумки, канцелярия (Demon Hunters, K-Pop, Disney, Marvel и т.д.).
-- **Каталог и прайс-лист**: [`contractors/safta/TARIFA.CAT SEPT 300626 xls.xls`](file:///Users/usuario/code/viasglobal/contractors/safta/TARIFA.CAT%20SEPT%20300626%20xls.xls).
+- **Каталог и прайс-лист**: [`ecommerce/contractors/safta/TARIFA.CAT SEPT 300626 xls.xls`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/TARIFA.CAT%20SEPT%20300626%20xls.xls).
   * Для поиска информации и цен использовать строго CLI:  
-    `python3 scripts/read_excel.py "contractors/safta/TARIFA.CAT SEPT 300626 xls.xls" --search <EAN_или_подстрока>`
+    `python3 scripts/read_excel.py "ecommerce/contractors/safta/TARIFA.CAT SEPT 300626 xls.xls" --search <EAN_или_подстрока>`
 - **Коммерческие условия**:
   * Бесплатная доставка (*portes pagados*): при заказе от 100 € нетто.
   * Оплата: SEPA Direct Debit (мандат подписан).
@@ -15,7 +15,7 @@
 
 ### Заказ №1 (Пробный заказ)
 
-- **Файл переписки и заказа**: [`contractors/safta/safta-order-1.md`](file:///Users/usuario/code/viasglobal/contractors/safta/safta-order-1.md)
+- **Файл переписки и заказа**: [`ecommerce/contractors/safta/safta-order-1.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/safta-order-1.md)
 - **Товар**: Mochila 3D K-POP DEMON HUNTERS "CHIBI" (Рюкзак школьный 3D)
 - **EAN**: `8412688670376`
 - **Артикул / Ref**: `642695890` (Коллекция: `42695`)

@@ -238,7 +238,7 @@ async function main() {
 
   if (!filePathArg) {
     console.error('Ошибка: укажите путь к файлу прайс-листа Kuken.');
-    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../../contractors/kuken/viasglobal\\ \\(1\\).xlsx');
+    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../contractors/kuken/viasglobal\\ \\(1\\).xlsx');
     process.exit(1);
   }
 
@@ -262,7 +262,7 @@ async function main() {
 
   // Формируем промежуточный Excel файл
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const reportsDir = path.resolve(__dirname, '../../../../contractors/kuken/reports');
+  const reportsDir = path.resolve(__dirname, '../../../../ecommerce/contractors/kuken/reports');
   if (!fs.existsSync(reportsDir)) {
     fs.mkdirSync(reportsDir, { recursive: true });
   }

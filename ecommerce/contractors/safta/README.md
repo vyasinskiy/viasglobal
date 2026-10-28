@@ -7,7 +7,7 @@
 - **Название**: Safta S.A.
 - **Страна**: Испания
 - **Продукция**: Школьные рюкзаки (классические и 3D), ранцы, пеналы, сумки для обуви, канцелярские товары по лицензиям (K-POP Demon Hunters, Disney, Marvel, Real Madrid и др.).
-- **Каталог продукции**: [`TARIFA.CAT SEPT 300626 xls.xls`](file:///Users/usuario/code/viasglobal/contractors/safta/TARIFA.CAT%20SEPT%20300626%20xls.xls)
+- **Каталог продукции**: [`TARIFA.CAT SEPT 300626 xls.xls`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/TARIFA.CAT%20SEPT%20300626%20xls.xls)
 
 ## Коммерческие условия
 
@@ -19,7 +19,7 @@
 
 ### Заказ №1 (Октябрь 2026)
 
-- **Файл заказа**: [`safta-order-1.md`](file:///Users/usuario/code/viasglobal/contractors/safta/safta-order-1.md)
+- **Файл заказа**: [`safta-order-1.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/safta-order-1.md)
 - **Товар**: Mochila 3D K-POP DEMON HUNTERS "CHIBI"
 - **EAN**: `8412688670376`
 - **Код товара**: `642695890`

@@ -3,7 +3,7 @@
 > **Товар:** Mochila 3D K-POP DEMON HUNTERS "CHIBI"  
 > **Артикул / Ref:** 642695890 | **EAN:** 8412688670376  
 > **Габариты и вес:** 27 × 33 × 10 см, вес 0.28 кг, объём 8.64 л.  
-> **Связанный заказ:** Заказ №1 ([`safta-order-1.md`](file:///Users/usuario/code/viasglobal/contractors/safta/safta-order-1.md)) — пробная партия 20 шт.  
+> **Связанный заказ:** Заказ №1 ([`safta-order-1.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/safta-order-1.md)) — пробная партия 20 шт.  
 > **Канал сбыта:** Amazon ES, Fulfilled by Merchant (FBM) — отправка конечному покупателю.
 
 Общие правила, стандарты Amazon и расчет объёмного веса описаны в базовом модуле: **[`docs/logistics/packaging/`](file:///Users/usuario/code/viasglobal/docs/logistics/packaging/)**.
@@ -36,8 +36,8 @@
 
 | Позиция | Описание / Поисковый запрос | Кол-во | Примечание |
 | :--- | :--- | :--- | :--- |
-| **Курьерские пакеты (Основной поставщик)** | [Embalaje24.es (40×50+5 см)](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md) | **50 шт** (в бандле корзины) | Официальный утвержденный поставщик Viasglobal. Трехслойный COEX LDPE 55 мкм, 10,80 € за 50 шт (0,216 €/шт). Заказ в корзине ожидается к оплате после замера KUKEN. |
-| **Курьерские пакеты (Малый формат)** | [Embalaje24.es (23×32+5 см)](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md) | **50 шт** (в бандле корзины) | Под сопутствующую мелкую канцелярию, пеналы и аксессуары (4,40 € за 50 шт / 0,088 €/шт). |
+| **Курьерские пакеты (Основной поставщик)** | [Embalaje24.es (40×50+5 см)](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) | **50 шт** (в бандле корзины) | Официальный утвержденный поставщик Viasglobal. Трехслойный COEX LDPE 55 мкм, 10,80 € за 50 шт (0,216 €/шт). Заказ в корзине ожидается к оплате после замера KUKEN. |
+| **Курьерские пакеты (Малый формат)** | [Embalaje24.es (23×32+5 см)](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) | **50 шт** (в бандле корзины) | Под сопутствующую мелкую канцелярию, пеналы и аксессуары (4,40 € за 50 шт / 0,088 €/шт). |
 | **Внутренние пыльники** | `bolsa transparente 30x40 galga 100 con aviso asfixia` | **100 шт** | Защита от влаги + задел под будущие отгрузки FBA |
 | **Коробки тестовые** | `caja postal automontable 30x25x12 microcanal` | **20–25 шт** | Тестовая партия на случай деформации 3D-панели |
 | **Термоэтикетки** | `etiqueta térmica directa 100x150 mm` | **1 рулон** | Под стандартные наклейки Correos, SEUR, MRW |

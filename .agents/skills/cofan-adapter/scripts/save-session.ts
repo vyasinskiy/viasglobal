@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as readline from 'readline';
 
-const storageStatePath = path.resolve(__dirname, '../../../../contractors/COFAN/auth/storage_state.json');
+const storageStatePath = path.resolve(__dirname, '../../../../ecommerce/contractors/COFAN/auth/storage_state.json');
 
 async function askUser(query: string): Promise<string> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });

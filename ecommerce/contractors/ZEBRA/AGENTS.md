@@ -27,6 +27,6 @@
     `cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "Zebra Pen"`
   - **Правило контроля пагинации**: Если выгрузка вернула ровно 100 или 5000 товаров, бить тревогу о возможном техническом срезе. Полный каталог бренда содержит более 1,700 товаров.
 - **Документация**:
-  - `contractors/ZEBRA/notebooklm_report.md` - полный сырой аудит B2B-политики.
-  - `contractors/ZEBRA/final_analysis.md` - аналитическое резюме и стратегия.
-  - `contractors/ZEBRA/prompt.md` - промпт аудита поставщика.
+  - `ecommerce/contractors/ZEBRA/notebooklm_report.md` - полный сырой аудит B2B-политики.
+  - `ecommerce/contractors/ZEBRA/final_analysis.md` - аналитическое резюме и стратегия.
+  - `ecommerce/contractors/ZEBRA/prompt.md` - промпт аудита поставщика.

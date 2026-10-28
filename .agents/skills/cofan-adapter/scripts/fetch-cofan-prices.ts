@@ -21,8 +21,8 @@ function requireBackendModule(moduleName: string) {
 
 const xlsx = requireBackendModule('xlsx');
 
-const storageStatePath = path.resolve(__dirname, '../../../../contractors/COFAN/auth/storage_state.json');
-const reportsDir = path.resolve(__dirname, '../../../../contractors/COFAN/reports');
+const storageStatePath = path.resolve(__dirname, '../../../../ecommerce/contractors/COFAN/auth/storage_state.json');
+const reportsDir = path.resolve(__dirname, '../../../../ecommerce/contractors/COFAN/reports');
 
 // Коэффициент испанского налога (Recargo de Equivalencia = 21% IVA + 5.2% RE)
 const SPAIN_TAX_COEFFICIENT = 1.262;

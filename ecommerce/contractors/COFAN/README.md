@@ -15,7 +15,7 @@
   - [Catálogo Tornillería](https://www.cofan.es/catalogos/catalogo-tornilleria.pdf) — крепеж и метизы.
   - [Catálogo Puntos DAS](https://www.cofan.es/catalogos/catalogo-puntos-das.pdf) — продукция для магазинов-партнеров DAS.
 - **Вход в B2B кабинет (Área privada):** [https://www.cofan.es/es/privatearea/login/](https://www.cofan.es/es/privatearea/login/) -> перенаправляет в `/es/area-privada/`.
-- **Сессия авторизации:** Сохраняется в `contractors/COFAN/auth/storage_state.json` через Playwright.
+- **Сессия авторизации:** Сохраняется в `ecommerce/contractors/COFAN/auth/storage_state.json` через Playwright.
 - **Особенности отображения B2B цен в кабинете:**
   - Кнопка в шапке `Mostrar precios` / `Mostrar PVP` переключает режим отображения цен.
   - В веб-интерфейсе нет единого файла для скачивания персонального тарифа в Excel/CSV.

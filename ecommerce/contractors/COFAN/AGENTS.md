@@ -10,7 +10,7 @@
 - **Личный кабинет B2B**:
   - Страница авторизации: `https://www.cofan.es/es/privatearea/login/`
   - URL кабинета: `https://www.cofan.es/es/area-privada/`
-  - Сохранение браузерной сессии выполняется скриптом `contractors/COFAN/scripts/save-session.ts`, сессия пишется в `contractors/COFAN/auth/storage_state.json`.
+  - Сохранение браузерной сессии выполняется скриптом `ecommerce/contractors/COFAN/scripts/save-session.ts`, сессия пишется в `ecommerce/contractors/COFAN/auth/storage_state.json`.
   - В кабинете нет единой кнопки выгрузки тарифов, но в каждой карточке товара доступна таблица `REFERENCIAS` со структурой: `Referencia`, `EAN`, `Embalaje` (unitsPerBox — количество штук в заводской коробке), `Envase Mínimo` (кратность заказа в коробках; в БД `minBoxOrder` сохраняется в штуках: `unitsPerBox * Envase Mínimo`), `PVP`, `Precio Neto`, `Stock`.
   - Для получения готового полного прайс-листа в Excel поставщик обычно отвечает на запрос торговому представителю Iván Urquizu (`ivan.urquizu@cofansa.es`).
 - **Налоговый режим**:
@@ -18,7 +18,7 @@
   - Расчет себестоимости закупки: `costPrice = netPrice * 1.262`.
 - **Скилл и адаптер поставщика (`.agents/skills/cofan-adapter`)**:
   - Работает по двухэтапному принципу безопасности данных («Анти-слепые изменения»):
-    1. Получение чистых оптовых цен `PRECIO NETO` по списку EAN/ASIN, расчет себестоимости с R.E. и формирование промежуточного Excel файла: `contractors/COFAN/reports/cofan_staging_prices_latest.xlsx`.
+    1. Получение чистых оптовых цен `PRECIO NETO` по списку EAN/ASIN, расчет себестоимости с R.E. и формирование промежуточного Excel файла: `ecommerce/contractors/COFAN/reports/cofan_staging_prices_latest.xlsx`.
     2. Обязательное представление промежуточного файла пользователю для ручной проверки.
     3. Запуск импорта в базу данных (`DistributorPriceSnapshot`, связывание ASIN с дистрибьютором, очередь `RequestProductQueue`) ТОЛЬКО после явного текстового согласия пользователя.
     4. **Обязательная очистка временных файлов**: сразу после подтвержденного импорта в БД все временные staging-файлы, черновики отчетов и промежуточные JSON/Excel удаляются, чтобы не засорять репозиторий.

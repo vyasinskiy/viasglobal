@@ -1,7 +1,7 @@
 /**
  * Скрипт первоначального входа в портал поставщика Cofan и сохранения сессии (cookies + localStorage).
  * Открывает системный Google Chrome, ждет авторизации пользователя на cofan.es/es/privatearea/login/
- * и сохраняет session state в contractors/COFAN/auth/storage_state.json.
+ * и сохраняет session state в ecommerce/contractors/COFAN/auth/storage_state.json.
  */
 import { chromium } from 'playwright';
 import * as path from 'path';

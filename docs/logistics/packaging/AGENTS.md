@@ -4,7 +4,7 @@
 
 ## 1. Официальный утвержденный поставщик упаковки Viasglobal
 - **Поставщик:** **EMBALAJE24, S.L.** (Мадрид, CIF `B-26768358`, сайт `https://embalaje24.es`).
-- **Карточка контрагента:** [`contractors/embalaje24/README.md`](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md) и [`contractors/embalaje24/AGENTS.md`](file:///Users/usuario/code/viasglobal/contractors/embalaje24/AGENTS.md).
+- **Карточка контрагента:** [`ecommerce/contractors/embalaje24/README.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) и [`ecommerce/contractors/embalaje24/AGENTS.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/AGENTS.md).
 - **Утвержденные позиции:**
   - $40 \times 50 + 5\text{ см}$ клеевой клапан (EAN `8436632620545`, 55 мкм COEX LDPE) — основной пакет под рюкзаки Safta, фены и утюги Kuken.
   - $23 \times 32 + 5\text{ см}$ клеевой клапан (EAN `8436632620569`, 55 мкм COEX LDPE) — малый пакет под пеналы, канцелярию и мелкие аксессуары.

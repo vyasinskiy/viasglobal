@@ -21,7 +21,7 @@ description: Автоматизированный адаптер поставщ�
 ## 📋 Пошаговый алгоритм работы
 
 ### Шаг 1. Проверка сессии веб-портала Cofan
-- Сессия хранится в `contractors/COFAN/auth/storage_state.json`.
+- Сессия хранится в `ecommerce/contractors/COFAN/auth/storage_state.json`.
 - Если файл отсутствует или сессия устарела, пользователь запускает скрипт интерактивного входа:
   ```bash
   cd ecommerce/backend && npx tsx ../../.agents/skills/cofan-adapter/scripts/save-session.ts
@@ -41,7 +41,7 @@ description: Автоматизированный адаптер поставщ�
   $$\text{costPrice} = \text{priceNetto} \times 1.262 \quad (21\% \text{ IVA} + 5.2\% \text{ R.E.})$$
 
 ### Шаг 3. Создание промежуточного Excel файла для ручной проверки
-- Формируется файл: `contractors/COFAN/reports/cofan_staging_prices_<timestamp>.xlsx`.
+- Формируется файл: `ecommerce/contractors/COFAN/reports/cofan_staging_prices_<timestamp>.xlsx`.
 - Таблица содержит колонки:
   `EAN`, `ASIN`, `Артикул Cofan`, `Наименование`, `BSR`, `Закупка Neto (€)`, `Себестоимость с R.E. (€)`, `Каталожный PVP (€)`, `Штук в коробке (Embalaje)`, `Мин. заказ коробок (Envase)`, `Amazon BuyBox (€)`, `Наличие на складе`.
 - Пользователю предоставляется прямая ссылка на файл и краткая сводка (количество распознанных позиций, средний ROI).

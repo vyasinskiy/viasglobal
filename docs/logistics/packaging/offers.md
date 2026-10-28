@@ -392,7 +392,7 @@
 ### Предложение №10: Embalaje24.es — 🏆 ОФИЦИАЛЬНЫЙ УТВЕРЖДЕННЫЙ ПОСТАВЩИК УПАКОВКИ VIASGLOBAL
 
 * **Статус:** **Официальный утвержденный поставщик курьерских пакетов и тары для Viasglobal (утвержден 27.10.2026)**.
-* **Документация контрагента:** [contractors/embalaje24/README.md](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md)
+* **Документация контрагента:** [ecommerce/contractors/embalaje24/README.md](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md)
 * **Поставщик:** EMBALAJE24, S.L. (Фонлабрада / Кольменар-Вьехо, Мадрид, Испания | CIF: B-26768358).
 * **Ссылки на товары:**
   * [50 Bolsas de mensajería 40 x 50 + 5 cm](https://embalaje24.es/products/50-bolsas-de-mensajeria-40-x-50-solapa-de-5-cm?variant=57551862235523)

@@ -225,7 +225,7 @@ export class EmailSyncService {
         // Если это файл прайс-листа или каталога (Excel/PDF) и дистрибьютор известен
         if (distributor && /\.(xlsx|xls|pdf|csv)$/i.test(filename)) {
           const safeDistName = distributor.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-          const targetDir = path.resolve(__dirname, `../../../../contractors/${safeDistName}/attachments`);
+          const targetDir = path.resolve(__dirname, `../../../contractors/${safeDistName}/attachments`);
 
           try {
             if (!fs.existsSync(targetDir)) {

@@ -13,7 +13,7 @@ import { parseKukenExcel, cleanEan, KukenItem } from '../../../../.agents/skills
 
 describe('Адаптер поставщика KUKEN: расчет себестоимости и учет эко-тасы RAEE', () => {
   const SPAIN_TAX_COEFFICIENT = 1.262;
-  const sampleFilePath = path.resolve(__dirname, '../../../../contractors/kuken/viasglobal (1).xlsx');
+  const sampleFilePath = path.resolve(__dirname, '../../../contractors/kuken/viasglobal (1).xlsx');
 
   let items: KukenItem[] = [];
 

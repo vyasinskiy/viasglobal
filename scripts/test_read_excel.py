@@ -58,7 +58,7 @@ class TestReadExcel(unittest.TestCase):
 
     def test_реальный_файл_safta_поиск_рюкзака_по_ean(self):
         """Эталонный тест на реальном снапшоте Safta: проверка поиска и точных данных товара по EAN."""
-        excel_path = "contractors/safta/keepa_export_safta_all_eans.xlsx"
+        excel_path = "ecommerce/contractors/safta/keepa_export_safta_all_eans.xlsx"
         if not os.path.exists(excel_path):
             self.skipTest(f"Тестовый файл '{excel_path}' отсутствует.")
 
@@ -92,7 +92,7 @@ class TestReadExcel(unittest.TestCase):
 
     def test_реальный_файл_safta_xls_поиск_по_ean(self):
         """Эталонный тест на реальном .xls прайс-листе Safta через xlrd: проверка габаритов и цены."""
-        xls_path = "contractors/safta/TARIFA.CAT SEPT 300626 xls.xls"
+        xls_path = "ecommerce/contractors/safta/TARIFA.CAT SEPT 300626 xls.xls"
         if not os.path.exists(xls_path):
             self.skipTest(f"Тестовый файл '{xls_path}' отсутствует.")
 

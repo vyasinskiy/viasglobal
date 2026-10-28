@@ -20,7 +20,7 @@
  *   npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
  *     --item "34316:10:28:10:22:850:3:7" \
  *     --item "35536:10:30:12:16:1200:3:7" \
- *     --photos "contractors/kuken/attachments/albaran_photo.jpg,contractors/kuken/attachments/secador_box.jpg"
+ *     --photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/secador_box.jpg"
  *
  *   Формат параметра --item:
  *     <SKU>:<кол_во_принято>:<длина_см>:<ширина_см>:<высота_см>:<вес_грамм>:<шт_на_СВХ>:<шт_на_MAIN>
@@ -203,7 +203,7 @@ async function main() {
         console.log(`📌 Статус уплаты поставщику:      УПЛАЧЕНО (включена в базу накладной и себестоимость с RE 1.262)`);
         console.log(`\n🛡️ АЛГОРИТМ ЗАЩИТЫ ОТ ПОВТОРНОЙ ОПЛАТЫ НА AMAZON:`);
         console.log(`1. В Albarán/Factura убедитесь, что строка "TASA" выделена отдельно.`);
-        console.log(`2. Сохраните фото накладной в contractors/kuken/attachments/ (подтверждение первичной уплаты).`);
+        console.log(`2. Сохраните фото накладной в ecommerce/contractors/kuken/attachments/ (подтверждение первичной уплаты).`);
         console.log(`3. В Amazon Seller Central -> EPR Compliance (AEE en España) укажите:`);
         console.log(`   - Роль: "No soy productor (soy distribuidor/revendedor)"`);
         console.log(`   - Регистрационный номер: RII-AEE производителя ALFA DYSER, S.L. (CIF B-60163441)`);
@@ -223,7 +223,7 @@ async function main() {
       console.log(`\n   npx tsx scripts/receive-shipment.ts --order "${order.orderNumber}" \\`);
       console.log('     --item "34316:10:28:10:22:850:3:7" \\');
       console.log('     --item "35536:10:30:12:16:1200:3:7" \\');
-      console.log('     --photos "contractors/kuken/attachments/albaran_photo.jpg,contractors/kuken/attachments/secador_box.jpg"\n');
+      console.log('     --photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/secador_box.jpg"\n');
       console.log('   (Где 3 шт пойдут на СВХ для FBM отгрузок, а 7 шт — на Основной склад).\n');
       process.exit(0);
     }

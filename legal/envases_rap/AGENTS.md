@@ -12,7 +12,7 @@
 - **Коды экономической деятельности (по официальному Certificado de Situación Censal AEAT)**:
   - **IAE 665**: *Comercio Menor Por Correo o Catálogo* (дата регистрации 21/09/2026, код активности A03) ➔ строго соответствует **NACE / CNAE 47.91** (*Retail sale via mail order houses or via Internet*).
   - **IAE 763**: *Programadores y Analistas de Informática* (дата регистрации 01/07/2026, код активности A05) ➔ NACE 62.01 / 62.02.
-  - Первоисточник сертификата: `contractors/safta/attachments/CERTIFICADO DE SITUACION CENSAL (1).pdf` (CSV: `B2LR8ME9RKYAX683`).
+  - Первоисточник сертификата: `ecommerce/contractors/safta/attachments/CERTIFICADO DE SITUACION CENSAL (1).pdf` (CSV: `B2LR8ME9RKYAX683`).
 
 ## Текущий статус регистрации RAP (на 25.10.2026):
 - **SCRAP**: Procircular (`join.procircular.es`).

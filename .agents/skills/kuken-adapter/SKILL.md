@@ -32,7 +32,7 @@ description: Автоматизированный адаптер поставщ�
 ## 🔒 Ключевое правило безопасности данных (Анти-слепые изменения)
 
 Импорт цен в базу данных выполняется строго в два шага:
-1. **Парсинг и формирование промежуточного Excel файла** (`contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`) с детальной таблицей сопоставления цен, эко-тасы, BuyBox и расчетной прибыли.
+1. **Парсинг и формирование промежуточного Excel файла** (`ecommerce/contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`) с детальной таблицей сопоставления цен, эко-тасы, BuyBox и расчетной прибыли.
 2. **Обязательное получение явного согласия пользователя** перед выполнением любых операций записи в БД (`DistributorPriceSnapshot`, обновление связок ASIN).
 
 ---
@@ -40,7 +40,7 @@ description: Автоматизированный адаптер поставщ�
 ## 📋 Пошаговый алгоритм работы
 
 ### Шаг 1. Обработка файла прайс-листа (`parse-kuken-prices.ts`)
-- Скрипт принимает путь к файлу Excel поставщика (например, `contractors/kuken/viasglobal (1).xlsx`).
+- Скрипт принимает путь к файлу Excel поставщика (например, `ecommerce/contractors/kuken/viasglobal (1).xlsx`).
 - Поддерживает заголовки колонок с любыми окружающими пробелами (`ORD`, `CODE`, `DESCRIPCION ARTICULO`, `P.VENTA`, `TASA`, `CAJA`, `MARCA`, `EAN13`).
 - Для каждой строки:
   - Извлекает артикул (`CODE`), наименование, базовую цену (`P.VENTA`), эко-тасу (`TASA`), кратность коробки (`CAJA`) и штрихкод (`EAN13`).
@@ -50,11 +50,11 @@ description: Автоматизированный адаптер поставщ�
 
 Запуск:
 ```bash
-cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../../contractors/kuken/viasglobal\ \(1\).xlsx
+cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../contractors/kuken/viasglobal\ \(1\).xlsx
 ```
 
 ### Шаг 2. Формирование промежуточного отчета (Staging File)
-- Формируется Excel файл: `contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`.
+- Формируется Excel файл: `ecommerce/contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`.
 - Таблица содержит колонки:
   `Артикул`, `EAN`, `ASIN`, `Наименование`, `Цена Netto (€)`, `Эко-таса (€)`, `Чистая база с тасой (€)`, `Себестоимость RE (€)`, `Штук в коробке (Caja)`, `Amazon BuyBox (€)`, `BSR`, `Статус в БД`.
 
@@ -69,14 +69,14 @@ cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse
 ### Шаг 4. Безопасный импорт в базу данных (`import-kuken-to-db.ts`)
 - Запуск выполняется командой:
 ```bash
-cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx
+cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx
 ```
 - Скрипт:
   1. Находит или создает дистрибьютора `Alfadyser (Kuken)` (ID 5) со статусом `ACCOUNT_OPENED`.
   2. Переводит бренд `KUKEN` (ID 504) в статус `CONTRACTED`.
   3. Сохраняет записи в `DistributorPriceSnapshot` с полями `priceNetto`, `ecoTasa`, `costPrice`, `unitsPerBox`, `minBoxOrder`.
   4. Связывает сопоставленные ASIN с дистрибьютором и добавляет в очередь `RequestProductQueue` с наивысшим приоритетом (`999999`).
-  5. Сохраняет список новинок (несопоставленных EAN) в `contractors/kuken/unmatched_eans.txt`.
+  5. Сохраняет список новинок (несопоставленных EAN) в `ecommerce/contractors/kuken/unmatched_eans.txt`.
 
 ### Шаг 5. Очистка временных файлов
-- После завершения импорта промежуточные файлы отчетов удаляются, а результирующая сводка фиксируется в `contractors/kuken/README.md` и `contractors/kuken/AGENTS.md`.
+- После завершения импорта промежуточные файлы отчетов удаляются, а результирующая сводка фиксируется в `ecommerce/contractors/kuken/README.md` и `ecommerce/contractors/kuken/AGENTS.md`.

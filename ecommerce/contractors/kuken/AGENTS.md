@@ -8,8 +8,8 @@
   - Первичный заказ для бесплатной доставки: 10 шт арт. `34316` (фен 2000W) + 10 шт арт. `35536` (утюг 2600W) = 272.40 € нетто (с эко-тасой) / 343.80 € с RE. Отгружен 26.10.2026 (DHL, накладная Albarán `26ALV-0074072`).
   - **Контроль исправления карточки клиента (27.10.2026)**: В Albarán выявлена опечатка в фамилии (`LASINSKII` с буквы L) и адресе (`IBARZOS, LOS`). Менеджеру Guido отправлено письмо (`guido@alfadyser.es`, Message-ID: `<1793093354437284343.1793093354@viasglobal.es>`) с требованием скорректировать данные на `Vitalii Iasinskii`, `12166 Ibarsos` и NIF `Z1154366R` до выставления фактуры. Контрольная задача в Google Tasks: [ALFA DYSER — Проконтролировать исправление фамилии и адреса в фактуре (Albarán 26ALV-0074072)](https://tasks.google.com/task/SFRTMHQ4ZVZSVnBUQmFnOA) (Дедлайн: `2026-10-29`, ID: `SFRTMHQ4ZVZSVnBUQmFnOA`).
 - **Прайс-листы поставщика**:
-  - Персональный файл с заголовками: `contractors/kuken/viasglobal (1).xlsx`.
-  - Исторический файл без заголовков: `contractors/kuken/viasglobal.xlsx`.
+  - Персональный файл с заголовками: `ecommerce/contractors/kuken/viasglobal (1).xlsx`.
+  - Исторический файл без заголовков: `ecommerce/contractors/kuken/viasglobal.xlsx`.
 - **Структура колонок с заголовками (`viasglobal (1).xlsx`)**:
   - `ORD`: системный ID строки (например, 3802).
   - `CODE`: артикул / референс производителя (например, `34178`).
@@ -28,9 +28,9 @@
 - **Адаптер поставщика KUKEN (`.agents/skills/kuken-adapter/`)**:
   - Парсинг и генерация промежуточного Excel:
     ```bash
-    cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../../contractors/kuken/viasglobal (1).xlsx"
+    cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../contractors/kuken/viasglobal (1).xlsx"
     ```
-  - Промежуточный staging файл для проверки: `contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`.
+  - Промежуточный staging файл для проверки: `ecommerce/contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`.
   - Безопасный импорт в БД (строго после подтверждения пользователем):
     ```bash
     cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "<путь_к_staging_файлу.xlsx>"
@@ -40,7 +40,7 @@
   - Бренд в БД: `KUKEN` (ID 504, статус: **`CONTRACTED`**).
   - Снапшоты цен: хранятся в `DistributorPriceSnapshot` с полями `priceNetto`, `ecoTasa`, `costPrice`, `unitsPerBox`, `minBoxOrder`.
   - Сопоставление с ASIN: 20 товаров привязаны к дистрибьютору и добавлены в `RequestProductQueue` с приоритетом `999999`.
-  - Несопоставленные EAN: 8 новинок зафиксированы в `contractors/kuken/unmatched_eans.txt`.
+  - Несопоставленные EAN: 8 новинок зафиксированы в `ecommerce/contractors/kuken/unmatched_eans.txt`.
 - **Юридическая верификация правообладателя KUKEN (OEPM & Registro Mercantil)**:
   - Компания `ALFA DYSER, S.L.` является прямым владельцем и правообладателем бренда `KUKEN` (не сторонний дистрибьютор, а первоисточник).
   - Реестр патентов и торговых марок Испании (OEPM): торговая марка `KÜKEN`, номер официального дела `M-3053663`, правообладатель `ALFA DYSER, S.L.` (CIF: B-60163441), классы 7, 8 (утюги), 11 (фены). Статус: `Concedida / En vigor` (выписка сохранена в [`legal/oepm_kuken_M3053663.pdf`](legal/oepm_kuken_M3053663.pdf)).

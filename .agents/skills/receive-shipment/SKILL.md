@@ -50,14 +50,14 @@ cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-00740
 ### Шаг 4. Физические замеры и фотофиксация
 1. **Замеры упаковки рулеткой**:
    - Замерьте габариты заводской коробки товара: **Длина**, **Ширина**, **Высота** (в сантиметрах).
-   - *Критически важно*: подтвердить свободный вход заводской коробки в закупленные курьерские пакеты $40 \times 50\text{ см}$ (поставщик упаковки [EMBALAJE24, S.L.](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md)) перед отправкой покупателям.
+   - *Критически важно*: подтвердить свободный вход заводской коробки в закупленные курьерские пакеты $40 \times 50\text{ см}$ (поставщик упаковки [EMBALAJE24, S.L.](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md)) перед отправкой покупателям.
 2. **Взвешивание**:
    - Взвесьте 1 упакованную единицу товара на весах и зафиксируйте вес в **граммах** (брутто).
 3. **Фотофиксация**:
    - Сделайте фото вложенного бумажного *Albarán* (особенно блок с суммами и строкой `TASA`).
    - Сделайте фото заводской коробки с читаемым EAN-штрихкодом и маркировкой перечеркнутого мусорного бака (знак WEEE).
    - Сделайте фото товара и замеров рулеткой.
-   - Сохраните фотографии в папку `contractors/<дистрибьютор>/attachments/` (например, `contractors/kuken/attachments/`).
+   - Сохраните фотографии в папку `ecommerce/contractors/<дистрибьютор>/attachments/` (например, `ecommerce/contractors/kuken/attachments/`).
 
 ### Шаг 5. Проведение приемки и оприходование в БД
 Выполните команду фиксации фактической приемки, передав фактические количества, замеры и пути к фото:
@@ -65,7 +65,7 @@ cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-00740
 cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
   --item "34316:10:28:10:22:850:3:7" \
   --item "35536:10:30:12:16:1200:3:7" \
-  --photos "contractors/kuken/attachments/albaran_photo.jpg,contractors/kuken/attachments/secador_box.jpg"
+  --photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/secador_box.jpg"
 ```
 **Формат параметра `--item`**:
 `"<SKU>:<кол_во_принято>:<длина_см>:<ширина_см>:<высота_см>:<вес_грамм>:<шт_на_СВХ>:<шт_на_MAIN>"`
@@ -176,7 +176,7 @@ flowchart TD
 
 #### Шаг 1. Документальное подтверждение уплаты (Prueba Documental)
 - При проверке документов поставки (Шаг 2 чек-листа) убедитесь, что в официальной фактуре (*Factura*) и накладной (*Albarán*) экологический сбор указан явно: `TASA: 0.65 €`.
-- Сохраните скан или фото накладной в папку `contractors/kuken/attachments/` и прикрепите к заказу через скрипт `receive-shipment.ts` (документ типа `ALBARAN` / `INVOICE`).
+- Сохраните скан или фото накладной в папку `ecommerce/contractors/kuken/attachments/` и прикрепите к заказу через скрипт `receive-shipment.ts` (документ типа `ALBARAN` / `INVOICE`).
 - Данный документ служит официальным доказательством (*factura desglosada*) того, что сбор уже был внесен в систему переработки при первой продаже в Испании.
 
 #### Шаг 2. Защита от списаний Amazon Pay on Behalf (Seller Central EPR)

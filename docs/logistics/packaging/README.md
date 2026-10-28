@@ -68,5 +68,5 @@ $$\text{Объёмный вес (кг)} = \frac{\text{Длина (см)} \times 
 ## 5. Практические спецификации по поставщикам
 
 Спецификации упаковки конкретных позиций хранятся в папках соответствующих поставщиков со ссылкой на общие регламенты:
-* Рюкзак Safta 3D K-POP: [`contractors/safta/packaging_mochila.md`](file:///Users/usuario/code/viasglobal/contractors/safta/packaging_mochila.md).
-* Официальный поставщик упаковки Viasglobal: [`contractors/embalaje24/README.md`](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md) (EMBALAJE24, S.L., Мадрид — курьерские пакеты 40×50 см и 23×32 см).
+* Рюкзак Safta 3D K-POP: [`ecommerce/contractors/safta/packaging_mochila.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/safta/packaging_mochila.md).
+* Официальный поставщик упаковки Viasglobal: [`ecommerce/contractors/embalaje24/README.md`](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) (EMBALAJE24, S.L., Мадрид — курьерские пакеты 40×50 см и 23×32 см).

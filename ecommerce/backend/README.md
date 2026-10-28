@@ -84,7 +84,7 @@ npx tsx scripts/get-distributor-snapshot.ts <ASIN_или_EAN>
 ```bash
 cd ecommerce/backend && npx tsx scripts/sync-emails.ts [--limit 30]
 ```
-Скрипт подключается по IMAP к ящику Hostinger (`imap.hostinger.com:993`), считывает свежие письма, сопоставляет отправителей с базой дистрибьюторов, при необходимости регистрирует новых менеджеров в `DistributorContact`, а прикрепленные прайс-листы Excel и PDF сохраняет в папку `contractors/<поставщик>/attachments/`.
+Скрипт подключается по IMAP к ящику Hostinger (`imap.hostinger.com:993`), считывает свежие письма, сопоставляет отправителей с базой дистрибьюторов, при необходимости регистрирует новых менеджеров в `DistributorContact`, а прикрепленные прайс-листы Excel и PDF сохраняет в папку `ecommerce/contractors/<поставщик>/attachments/`.
 
 2. **Быстрый поиск условий и переписки в локальной БД**:
 ```bash
@@ -285,7 +285,7 @@ cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-00740
 cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
   --item "34316:10:28:10:22:850:3:7" \
   --item "35536:10:30:12:16:1200:3:7" \
-  --photos "../../contractors/kuken/attachments/albaran_photo.jpg,../../contractors/kuken/attachments/secador_box.jpg"
+  --photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/secador_box.jpg"
 ```
 
 #### В. Складские остатки и система алертов пополнения СВХ

@@ -14,7 +14,7 @@
 
 ### Коммерческие условия и доставка (подтверждено 23.10.2026)
 - **Порог бесплатной доставки (Portes pagados / Franco):** **200 €** чистой базы (Base Imponible).
-- **Способ оплаты:** **SEPA Direct Debit B2B** (*orden de domiciliación bancaria SEPA*). Подписанный мандат официально передан менеджеру Guido (документ `contractors/kuken/attachments/SEPA CORE ALFA 2.pdf`). Списание средств за поставку производится поставщиком автоматически напрямую с банковского счета компании (без ручной предоплаты по проформе). Поставщик формирует подтверждение заказа, транспортную накладную (*albarán*) и счет-фактуру.
+- **Способ оплаты:** **SEPA Direct Debit B2B** (*orden de domiciliación bancaria SEPA*). Подписанный мандат официально передан менеджеру Guido (документ `ecommerce/contractors/kuken/attachments/SEPA CORE ALFA 2.pdf`). Списание средств за поставку производится поставщиком автоматически напрямую с банковского счета компании (без ручной предоплаты по проформе). Поставщик формирует подтверждение заказа, транспортную накладную (*albarán*) и счет-фактуру.
 - **Сформированный пробный заказ для бесплатной доставки:**
   1. **Арт. 34316** (Secador Profesional Iónico 2000W Negro): 10 шт x 11.82 € (+ 0.65 € таса) = **124.70 €**
   2. **Арт. 35536** (Plancha Vapor 2600W Suela Cerámica): 10 шт x 14.12 € (+ 0.65 € таса) = **147.70 €**
@@ -39,7 +39,7 @@
 - **Активная задача в Google Tasks:** [ALFA DYSER — Проконтролировать исправление фамилии и адреса в фактуре (Albarán 26ALV-0074072)](https://tasks.google.com/task/SFRTMHQ4ZVZSVnBUQmFnOA) (Дедлайн: `2026-10-29`, ID: `SFRTMHQ4ZVZSVnBUQmFnOA`).
 - **Приемка груза и физический замер упаковочных коробок (27–28.10.2026):**
   - При получении поставки от DHL замерить рулеткой физические размеры заводских коробок фена `34316` и утюга `35536`.
-  - Цель: подтвердить свободный вход в курьерские пакеты $40 \times 50\text{ см}$ перед оплатой корзины у официального поставщика упаковки [EMBALAJE24, S.L.](file:///Users/usuario/code/viasglobal/contractors/embalaje24/README.md) (заказ на 18,80 € сформирован и ждет оплаты).
+  - Цель: подтвердить свободный вход в курьерские пакеты $40 \times 50\text{ см}$ перед оплатой корзины у официального поставщика упаковки [EMBALAJE24, S.L.](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) (заказ на 18,80 € сформирован и ждет оплаты).
   - **Активная задача в Google Tasks:** [E-commerce: Замерить коробки KUKEN и оплатить упаковку в Embalaje24](https://tasks.google.com/task/cVdVNGVtTlFhZkh4bXFrNw) (Дедлайн: `2026-10-28`, ID: `cVdVNGVtTlFhZkh4bXFrNw`).
 
 ---
@@ -47,8 +47,8 @@
 ## Прайс-листы поставщика
 
 Поставщик предоставил актуальный прайс-лист с полными заголовками колонок:
-- **Основной файл с заголовками:** [viasglobal (1).xlsx](file:///Users/usuario/code/viasglobal/contractors/kuken/viasglobal%20%281%29.xlsx)
-- **Исторический файл (без заголовков):** [viasglobal.xlsx](file:///Users/usuario/code/viasglobal/contractors/kuken/viasglobal.xlsx)
+- **Основной файл с заголовками:** [viasglobal (1).xlsx](file:///Users/usuario/code/viasglobal/ecommerce/contractors/kuken/viasglobal%20%281%29.xlsx)
+- **Исторический файл (без заголовков):** [viasglobal.xlsx](file:///Users/usuario/code/viasglobal/ecommerce/contractors/kuken/viasglobal.xlsx)
 
 ### Структура таблицы (`viasglobal (1).xlsx`)
 
@@ -129,14 +129,14 @@
 
 1. **Шаг 1. Формирование проверочного отчета:**
    ```bash
-   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../../contractors/kuken/viasglobal (1).xlsx"
+   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../contractors/kuken/viasglobal (1).xlsx"
    ```
-   Скрипт генерирует промежуточный Excel-файл со всеми расчетами в папке `contractors/kuken/reports/`.
+   Скрипт генерирует промежуточный Excel-файл со всеми расчетами в папке `ecommerce/contractors/kuken/reports/`.
 2. **Шаг 2. Визуальный контроль пользователем:**
-   Файл доступен по ссылке: [kuken_staging_prices_latest.xlsx](file:///Users/usuario/code/viasglobal/contractors/kuken/reports/).
+   Файл доступен по ссылке: [kuken_staging_prices_latest.xlsx](file:///Users/usuario/code/viasglobal/ecommerce/contractors/kuken/reports/).
 3. **Шаг 3. Безопасный импорт в БД (после согласования):**
    ```bash
-   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "../../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx"
+   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx"
    ```
 
 ---

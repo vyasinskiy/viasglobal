@@ -94,7 +94,7 @@
 
 ## Документооборот и аудит
 
-- [prompt.md](file:///Users/usuario/code/viasglobal/contractors/ZEBRA/prompt.md) - Промпт для глубокого поиска дистрибьютора в Gemini / Perplexity / ChatGPT.
-- [notebooklm_report.md](file:///Users/usuario/code/viasglobal/contractors/ZEBRA/notebooklm_report.md) - Детальный отчет NotebookLM по европейской дистрибьюторской структуре и условиям поставок.
-- [final_analysis.md](file:///Users/usuario/code/viasglobal/contractors/ZEBRA/final_analysis.md) - Финальный аналитический документ и стратегия позиционирования при регистрации.
-- [AGENTS.md](file:///Users/usuario/code/viasglobal/contractors/ZEBRA/AGENTS.md) - Инструкции для ИИ по работе с каталогом бренда.
+- [prompt.md](file:///Users/usuario/code/viasglobal/ecommerce/contractors/ZEBRA/prompt.md) - Промпт для глубокого поиска дистрибьютора в Gemini / Perplexity / ChatGPT.
+- [notebooklm_report.md](file:///Users/usuario/code/viasglobal/ecommerce/contractors/ZEBRA/notebooklm_report.md) - Детальный отчет NotebookLM по европейской дистрибьюторской структуре и условиям поставок.
+- [final_analysis.md](file:///Users/usuario/code/viasglobal/ecommerce/contractors/ZEBRA/final_analysis.md) - Финальный аналитический документ и стратегия позиционирования при регистрации.
+- [AGENTS.md](file:///Users/usuario/code/viasglobal/ecommerce/contractors/ZEBRA/AGENTS.md) - Инструкции для ИИ по работе с каталогом бренда.

@@ -446,7 +446,7 @@ describe('Подсистема закупок, приемки товара, ск
         {
           id: 1,
           fileName: 'albaran_26ALV-0074072.pdf',
-          filePath: 'contractors/kuken/attachments/albaran_26ALV-0074072.pdf',
+          filePath: 'ecommerce/contractors/kuken/attachments/albaran_26ALV-0074072.pdf',
         },
       ],
       stockMovements: [],

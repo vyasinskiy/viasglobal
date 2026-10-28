@@ -45,7 +45,7 @@ async function main() {
 
   if (!inputFileArg) {
     console.error('Ошибка: укажите путь к проверенному промежуточному файлу Excel.');
-    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../../contractors/kuken/reports/kuken_staging_prices_123.xlsx');
+    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../contractors/kuken/reports/kuken_staging_prices_123.xlsx');
     process.exit(1);
   }
 
@@ -216,7 +216,7 @@ async function main() {
   // Сохраняем несопоставленные EAN новинок
   if (unmatchedEans.length > 0) {
     const uniqueUnmatched = Array.from(new Set(unmatchedEans));
-    const outPath = path.resolve(__dirname, '../../../../contractors/kuken/unmatched_eans.txt');
+    const outPath = path.resolve(__dirname, '../../../../ecommerce/contractors/kuken/unmatched_eans.txt');
     fs.writeFileSync(outPath, uniqueUnmatched.join('\n'), 'utf-8');
     console.log(`\n📋 Список несопоставленных EAN новинок (${uniqueUnmatched.length} шт.) сохранен:`);
     console.log(`📄 ${outPath}`);
