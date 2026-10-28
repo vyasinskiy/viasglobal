@@ -14,7 +14,7 @@ description: Вычисляет и проверяет Amazon FBA Size Tier дл�
 ## Инструкция по выполнению
 
 1. Извлеки ASIN из запроса пользователя.
-2. Перейди в папку `backend` и выполни команду:
+2. Перейди в папку `ecommerce/backend` и выполни команду:
    ```bash
    npx tsx scripts/check-size-tier.ts <ASIN>
    ```

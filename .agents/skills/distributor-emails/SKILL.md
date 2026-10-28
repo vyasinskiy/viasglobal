@@ -44,7 +44,7 @@ description: Синхронизирует почту (Hostinger IMAP) в баз�
 Если пользователь спрашивает о недавнем письме или просит проверить условия:
 1. Выполни синхронизацию входящих писем из почтового ящика в БД:
    ```bash
-   cd backend && npx tsx scripts/sync-emails.ts --limit 30
+   cd ecommerce/backend && npx tsx scripts/sync-emails.ts --limit 30
    ```
 2. Скрипт:
    - Подключается к IMAP серверу Hostinger (`imap.hostinger.com:993`).
@@ -54,7 +54,7 @@ description: Синхронизирует почту (Hostinger IMAP) в баз�
    - Если в письме есть прайс-лист Excel или PDF, скачивает его в папку `contractors/<дистрибьютор>/attachments/`.
 
 > [!NOTE]
-> Если учетные данные `IMAP_USER` или `IMAP_PASSWORD` еще не указаны в `backend/.env`, скрипт сообщит об этом. В таком случае вежливо попроси пользователя прописать их в файле `backend/.env`.
+> Если учетные данные `IMAP_USER` или `IMAP_PASSWORD` еще не указаны в `ecommerce/backend/.env`, скрипт сообщит об этом. В таком случае вежливо попроси пользователя прописать их в файле `ecommerce/backend/.env`.
 
 ---
 
@@ -62,21 +62,21 @@ description: Синхронизирует почту (Hostinger IMAP) в баз�
 
 Для мгновенного поиска по тексту переписки используй скрипт:
 ```bash
-cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "<ИмяДистрибьютора>" --query "<КлючевоеСлово>"
+cd ecommerce/backend && npx tsx scripts/search-distributor-emails.ts --distributor "<ИмяДистрибьютора>" --query "<КлючевоеСлово>"
 ```
 
 **Примеры запросов:**
 - Поиск условий доставки для Kuken:
   ```bash
-  cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken" --query "portes"
+  cd ecommerce/backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken" --query "portes"
   ```
 - Поиск минимального заказа:
   ```bash
-  cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "Alfadyser" --query "mínimo"
+  cd ecommerce/backend && npx tsx scripts/search-distributor-emails.ts --distributor "Alfadyser" --query "mínimo"
   ```
 - Поиск всех писем конкретного контрагента:
   ```bash
-  cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken"
+  cd ecommerce/backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken"
   ```
 
 ---

@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 // Функция безопасного подключения модулей из папки backend/node_modules
 function requireBackendModule(moduleName: string) {
@@ -124,15 +124,15 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log('Использование:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id> [--manufacturer] [--regex] [--no-parse] [output.xlsx] [domainId]');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id> [--manufacturer] [--regex] [--no-parse] [output.xlsx] [domainId]');
     console.log('\nПараметры:');
     console.log('  --manufacturer, -m   Искать по полю Manufacturer вместо Brand');
     console.log('  --regex, -r          Использовать режим регулярных выражений (префикс regex:)');
     console.log('  --no-parse           Не запускать автоматический парсинг после выгрузки');
     console.log('\nПримеры:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY"');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "COFAN" --manufacturer');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "ALFA DYSER.*" --manufacturer --regex');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY"');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "COFAN" --manufacturer');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "ALFA DYSER.*" --manufacturer --regex');
     process.exit(0);
   }
 
@@ -469,7 +469,7 @@ async function main() {
   } else {
     console.log('\nФлаг --no-parse активен. Парсинг в базу данных пропущен.');
     console.log(`Для ручного парсинга запустите:`);
-    console.log(`  cd backend && npx tsx scripts/parse-keepa.ts "${targetOutputFile}"`);
+    console.log(`  cd ecommerce/backend && npx tsx scripts/parse-keepa.ts "${targetOutputFile}"`);
   }
 }
 

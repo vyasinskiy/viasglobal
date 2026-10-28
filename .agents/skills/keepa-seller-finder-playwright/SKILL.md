@@ -7,7 +7,7 @@ description: Автоматизированная выгрузка катало�
 
 Этот навык автоматизирует выгрузку товаров продавца из раздела **Keepa Product Finder** (`https://keepa.com/#!finder`) с использованием Playwright и сохраненной браузерной сессии Google Chrome. 
 
-Он работает **абсолютно бесплатно** (0 токенов Keepa API) и **автоматически сохраняет все данные в базу данных** через `backend/scripts/parse-keepa.ts` (создает/обновляет продавца, бренды, производителей, ASIN, снапшоты цен и связывает выгрузку с `sellerId`).
+Он работает **абсолютно бесплатно** (0 токенов Keepa API) и **автоматически сохраняет все данные в базу данных** через `ecommerce/backend/scripts/parse-keepa.ts` (создает/обновляет продавца, бренды, производителей, ASIN, снапшоты цен и связывает выгрузку с `sellerId`).
 
 ---
 
@@ -18,7 +18,7 @@ description: Автоматизированная выгрузка катало�
 Если сессия отсутствует или устарела, запустите:
 
 ```bash
-cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts
+cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts
 ```
 
 1. Откроется браузер Google Chrome.
@@ -32,24 +32,24 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-sel
 Запуск выгрузки продавца:
 
 ```bash
-cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts <sellerId_или_имя_продавца>
+cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts <sellerId_или_имя_продавца>
 ```
 
 ### Примеры использования:
 
 1. **По Seller ID**:
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV
    ```
 
 2. **По названию продавца** (скрипт сам найдет `sellerId` в БД):
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts "Theonoi"
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts "Theonoi"
    ```
 
 3. **Только скачивание файла без записи в БД** (флаг `--no-parse`):
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV --no-parse
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV --no-parse
    ```
 
 ---

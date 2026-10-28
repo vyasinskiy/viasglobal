@@ -11,7 +11,7 @@ const brandInput = process.argv[2];
 const sellerInput = process.argv[3];
 
 if (!brandInput || !sellerInput) {
-  console.log('Использование: cd backend && npx tsx scripts/verify-private-label.ts "<BrandName>" "<SellerId_or_SellerName>"');
+  console.log('Использование: cd ecommerce/backend && npx tsx scripts/verify-private-label.ts "<BrandName>" "<SellerId_or_SellerName>"');
   process.exit(1);
 }
 
@@ -62,7 +62,7 @@ async function verifyPrivateLabel() {
     if (targetBrands.length === 0) {
       console.log(`⚠️ Бренд "${brandName}" не найден в базе данных.`);
       console.log(`   Чтобы корректно проанализировать бренд, необходимо загрузить его каталог из Keepa:`);
-      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
+      console.log(`   cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
       return;
     }
 
@@ -105,7 +105,7 @@ async function verifyPrivateLabel() {
         console.log(`❌ Ошибка при автоматическом формировании выгрузки бренда: ${err.message}`);
         console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина)${sellerIdInfo}.`);
         console.log(`   Пожалуйста, выгрузите полный каталог бренда из Keepa (Product Finder -> Brand: "${targetBrand.name}") и загрузите:`);
-        console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
+        console.log(`   cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_бренда.xlsx>\n`);
         return;
       }
     }
@@ -125,7 +125,7 @@ async function verifyPrivateLabel() {
     if (!targetSeller) {
       console.log(`⚠️ Продавец "${sellerParam}" не найден в базе данных.`);
       console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa и загрузите её:`);
-      console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
+      console.log(`   cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
       return;
     }
 
@@ -154,7 +154,7 @@ async function verifyPrivateLabel() {
         console.log(`❌ Ошибка при автоматическом формировании выгрузки продавца: ${err.message}`);
         console.log(`   Для достоверного анализа требуется 2 выгрузки: по бренду (каталог) и по продавцу (витрина).`);
         console.log(`   Пожалуйста, выгрузите витрину продавца из Keepa (Product Finder -> Seller: "${targetSeller.name}" / Seller ID: "${targetSeller.id}") и загрузите:`);
-        console.log(`   cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
+        console.log(`   cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке_продавца.xlsx>\n`);
         return;
       }
     }

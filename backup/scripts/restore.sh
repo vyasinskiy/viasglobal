@@ -17,7 +17,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-BACKUP_BASE_DIR="${PROJECT_ROOT}/backend/backups"
+BACKUP_BASE_DIR="${PROJECT_ROOT}/ecommerce/backend/backups"
 
 # Значения аргументов по умолчанию
 TARGET_DB=""

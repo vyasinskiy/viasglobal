@@ -9,10 +9,10 @@
 # ==============================================================================
 
 # 1. Ежедневный бэкап всех баз данных (03:00)
-0 3 * * * cd /home/huawei/viasglobal && bash backup/scripts/backup-all.sh >> /home/huawei/viasglobal/backend/backups/backup.log 2>&1
+0 3 * * * cd /home/huawei/viasglobal && bash backup/scripts/backup-all.sh >> /home/huawei/viasglobal/ecommerce/backend/backups/backup.log 2>&1
 
 # 2. Утренняя валидация бэкапов и пинг мониторинга (03:30)
-30 3 * * * cd /home/huawei/viasglobal && bash backup/scripts/check-health.sh >> /home/huawei/viasglobal/backend/backups/health.log 2>&1
+30 3 * * * cd /home/huawei/viasglobal && bash backup/scripts/check-health.sh >> /home/huawei/viasglobal/ecommerce/backend/backups/health.log 2>&1
 
 # 3. Дневной контрольный мониторинг свежести бэкапов (12:00)
-0 12 * * * cd /home/huawei/viasglobal && bash backup/scripts/check-health.sh >> /home/huawei/viasglobal/backend/backups/health.log 2>&1
+0 12 * * * cd /home/huawei/viasglobal && bash backup/scripts/check-health.sh >> /home/huawei/viasglobal/ecommerce/backend/backups/health.log 2>&1

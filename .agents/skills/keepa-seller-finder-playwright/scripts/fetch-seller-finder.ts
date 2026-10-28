@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 // Функция безопасного подключения модулей из папки backend/node_modules
 function requireBackendModule(moduleName: string) {
@@ -111,11 +111,11 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log('Использование:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts <sellerId_или_имя> [--no-parse] [output.xlsx] [domainId]');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts <sellerId_или_имя> [--no-parse] [output.xlsx] [domainId]');
     console.log('\nПримеры:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts "Theonoi"');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV --no-parse');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts "Theonoi"');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts A1O61CEYQ8IRTV --no-parse');
     process.exit(0);
   }
 
@@ -311,7 +311,7 @@ async function main() {
   } else {
     console.log('\nФлаг --no-parse активен. Парсинг в базу данных пропущен.');
     console.log(`Для ручного парсинга запустите:`);
-    console.log(`  cd backend && npx tsx scripts/parse-keepa.ts "${targetOutputFile}"`);
+    console.log(`  cd ecommerce/backend && npx tsx scripts/parse-keepa.ts "${targetOutputFile}"`);
   }
 }
 

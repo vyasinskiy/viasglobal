@@ -12,14 +12,14 @@
  * 7. Формирует промежуточный Excel-файл (staging) для проверки пользователем.
  * 
  * Использование:
- *   cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts <путь_к_файлу_kuken.xlsx>
+ *   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts <путь_к_файлу_kuken.xlsx>
  */
 
 import * as path from 'path';
 import * as fs from 'fs';
 
 // Директория backend для импорта установленных модулей
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 function requireBackendModule(moduleName: string) {
   try {
@@ -238,7 +238,7 @@ async function main() {
 
   if (!filePathArg) {
     console.error('Ошибка: укажите путь к файлу прайс-листа Kuken.');
-    console.error('Пример: cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../contractors/kuken/viasglobal\\ \\(1\\).xlsx');
+    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../../contractors/kuken/viasglobal\\ \\(1\\).xlsx');
     process.exit(1);
   }
 

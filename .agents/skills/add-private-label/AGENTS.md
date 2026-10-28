@@ -7,5 +7,5 @@
   - Строгий `throw new Error` при отсутствии `Brand` или `Seller` в БД (никакого автосоздания).
   - Инициализация Prisma через `@prisma/adapter-pg`.
   - Использование составного ключа `brandId_sellerId` в `upsert`.
-- **Путь сохранения**: `backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
-- **Правило запуска**: Обязательно спросить у пользователя разрешение перед запуском (`npx tsx prisma/data-migrations/<файл>.ts`).
+- **Путь сохранения**: `ecommerce/backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
+- **Правило запуска**: Обязательно спросить у пользователя разрешение перед запуском (`npx tsx prisma/data-migrations/<файл>.ts` в директории `ecommerce/backend/`).

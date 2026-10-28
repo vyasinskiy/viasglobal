@@ -27,7 +27,7 @@
 Для поиска закупочных цен конкретного товара в БД:
 
 ```bash
-cd backend
+cd ecommerce/backend
 npx tsx scripts/get-distributor-snapshot.ts <ASIN_или_EAN>
 ```
 

@@ -8,7 +8,7 @@ import { chromium, Page } from 'playwright';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 function requireBackendModule(moduleName: string) {
   try {

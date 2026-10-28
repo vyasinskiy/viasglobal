@@ -15,20 +15,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # Корневой каталог для хранения локальных архивов бэкапов
-BACKUP_BASE_DIR="${PROJECT_ROOT}/backend/backups"
+BACKUP_BASE_DIR="${PROJECT_ROOT}/ecommerce/backend/backups"
 mkdir -p "${BACKUP_BASE_DIR}/viasglobal"
 mkdir -p "${BACKUP_BASE_DIR}/rent"
 
 # Загружаем переменные окружения для S3 / R2 и Telegram (если файлы существуют)
-if [ -f "${PROJECT_ROOT}/backend/.env" ]; then
-  # Читаем переменные окружения из backend/.env
+if [ -f "${PROJECT_ROOT}/ecommerce/backend/.env" ]; then
+  # Читаем переменные окружения из ecommerce/backend/.env
   set -a
-  source "${PROJECT_ROOT}/backend/.env"
+  source "${PROJECT_ROOT}/ecommerce/backend/.env"
   set +a
 fi
 
 if [ -f "${PROJECT_ROOT}/sms-gateway/.env" ]; then
-  # Подгружаем токен Telegram-бота для алертов (если не задан в backend/.env)
+  # Подгружаем токен Telegram-бота для алертов (если не задан в ecommerce/backend/.env)
   if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
     TELEGRAM_BOT_TOKEN="$(grep -E '^TELEGRAM_BOT_TOKEN=' "${PROJECT_ROOT}/sms-gateway/.env" | cut -d '=' -f2- | tr -d '\"' || true)"
   fi

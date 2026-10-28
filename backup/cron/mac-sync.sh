@@ -10,9 +10,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-LOCAL_BACKUP_DIR="${PROJECT_ROOT}/backend/backups"
+LOCAL_BACKUP_DIR="${PROJECT_ROOT}/ecommerce/backend/backups"
 REMOTE_SERVER="huawei@100.92.50.18"
-REMOTE_BACKUP_DIR="~/viasglobal/backend/backups/"
+REMOTE_BACKUP_DIR="~/viasglobal/ecommerce/backend/backups/"
 
 echo "======================================================================"
 echo "📥 Синхронизация бэкапов с сервера Huawei (${REMOTE_SERVER})..."

@@ -986,7 +986,7 @@ async function main(filePath?: string) {
 if (require.main === module) {
   const inputFile = process.argv[2];
   if (!inputFile) {
-    console.error('Использование: cd backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>');
+    console.error('Использование: cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_файлу.xlsx>');
     process.exit(1);
   }
 

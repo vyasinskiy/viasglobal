@@ -17,7 +17,7 @@
 
 1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, AI-агенты, SMS Gateway).
    - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
-2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`).
+2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`, исходный код в `ecommerce/backend`).
    - Контейнеры: `backend`, `viasglobal-openclaw`, `viasglobal-hermes`, `sms-gateway`.
 
 AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подключены к **обеим сетям**, поэтому могут обращаться к любому сервису по его прямому Docker DNS-имени без выхода в публичный интернет.
@@ -30,7 +30,7 @@ AI-ассистенты `viasglobal-openclaw` и `viasglobal-hermes` подкл�
 | :--- | :--- | :--- | :--- | :--- |
 | **Accountant Service** | `accruals-accountant` | `3005` | `3005` | Учет аренды, начисления, квитанции, платежи, арендаторы |
 | **Watcher Service** | `accruals-watcher` | `4500` | `4500` | Парсинг коммунальных порталов через Playwright |
-| **Backend API** | `backend` | `3000` | `3000` | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди |
+| **Backend API** | `backend` | `3000` | `3000` | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди (`ecommerce/backend`) |
 | **Admin UI (Rent)** | `accruals-admin-ui` | `3000` | `3000` (`https://rent.viasglobal.es`) | Веб-интерфейс панели администратора аренды (Next.js/MUI) |
 | **RabbitMQ** | `accruals-rabbitmq` | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
 | **PostgreSQL (Rent)** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |

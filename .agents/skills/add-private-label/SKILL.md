@@ -121,8 +121,8 @@ async function main() {
 main();
 ```
 
-4. Имя файла должно содержать человекочитаемый текст и временной штамп: `backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
-5. Сразу используй инструмент `write_to_file` для создания скрипта в `backend/prisma/data-migrations/`.
+4. Имя файла должно содержать человекочитаемый текст и временной штамп: `ecommerce/backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
+5. Сразу используй инструмент `write_to_file` для создания скрипта в `ecommerce/backend/prisma/data-migrations/`.
 6. Сообщи пользователю, что файл миграции создан, предоставь ссылку на него для просмотра и спроси: **выполнить этот скрипт миграции сейчас?**
 7. **ВАЖНО**: Обязательно дожидайся ответа пользователя перед запуском скрипта!
-8. Если пользователь согласен, выполни скрипт с помощью `run_command`: `npx tsx prisma/data-migrations/<файл>.ts`, находясь в директории `backend/`. Выведи результат пользователю.
+8. Если пользователь согласен, выполни скрипт с помощью `run_command`: `npx tsx prisma/data-migrations/<файл>.ts`, находясь в директории `ecommerce/backend/`. Выведи результат пользователю.

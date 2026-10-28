@@ -12,7 +12,7 @@
  * Использование:
  *   npx tsx scripts/import-distributor-prices.ts <путь_к_файлу> <название_дистрибьютора>
  * Пример:
- *   npx tsx scripts/import-distributor-prices.ts ../other/distributor_screening/safta/TARIFA.CAT\ SEPT\ 300626\ xls.xls Safta
+ *   npx tsx scripts/import-distributor-prices.ts ../../other/distributor_screening/safta/TARIFA.CAT\ SEPT\ 300626\ xls.xls Safta
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -422,7 +422,7 @@ async function main() {
   if (unmatchedEans.length > 0) {
     const uniqueUnmatched = Array.from(new Set(unmatchedEans));
     const distributorSlug = distributorNameArg.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    const outDir = path.resolve(process.cwd(), `../other/distributor_screening/${distributorSlug}`);
+    const outDir = path.resolve(__dirname, `../../../other/distributor_screening/${distributorSlug}`);
     
     if (!fs.existsSync(outDir)) {
       fs.mkdirSync(outDir, { recursive: true });

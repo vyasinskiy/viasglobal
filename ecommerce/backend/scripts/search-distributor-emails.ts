@@ -125,7 +125,7 @@ async function main() {
   if (emails.length === 0) {
     console.log('📭 Подходящих писем в базе данных не найдено.');
     console.log('Совет: если переписка была получена недавно, выполните синхронизацию почты:');
-    console.log('  cd backend && npx tsx scripts/sync-emails.ts');
+    console.log('  cd ecommerce/backend && npx tsx scripts/sync-emails.ts');
   } else {
     console.log(`📬 Найдено писем: ${emails.length}\n`);
 

@@ -27,7 +27,7 @@ make dr-status     # Проверить статус узлов и сайтов
 make deploy-master
 ```
 
-### Основные команды (на сервере в папке `~/viasglobal/backend`)
+### Основные команды (на сервере в папке `~/viasglobal/ecommerce/backend`)
 - **Просмотр логов бэкенда (в реальном времени):** `docker logs -f backend-backend-1`
 - **Просмотр логов базы данных:** `docker logs -f backend-db-1`
 - **Перезапуск бэкенда:** `docker restart backend-backend-1`

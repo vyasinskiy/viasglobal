@@ -56,7 +56,7 @@ shop/src/data/scraped_products.json
 shop/logs/
 
 # Temporary agent scripts
-backend/scripts/temp/
+ecommerce/backend/scripts/temp/
 
 # Keepa auth storage for skills
 .agents/skills/fetch-keepa-viewer/auth/

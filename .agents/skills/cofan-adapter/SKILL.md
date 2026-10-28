@@ -24,7 +24,7 @@ description: Автоматизированный адаптер поставщ�
 - Сессия хранится в `contractors/COFAN/auth/storage_state.json`.
 - Если файл отсутствует или сессия устарела, пользователь запускает скрипт интерактивного входа:
   ```bash
-  cd backend && npx tsx ../.agents/skills/cofan-adapter/scripts/save-session.ts
+  cd ecommerce/backend && npx tsx ../../.agents/skills/cofan-adapter/scripts/save-session.ts
   ```
 
 ### Шаг 2. Сбор оптовых цен по EAN (`fetch-cofan-prices.ts`)
@@ -54,7 +54,7 @@ description: Автоматизированный адаптер поставщ�
 ### Шаг 5. Импорт подтвержденных цен в базу данных (`import-cofan-to-db.ts`)
 - Запуск выполняется командой:
   ```bash
-  cd backend && npx tsx ../.agents/skills/cofan-adapter/scripts/import-cofan-to-db.ts <путь_к_staging_файлу.xlsx>
+  cd ecommerce/backend && npx tsx ../../.agents/skills/cofan-adapter/scripts/import-cofan-to-db.ts <путь_к_staging_файлу.xlsx>
   ```
 - Скрипт:
   1. Находит дистрибьютора `Cofan` в таблице `Distributor` (ID: 6) и выставляет статус `ACCOUNT_OPENED`.

@@ -17,14 +17,14 @@ description: Парсинг выгрузки Keepa, добавление нов�
 
 ## Алгоритм работы
 1. **Запуск скрипта парсинга**:
-   - Выполни следующую команду, находясь в директории `backend` (это важно для доступа к клиенту Prisma).
+   - Выполни следующую команду, находясь в директории `ecommerce/backend` (это важно для доступа к клиенту Prisma).
    - Скрипт автоматически определит, является ли выгрузка "общей" или принадлежит конкретному продавцу, проанализировав колонку Buy Box.
      ```bash
-     cd backend && npx tsx scripts/parse-keepa.ts <путь_к_исходному_файлу_от_корня>
+     cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_исходному_файлу_от_корня>
      ```
    - Пример использования:
      ```bash
-     cd backend && npx tsx scripts/parse-keepa.ts ../keepa/exports/file.xlsx
+     cd ecommerce/backend && npx tsx scripts/parse-keepa.ts ../../keepa/exports/file.xlsx
      ```
 
 2. **Результат**:

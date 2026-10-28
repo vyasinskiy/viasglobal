@@ -25,7 +25,7 @@
 
 Команда проверки связки:
 ```bash
-cd backend && npx tsx scripts/verify-private-label.ts "<brandName>" "<sellerId_or_sellerName>"
+cd ecommerce/backend && npx tsx scripts/verify-private-label.ts "<brandName>" "<sellerId_or_sellerName>"
 ```
 
 В БД проверяются ключевые метрики для товаров целевого бренда:

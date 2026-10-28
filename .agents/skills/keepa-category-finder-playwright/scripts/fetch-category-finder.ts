@@ -6,13 +6,13 @@
  * рассчитывая точный прирост записей до и после импорта.
  *
  * Использование:
- *   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <название_или_id_категории> [--pages N] [--no-parse] [domainId]
+ *   cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <название_или_id_категории> [--pages N] [--no-parse] [domainId]
  */
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 // Функция безопасного подключения модулей из папки backend/node_modules
 function requireBackendModule(moduleName: string) {
@@ -129,7 +129,7 @@ function findStorageStatePath(): string {
 
   throw new Error(
     `Файл сохраненной сессии Keepa не найден ни в одном из стандартных путей.\n` +
-    'Пожалуйста, выполните вход через скрипт: cd backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts'
+    'Пожалуйста, выполните вход через скрипт: cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts'
   );
 }
 
@@ -137,15 +137,15 @@ async function main() {
   const rawArgs = process.argv.slice(2);
   if (rawArgs.length === 0 || rawArgs.includes('--help') || rawArgs.includes('-h')) {
     console.log('Использование:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <категория_или_id> [--pages N] [--resume-part P] [--no-parse] [domainId]');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <категория_или_id> [--pages N] [--resume-part P] [--no-parse] [domainId]');
     console.log('\nПараметры:');
     console.log('  --pages N        Количество страниц по 5000 строк (по умолчанию 2)');
     console.log('  --resume-part P  Начать с указанной части (1-5), пропустив предыдущие');
     console.log('  --no-parse    Только скачать файлы Excel, не импортировать в базу данных');
     console.log('\nПримеры:');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín"');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --pages 2');
-    console.log('  cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts 1571259031 --no-parse');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín"');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --pages 2');
+    console.log('  cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts 1571259031 --no-parse');
     process.exit(0);
   }
 

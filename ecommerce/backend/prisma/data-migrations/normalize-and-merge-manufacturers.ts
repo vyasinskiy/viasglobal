@@ -17,7 +17,7 @@
  * 6. Синхронизация поля manufacturer в ProductFinder.
  * 
  * Запуск:
- *   cd backend && npx tsx prisma/data-migrations/normalize-and-merge-manufacturers.ts
+ *   cd ecommerce/backend && npx tsx prisma/data-migrations/normalize-and-merge-manufacturers.ts
  */
 
 import { PrismaClient } from '@prisma/client';

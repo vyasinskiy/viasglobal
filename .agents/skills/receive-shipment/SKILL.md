@@ -29,7 +29,7 @@ description: Регламент и автоматизация приемки т�
 ### Шаг 1. Открытие чек-листа поставки по Albarán
 При получении коробок от курьера (например, 2 грузовых места от DHL) и обнаружении вложенной накладной (*Albarán*) вызовите команду проверки ожидаемого состава:
 ```bash
-cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --check
+cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --check
 ```
 Скрипт выведет таблицу с перечнем ожидаемых артикулов (SKU), штрихкодов EAN, связанных ASIN Amazon, заказанных количеств и эталонных закупочных цен.
 
@@ -62,7 +62,7 @@ cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --chec
 ### Шаг 5. Проведение приемки и оприходование в БД
 Выполните команду фиксации фактической приемки, передав фактические количества, замеры и пути к фото:
 ```bash
-cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
+cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
   --item "34316:10:28:10:22:850:3:7" \
   --item "35536:10:30:12:16:1200:3:7" \
   --photos "contractors/kuken/attachments/albaran_photo.jpg,contractors/kuken/attachments/secador_box.jpg"
@@ -84,13 +84,13 @@ cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
 ### Просмотр всех заказов поставщика
 Чтобы увидеть все заказы и поставки конкретного поставщика:
 ```bash
-cd backend && npx tsx scripts/orders.ts --distributor "ALFA DYSER" --list
+cd ecommerce/backend && npx tsx scripts/orders.ts --distributor "ALFA DYSER" --list
 ```
 
 ### Просмотр детальной карточки заказа и юнит-экономики
 Чтобы открыть полную финансовую сводку партии, себестоимость с налогами (RE 1.262), розничные цены BuyBox, комиссии Amazon и расчетную прибыль:
 ```bash
-cd backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
+cd ecommerce/backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
 ```
 
 ---
@@ -99,15 +99,15 @@ cd backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
 
 ### Просмотр текущих остатков на складах
 ```bash
-cd backend && npx tsx scripts/inventory.ts --stocks
+cd ecommerce/backend && npx tsx scripts/inventory.ts --stocks
 # Либо отдельно по складу:
-cd backend && npx tsx scripts/inventory.ts --stocks --warehouse SVH
+cd ecommerce/backend && npx tsx scripts/inventory.ts --stocks --warehouse SVH
 ```
 
 ### Регистрация продажи на Amazon (списание с СВХ)
 Когда на Amazon поступает заказ покупателя, продажа регистрируется командой:
 ```bash
-cd backend && npx tsx scripts/record-sale.ts \
+cd ecommerce/backend && npx tsx scripts/record-sale.ts \
   --order "402-1234567-8901234" \
   --sku "34316" \
   --qty 1 \
@@ -123,13 +123,13 @@ cd backend && npx tsx scripts/record-sale.ts \
 
 ### Проверка алертов окончания товара на СВХ
 ```bash
-cd backend && npx tsx scripts/inventory.ts --alerts
+cd ecommerce/backend && npx tsx scripts/inventory.ts --alerts
 ```
 
 ### Оформление перемещения с Основного склада на СВХ
 Когда на СВХ остался 1 товар, пополните буфер оперативной отправки командой:
 ```bash
-cd backend && npx tsx scripts/inventory.ts --transfer --sku 34316 --from MAIN --to SVH --qty 3
+cd ecommerce/backend && npx tsx scripts/inventory.ts --transfer --sku 34316 --from MAIN --to SVH --qty 3
 ```
 
 ---

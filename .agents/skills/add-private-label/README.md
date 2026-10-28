@@ -9,6 +9,6 @@
 * **Входные параметры**: можно передавать как название, так и ID:
   * **Бренд**: имя бренда (`brandName`) или числовой идентификатор бренда (`brandId`).
   * **Продавец**: Amazon Seller ID (`sellerId`) или наименование продавца (`sellerName`).
-* Скрипт миграции создается в `backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
+* Скрипт миграции создается в `ecommerce/backend/prisma/data-migrations/add-<brand>-private-label-YYYYMMDDHHMMSS.ts`.
 * Бренд и Продавец должны уже существовать в базе данных. Поиск осуществляется гибко (по ID или имени). При их отсутствии в БД скрипт падает с ошибкой (`throw new Error`).
 * Запуск скрипта осуществляется строго после явного подтверждения пользователя.

@@ -44,7 +44,7 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
 **IP:** `100.65.210.51`
 
 *   **Резервная среда мгновенного развертывания (Disaster Recovery):** Все Docker-образы (`backend`, `rent`, `cloudflared`) предсобраны и закэшированы локально.
-*   **Синхронизация бэкапов:** Ежедневно через `make backup-sync` свежие копии всех БД скачиваются в `backend/backups/`.
+*   **Синхронизация бэкапов:** Ежедневно через `make backup-sync` свежие копии всех БД скачиваются в `ecommerce/backend/backups/`.
 *   **Аварийное переключение в 1 команду:** При выходе Huawei из строя команда `make dr-failover` за 2 минуты разворачивает все СУБД, восстанавливает данные и запускает локальный `cloudflared-failover`. Трафик внешних сайтов переключается на Mac без изменения DNS.
 *   **Возврат работы на Huawei:** Команда `make dr-rollback`.
 

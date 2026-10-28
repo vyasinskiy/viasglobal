@@ -24,7 +24,7 @@
   - Строгий запрет на упоминание `Amazon`, `FBA`, `Buy Box`, `Marketplace`, `Реселлинг`.
 - **Правила выгрузки и актуализации данных**:
   - Каталог и снапшоты Keepa обновляются через навык `keepa-brand-finder-playwright`:
-    `cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "Zebra Pen"`
+    `cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "Zebra Pen"`
   - **Правило контроля пагинации**: Если выгрузка вернула ровно 100 или 5000 товаров, бить тревогу о возможном техническом срезе. Полный каталог бренда содержит более 1,700 товаров.
 - **Документация**:
   - `contractors/ZEBRA/notebooklm_report.md` - полный сырой аудит B2B-политики.

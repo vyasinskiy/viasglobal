@@ -46,7 +46,7 @@ backup/
    - Каждый архив немедленно валидируется на целостность CRC (`gzip -t`).
    - Архивы выгружаются в объектное облачное хранилище **Cloudflare R2** (бакет `viasglobal-backups`).
    - Локальные архивы на сервере старше 30 дней автоматически ротируются (`find ... -mtime +30 -delete`).
-   - Формируется отчет о статусе [`backend/backups/last_backup_status.json`](../../backend/backups/last_backup_status.json).
+   - Формируется отчет о статусе [`ecommerce/backend/backups/last_backup_status.json`](../../ecommerce/backend/backups/last_backup_status.json).
 2. **`03:30` (каждое утро)** — запуск [`check-health.sh`](scripts/check-health.sh):
    - Проверяется свежесть файлов (<26 часов), минимальный порог размера и CRC-контроль.
    - Отправляется heartbeat-сигнал в сервис внешнего мониторинга Healthchecks.io.
@@ -98,7 +98,7 @@ make dr-failover
 ```
 
 #### Что произойдет автоматически:
-1. Скрипт проверит наличие `.env` файлов на машине и при их отсутствии автоматически распакует все боевые секреты и переменные окружения из архива `backend/backups/configs/configs_*.tar.gz`.
+1. Скрипт проверит наличие `.env` файлов на машине и при их отсутствии автоматически распакует все боевые секреты и переменные окружения из архива `ecommerce/backend/backups/configs/configs_*.tar.gz`.
 2. Проверит наличие свежих дампов баз данных.
 3. Поднимет локальные базы данных в Docker на Mac:
    - `backend-db-1` (Postgres 15, порт `5432`)
@@ -157,7 +157,7 @@ make dr-rollback
    ```
 2. **Скачайте бэкапы из Cloudflare R2**:
    ```bash
-   docker run --rm -v $(pwd)/backend/backups:/data \
+   docker run --rm -v $(pwd)/ecommerce/backend/backups:/data \
      -e AWS_ACCESS_KEY_ID="6a3ced5995c20be21a57b57b37a2e55f" \
      -e AWS_SECRET_ACCESS_KEY="0632f67591532233b84ebdbb4405db554f1fc10567dc6ea34cff6e4a857e6352" \
      -e AWS_DEFAULT_REGION="auto" \

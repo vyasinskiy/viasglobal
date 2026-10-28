@@ -36,15 +36,15 @@ dr-status:
 
 test:
 	@echo "Запуск всех тестов..."
-	@cd backend && npm run test
+	@cd ecommerce/backend && npm run test
 
 db-reset:
 	@echo "Полный сброс базы данных и загрузка свежих выгрузок..."
-	@cd backend && npm run db:reset
+	@cd ecommerce/backend && npm run db:reset
 
 redeploy-back:
 	@echo "Пересборка и перезапуск бэкенда (с новыми переменными окружения)..."
-	@cd backend && docker compose up -d --build backend
+	@cd ecommerce/backend && docker compose up -d --build backend
 
 deploy-master:
 	@echo "Синхронизация файлов на сервер..."
@@ -52,7 +52,7 @@ deploy-master:
 	@echo "Пересборка и перезапуск бэкенда на сервере..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal && make redeploy-back"
 	@echo "Применение миграций базы данных внутри контейнера..."
-	ssh huawei@100.92.50.18 "cd ~/viasglobal/backend && docker compose exec -T backend sh scripts/deploy-db.sh"
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/ecommerce/backend && docker compose exec -T backend sh scripts/deploy-db.sh"
 
 deploy-rent:
 	@echo "Синхронизация файлов проекта rent на сервер Huawei..."

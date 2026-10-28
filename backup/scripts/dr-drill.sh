@@ -20,7 +20,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-BACKUP_BASE_DIR="${PROJECT_ROOT}/backend/backups"
+BACKUP_BASE_DIR="${PROJECT_ROOT}/ecommerce/backend/backups"
 
 # Cloudflare Tunnel Token для туннеля fad800a3-f97e-4b41-8f24-df8168b1211b
 CF_TUNNEL_TOKEN="eyJhIjoiYWM4YWQ0ODViNWFmMTNkMWNmZGYwZTdiMWFkZmRiMTIiLCJ0IjoiZmFkODAwYTMtZjk3ZS00YjQxLThmMjQtZGY4MTY4YjEyMTFiIiwicyI6IlptVmxOemM1TlRVdFpEZG1aQzAwT1RrNExXSmpaall0TURVek5qSTBObVE1WTJSayJ9"
@@ -73,7 +73,7 @@ do_failover() {
   fi
 
   # Проверяем наличие ключевых .env файлов, при отсутствии - распаковываем из архива configs
-  if [ ! -f "${PROJECT_ROOT}/rent/infra/.env" ] || [ ! -f "${PROJECT_ROOT}/backend/.env" ]; then
+  if [ ! -f "${PROJECT_ROOT}/rent/infra/.env" ] || [ ! -f "${PROJECT_ROOT}/ecommerce/backend/.env" ]; then
     echo "⚠️ Конфигурационные файлы .env отсутствуют локально! Поиск архива configs..."
     LATEST_CONFIGS="$(find "${BACKUP_BASE_DIR}/configs" -name "configs_*.tar.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     if [ -n "${LATEST_CONFIGS}" ] && [ -f "${LATEST_CONFIGS}" ]; then
@@ -90,7 +90,7 @@ do_failover() {
   docker network create infra_accruals-network 2>/dev/null || true
 
   # Запуск СУБД для Wholesale (backend-db-1)
-  cd "${PROJECT_ROOT}/backend"
+  cd "${PROJECT_ROOT}/ecommerce/backend"
   docker compose up -d db
   docker rename backend-db-1 backend-db-1 2>/dev/null || true
 
@@ -104,7 +104,7 @@ do_failover() {
   bash "${SCRIPT_DIR}/restore.sh" --db rent --file "${LATEST_RENT}"
 
   # Запуск основного API бэкенда Wholesale
-  cd "${PROJECT_ROOT}/backend"
+  cd "${PROJECT_ROOT}/ecommerce/backend"
   docker compose up -d backend
 
   # 5. Запуск Cloudflare Tunnel на Mac
@@ -198,9 +198,9 @@ do_rollback() {
     docker exec accruals-postgres pg_dumpall -U postgres --clean | gzip -9 > "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz"
 
     echo "   🚀 Передача дампов на сервер Huawei по защищенной сети Tailscale..."
-    ssh "${HUAWEI_SERVER}" "mkdir -p /home/huawei/viasglobal/backend/backups/viasglobal /home/huawei/viasglobal/backend/backups/rent"
-    scp "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/viasglobal/"
-    scp "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backend/backups/rent/"
+    ssh "${HUAWEI_SERVER}" "mkdir -p /home/huawei/viasglobal/ecommerce/backend/backups/viasglobal /home/huawei/viasglobal/ecommerce/backend/backups/rent"
+    scp "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/ecommerce/backend/backups/viasglobal/"
+    scp "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz" "${HUAWEI_SERVER}:/home/huawei/viasglobal/ecommerce/backend/backups/rent/"
 
     echo "   🔄 Восстановление баз данных на сервере Huawei..."
     # Синхронизируем обновленный скрипт restore.sh на сервер
@@ -210,8 +210,8 @@ do_rollback() {
     ssh "${HUAWEI_SERVER}" "docker stop backend-backend-1 accruals-watcher accruals-accountant accruals-telegram-bot accruals-admin-ui 2>/dev/null || true"
     ssh "${HUAWEI_SERVER}" "docker start backend-db-1 accruals-postgres 2>/dev/null || true"
 
-    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db viasglobal --file /home/huawei/viasglobal/backend/backups/viasglobal/failover_viasglobal_${SYNC_TS}.sql.gz"
-    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db rent --file /home/huawei/viasglobal/backend/backups/rent/failover_rent_${SYNC_TS}.sql.gz"
+    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db viasglobal --file /home/huawei/viasglobal/ecommerce/backend/backups/viasglobal/failover_viasglobal_${SYNC_TS}.sql.gz"
+    ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db rent --file /home/huawei/viasglobal/ecommerce/backend/backups/rent/failover_rent_${SYNC_TS}.sql.gz"
 
     rm -rf "${TMP_DIR}"
     echo "   ✅ Обратная синхронизация баз данных на Huawei успешно завершена!"
@@ -226,7 +226,7 @@ do_rollback() {
 
   # 4. Остановка локальных контейнеров на Mac
   echo "🧹 [4/5] Остановка локальных контейнеров Mac..."
-  cd "${PROJECT_ROOT}/backend" && docker compose stop backend db || true
+  cd "${PROJECT_ROOT}/ecommerce/backend" && docker compose stop backend db || true
   cd "${PROJECT_ROOT}/rent/infra" && docker compose stop admin-ui accountant watcher telegram-bot rabbitmq postgres || true
 
   echo "⏳ Ожидание переключения трафика обратно на Huawei (7 сек)..."

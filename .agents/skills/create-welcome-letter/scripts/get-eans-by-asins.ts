@@ -10,15 +10,15 @@ import { createRequire } from 'module';
 import * as path from 'path';
 import * as fs from 'fs';
 
-// Резолвим модуль 'pg' из backend/node_modules
-const backendPackageJson = path.resolve(__dirname, '../../../../backend/package.json');
+// Резолвим модуль 'pg' из ecommerce/backend/node_modules
+const backendPackageJson = path.resolve(__dirname, '../../../../ecommerce/backend/package.json');
 const backendRequire = createRequire(backendPackageJson);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Pool } = backendRequire('pg');
 
-// Читаем DATABASE_URL из backend/.env при наличии
+// Читаем DATABASE_URL из ecommerce/backend/.env при наличии
 let envDatabaseUrl: string | undefined;
-const envPath = path.resolve(__dirname, '../../../../backend/.env');
+const envPath = path.resolve(__dirname, '../../../../ecommerce/backend/.env');
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   const match = envContent.match(/^\s*DATABASE_URL\s*=\s*["']?([^"'\r\n]+)["']?/m);

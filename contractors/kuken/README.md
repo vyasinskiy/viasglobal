@@ -129,14 +129,14 @@
 
 1. **Шаг 1. Формирование проверочного отчета:**
    ```bash
-   cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../contractors/kuken/viasglobal (1).xlsx"
+   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../../contractors/kuken/viasglobal (1).xlsx"
    ```
    Скрипт генерирует промежуточный Excel-файл со всеми расчетами в папке `contractors/kuken/reports/`.
 2. **Шаг 2. Визуальный контроль пользователем:**
    Файл доступен по ссылке: [kuken_staging_prices_latest.xlsx](file:///Users/usuario/code/viasglobal/contractors/kuken/reports/).
 3. **Шаг 3. Безопасный импорт в БД (после согласования):**
    ```bash
-   cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx"
+   cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "../../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx"
    ```
 
 ---

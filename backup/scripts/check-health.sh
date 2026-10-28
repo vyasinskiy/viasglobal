@@ -16,13 +16,13 @@ set -euo pipefail
 # Определяем базовые пути
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-BACKUP_BASE_DIR="${PROJECT_ROOT}/backend/backups"
+BACKUP_BASE_DIR="${PROJECT_ROOT}/ecommerce/backend/backups"
 HEALTH_FILE="${BACKUP_BASE_DIR}/health_status.json"
 
 # Загружаем конфигурацию из .env
-if [ -f "${PROJECT_ROOT}/backend/.env" ]; then
+if [ -f "${PROJECT_ROOT}/ecommerce/backend/.env" ]; then
   set -a
-  source "${PROJECT_ROOT}/backend/.env"
+  source "${PROJECT_ROOT}/ecommerce/backend/.env"
   set +a
 fi
 

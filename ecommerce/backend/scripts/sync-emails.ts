@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { EmailSyncService } from '../src/distributors/email-sync.service';
 
-// Загружаем переменные окружения из backend/.env
+// Загружаем переменные окружения из ecommerce/backend/.env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 /**

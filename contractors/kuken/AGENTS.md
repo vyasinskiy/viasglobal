@@ -28,12 +28,12 @@
 - **Адаптер поставщика KUKEN (`.agents/skills/kuken-adapter/`)**:
   - Парсинг и генерация промежуточного Excel:
     ```bash
-    cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../contractors/kuken/viasglobal (1).xlsx"
+    cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts "../../contractors/kuken/viasglobal (1).xlsx"
     ```
   - Промежуточный staging файл для проверки: `contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx`.
   - Безопасный импорт в БД (строго после подтверждения пользователем):
     ```bash
-    cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "<путь_к_staging_файлу.xlsx>"
+    cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts "<путь_к_staging_файлу.xlsx>"
     ```
 - **Связь сущностей в БД**:
   - Дистрибьютор в БД: `Alfadyser (Kuken)` (ID 5, статус: **`ACCOUNT_OPENED`**).

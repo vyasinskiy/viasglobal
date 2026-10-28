@@ -17,7 +17,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 function requireBackendModule(moduleName: string) {
   try {
@@ -45,7 +45,7 @@ async function main() {
 
   if (!inputFileArg) {
     console.error('Ошибка: укажите путь к проверенному промежуточному файлу Excel.');
-    console.error('Пример: cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../contractors/kuken/reports/kuken_staging_prices_123.xlsx');
+    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../../contractors/kuken/reports/kuken_staging_prices_123.xlsx');
     process.exit(1);
   }
 

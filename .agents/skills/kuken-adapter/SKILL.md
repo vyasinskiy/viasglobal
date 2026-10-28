@@ -50,7 +50,7 @@ description: Автоматизированный адаптер поставщ�
 
 Запуск:
 ```bash
-cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../contractors/kuken/viasglobal\ \(1\).xlsx
+cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/parse-kuken-prices.ts ../../contractors/kuken/viasglobal\ \(1\).xlsx
 ```
 
 ### Шаг 2. Формирование промежуточного отчета (Staging File)
@@ -69,7 +69,7 @@ cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/parse-kuken-prices
 ### Шаг 4. Безопасный импорт в базу данных (`import-kuken-to-db.ts`)
 - Запуск выполняется командой:
 ```bash
-cd backend && npx tsx ../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx
+cd ecommerce/backend && npx tsx ../../.agents/skills/kuken-adapter/scripts/import-kuken-to-db.ts ../../contractors/kuken/reports/kuken_staging_prices_<timestamp>.xlsx
 ```
 - Скрипт:
   1. Находит или создает дистрибьютора `Alfadyser (Kuken)` (ID 5) со статусом `ACCOUNT_OPENED`.

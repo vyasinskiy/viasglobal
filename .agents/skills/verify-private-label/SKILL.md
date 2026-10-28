@@ -29,17 +29,17 @@ description: Проверяет, является ли связка Бренд +
      - Если отсутствует хотя бы одна выгрузка (по бренду или по продавцу), ИИ **ОБЯЗАН немедленно доложить пользователю**, какой именно выгрузки не хватает (указать точное название бренда и/или имя и Seller ID продавца).
      - ИИ **НЕ делает поспешных выводов** без полных выгрузок.
      - ИИ **запрашивает у пользователя разрешение** запустить автоматическую выгрузку с помощью специализированных навыков:
-       - Для каталога бренда: навык `keepa-brand-finder-playwright` (`cd backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "<brandName>"`).
-       - Для витрины продавца: навык `keepa-seller-finder-playwright` (`cd backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts "<sellerId>"`).
+       - Для каталога бренда: навык `keepa-brand-finder-playwright` (`cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "<brandName>"`).
+       - Для витрины продавца: навык `keepa-seller-finder-playwright` (`cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/fetch-seller-finder.ts "<sellerId>"`).
      - **Важное правило при 0 товаров в выгрузке Playwright**:
        - Если после работы скрипта `keepa-brand-finder-playwright` вернулось 0 товаров, **НЕЛЬЗЯ делать вывод, что у бренда нет товаров или листинги удалены**.
        - Название бренда берётся напрямую из проверенной выгрузки Keepa, поэтому бренд гарантированно существует в Keepa.
        - Результат «0 товаров» указывает на то, что **Playwright допустил ошибку** при взаимодействии с формой (например, кликнул вариант `(no match)` в автодополнении, не дождался подгрузки списка подсказок или очистил инпут).
        - В этом случае ИИ **обязан прямо сообщить пользователю о сбое Playwright при выборе бренда** и предложить перепроверить селектор/автодополнение либо сделать выгрузку вручную по прямой ссылке [Keepa Product Finder](https://keepa.com/#!finder).
-     - Если автоматическая выгрузка через браузер недоступна или пользователь предпочитает ручную выгрузку: предоставить пользователю прямую ссылку на [Keepa Product Finder](https://keepa.com/#!finder), сообщить фильтр и Seller ID / Brand Name, и дождаться загрузки файла через `cd backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке.xlsx>`.
-   - Запуск скрипта проверки через `run_command` (из директории `backend`):
+     - Если автоматическая выгрузка через браузер недоступна или пользователь предпочитает ручную выгрузку: предоставить пользователю прямую ссылку на [Keepa Product Finder](https://keepa.com/#!finder), сообщить фильтр и Seller ID / Brand Name, и дождаться загрузки файла через `cd ecommerce/backend && npx tsx scripts/parse-keepa.ts <путь_к_выгрузке.xlsx>`.
+   - Запуск скрипта проверки через `run_command` (из директории `ecommerce/backend`):
      ```bash
-     cd backend && npx tsx scripts/verify-private-label.ts "<brandName>" "<sellerId_or_sellerName>"
+     cd ecommerce/backend && npx tsx scripts/verify-private-label.ts "<brandName>" "<sellerId_or_sellerName>"
      ```
    
 3. **Запрос детальной информации о продавце с Amazon**:

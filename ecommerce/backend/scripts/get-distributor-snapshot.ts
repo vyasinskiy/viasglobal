@@ -17,7 +17,7 @@ import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Загружаем переменные окружения из backend/.env
+// Загружаем переменные окружения из ecommerce/backend/.env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Инициализируем пул подключений к PostgreSQL

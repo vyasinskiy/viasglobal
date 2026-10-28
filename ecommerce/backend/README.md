@@ -82,13 +82,13 @@ npx tsx scripts/get-distributor-snapshot.ts <ASIN_или_EAN>
 
 1. **Синхронизация входящих писем из Hostinger в локальную БД**:
 ```bash
-cd backend && npx tsx scripts/sync-emails.ts [--limit 30]
+cd ecommerce/backend && npx tsx scripts/sync-emails.ts [--limit 30]
 ```
 Скрипт подключается по IMAP к ящику Hostinger (`imap.hostinger.com:993`), считывает свежие письма, сопоставляет отправителей с базой дистрибьюторов, при необходимости регистрирует новых менеджеров в `DistributorContact`, а прикрепленные прайс-листы Excel и PDF сохраняет в папку `contractors/<поставщик>/attachments/`.
 
 2. **Быстрый поиск условий и переписки в локальной БД**:
 ```bash
-cd backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken" --query "portes"
+cd ecommerce/backend && npx tsx scripts/search-distributor-emails.ts --distributor "Kuken" --query "portes"
 ```
 Параметры:
 - `--distributor` (`-d`): фильтрация по имени контрагента (например: `"Kuken"`, `"Cofan"`, `"Safta"`).
@@ -115,12 +115,12 @@ CREATE UNIQUE INDEX "Manufacturer_name_upper_idx" ON "Manufacturer"(UPPER(TRIM("
 ## Управление схемой БД (Prisma Migrations)
 
 > [!IMPORTANT]
-> При выполнении команды `npx prisma migrate dev` изменения схемы применяются к базе данных, указанной в переменной окружения `DATABASE_URL` в файле `backend/.env`. 
+> При выполнении команды `npx prisma migrate dev` изменения схемы применяются к базе данных, указанной в переменной окружения `DATABASE_URL` в файле `ecommerce/backend/.env`. 
 > В текущей конфигурации БД находится на удаленном сервере (Huawei) в сети Tailscale (например, IP `100.92.50.18`), а не на вашем локальном компьютере.
 
 ## Миграции данных (Data Migrations)
 
-Скрипты разового наполнения и связывания сущностей в БД размещаются в папке `backend/prisma/data-migrations/`:
+Скрипты разового наполнения и связывания сущностей в БД размещаются в папке `ecommerce/backend/prisma/data-migrations/`:
 - **Приватные лейблы**: добавление связок `Brand` + `Seller` в `PrivateLabel`.
 - **Дистрибьюторы**: добавление дистрибьютора (`Distributor`) и привязка к нему товаров (`ASIN`).
   - Поиск товаров по EAN ведется напрямую в таблице `ProductFinder` (связь с `ASIN.productFinders`).
@@ -179,14 +179,14 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
 ## Эталонные файлы SQL-объектов (`prisma/sql/`)
 
 Для прозрачного отслеживания изменений (diff в Git) исходный код представлений и функций хранится в эталонных SQL-файлах:
-- **Представления (Views)**: `backend/prisma/sql/views/`
+- **Представления (Views)**: `ecommerce/backend/prisma/sql/views/`
   - `AsinView.sql`
   - `CandidatesProductsView.sql`
   - `PrivateLabelView.sql`
   - `ContractedFilteredProductsView.sql`
   - `ContractedAllProductsView.sql`
   - `KeepaExportView.sql`
-- **Функции (Functions)**: `backend/prisma/sql/functions/`
+- **Функции (Functions)**: `ecommerce/backend/prisma/sql/functions/`
   - `calculate_max_buy_price.sql`
   - `get_asin_filter_reason.sql`
   - `check_brand_seller_dominance.sql`
@@ -201,7 +201,7 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
 
 Для предотвращения рантайм-сбоев (например, ошибки `column snap.amazonOOS90Days does not exist`):
 1. **Сверка с `schema.prisma`**: При написании сырого SQL всегда проверяются точные имена полей в моделях Prisma (например, `amazon90DaysOOS`, `buyBox90DaysOOS` — число 90 перед `DaysOOS`).
-2. **Smoke-тесты в Jest**: В файле `backend/src/prisma/db-functions.spec.ts` настроен блок тестов, который выполняет `SELECT ... LIMIT 1` по всем существующим представлениям (Views) и табличным функциям базы данных. При выполнении обязательного шага тестирования (`npm test`) любые нестыковки в названиях колонок блокируют билд до выката в базу данных.
+2. **Smoke-тесты в Jest**: В файле `ecommerce/backend/src/prisma/db-functions.spec.ts` настроен блок тестов, который выполняет `SELECT ... LIMIT 1` по всем существующим представлениям (Views) и табличным функциям базы данных. При выполнении обязательного шага тестирования (`npm test`) любые нестыковки в названиях колонок блокируют билд до выката в базу данных.
 3. **Парсинг процентов Keepa и расчет доли Amazon (`amazon90DaysOOS`)**: В Excel процентные ячейки экспортируются как числа `0.0..1.0` (например, `1` = 100%, `0.56` = 56%), а в CSV — как строки с `%`. Функция `parseKeepaPercentage()` нормализует их к шкале `0..100`. SQL-функция `get_contracted_products` рассчитывает присутствие Amazon через `CASE WHEN s."amazon90DaysOOS" <= 1 THEN (1.0 - s."amazon90DaysOOS") ELSE (100.0 - s."amazon90DaysOOS") / 100.0 END`, поддерживая обе шкалы и защищая от ложного завышения доли присутствия Amazon.
 4. **Эталонные тесты на конкретных строках и снапшотах («Прибивание гвоздями» / Golden Snapshot Tests)**: При добавлении новых правил отбора или исправлении ошибок на примере конкретной позиции (ASIN, EAN, строка прайс-листа или снапшот Keepa/дистрибьютора) в обязательном порядке создается отдельный автотест в `db-functions.spec.ts` с проверкой **точных эталонных цифр** (себестоимость, комиссии, прибыль, ROI, кванты коробки, BSR, доля Amazon). Тест буквально фиксирует («прибивает гвоздями») правильное поведение строки: если в будущем любая доработка или рефакторинг ломает поведение этого кейса, тест немедленно падает, явно указывая на проблему.
 5. **Очистка производителей от вендор-кодов Amazon и унификация правовых форм (`normalizeManufacturerName`)**: В выгрузках Keepa поле `Manufacturer` часто содержит технические коды Amazon Vendor Central в скобках (`COFAN (COFB0)`, `MAMMUT (MAMQ3)`, `PURINA (PUTJ7)`) или разнобой в написании правовых форм (`ALFA DYSER S.L` vs `ALFA DYSER, S.L`). Функция `normalizeManufacturerName` автоматически отрезает вендор-коды и приводит правовые формы к единому эталону (`COFAN`, `ALFA DYSER, S.L.`), предотвращая создание дубликатов в таблице `Manufacturer` и рассинхронизацию с витриной магазина.
@@ -229,7 +229,7 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
   - Если снапшот старше 48 часов (или товар не попал в свежую выборку Keepa), дата подсвечивается как устаревшая с предупреждением `⚠️ [ДАННЫЕ УСТАРЕЛИ]`, так как цена и BSR могли существенно измениться. Свежие снапшоты помечаются как `✅ [АКТУАЛЬНО]`.
 
 **Рабочий процесс внесения изменений:**
-1. Правки вносятся напрямую в эталонный файл в `backend/prisma/sql/`.
+1. Правки вносятся напрямую в эталонный файл в `ecommerce/backend/prisma/sql/`.
 2. Создается новая миграция Prisma: `npx prisma migrate dev --create-only --name <name>`.
 3. Содержимое эталонного файла копируется в `migration.sql`.
 4. Миграция применяется: `npx prisma migrate dev`.
@@ -269,40 +269,40 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
 #### А. Просмотр заказов поставщика и расчет юнит-экономики
 ```bash
 # Список всех заказов дистрибьютора:
-cd backend && npx tsx scripts/orders.ts --distributor "Alfa Dyser" --list
+cd ecommerce/backend && npx tsx scripts/orders.ts --distributor "Alfa Dyser" --list
 
 # Детальная карточка заказа, состав и юнит-экономика партии vs Amazon BuyBox:
-cd backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
+cd ecommerce/backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
 ```
 
 #### Б. Приемка товара от поставщика (Goods Receiving)
 Навык: `.agents/skills/receive-shipment/`
 ```bash
 # 1. Посмотреть чек-лист ожидаемых товаров по Albarán:
-cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --check
+cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --check
 
 # 2. Зафиксировать фактические замеры, пересчет и распределение (3 на СВХ, 7 на MAIN):
-cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
+cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
   --item "34316:10:28:10:22:850:3:7" \
   --item "35536:10:30:12:16:1200:3:7" \
-  --photos "contractors/kuken/attachments/albaran_photo.jpg,contractors/kuken/attachments/secador_box.jpg"
+  --photos "../../contractors/kuken/attachments/albaran_photo.jpg,../../contractors/kuken/attachments/secador_box.jpg"
 ```
 
 #### В. Складские остатки и система алертов пополнения СВХ
 ```bash
 # Просмотр остатков на складах:
-cd backend && npx tsx scripts/inventory.ts --stocks
+cd ecommerce/backend && npx tsx scripts/inventory.ts --stocks
 
 # Проверка алертов окончания товара на СВХ (<= 1 шт):
-cd backend && npx tsx scripts/inventory.ts --alerts
+cd ecommerce/backend && npx tsx scripts/inventory.ts --alerts
 
 # Пополнение буфера СВХ с Основного склада (MAIN):
-cd backend && npx tsx scripts/inventory.ts --transfer --sku 34316 --from MAIN --to SVH --qty 3
+cd ecommerce/backend && npx tsx scripts/inventory.ts --transfer --sku 34316 --from MAIN --to SVH --qty 3
 ```
 
 #### Г. Регистрация продаж на Amazon (списание с СВХ и партионный учет)
 ```bash
-cd backend && npx tsx scripts/record-sale.ts \
+cd ecommerce/backend && npx tsx scripts/record-sale.ts \
   --order "402-1234567-8901234" \
   --sku "34316" \
   --qty 1 \

@@ -16,13 +16,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-BACKUP_BASE_DIR="${PROJECT_ROOT}/backend/backups"
+BACKUP_BASE_DIR="${PROJECT_ROOT}/ecommerce/backend/backups"
 CONFIGS_BACKUP_DIR="${BACKUP_BASE_DIR}/configs"
 
-# Загружаем переменные S3/R2 из backend/.env
-if [ -f "${PROJECT_ROOT}/backend/.env" ]; then
+# Загружаем переменные S3/R2 из ecommerce/backend/.env
+if [ -f "${PROJECT_ROOT}/ecommerce/backend/.env" ]; then
   # Экспортируем только нужные параметры AWS/S3
-  eval "$(grep -E '^(AWS_BACKUP_BUCKET|AWS_BACKUP_REGION|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|S3_ENDPOINT_URL)=' "${PROJECT_ROOT}/backend/.env" | sed 's/^/export /')"
+  eval "$(grep -E '^(AWS_BACKUP_BUCKET|AWS_BACKUP_REGION|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|S3_ENDPOINT_URL)=' "${PROJECT_ROOT}/ecommerce/backend/.env" | sed 's/^/export /')"
 fi
 
 mkdir -p "${CONFIGS_BACKUP_DIR}"

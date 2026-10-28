@@ -7,7 +7,7 @@ description: Автоматизированная выгрузка катало�
 
 Этот навык автоматизирует выгрузку товаров корневой категории из раздела **Keepa Product Finder** (`https://keepa.com/#!finder`) с использованием Playwright и сохраненной браузерной сессии Google Chrome.
 
-Он работает **абсолютно бесплатно** (0 токенов Keepa API), поддерживает **выгрузку категорий частями (Sales Rank) с переходом по страницам пагинации** и **автоматически сохраняет все данные в базу данных** через `backend/scripts/parse-keepa.ts` (создает/обновляет бренды, производителей, продавцов, ASIN, снапшоты цен и связывает выгрузку).
+Он работает **абсолютно бесплатно** (0 токенов Keepa API), поддерживает **выгрузку категорий частями (Sales Rank) с переходом по страницам пагинации** и **автоматически сохраняет все данные в базу данных** через `ecommerce/backend/scripts/parse-keepa.ts` (создает/обновляет бренды, производителей, продавцов, ASIN, снапшоты цен и связывает выгрузку).
 
 ---
 
@@ -21,7 +21,7 @@ description: Автоматизированная выгрузка катало�
 Если сессия отсутствует или устарела, запустите скрипт сохранения сессии:
 
 ```bash
-cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts
+cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts
 ```
 
 ---
@@ -31,29 +31,29 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-sel
 Запуск выгрузки каталога категории:
 
 ```bash
-cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <название_или_id_категории> [--pages N] [--resume-part P] [--no-parse]
+cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts <название_или_id_категории> [--pages N] [--resume-part P] [--no-parse]
 ```
 
 ### Примеры использования:
 
 1. **По названию категории с пагинацией (по умолчанию 2 страницы = до 10 000 товаров на часть)**:
    ```bash
-   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín"
+   cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín"
    ```
 
 2. **Возобновление выгрузки (например, с 4-й части BSR)**:
    ```bash
-   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --resume-part 4
+   cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --resume-part 4
    ```
 
 3. **По Category ID из базы данных (KeepaAllowedCategory)**:
    ```bash
-   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts 1571259031
+   cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts 1571259031
    ```
 
 4. **Только скачивание файлов без записи в БД** (флаг `--no-parse`):
    ```bash
-   cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --no-parse
+   cd ecommerce/backend && npx tsx ../../.agents/skills/keepa-category-finder-playwright/scripts/fetch-category-finder.ts "Jardín" --no-parse
    ```
 
 ---
@@ -98,6 +98,6 @@ cd backend && npx tsx ../.agents/skills/keepa-category-finder-playwright/scripts
    - ИИ выводит список скачанных файлов, их размер, количество строк и диапазон.
    - **ИИ останавливается и запрашивает подтверждение у пользователя**, чтобы разработчик мог открыть и визуально проверить полученные таблицы перед внесением изменений в БД.
 6. **Фаза 2: Последовательный импорт файлов в БД и итоговое сравнение**:
-   - Только после явного подтверждения пользователя запускается последовательный импорт файлов через `backend/scripts/parse-keepa.ts`.
+   - Только после явного подтверждения пользователя запускается последовательный импорт файлов через `ecommerce/backend/scripts/parse-keepa.ts`.
    - Делается контрольный замер строк в базе данных до и после.
    - Выводится наглядный отчет о количестве реально добавленных записей (было → стало → прирост `+X`).

@@ -32,9 +32,9 @@
 
 ### Вручную из терминала
 ```bash
-cd backend && npx tsx scripts/verify-private-label.ts "Jerry Fabrics" "Theonoi"
+cd ecommerce/backend && npx tsx scripts/verify-private-label.ts "Jerry Fabrics" "Theonoi"
 ```
 или по Seller ID:
 ```bash
-cd backend && npx tsx scripts/verify-private-label.ts "Jerry Fabrics" "A1V55SZ7ZUXV26"
+cd ecommerce/backend && npx tsx scripts/verify-private-label.ts "Jerry Fabrics" "A1V55SZ7ZUXV26"
 ```

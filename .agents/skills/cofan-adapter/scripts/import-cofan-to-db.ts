@@ -11,7 +11,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-const backendDir = path.resolve(__dirname, '../../../../backend');
+const backendDir = path.resolve(__dirname, '../../../../ecommerce/backend');
 
 function requireBackendModule(moduleName: string) {
   try {
@@ -39,7 +39,7 @@ async function main() {
 
   if (!inputFileArg) {
     console.error('Ошибка: укажите путь к проверенному промежуточному файлу Excel.');
-    console.error('Пример: cd backend && npx tsx ../.agents/skills/cofan-adapter/scripts/import-cofan-to-db.ts ../contractors/COFAN/reports/cofan_staging_prices_12345.xlsx');
+    console.error('Пример: cd ecommerce/backend && npx tsx ../../.agents/skills/cofan-adapter/scripts/import-cofan-to-db.ts ../../contractors/COFAN/reports/cofan_staging_prices_12345.xlsx');
     process.exit(1);
   }
 

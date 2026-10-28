@@ -60,7 +60,7 @@ description: Генерирует скрипт миграции данных д�
    - Выполняется `prisma.distributor.upsert` с привязкой (`asins: { connect: [...] }`).
 
 5. **Расположение и имя файла**:
-   - Путь: `backend/prisma/data-migrations/add-<distributor-name>-distributor-<YYYYMMDDHHMMSS>.ts`.
+   - Путь: `ecommerce/backend/prisma/data-migrations/add-<distributor-name>-distributor-<YYYYMMDDHHMMSS>.ts`.
    - Комментарии в коде скрипта пишутся подробно на русском языке над каждой строкой/блоком.
 
 6. **Процесс согласования с пользователем**:
@@ -68,7 +68,7 @@ description: Генерирует скрипт миграции данных д�
    - Пользователю предоставляется ссылка на файл и вопрос: *«Выполнить этот скрипт миграции сейчас?»*.
    - **НИКОГДА не запускать скрипт без явного подтверждения пользователя!**
    - После согласия пользователя запуск выполняется командой:
-     `npx tsx prisma/data-migrations/<файл>.ts` (в директории `backend/`).
+     `npx tsx prisma/data-migrations/<файл>.ts` (в директории `ecommerce/backend/`).
 
 7. **Юридическая связка бренда и фактуры (Brand Ownership Dossier)**:
    - Если юридическое лицо поставщика (указанное в SEPA или счете-фактуре) отличается от названия закупаемого бренда (например: бренд `KUKEN`, а юрлицо `ALFA DYSER, S.L.`):

@@ -23,8 +23,8 @@
 
 ## Проверка статуса бэкапов из кода / агента
 
-- Статус последнего бэкапа: `cat backend/backups/last_backup_status.json`
-- Статус последнего хелсчека: `cat backend/backups/health_status.json`
-- Журнал выполнения бэкапов: `tail -n 50 backend/backups/backup.log`
-- Журнал выполнения хелсчеков: `tail -n 50 backend/backups/health.log`
+- Статус последнего бэкапа: `cat ecommerce/backend/backups/last_backup_status.json`
+- Статус последнего хелсчека: `cat ecommerce/backend/backups/health_status.json`
+- Журнал выполнения бэкапов: `tail -n 50 ecommerce/backend/backups/backup.log`
+- Журнал выполнения хелсчеков: `tail -n 50 ecommerce/backend/backups/health.log`
 

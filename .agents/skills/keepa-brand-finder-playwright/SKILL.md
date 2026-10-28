@@ -7,7 +7,7 @@ description: Автоматизированная выгрузка катало�
 
 Этот навык автоматизирует выгрузку товаров бренда из раздела **Keepa Product Finder** (`https://keepa.com/#!finder`) с использованием Playwright и сохраненной браузерной сессии Google Chrome.
 
-Он работает **абсолютно бесплатно** (0 токенов Keepa API) и **автоматически сохраняет все данные в базу данных** через `backend/scripts/parse-keepa.ts` (создает/обновляет бренды, производителей, продавцов, ASIN, снапшоты цен и связывает выгрузку с `brandId`).
+Он работает **абсолютно бесплатно** (0 токенов Keepa API) и **автоматически сохраняет все данные в базу данных** через `ecommerce/backend/scripts/parse-keepa.ts` (создает/обновляет бренды, производителей, продавцов, ASIN, снапшоты цен и связывает выгрузку с `brandId`).
 
 ---
 
@@ -18,7 +18,7 @@ description: Автоматизированная выгрузка катало�
 Если сессия отсутствует или устарела, запустите скрипт сохранения сессии:
 
 ```bash
-cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts
+cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-seller-finder-playwright/scripts/save-session.ts
 ```
 
 ---
@@ -28,7 +28,7 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-sel
 Запуск выгрузки каталога бренда или производителя:
 
 ```bash
-cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id> [опции]
+cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts <название_или_id> [опции]
 ```
 
 ### Доступные параметры:
@@ -40,28 +40,28 @@ cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-bra
 
 1. **По названию бренда**:
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY"
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY"
    ```
 
 2. **По производителю (Manufacturer) с автоматическим выбором всех вариаций**:
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "COFAN" --manufacturer
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "COFAN" --manufacturer
    ```
    *(Keepa автоматически находит опцию «Select all» в выпадающем списке и выбирает одновременно `COFAN` и `COFAN (COFB0)`, исключая потерю товаров с вендор-кодами)*.
 
 3. **По производителю через RegEx** (захват всех написаний и правовых форм):
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "ALFA DYSER.*" --manufacturer --regex
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "ALFA DYSER.*" --manufacturer --regex
    ```
 
 4. **По ID бренда из базы данных**:
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts 123
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts 123
    ```
 
 5. **Только скачивание файла без записи в БД** (флаг `--no-parse`):
    ```bash
-   cd /Users/usuario/code/viasglobal/backend && npx tsx ../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY" --no-parse
+   cd /Users/usuario/code/viasglobal/ecommerce/backend && npx tsx ../../.agents/skills/keepa-brand-finder-playwright/scripts/fetch-brand-finder.ts "NWOUIIAY" --no-parse
    ```
 
 ---

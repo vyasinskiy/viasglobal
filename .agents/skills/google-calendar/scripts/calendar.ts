@@ -119,6 +119,7 @@ export function findServiceAccountKeyPath(): string | null {
   // 2. Проверяем стандартные локации в репозитории
   const candidatePaths = [
     path.resolve(process.cwd(), '.secrets/google-service-account.json'),
+    path.resolve(process.cwd(), 'ecommerce/backend/.secrets/google-service-account.json'),
     path.resolve(process.cwd(), 'backend/.secrets/google-service-account.json'),
     path.resolve(__dirname, '../.secrets/google-service-account.json'),
     path.resolve(process.cwd(), 'google-service-account.json'),
