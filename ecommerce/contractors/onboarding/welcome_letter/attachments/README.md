@@ -46,9 +46,9 @@
 - `company_details_it.html` — Italiano (Scheda Aziendale)
 
 ### Готовые сгенерированные PDF-документы:
-- `Company Details Sheet — Viasglobal (en).pdf` (синхронизирован с `landing/public/viasglobal-company-details-en.pdf`)
-- `Company Details Sheet — Viasglobal (es).pdf` (синхронизирован с `landing/public/viasglobal-company-details-es.pdf`)
-- `Company Details Sheet — Viasglobal (de).pdf` (синхронизирован с `landing/public/viasglobal-company-details-de.pdf`)
-- `Company Details Sheet — Viasglobal (fr).pdf` (синхронизирован с `landing/public/viasglobal-company-details-fr.pdf`)
-- `Company Details Sheet — Viasglobal (it).pdf` (синхронизирован с `landing/public/viasglobal-company-details-it.pdf`)
+- `Company Details Sheet — Viasglobal (en).pdf` (синхронизирован с `ecommerce/landing/public/viasglobal-company-details-en.pdf`)
+- `Company Details Sheet — Viasglobal (es).pdf` (синхронизирован с `ecommerce/landing/public/viasglobal-company-details-es.pdf`)
+- `Company Details Sheet — Viasglobal (de).pdf` (синхронизирован с `ecommerce/landing/public/viasglobal-company-details-de.pdf`)
+- `Company Details Sheet — Viasglobal (fr).pdf` (синхронизирован с `ecommerce/landing/public/viasglobal-company-details-fr.pdf`)
+- `Company Details Sheet — Viasglobal (it).pdf` (синхронизирован с `ecommerce/landing/public/viasglobal-company-details-it.pdf`)
 - `company_details_template.md` — Текстовый вариант карточки для быстрого копирования реквизитов.

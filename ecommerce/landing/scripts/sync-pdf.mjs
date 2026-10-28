@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const sourceDir = path.resolve(__dirname, "../../ecommerce/contractors/onboarding/welcome_letter/attachments");
+const sourceDir = path.resolve(__dirname, "../../contractors/onboarding/welcome_letter/attachments");
 const targetDir = path.resolve(__dirname, "../public");
 
 const langMap = {

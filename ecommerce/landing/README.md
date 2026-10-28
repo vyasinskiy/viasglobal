@@ -23,7 +23,7 @@
 ## Локальный запуск
 
 ```bash
-cd landing
+cd ecommerce/landing
 npm run dev
 ```
 
@@ -37,13 +37,13 @@ npm run dev
 При запуске `npm run dev` или `npm run build` автоматически отрабатывает скрипт `scripts/sync-pdf.mjs` (`predev` / `prebuild`), копирующий актуальные PDF-карточки из первоисточника `ecommerce/contractors/onboarding/welcome_letter/attachments/` в `public/`.
 
 ```bash
-cd landing
+cd ecommerce/landing
 npm run build
 ```
 
 ## Деплой (Vercel)
 
-Проект деплоится на Vercel из подпапки `landing`:
+Проект деплоится на Vercel из подпапки `ecommerce/landing`:
 1. Дашборд: [https://vercel.com/viasglobal](https://vercel.com/viasglobal).
-2. Настройки: **Settings** -> **General** -> **Root Directory**: `landing`.
+2. Настройки: **Settings** -> **General** -> **Root Directory**: `ecommerce/landing`.
 3. История сборок: [Deployments](https://vercel.com/viasglobal/viasglobal/deployments).

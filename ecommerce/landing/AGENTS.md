@@ -25,5 +25,5 @@
 - **Мультиязычные ассеты (Single Source of Truth)**: Первоисточник PDF и HTML-шаблонов хранится в `ecommerce/contractors/onboarding/welcome_letter/attachments/`. При `npm run dev` / `npm run build` срабатывает `prebuild` скрипт (`scripts/sync-pdf.mjs`), который автоматически синхронизирует PDF в `landing/public/` (сами сгенерированные файлы в `public/` добавлены в `.gitignore` во избежание дублирования в git).
 
 ## Особенности деплоя (Vercel)
-- Проект деплоится из подпапки `landing` (Root Directory в Vercel: `landing`).
+- Проект деплоится из подпапки `ecommerce/landing` (Root Directory в Vercel: `ecommerce/landing`).
 - Подробные инструкции по деплою приведены в `README.md`.
