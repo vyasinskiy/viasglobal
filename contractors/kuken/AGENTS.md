@@ -47,4 +47,7 @@
   - Торговый реестр Барселоны (Registro Mercantil): Tomo 24772, Folio 181, Hoja B-67033.
   - Публичное подтверждение: раздел Aviso Legal официального сайта бренда (`https://www.kuken.es/aviso-legal/`, п. 1 и п. 5; PDF сохранен в [`legal/aviso_legal_kuken.pdf`](legal/aviso_legal_kuken.pdf)).
   - Инвойс от ALFA DYSER, S.L. на 20 единиц (по 10 шт утюгов и фенов) является прямым первичным инвойсом производителя для Brand Ungating на Amazon.
+- **Защита от повторной оплаты эко-тасы RAEE (EPR Compliance на Amazon)**:
+  - Эко-таса (0.65 €/шт) уже уплачена производителю ALFA DYSER, S.L. и выделена в накладной Albarán `26ALV-0074072` и фактуре.
+  - Чтобы Amazon не начислял сбор повторно через *Pay on Behalf*, в разделе Seller Central `EPR Compliance -> Aparatos eléctricos y electrónicos (AEE)` указывается статус «Revendedor/Distribuidor» и номер RII-AEE производителя ALFA DYSER, S.L. (CIF `B-60163441`). В SCRAP (ProCircular) декларируется только курьерский пакет, сами приборы повторно не заявляются.
 

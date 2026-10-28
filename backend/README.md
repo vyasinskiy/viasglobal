@@ -234,6 +234,87 @@ SQL-функция `check_brand_seller_dominance(p_brand_id INT, p_seller_id TEX
 3. Содержимое эталонного файла копируется в `migration.sql`.
 4. Миграция применяется: `npx prisma migrate dev`.
 
+## Подсистема E-Commerce CRM & WMS: Закупки, Приемка грузов, Складской учет и Продажи
+
+В микросервис `backend` встроена полноценная система управления цепочкой поставок, партионного учета, складских остатков и юнит-экономики продаж, работающая в единой базе данных PostgreSQL с прямыми реляционными связями с дистрибьюторами (`Distributor`), каталогом товаров (`ASIN`) и снапшотами цен (`DistributorPriceSnapshot`).
+
+### 1. Архитектура моделей базы данных
+
+1. **`PurchaseOrder` и `PurchaseOrderItem`**:
+   - Хранят заказы поставщикам и партии поставок (`orderNumber`, `orderDate`, `actualDeliveryDate`, `status`, `paymentMethod`).
+   - Автоматически рассчитывают финансовые показатели партии:
+     * `subtotalNetto` — сумма чистой базы без налогов и эко-тасы.
+     * `totalEcoTasa` — суммарный экологический сбор RAEE (Canon medioambiental, 0.65 €/шт на электронику).
+     * `taxAmount` — налоги по спецрежиму Recargo de Equivalencia (21% IVA + 5.2% RE = множитель 1.262).
+     * `totalGross` — итоговая себестоимость партии брутто.
+   - Фиксируют физические замеры заводской коробки товара: длина, ширина, высота в см (`packageLengthCm`, `packageWidthCm`, `packageHeightCm`) и вес брутто в граммах (`packageWeightG`).
+2. **`WarehouseStock` (Остатки на складах)**:
+   - Двухуровневая модель хранения:
+     * **`SVH` (Склад временного хранения / оперативный буфер FBM)**: отсюда происходят ежедневные отправки заказов покупателям Amazon. По умолчанию при приемке на СВХ выделяется **3 штуки**. Страховой порог алерта: `minStockAlert = 1`.
+     * **`MAIN` (Основной склад длительного хранения)**: сюда поступает остальной объем партии (например, 7 штук).
+     * **`FBA`**: склад маркетплейса Amazon.
+3. **`StockMovement` (Журнал движений)**:
+   - Полный журнал складских операций с типами `RECEIPT` (приход от поставщика), `TRANSFER` (перемещение MAIN -> СВХ), `SALE_OUT` (списание под продажу на Amazon), `ADJUSTMENT` и `RETURN`.
+4. **`SalesOrder`, `SalesOrderItem` и `BatchSalesAllocation`**:
+   - Учет продаж на маркетплейсах (Amazon FBM/FBA).
+   - Списание товара со склада СВХ.
+   - **Партионный учет (FIFO) через `BatchSalesAllocation`**: каждая проданная единица привязывается к конкретной партии поставщика `PurchaseOrderItem`, фиксируя точную закупочную себестоимость партии и позволяя смотреть сквозную аналитику (какая партия куда и с какой прибылью была продана).
+5. **`OrderDocument`**:
+   - Хранение путей к сопутствующим файлам: накладным *Albarán*, счетам-фактурам *Factura*, чекам об оплате, фотофиксации заводских упаковок и замеров рулеткой.
+
+---
+
+### 2. Сценарии работы и CLI-скрипты
+
+#### А. Просмотр заказов поставщика и расчет юнит-экономики
+```bash
+# Список всех заказов дистрибьютора:
+cd backend && npx tsx scripts/orders.ts --distributor "Alfa Dyser" --list
+
+# Детальная карточка заказа, состав и юнит-экономика партии vs Amazon BuyBox:
+cd backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
+```
+
+#### Б. Приемка товара от поставщика (Goods Receiving)
+Навык: `.agents/skills/receive-shipment/`
+```bash
+# 1. Посмотреть чек-лист ожидаемых товаров по Albarán:
+cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --check
+
+# 2. Зафиксировать фактические замеры, пересчет и распределение (3 на СВХ, 7 на MAIN):
+cd backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
+  --item "34316:10:28:10:22:850:3:7" \
+  --item "35536:10:30:12:16:1200:3:7" \
+  --photos "contractors/kuken/attachments/albaran_photo.jpg,contractors/kuken/attachments/secador_box.jpg"
+```
+
+#### В. Складские остатки и система алертов пополнения СВХ
+```bash
+# Просмотр остатков на складах:
+cd backend && npx tsx scripts/inventory.ts --stocks
+
+# Проверка алертов окончания товара на СВХ (<= 1 шт):
+cd backend && npx tsx scripts/inventory.ts --alerts
+
+# Пополнение буфера СВХ с Основного склада (MAIN):
+cd backend && npx tsx scripts/inventory.ts --transfer --sku 34316 --from MAIN --to SVH --qty 3
+```
+
+#### Г. Регистрация продаж на Amazon (списание с СВХ и партионный учет)
+```bash
+cd backend && npx tsx scripts/record-sale.ts \
+  --order "402-1234567-8901234" \
+  --sku "34316" \
+  --qty 1 \
+  --price 26.70 \
+  --fee 4.01 \
+  --shipping 4.50 \
+  --city "Valencia"
+```
+*Если после списания остаток на СВХ опустился до $\le 1$ шт, скрипт выводит немедленное предупреждение о необходимости перемещения со склада MAIN.*
+
+---
+
 ## Project setup
 
 

@@ -156,3 +156,15 @@
 - **Официальный Aviso Legal бренда:** [https://www.kuken.es/aviso-legal/](https://www.kuken.es/aviso-legal/) (п. 1 «Datos identificativos» и п. 5 «Propiedad intelectual e industrial»; сохранен PDF-документ [`legal/aviso_legal_kuken.pdf`](legal/aviso_legal_kuken.pdf)).
 - **Вывод для Amazon:** Счета-фактуры от ALFA DYSER, S.L. на товары KUKEN являются прямыми счетами от производителя первого уровня (Tier 1 Direct Manufacturer Invoice) и гарантируют снятие ограничений без дополнительных писем авторизации.
 
+---
+
+## Защита от повторной оплаты экологического сбора (Canon RAEE / Amazon EPR)
+
+В накладной Albarán `26ALV-0074072` и счетах-фактурах ALFA DYSER, S.L. на фены (`34316`) и утюги (`35536`) выделен сбор **`TASA: 0.65 €`** за единицу ($20 \times 0.65 = 13.00\ €$).
+Сбор уже включен в налоговую базу и уплачен производителю. Чтобы сбор не удерживался повторно:
+1. **Amazon EPR Compliance (WEEE en España)**:
+   - В Seller Central в разделе `Cumplimiento de normativas -> EPR -> AEE` указывается роль реселлера (*No soy productor*) и регистрационный номер производителя `ALFA DYSER, S.L.` в реестре RII-AEE (CIF `B-60163441`).
+   - Это гарантирует статус соответствия листингов и отключает удержания по программе Amazon *Pay on Behalf*.
+2. **Отчетность SCRAP (ProCircular)**:
+   - В декларации упаковки вносится исключительно вторичная курьерская тара (пакеты $40 \times 50$ см), сами электроприборы повторно не заявляются.
+

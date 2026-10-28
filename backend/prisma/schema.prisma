@@ -114,6 +114,8 @@ model Distributor {
   priceSnapshots  DistributorPriceSnapshot[]
   contacts        DistributorContact[] /// Список контактных лиц и менеджеров дистрибьютора
   emails          DistributorEmail[]   /// История переписки по электронной почте
+  purchaseOrders  PurchaseOrder[]      /// Заказы на закупку и партии поставщика
+  documents       OrderDocument[]      /// Прикрепленные документы и накладные
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -184,6 +186,10 @@ model ASIN {
   productFinders ProductFinder[]
   keepaExports   KeepaExport[]
   tags           Tag[]
+  purchaseOrderItems PurchaseOrderItem[] /// Позиции в заказах закупки
+  warehouseStocks    WarehouseStock[]    /// Остатки на складах
+  stockMovements     StockMovement[]     /// Движения по складам
+  salesOrderItems    SalesOrderItem[]    /// Продажи на маркетплейсах
 
   @@index([brandId, manufacturerId])
 }
@@ -653,3 +659,252 @@ model KeepaRequestQueue {
 
   @@index([status, priority, createdAt])
 }
+
+// ==========================================
+// E-COMMERCE: ЗАКУПКИ, СКЛАДСКОЙ УЧЕТ И ПРОДАЖИ
+// ==========================================
+
+enum PurchaseOrderStatus {
+  DRAFT              // Черновик заказа
+  CONFIRMED          // Заказ подтвержден поставщиком
+  SHIPPED            // Отгружен поставщиком (в пути)
+  PARTIALLY_RECEIVED // Частично принят на складе
+  RECEIVED           // Полностью принят на складе
+  CANCELLED          // Отменен
+}
+
+enum WarehouseLocation {
+  SVH  // Склад временного хранения / оперативный буфер (откуда отправляются заказы)
+  MAIN // Основной склад длительного хранения
+  FBA  // Склад Amazon FBA
+}
+
+enum StockMovementType {
+  RECEIPT    // Приемка товара от поставщика
+  TRANSFER   // Перемещение между складами (MAIN -> SVH, SVH -> MAIN)
+  SALE_OUT   // Списание при продаже на маркетплейсе (Amazon)
+  ADJUSTMENT // Инвентаризация / ручная корректировка
+  RETURN     // Возврат товара
+}
+
+enum SalesOrderStatus {
+  PENDING   // Заказ оформлен / ожидает сборки
+  SHIPPED   // Отправлен покупателю
+  DELIVERED // Доставлен покупателю
+  CANCELLED // Отменен
+  RETURNED  // Возвращен покупателем
+}
+
+enum OrderDocumentType {
+  ALBARAN           // Товарно-транспортная накладная поставщика (Albarán)
+  INVOICE           // Счет-фактура (Factura)
+  RECEIVING_PHOTO   // Фото товара/коробок при приемке
+  MEASUREMENT_PHOTO // Фото замеров рулеткой / весов
+  PAYMENT_RECEIPT   // Квитанция об оплате / банковская выписка SEPA
+  SHIPPING_LABEL    // Транспортная этикетка / трек-номер
+  OTHER             // Прочие документы
+}
+
+/// Заказ поставщику / Партия товаров (Purchase Order)
+model PurchaseOrder {
+  id                   Int                 @id @default(autoincrement())
+  distributorId        Int                 /// Внешний ключ: связанный дистрибьютор / поставщик
+  orderNumber          String              /// Номер заказа или накладной (например, "26ALV-0074072")
+  status               PurchaseOrderStatus @default(DRAFT)
+  orderDate            DateTime            @default(now()) /// Дата оформления заказа
+  expectedDeliveryDate DateTime?           /// Ожидаемая дата доставки
+  actualDeliveryDate   DateTime?           /// Фактическая дата поступления на склад
+  shippingCost         Float               @default(0) /// Стоимость доставки (€)
+  subtotalNetto        Float               @default(0) /// Сумма чистой базы без налогов и эко-тасы (€)
+  totalEcoTasa         Float               @default(0) /// Суммарный сбор эко-тасы RAEE (€)
+  taxAmount            Float               @default(0) /// Сумма налогов (IVA 21% + RE 5.2%) (€)
+  totalGross           Float               @default(0) /// Итоговая себестоимость партии брутто (€)
+  currency             String              @default("EUR")
+  paymentMethod        String?             /// Метод оплаты (например, "SEPA Direct Debit B2B")
+  paymentStatus        String              @default("PENDING") /// Статус оплаты (PENDING, PAID)
+  notes                String?             /// Дополнительные примечания
+
+  distributor          Distributor         @relation(fields: [distributorId], references: [id])
+  items                PurchaseOrderItem[]
+  documents            OrderDocument[]
+  stockMovements       StockMovement[]
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@unique([distributorId, orderNumber])
+  @@index([distributorId])
+  @@index([orderDate])
+  @@index([status])
+}
+
+/// Позиция в заказе поставщика (товар в партии)
+model PurchaseOrderItem {
+  id                Int       @id @default(autoincrement())
+  purchaseOrderId   Int       /// Внешний ключ: связанный заказ на закупку
+  asinId            Int?      /// Внешний ключ: привязка к каталогу ASIN (если товар есть на Amazon)
+  sku               String    /// Артикул товара у поставщика (Referencia, например "34316")
+  ean               String?   /// Штрихкод EAN (например "8425160343163")
+  title             String    /// Наименование товара
+  quantityOrdered   Int       /// Заказанное количество (штук)
+  quantityReceived  Int       @default(0) /// Фактически принятое количество (штук)
+  priceNetto        Float     /// Оптовая чистая цена за единицу (€, без НДС и тасы)
+  ecoTasa           Float     @default(0) /// Эко-таса за единицу (€)
+  costPrice         Float     /// Себестоимость за единицу с налогами (€: (priceNetto + ecoTasa) * 1.262)
+  totalCostGross    Float     /// Суммарная себестоимость позиции брутто (€: costPrice * quantityOrdered)
+  
+  // Фактические замеры заводской упаковки при приемке груза
+  packageLengthCm   Float?    /// Длина заводской коробки (см)
+  packageWidthCm    Float?    /// Ширина заводской коробки (см)
+  packageHeightCm   Float?    /// Высота заводской коробки (см)
+  packageWeightG    Float?    /// Фактический вес единицы/коробки брутто (граммы)
+  notes             String?   /// Заметки по качеству, расхождениям и упаковке
+
+  purchaseOrder     PurchaseOrder         @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  asin              ASIN?                 @relation(fields: [asinId], references: [id])
+  allocations       BatchSalesAllocation[] /// Сквозная привязка к заказам покупателей
+  documents         OrderDocument[]
+  stockMovements    StockMovement[]
+
+  @@index([purchaseOrderId])
+  @@index([asinId])
+  @@index([sku])
+}
+
+/// Складские остатки по складам (SVH, MAIN, FBA)
+model WarehouseStock {
+  id               Int               @id @default(autoincrement())
+  warehouse        WarehouseLocation /// Локация склада (SVH - буфер оперативной отправки, MAIN - основной склад)
+  sku              String            /// Артикул товара
+  asinId           Int?              /// Привязка к ASIN
+  title            String?           /// Наименование для быстрого просмотра
+  quantity         Int               @default(0) /// Физический остаток в наличии на складе
+  reservedQuantity Int               @default(0) /// Зарезервировано под оформленные продажи
+  minStockAlert    Int               @default(1) /// Страховой порог: при остатке <= порога отправляется алерт пополнения
+  updatedAt        DateTime          @updatedAt
+
+  asin             ASIN?             @relation(fields: [asinId], references: [id])
+
+  @@unique([warehouse, sku])
+  @@index([warehouse])
+  @@index([sku])
+}
+
+/// Журнал складских перемещений и списаний
+model StockMovement {
+  id                  Int                @id @default(autoincrement())
+  sku                 String             /// Артикул перемещаемого товара
+  asinId              Int?               /// Привязка к ASIN
+  fromWarehouse       WarehouseLocation? /// Склад списания (null при первичной приемке)
+  toWarehouse         WarehouseLocation? /// Склад зачисления (null при продаже покупателю)
+  type                StockMovementType  /// Тип операции (RECEIPT, TRANSFER, SALE_OUT, ADJUSTMENT, RETURN)
+  quantity            Int                /// Количество единиц
+  purchaseOrderId     Int?               /// Ссылка на партию закупки (при оприходовании)
+  purchaseOrderItemId Int?               /// Ссылка на конкретную строку партии
+  salesOrderId        Int?               /// Ссылка на заказ покупателя (при списании)
+  notes               String?            /// Обоснование / примечание
+  createdAt           DateTime           @default(now())
+
+  asin                ASIN?              @relation(fields: [asinId], references: [id])
+  purchaseOrder       PurchaseOrder?     @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrderItem   PurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id])
+  salesOrder          SalesOrder?        @relation(fields: [salesOrderId], references: [id])
+
+  @@index([sku, createdAt(sort: Desc)])
+  @@index([type])
+  @@index([purchaseOrderId])
+  @@index([salesOrderId])
+}
+
+/// Заказ покупателя на маркетплейсе (продажа)
+model SalesOrder {
+  id                 Int               @id @default(autoincrement())
+  platform           String            @default("AMAZON") /// Маркетплейс (AMAZON, ETSY)
+  orderNumber        String            @unique /// Номер заказа маркетплейса (например Amazon Order ID: 402-1234567-8901234)
+  orderDate          DateTime          @default(now()) /// Дата совершения покупки
+  status             SalesOrderStatus  @default(PENDING)
+  fulfillmentChannel String            @default("FBM") /// Метод исполнения (FBM - доставка со склада СВХ, FBA)
+  warehouse          WarehouseLocation @default(SVH) /// Склад, с которого производится отгрузка
+  totalAmount        Float             /// Сумма продажи, уплаченная клиентом (€)
+  platformFees       Float             @default(0) /// Комиссия маркетплейса Amazon Referral Fee (€)
+  shippingFee        Float             @default(0) /// Стоимость доставки покупателю курьерской службой (€)
+  netAmount          Float             @default(0) /// Чистая выручка продавца (€: totalAmount - platformFees - shippingFee)
+  currency           String            @default("EUR")
+  customerCity       String?           /// Город доставки покупателя
+  customerCountry    String?           @default("ES") /// Страна доставки
+  trackingNumber     String?           /// Номер отслеживания посылки
+  notes              String?           /// Дополнительные заметки
+
+  items              SalesOrderItem[]
+  stockMovements     StockMovement[]
+  documents          OrderDocument[]
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([orderDate])
+  @@index([status])
+}
+
+/// Строка заказа покупателя
+model SalesOrderItem {
+  id           Int                    @id @default(autoincrement())
+  salesOrderId Int                    /// Связанный заказ продажи
+  sku          String                 /// Артикул проданного товара
+  asinId       Int?                   /// Связанный ASIN
+  quantity     Int                    /// Количество проданных штук
+  salePrice    Float                  /// Цена продажи за единицу (€)
+  platformFee  Float                  @default(0) /// Комиссия маркетплейса за единицу (€)
+  shippingCost Float                  @default(0) /// Затраты на упаковку и доставку за единицу (€)
+  costPrice    Float?                 /// Фактическая себестоимость списанной единицы из партии (€)
+  netProfit    Float?                 /// Чистая прибыль с единицы (€: salePrice - platformFee - shippingCost - costPrice)
+
+  salesOrder   SalesOrder             @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  asin         ASIN?                  @relation(fields: [asinId], references: [id])
+  allocations  BatchSalesAllocation[] /// Связка со списанной партией
+
+  @@index([salesOrderId])
+  @@index([sku])
+}
+
+/// Сквозная привязка списания партии: какая единица из какой поставки была продана
+model BatchSalesAllocation {
+  id                    Int               @id @default(autoincrement())
+  purchaseOrderItemId   Int               /// Из какой строки партии закупки списан товар
+  salesOrderItemId      Int               /// В какой заказ покупателя направлен товар
+  quantity              Int               /// Количество списанных единиц из данной партии
+  costPriceAtAllocation Float             /// Точная себестоимость единицы из данной партии на момент списания (€)
+  createdAt             DateTime          @default(now())
+
+  purchaseOrderItem     PurchaseOrderItem @relation(fields: [purchaseOrderItemId], references: [id])
+  salesOrderItem        SalesOrderItem    @relation(fields: [salesOrderItemId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseOrderItemId])
+  @@index([salesOrderItemId])
+}
+
+/// Документы и медиафайлы заказов, поставок и приемки
+model OrderDocument {
+  id                  Int                @id @default(autoincrement())
+  distributorId       Int?               /// Связанный дистрибьютор / поставщик
+  purchaseOrderId     Int?               /// Связанный заказ закупки / партия
+  purchaseOrderItemId Int?               /// Связанная товарная позиция (для фото конкретного товара)
+  salesOrderId        Int?               /// Связанный заказ продажи (чек, накладная)
+  documentType        OrderDocumentType  /// Тип документа (ALBARAN, INVOICE, RECEIVING_PHOTO, MEASUREMENT_PHOTO и т.д.)
+  fileName            String             /// Имя файла
+  filePath            String             /// Путь к файлу на диске или в хранилище
+  fileSize            Int?               /// Размер файла в байтах
+  mimeType            String?            /// MIME-тип (application/pdf, image/jpeg)
+  notes               String?            /// Описание или примечание
+  createdAt           DateTime           @default(now())
+
+  distributor         Distributor?       @relation(fields: [distributorId], references: [id])
+  purchaseOrder       PurchaseOrder?     @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrderItem   PurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id])
+  salesOrder          SalesOrder?        @relation(fields: [salesOrderId], references: [id])
+
+  @@index([distributorId])
+  @@index([purchaseOrderId])
+  @@index([documentType])
+}
+
