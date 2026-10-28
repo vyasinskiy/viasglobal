@@ -184,7 +184,7 @@ stripe listen --forward-to localhost:3001/api/webhooks/stripe
 ## Быстрый старт
 
 ### Установка зависимостей
-В директории `shop`:
+В директории `ecommerce/shop`:
 ```bash
 npm install
 ```
@@ -200,6 +200,13 @@ npm run dev
 npm run build
 npm run start
 ```
+
+## Деплой (Vercel)
+
+Проект деплоится на Vercel под именем `viasglobal-shop`:
+1. Дашборд: [https://vercel.com/viasglobal/viasglobal-shop](https://vercel.com/viasglobal/viasglobal-shop).
+2. Настройки: **Settings** -> **Build and Deployment** -> **Root Directory**: `ecommerce/shop`.
+3. История сборок: [Deployments](https://vercel.com/viasglobal/viasglobal-shop/deployments).
 
 ## Регламент разработки и безопасность
 - **Запрет на самостоятельные коммиты (`git commit`)**: ИИ готовит код локально, проверяет сборку и тесты. Коммиты выполняются только по прямому запросу пользователя.
