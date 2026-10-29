@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Put, Body, Param, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { OrderDocumentType } from '@prisma/client';
 
 /**
- * REST API контроллер управления закупками и юнит-экономикой партий
+ * REST API контроллер управления закупками, двухфазной приемкой товара и юнит-экономикой партий
  */
 @Controller('orders')
 export class OrdersController {
@@ -25,7 +24,7 @@ export class OrdersController {
   }
 
   /**
-   * Детальная карточка заказа и расчет юнит-экономики
+   * Детальная карточка заказа, обязательный чек-лист приемки и расчет юнит-экономики
    * GET /orders/:idOrNumber
    */
   @Get(':idOrNumber')
@@ -45,22 +44,53 @@ export class OrdersController {
   }
 
   /**
-   * Проведение приемки поставки (замеры, пересчет, фото, разделение СВХ/MAIN)
+   * Проведение приемки поставки или корректировки уже принятой партии:
+   * - даты получения (actualDeliveryDate) и приемки (receivingDate),
+   * - список документов и явный пропуск с причиной (skippedDocuments),
+   * - тройная сверка EAN (Заказ <-> Albarán <-> Коробка),
+   * - фото всей партии и отдельных айтемов с разных сторон,
+   * - комментарии приемки и дельта-корректировка остатков СВХ/MAIN.
    * POST /orders/:id/receive
    */
   @Post(':id/receive')
   async receiveOrder(@Param('id') id: string, @Body() body: any) {
-    const result = await this.ordersService.receiveOrder(Number(id), body);
-    return { status: 'success', message: 'Приемка товара успешно завершена', order: result };
+    const result = await this.ordersService.receiveOrder(id, body);
+    const isCorrection = result?.receivingSummary?.isCorrection === true;
+    return {
+      status: 'success',
+      message: isCorrection
+        ? 'Корректировка приемки товара успешно выполнена (складские остатки пересчитаны по дельте)'
+        : 'Приемка товара успешно завершена',
+      order: result,
+      receivingSummary: result?.receivingSummary,
+    };
   }
 
   /**
-   * Прикрепление документа или фото к заказу
+   * Корректировка ранее проведенной приемки поставки (алиас к POST /orders/:id/receive)
+   * PATCH /orders/:id/receive
+   */
+  @Patch(':id/receive')
+  async correctReceivedOrderPatch(@Param('id') id: string, @Body() body: any) {
+    return this.receiveOrder(id, body);
+  }
+
+  /**
+   * Корректировка ранее проведенной приемки поставки (алиас к POST /orders/:id/receive)
+   * PUT /orders/:id/receive
+   */
+  @Put(':id/receive')
+  async correctReceivedOrderPut(@Param('id') id: string, @Body() body: any) {
+    return this.receiveOrder(id, body);
+  }
+
+  /**
+   * Прикрепление документа или фото к заказу (всей партии или конкретной позиции по sku / purchaseOrderItemId)
    * POST /orders/:id/documents
    */
   @Post(':id/documents')
   async attachDocument(@Param('id') id: string, @Body() body: any) {
-    const doc = await this.ordersService.attachDocument(Number(id), body);
+    const doc = await this.ordersService.attachDocument(id, body);
     return { status: 'success', message: 'Документ успешно прикреплен', document: doc };
   }
 }

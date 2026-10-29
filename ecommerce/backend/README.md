@@ -275,17 +275,28 @@ cd ecommerce/backend && npx tsx scripts/orders.ts --distributor "Alfa Dyser" --l
 cd ecommerce/backend && npx tsx scripts/orders.ts --order "26ALV-0074072"
 ```
 
-#### Б. Приемка товара от поставщика (Goods Receiving)
+#### Б. Двухфазная приемка товара от поставщика и корректировка (Goods Receiving & Delta Correction)
 Навык: `.agents/skills/receive-shipment/`
+- **Фаза 1 (Вся партия)**: фиксация даты получения (`actualDeliveryDate`) и даты проведения приемки (`receivingDate`), проход по списку документов (`ALBARAN`, `SHIPPING_LABEL`, `INVOICE`, `PAYMENT_RECEIPT`) с правом явного пропуска документа по разрешению пользователя с комментарием причины (`skippedDocuments`), фотографирование всей партии (общие коробки с разных сторон) и общий комментарий (`receivingNotes`).
+- **Фаза 2 (Каждая позиция отдельно)**: обязательная тройная сверка штрихкода EAN (`Заказ в БД <-> Albarán <-> Коробка`), фото отдельного айтема с разных сторон, замеры рулеткой (ДxШxВ в см) и взвешивание (в г), запись всех фото и повреждений в комментарий позиции (`itemNotes`), распределение между `SVH` (3 шт) и `MAIN` (остаток).
+- **Корректировка приемки**: при повторном запуске по уже принятой партии `POST /orders/:id/receive` (или `PATCH /orders/:id/receive`) пересчитывает остатки строго по дельте без задвоения.
 ```bash
 # 1. Посмотреть чек-лист ожидаемых товаров по Albarán:
 cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" --check
 
-# 2. Зафиксировать фактические замеры, пересчет и распределение (3 на СВХ, 7 на MAIN):
+# 2. Зафиксировать двухфазную приемку (или корректировку) с тройной сверкой EAN, датами и фото:
 cd ecommerce/backend && npx tsx scripts/receive-shipment.ts --order "26ALV-0074072" \
+  --delivery-date "2026-10-26" \
+  --receiving-date "2026-10-29" \
+  --skip-doc "INVOICE:Фактура придет позже по email" \
+  --batch-photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/batch_boxes.jpg" \
+  --notes "Два короба DHL, внешний короб #2 слегка замят сбоку" \
   --item "34316:10:28:10:22:850:3:7" \
+  --ean-check "34316:8425160343163:8425160343163" \
+  --item-photos "34316:../contractors/kuken/attachments/secador_sides.jpg" \
+  --item-notes "34316:Коробки целые, входит в пакет 40x50 см" \
   --item "35536:10:30:12:16:1200:3:7" \
-  --photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/secador_box.jpg"
+  --ean-check "35536:8425160355364:8425160355364"
 ```
 
 #### В. Складские остатки и система алертов пополнения СВХ

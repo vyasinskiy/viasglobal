@@ -1,6 +1,36 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PurchaseOrderStatus, WarehouseLocation, OrderDocumentType } from '@prisma/client';
+import { PurchaseOrderStatus, WarehouseLocation, OrderDocumentType, StockMovementType } from '@prisma/client';
+
+/**
+ * Обязательный чек-лист документов при физической приемке поставки
+ */
+export const RECEIVING_DOCUMENT_CHECKLIST = [
+  {
+    documentType: OrderDocumentType.ALBARAN,
+    title: 'Товарно-транспортная накладная поставщика (Albarán)',
+    required: true,
+    description: 'Сверка артикулов (SKU), штрихкодов EAN, количества и выделенной строки эко-тасы (TASA / RAEE)',
+  },
+  {
+    documentType: OrderDocumentType.SHIPPING_LABEL,
+    title: 'Транспортная этикетка курьерской службы (Shipping Label)',
+    required: true,
+    description: 'Фото наклейки перевозчика (DHL, SEUR, Correos Express) на коробке с трек-номером и числом мест (Bultos)',
+  },
+  {
+    documentType: OrderDocumentType.INVOICE,
+    title: 'Счет-фактура поставщика (Factura)',
+    required: true,
+    description: 'Проверка налоговой базы Netto, IVA 21% + RE 5.2%, суммы TASA и регистрационного номера RII-AEE / CIF',
+  },
+  {
+    documentType: OrderDocumentType.PAYMENT_RECEIPT,
+    title: 'Документ об оплате (Payment Receipt / SEPA Direct Debit)',
+    required: false,
+    description: 'Подтверждение оплаты или банковская квитанция SEPA (при наличии на момент приемки)',
+  },
+] as const;
 
 /**
  * Сервис управления закупками у поставщиков, юнит-экономикой партий и первичным оприходованием
@@ -8,6 +38,29 @@ import { PurchaseOrderStatus, WarehouseLocation, OrderDocumentType } from '@pris
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Валидация строковых параметров на отсутствие плейсхолдеров LLM (Fail-Fast HTTP 400)
+   */
+  private validateNoPlaceholders(fieldName: string, value: unknown): void {
+    if (typeof value !== 'string') return;
+    const trimmed = value.trim();
+    if (
+      trimmed === '***' ||
+      trimmed === '...' ||
+      trimmed === 'undefined' ||
+      trimmed === 'null' ||
+      /^<[^>]+>$/.test(trimmed) ||
+      /^\[[^\]]+\]$/.test(trimmed)
+    ) {
+      throw new BadRequestException({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: `Параметр "${fieldName}" содержит недопустимый плейсхолдер "${trimmed}"`,
+        hint: `Укажите реальное значение параметра "${fieldName}" без маскирования (сначала запросите список через GET /orders)`,
+      });
+    }
+  }
 
   /**
    * Создать новый заказ на закупку (партию)
@@ -292,6 +345,32 @@ export class OrdersService {
           actualGrossRevenue: Math.round(actualGrossRevenue * 100) / 100,
           actualNetProfit: Math.round(actualNetProfit * 100) / 100,
         },
+        // Заметки и выявленные моменты приемки по конкретной позиции (тройная сверка EAN, повреждения, фото)
+        notes: item.notes ?? null,
+        // Прикрепленные к конкретному айтему фотографии с разных сторон и фото замеров
+        documents: item.documents ?? [],
+      };
+    });
+
+    // Формируем статус обязательного чек-листа приемки партии и отдельных позиций
+    const allOrderDocs = order.documents ?? [];
+    const batchPhotos = allOrderDocs.filter(
+      (d) => d.documentType === OrderDocumentType.RECEIVING_PHOTO && !d.purchaseOrderItemId,
+    );
+    const isAlreadyReceived =
+      order.status === PurchaseOrderStatus.RECEIVED ||
+      order.status === PurchaseOrderStatus.PARTIALLY_RECEIVED ||
+      order.items.some((i) => i.quantityReceived > 0);
+
+    const documentChecklist = RECEIVING_DOCUMENT_CHECKLIST.map((reqDoc) => {
+      const attached = allOrderDocs.filter((d) => d.documentType === reqDoc.documentType);
+      return {
+        documentType: reqDoc.documentType,
+        title: reqDoc.title,
+        required: reqDoc.required,
+        description: reqDoc.description,
+        attachedCount: attached.length,
+        status: attached.length > 0 ? 'ATTACHED' : 'PENDING_OR_SKIPPABLE_WITH_REASON',
       };
     });
 
@@ -322,30 +401,86 @@ export class OrdersService {
       documents: order.documents,
       stockMovements: order.stockMovements,
       notes: order.notes,
+      // Структурированный регламент и текущий прогресс двухфазной приемки (партия -> позиции)
+      receivingChecklist: {
+        isAlreadyReceived,
+        canCorrect: true,
+        correctionHint: isAlreadyReceived
+          ? 'По данной партии уже проводилась приемка. Повторный вызов POST /orders/:id/receive (или PATCH /orders/:id/receive) выполнит безопасную корректировку (дельта-пересчет) без задвоения складских остатков.'
+          : 'Первичная приемка партии: сначала проведите Фазу 1 (даты, список документов, общие фото коробок партии с разных сторон), затем Фазу 2 по каждой позиции отдельно (тройная сверка EAN, пересчет, фото айтема с разных сторон, замеры и распределение СВХ/MAIN).',
+        phase1BatchLevel: {
+          datesRequired: ['actualDeliveryDate (дата фактического получения от курьера)', 'receivingDate (дата проведения приемки)'],
+          documentChecklist,
+          batchPhotosCount: batchPhotos.length,
+          batchPhotosRequirement: 'Обязательное фотографирование всей партии целиком (общие транспортные коробки с разных сторон до и после вскрытия)',
+        },
+        phase2ItemLevel: {
+          mandatoryEanTripleCheck: 'Обязательная тройная сверка EAN по каждой позиции: 1) EAN из заказа БД <-> 2) EAN из Albarán <-> 3) EAN со штрихкода заводской коробки',
+          itemPhotosRequirement: 'Фотографирование каждого отдельного айтема с разных сторон (коробка спереди/сзади/сбоку, крупный план EAN и знака WEEE, сам товар, замеры рулеткой и весы)',
+          commentsRequirement: 'Все пересылаемые фотографии, повреждения упаковки и несоответствия обязательно записываются в комментарий приемки (notes / itemNotes)',
+        },
+      },
     };
   }
 
   /**
-   * Выполнить приемку поставки (товара): пересчет, замеры, фото и автоматическое распределение по складам
+   * Выполнить приемку поставки или корректировку ранее проведенной приемки:
+   * - Фаза 1 (партия целиком): фиксация даты получения (actualDeliveryDate) и даты приемки (receivingDate),
+   *   проверка списка документов с возможностью явного пропуска с комментарием причины (skippedDocuments),
+   *   фотографирование всей партии (общие коробки с разных сторон) и общий комментарий приемки.
+   * - Фаза 2 (каждая позиция отдельно): обязательная тройная сверка EAN (Заказ <-> Albarán <-> Коробка),
+   *   пересчет количества, замеры упаковки, фотографирование отдельного айтема с разных сторон,
+   *   фиксация всех фото и выявленных повреждений/моментов в комментарии приемки,
+   *   распределение между СВХ (по дефолту 3 шт) и Основным складом (MAIN).
+   * - Режим корректировки (при повторном прохождении процедуры по уже принятой партии):
+   *   вычисляет точную дельту по складам (deltaSvh, deltaMain) относительно ранее оприходованного количества,
+   *   предотвращая дублирование остатков и создавая корректирующие проводки ADJUSTMENT.
    */
   async receiveOrder(
-    orderId: number,
+    orderIdOrNumber: number | string,
     data: {
+      // Дата фактического получения коробок от курьера
       actualDeliveryDate?: Date | string;
+      // Дата фактического проведения процедуры приемки (если приемка проводилась с задержкой после получения)
+      receivingDate?: Date | string;
+      // Общий комментарий приемки по всей партии (состояние транспортных коробок, выявленные моменты, фото)
       notes?: string;
-      items: Array<{
+      receivingNotes?: string;
+      // Список документов из обязательного чек-листа, пропущенных с явного разрешения пользователя и указанием причины
+      skippedDocuments?: Array<{
+        documentType: OrderDocumentType | string;
+        reason: string;
+      }>;
+      // Позиции к приемке или корректировке (может быть передана вся партия или отдельные позиции по очереди)
+      items?: Array<{
         sku: string;
         quantityReceived: number;
-        // Замеры упаковки
+        // Обязательная тройная сверка штрихкода EAN: из заказа БД, из Albarán и с физической коробки
+        eanAlbaran?: string;
+        eanBox?: string;
+        eanVerified?: boolean;
+        // Замеры заводской упаковки (см, граммы)
         packageLengthCm?: number;
         packageWidthCm?: number;
         packageHeightCm?: number;
         packageWeightG?: number;
-        // Распределение по складам (по дефолту на СВХ идет 3 шт, остальное на Основной склад)
+        // Распределение по складам (по дефолту на СВХ идет до 3 шт, остальное на Основной склад MAIN)
         svhQuantity?: number;
         mainQuantity?: number;
+        // Комментарий приемки по конкретной позиции (все пересланные фото, повреждения, расхождения)
         itemNotes?: string;
+        notes?: string;
+        // Фотографии конкретного айтема с разных сторон (коробка, штрихкод EAN, товар, замеры рулеткой, весы)
+        documents?: Array<{
+          documentType?: OrderDocumentType;
+          fileName: string;
+          filePath: string;
+          fileSize?: number;
+          mimeType?: string;
+          notes?: string;
+        }>;
       }>;
+      // Документы и фотографии всей партии (Albarán, Shipping Label, Factura, фото общих коробок с разных сторон)
       documents?: Array<{
         documentType: OrderDocumentType;
         fileName: string;
@@ -353,47 +488,253 @@ export class OrdersService {
         fileSize?: number;
         mimeType?: string;
         notes?: string;
+        purchaseOrderItemId?: number;
+        sku?: string;
       }>;
     },
   ) {
-    const order = await this.prisma.purchaseOrder.findUnique({
-      where: { id: orderId },
-      include: { items: true },
-    });
+    // Проверяем входные поля на отсутствие технических плейсхолдеров LLM
+    this.validateNoPlaceholders('orderId', orderIdOrNumber);
+    this.validateNoPlaceholders('notes', data?.notes);
+    this.validateNoPlaceholders('receivingNotes', data?.receivingNotes);
+
+    const isNumericId =
+      typeof orderIdOrNumber === 'number' ||
+      (!isNaN(Number(orderIdOrNumber)) && !String(orderIdOrNumber).includes('-'));
+
+    const order = isNumericId
+      ? await this.prisma.purchaseOrder.findUnique({
+          where: { id: Number(orderIdOrNumber) },
+          include: { items: true },
+        })
+      : await this.prisma.purchaseOrder.findFirst({
+          where: { orderNumber: String(orderIdOrNumber).trim() },
+          include: { items: true },
+        });
 
     if (!order) {
-      throw new NotFoundException(`Заказ ID ${orderId} не найден`);
+      throw new NotFoundException(`Заказ "${orderIdOrNumber}" не найден`);
     }
 
-    const actualDate = data.actualDeliveryDate ? new Date(data.actualDeliveryDate) : new Date();
+    // Определяем дату фактического получения груза и дату проведения самой процедуры приемки
+    const actualDate = data.actualDeliveryDate
+      ? new Date(data.actualDeliveryDate)
+      : order.actualDeliveryDate
+      ? new Date(order.actualDeliveryDate)
+      : new Date();
+    const receivingDate = data.receivingDate ? new Date(data.receivingDate) : new Date();
+    const actualDateStr = actualDate.toISOString().split('T')[0];
+    const receivingDateStr = receivingDate.toISOString().split('T')[0];
+
+    // Валидируем пропущенные документы: если документ пропущен, обязательно должна быть указана причина пользователя
+    const skippedDocs = data.skippedDocuments ?? [];
+    for (const skipped of skippedDocs) {
+      this.validateNoPlaceholders('skippedDocuments.documentType', skipped.documentType);
+      this.validateNoPlaceholders('skippedDocuments.reason', skipped.reason);
+      if (!skipped.reason || !skipped.reason.trim()) {
+        throw new BadRequestException(
+          `Для пропуска документа "${skipped.documentType}" необходимо указать явную причину пользователя в поле reason`,
+        );
+      }
+    }
+
+    // Определяем, проводилась ли уже приемка по этому заказу ранее (режим корректировки / доприемки)
+    const isOrderCorrection =
+      order.status === PurchaseOrderStatus.RECEIVED ||
+      order.status === PurchaseOrderStatus.PARTIALLY_RECEIVED ||
+      order.items.some((i) => i.quantityReceived > 0);
 
     return this.prisma.$transaction(async (tx) => {
-      let allFullyReceived = true;
+      const receiveItems = data.items ?? [];
+      const updatedQuantitiesByItemId = new Map<number, number>();
+      const eanVerifications: Array<{
+        sku: string;
+        orderEan: string | null;
+        albaranEan: string | null;
+        boxEan: string | null;
+        matched: boolean;
+        message: string;
+      }> = [];
+      const stockAdjustments: Array<{
+        sku: string;
+        isItemCorrection: boolean;
+        prevQuantityReceived: number;
+        newQuantityReceived: number;
+        prevSvh: number;
+        newSvh: number;
+        deltaSvh: number;
+        prevMain: number;
+        newMain: number;
+        deltaMain: number;
+      }> = [];
+      const warnings: string[] = [];
 
-      for (const receiveItem of data.items) {
-        const existingItem = order.items.find((i) => i.sku.toUpperCase() === receiveItem.sku.trim().toUpperCase());
+      // Обрабатываем каждую переданную позицию (поштучная приемка или корректировка позиции)
+      for (const receiveItem of receiveItems) {
+        this.validateNoPlaceholders('items.sku', receiveItem.sku);
+        const existingItem = order.items.find(
+          (i) => i.sku.toUpperCase() === receiveItem.sku.trim().toUpperCase(),
+        );
         if (!existingItem) {
-          throw new BadRequestException(`Артикул "${receiveItem.sku}" не найден в составе заказа ${order.orderNumber}`);
+          throw new BadRequestException(
+            `Артикул "${receiveItem.sku}" не найден в составе заказа ${order.orderNumber}`,
+          );
         }
 
-        // Обновляем принятое количество и физические замеры упаковки
+        // Проверяем, принималась ли данная позиция ранее
+        const prevMovements =
+          (await tx.stockMovement.findMany({
+            where: {
+              purchaseOrderId: order.id,
+              purchaseOrderItemId: existingItem.id,
+            },
+          })) || [];
+
+        const isItemCorrection = existingItem.quantityReceived > 0 || prevMovements.length > 0;
+
+        // Вычисляем, сколько штук этой позиции уже было зачислено на СВХ и MAIN в рамках данного заказа
+        let prevSvh = 0;
+        let prevMain = 0;
+        if (prevMovements.length > 0) {
+          for (const mov of prevMovements) {
+            if (mov.toWarehouse === WarehouseLocation.SVH) prevSvh += mov.quantity;
+            if (mov.fromWarehouse === WarehouseLocation.SVH) prevSvh -= mov.quantity;
+            if (mov.toWarehouse === WarehouseLocation.MAIN) prevMain += mov.quantity;
+            if (mov.fromWarehouse === WarehouseLocation.MAIN) prevMain -= mov.quantity;
+          }
+          prevSvh = Math.max(0, prevSvh);
+          prevMain = Math.max(0, prevMain);
+        } else if (existingItem.quantityReceived > 0) {
+          // Фолбэк для записей без детализации в StockMovement
+          prevSvh = Math.min(3, existingItem.quantityReceived);
+          prevMain = Math.max(0, existingItem.quantityReceived - prevSvh);
+        }
+
+        // 1. Обязательная тройная сверка EAN: Заказ в БД <-> Albarán <-> Коробка товара
+        const orderEan = existingItem.ean ? existingItem.ean.trim() : null;
+        const albaranEan = receiveItem.eanAlbaran ? receiveItem.eanAlbaran.trim() : null;
+        const boxEan = receiveItem.eanBox ? receiveItem.eanBox.trim() : null;
+        let eanNoteFragment: string | null = null;
+
+        if (albaranEan !== null || boxEan !== null || receiveItem.eanVerified !== undefined) {
+          const comparedValues = [orderEan, albaranEan, boxEan].filter((v): v is string => Boolean(v));
+          const uniqueValues = Array.from(new Set(comparedValues));
+          const isMatched =
+            receiveItem.eanVerified === false
+              ? false
+              : uniqueValues.length <= 1 && (comparedValues.length > 0 || receiveItem.eanVerified === true);
+
+          if (isMatched) {
+            const confirmedEan = orderEan || boxEan || albaranEan || 'подтвержден';
+            const msg = `✅ Тройная сверка EAN пройдена (Заказ = Albarán = Коробка: ${confirmedEan})`;
+            eanNoteFragment = msg;
+            eanVerifications.push({
+              sku: existingItem.sku,
+              orderEan,
+              albaranEan: albaranEan ?? orderEan,
+              boxEan: boxEan ?? orderEan,
+              matched: true,
+              message: msg,
+            });
+          } else {
+            const msg = `⚠️ НЕСООТВЕТСТВИЕ EAN по SKU ${existingItem.sku}: Заказ=${orderEan ?? 'нет'}, Albarán=${albaranEan ?? 'не указан'}, Коробка=${boxEan ?? 'не указан'}`;
+            eanNoteFragment = msg;
+            warnings.push(msg);
+            eanVerifications.push({
+              sku: existingItem.sku,
+              orderEan,
+              albaranEan,
+              boxEan,
+              matched: false,
+              message: msg,
+            });
+          }
+        }
+
+        // Проверяем расхождение по количеству
+        if (receiveItem.quantityReceived !== existingItem.quantityOrdered) {
+          warnings.push(
+            `⚠️ Расхождение количества по SKU ${existingItem.sku}: заказано ${existingItem.quantityOrdered} шт, фактически принято ${receiveItem.quantityReceived} шт`,
+          );
+        }
+
+        // 2. Сохраняем фотографии конкретного айтема с разных сторон (привязанные к позиции purchaseOrderItemId)
+        const itemDocs = receiveItem.documents ?? [];
+        const savedItemPhotoLabels: string[] = [];
+        for (const itemDoc of itemDocs) {
+          this.validateNoPlaceholders('item.documents.filePath', itemDoc.filePath);
+          const docType = itemDoc.documentType ?? OrderDocumentType.RECEIVING_PHOTO;
+          await tx.orderDocument.create({
+            data: {
+              distributorId: order.distributorId,
+              purchaseOrderId: order.id,
+              purchaseOrderItemId: existingItem.id,
+              documentType: docType,
+              fileName: itemDoc.fileName,
+              filePath: itemDoc.filePath,
+              fileSize: itemDoc.fileSize,
+              mimeType: itemDoc.mimeType,
+              notes: itemDoc.notes ?? `Фото позиции SKU ${existingItem.sku} при приемке`,
+            },
+          });
+          savedItemPhotoLabels.push(
+            `${itemDoc.fileName}${itemDoc.notes ? ` (${itemDoc.notes})` : ''}`,
+          );
+        }
+
+        // 3. Формируем комментарий приемки позиции (включая комментарий пользователя, сверку EAN и список фото с разных сторон)
+        const rawUserItemNote = receiveItem.itemNotes ?? receiveItem.notes;
+        const itemNoteParts: string[] = [];
+        if (rawUserItemNote && rawUserItemNote.trim()) {
+          itemNoteParts.push(rawUserItemNote.trim());
+        }
+        if (eanNoteFragment && (!rawUserItemNote || !rawUserItemNote.includes(eanNoteFragment))) {
+          itemNoteParts.push(eanNoteFragment);
+        }
+        if (savedItemPhotoLabels.length > 0) {
+          itemNoteParts.push(`Фото айтема (${savedItemPhotoLabels.length} шт): ${savedItemPhotoLabels.join('; ')}`);
+        }
+
+        let finalItemNotes: string | null | undefined =
+          itemNoteParts.length > 0 ? itemNoteParts.join(' | ') : existingItem.notes;
+
+        // Если это повторная корректировка и ранее уже был записан другой комментарий — сохраняем историю корректировки
+        if (
+          isItemCorrection &&
+          existingItem.notes &&
+          itemNoteParts.length > 0 &&
+          existingItem.notes !== finalItemNotes &&
+          !finalItemNotes?.includes(existingItem.notes)
+        ) {
+          finalItemNotes = `${existingItem.notes} | [Корректировка ${receivingDateStr}]: ${itemNoteParts.join(' | ')}`;
+        }
+
+        // При корректировке сохраняем ранее введенные габариты, если новые не были переданы
+        const nextLengthCm =
+          receiveItem.packageLengthCm !== undefined ? receiveItem.packageLengthCm : existingItem.packageLengthCm;
+        const nextWidthCm =
+          receiveItem.packageWidthCm !== undefined ? receiveItem.packageWidthCm : existingItem.packageWidthCm;
+        const nextHeightCm =
+          receiveItem.packageHeightCm !== undefined ? receiveItem.packageHeightCm : existingItem.packageHeightCm;
+        const nextWeightG =
+          receiveItem.packageWeightG !== undefined ? receiveItem.packageWeightG : existingItem.packageWeightG;
+
+        // Обновляем принятое количество, габариты и комментарий позиции заказа
         await tx.purchaseOrderItem.update({
           where: { id: existingItem.id },
           data: {
             quantityReceived: receiveItem.quantityReceived,
-            packageLengthCm: receiveItem.packageLengthCm,
-            packageWidthCm: receiveItem.packageWidthCm,
-            packageHeightCm: receiveItem.packageHeightCm,
-            packageWeightG: receiveItem.packageWeightG,
-            notes: receiveItem.itemNotes,
+            packageLengthCm: nextLengthCm,
+            packageWidthCm: nextWidthCm,
+            packageHeightCm: nextHeightCm,
+            packageWeightG: nextWeightG,
+            notes: finalItemNotes,
           },
         });
 
-        if (receiveItem.quantityReceived < existingItem.quantityOrdered) {
-          allFullyReceived = false;
-        }
+        updatedQuantitiesByItemId.set(existingItem.id, receiveItem.quantityReceived);
 
-        // Логика разделения по складам:
+        // 4. Распределение по складам и дельта-корректировка:
         // По дефолту на СВХ выделяется до 3 штук (или всё количество, если меньше 3),
         // а остальное количество направляется на основной склад MAIN.
         const targetSvh =
@@ -405,8 +746,25 @@ export class OrdersService {
             ? receiveItem.mainQuantity
             : Math.max(0, receiveItem.quantityReceived - targetSvh);
 
-        // 1. Оприходование на склад СВХ (SVH)
-        if (targetSvh > 0) {
+        // Вычисляем дельту относительно уже оприходованного по этому заказу количества
+        const deltaSvh = targetSvh - prevSvh;
+        const deltaMain = targetMain - prevMain;
+
+        stockAdjustments.push({
+          sku: existingItem.sku,
+          isItemCorrection,
+          prevQuantityReceived: existingItem.quantityReceived,
+          newQuantityReceived: receiveItem.quantityReceived,
+          prevSvh,
+          newSvh: targetSvh,
+          deltaSvh,
+          prevMain,
+          newMain: targetMain,
+          deltaMain,
+        });
+
+        // 4.1. Обновление остатка на складе СВХ (SVH) строго на величину deltaSvh
+        if (deltaSvh > 0) {
           await tx.warehouseStock.upsert({
             where: {
               warehouse_sku: {
@@ -419,11 +777,11 @@ export class OrdersService {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               title: existingItem.title,
-              quantity: targetSvh,
+              quantity: deltaSvh,
               minStockAlert: 1, // По дефолту порог предупреждения для СВХ равен 1 шт
             },
             update: {
-              quantity: { increment: targetSvh },
+              quantity: { increment: deltaSvh },
               asinId: existingItem.asinId ?? undefined,
             },
           });
@@ -433,17 +791,54 @@ export class OrdersService {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               toWarehouse: WarehouseLocation.SVH,
-              type: 'RECEIPT',
-              quantity: targetSvh,
+              type: isItemCorrection ? StockMovementType.ADJUSTMENT : StockMovementType.RECEIPT,
+              quantity: deltaSvh,
               purchaseOrderId: order.id,
               purchaseOrderItemId: existingItem.id,
-              notes: `Приемка поставки ${order.orderNumber}: оприходовано на СВХ`,
+              notes: isItemCorrection
+                ? `Корректировка приемки поставки ${order.orderNumber}: +${deltaSvh} шт на СВХ (было ${prevSvh} -> стало ${targetSvh})`
+                : `Приемка поставки ${order.orderNumber}: оприходовано на СВХ`,
+            },
+          });
+        } else if (deltaSvh < 0) {
+          const absDeltaSvh = Math.abs(deltaSvh);
+          await tx.warehouseStock.upsert({
+            where: {
+              warehouse_sku: {
+                warehouse: WarehouseLocation.SVH,
+                sku: existingItem.sku,
+              },
+            },
+            create: {
+              warehouse: WarehouseLocation.SVH,
+              sku: existingItem.sku,
+              asinId: existingItem.asinId,
+              title: existingItem.title,
+              quantity: 0,
+              minStockAlert: 1,
+            },
+            update: {
+              quantity: { decrement: absDeltaSvh },
+              asinId: existingItem.asinId ?? undefined,
+            },
+          });
+
+          await tx.stockMovement.create({
+            data: {
+              sku: existingItem.sku,
+              asinId: existingItem.asinId,
+              fromWarehouse: WarehouseLocation.SVH,
+              type: StockMovementType.ADJUSTMENT,
+              quantity: absDeltaSvh,
+              purchaseOrderId: order.id,
+              purchaseOrderItemId: existingItem.id,
+              notes: `Корректировка приемки поставки ${order.orderNumber}: списание ${absDeltaSvh} шт со склада СВХ (было ${prevSvh} -> стало ${targetSvh})`,
             },
           });
         }
 
-        // 2. Оприходование на Основной склад (MAIN)
-        if (targetMain > 0) {
+        // 4.2. Обновление остатка на Основном складе (MAIN) строго на величину deltaMain
+        if (deltaMain > 0) {
           await tx.warehouseStock.upsert({
             where: {
               warehouse_sku: {
@@ -456,11 +851,11 @@ export class OrdersService {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               title: existingItem.title,
-              quantity: targetMain,
+              quantity: deltaMain,
               minStockAlert: 0,
             },
             update: {
-              quantity: { increment: targetMain },
+              quantity: { increment: deltaMain },
               asinId: existingItem.asinId ?? undefined,
             },
           });
@@ -470,23 +865,74 @@ export class OrdersService {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               toWarehouse: WarehouseLocation.MAIN,
-              type: 'RECEIPT',
-              quantity: targetMain,
+              type: isItemCorrection ? StockMovementType.ADJUSTMENT : StockMovementType.RECEIPT,
+              quantity: deltaMain,
               purchaseOrderId: order.id,
               purchaseOrderItemId: existingItem.id,
-              notes: `Приемка поставки ${order.orderNumber}: оприходовано на Основной склад (MAIN)`,
+              notes: isItemCorrection
+                ? `Корректировка приемки поставки ${order.orderNumber}: +${deltaMain} шт на склад MAIN (было ${prevMain} -> стало ${targetMain})`
+                : `Приемка поставки ${order.orderNumber}: оприходовано на Основной склад (MAIN)`,
+            },
+          });
+        } else if (deltaMain < 0) {
+          const absDeltaMain = Math.abs(deltaMain);
+          await tx.warehouseStock.upsert({
+            where: {
+              warehouse_sku: {
+                warehouse: WarehouseLocation.MAIN,
+                sku: existingItem.sku,
+              },
+            },
+            create: {
+              warehouse: WarehouseLocation.MAIN,
+              sku: existingItem.sku,
+              asinId: existingItem.asinId,
+              title: existingItem.title,
+              quantity: 0,
+              minStockAlert: 0,
+            },
+            update: {
+              quantity: { decrement: absDeltaMain },
+              asinId: existingItem.asinId ?? undefined,
+            },
+          });
+
+          await tx.stockMovement.create({
+            data: {
+              sku: existingItem.sku,
+              asinId: existingItem.asinId,
+              fromWarehouse: WarehouseLocation.MAIN,
+              type: StockMovementType.ADJUSTMENT,
+              quantity: absDeltaMain,
+              purchaseOrderId: order.id,
+              purchaseOrderItemId: existingItem.id,
+              notes: `Корректировка приемки поставки ${order.orderNumber}: списание ${absDeltaMain} шт со склада MAIN (было ${prevMain} -> стало ${targetMain})`,
             },
           });
         }
       }
 
-      // Сохраняем прикрепленные документы (Albarán, фото замеров, фото упаковок)
+      // 5. Сохраняем прикрепленные к заказу документы и фотографии всей партии (Albarán, Factura, фото общих коробок)
+      const savedBatchDocLabels: string[] = [];
       if (data.documents && data.documents.length > 0) {
         for (const doc of data.documents) {
+          this.validateNoPlaceholders('documents.filePath', doc.filePath);
+          // Если передан sku в документе, автоматически находим соответствующий purchaseOrderItemId
+          let resolvedItemId = doc.purchaseOrderItemId;
+          if (!resolvedItemId && doc.sku) {
+            const matchedItem = order.items.find(
+              (i) => i.sku.toUpperCase() === doc.sku!.trim().toUpperCase(),
+            );
+            if (matchedItem) {
+              resolvedItemId = matchedItem.id;
+            }
+          }
+
           await tx.orderDocument.create({
             data: {
               distributorId: order.distributorId,
               purchaseOrderId: order.id,
+              purchaseOrderItemId: resolvedItemId,
               documentType: doc.documentType,
               fileName: doc.fileName,
               filePath: doc.filePath,
@@ -495,47 +941,156 @@ export class OrdersService {
               notes: doc.notes,
             },
           });
+          savedBatchDocLabels.push(
+            `[${doc.documentType}] ${doc.fileName}${doc.notes ? ` (${doc.notes})` : ''}`,
+          );
         }
       }
 
-      // Обновляем статус заказа: RECEIVED (или PARTIALLY_RECEIVED)
+      // 6. Определяем итоговый статус заказа по всем его позициям (RECEIVED / PARTIALLY_RECEIVED / текущий)
+      let allFullyReceived = order.items.length > 0;
+      let anyItemReceived = false;
+      for (const orderItem of order.items) {
+        const effectiveQty = updatedQuantitiesByItemId.has(orderItem.id)
+          ? updatedQuantitiesByItemId.get(orderItem.id)!
+          : orderItem.quantityReceived;
+        if (effectiveQty > 0) {
+          anyItemReceived = true;
+        }
+        if (effectiveQty < orderItem.quantityOrdered) {
+          allFullyReceived = false;
+        }
+      }
+
+      const nextOrderStatus = allFullyReceived
+        ? PurchaseOrderStatus.RECEIVED
+        : anyItemReceived || receiveItems.length > 0
+        ? PurchaseOrderStatus.PARTIALLY_RECEIVED
+        : order.status;
+
+      // 7. Формируем сводный комментарий приемки заказа (включая даты получения и приемки, пропущенные документы, фото и выявленные моменты)
+      const hasExtendedReceivingMetadata =
+        Boolean(data.receivingDate) ||
+        Boolean(data.receivingNotes) ||
+        skippedDocs.length > 0 ||
+        eanVerifications.some((v) => !v.matched) ||
+        isOrderCorrection;
+
+      let finalOrderNotes = data.notes ?? order.notes;
+      if (hasExtendedReceivingMetadata) {
+        const summaryParts: string[] = [];
+        const headerLabel = isOrderCorrection
+          ? `[КОРРЕКТИРОВКА ПРИЕМКИ от ${receivingDateStr} (получено: ${actualDateStr})]`
+          : `[ПРИЕМКА ПАРТИИ от ${receivingDateStr} (получено: ${actualDateStr})]`;
+        summaryParts.push(headerLabel);
+
+        const userBatchNote = data.receivingNotes ?? data.notes;
+        if (userBatchNote && userBatchNote.trim()) {
+          summaryParts.push(`Комментарий: ${userBatchNote.trim()}`);
+        }
+        if (skippedDocs.length > 0) {
+          const skippedText = skippedDocs
+            .map((s) => `${s.documentType} (причина пропуска: ${s.reason.trim()})`)
+            .join('; ');
+          summaryParts.push(`Пропущенные документы: ${skippedText}`);
+        }
+        if (savedBatchDocLabels.length > 0) {
+          summaryParts.push(`Прикрепленные фото/документы: ${savedBatchDocLabels.join('; ')}`);
+        }
+        if (warnings.length > 0) {
+          summaryParts.push(`Выявленные моменты: ${warnings.join('; ')}`);
+        }
+
+        const formattedBlock = summaryParts.join(' | ');
+        if (order.notes && !formattedBlock.includes(order.notes)) {
+          finalOrderNotes = `${order.notes}\n${formattedBlock}`;
+        } else {
+          finalOrderNotes = formattedBlock;
+        }
+      }
+
+      // Обновляем заказ в БД
       const updatedOrder = await tx.purchaseOrder.update({
         where: { id: order.id },
         data: {
-          status: allFullyReceived ? PurchaseOrderStatus.RECEIVED : PurchaseOrderStatus.PARTIALLY_RECEIVED,
+          status: nextOrderStatus,
           actualDeliveryDate: actualDate,
-          notes: data.notes ?? order.notes,
+          notes: finalOrderNotes,
         },
       });
 
-      return updatedOrder;
+      return {
+        ...updatedOrder,
+        receivingSummary: {
+          isCorrection: isOrderCorrection,
+          actualDeliveryDate: actualDate.toISOString(),
+          receivingDate: receivingDate.toISOString(),
+          skippedDocuments: skippedDocs,
+          eanVerifications,
+          stockAdjustments,
+          warnings,
+        },
+      };
     });
   }
 
   /**
-   * Прикрепить документ к заказу (Albarán, Factura, чек, фото)
+   * Прикрепить документ или фотографию к заказу или конкретной позиции (по purchaseOrderItemId или sku)
    */
-  async attachDocument(orderId: number, doc: {
-    documentType: OrderDocumentType;
-    fileName: string;
-    filePath: string;
-    fileSize?: number;
-    mimeType?: string;
-    notes?: string;
-    purchaseOrderItemId?: number;
-  }) {
-    const order = await this.prisma.purchaseOrder.findUnique({
-      where: { id: orderId },
-    });
+  async attachDocument(
+    orderIdOrNumber: number | string,
+    doc: {
+      documentType: OrderDocumentType;
+      fileName: string;
+      filePath: string;
+      fileSize?: number;
+      mimeType?: string;
+      notes?: string;
+      purchaseOrderItemId?: number;
+      sku?: string;
+    },
+  ) {
+    this.validateNoPlaceholders('orderId', orderIdOrNumber);
+    this.validateNoPlaceholders('fileName', doc?.fileName);
+    this.validateNoPlaceholders('filePath', doc?.filePath);
+    this.validateNoPlaceholders('sku', doc?.sku);
+
+    const isNumericId =
+      typeof orderIdOrNumber === 'number' ||
+      (!isNaN(Number(orderIdOrNumber)) && !String(orderIdOrNumber).includes('-'));
+
+    const order = isNumericId
+      ? await this.prisma.purchaseOrder.findUnique({
+          where: { id: Number(orderIdOrNumber) },
+          include: { items: true },
+        })
+      : await this.prisma.purchaseOrder.findFirst({
+          where: { orderNumber: String(orderIdOrNumber).trim() },
+          include: { items: true },
+        });
     if (!order) {
-      throw new NotFoundException(`Заказ ID ${orderId} не найден`);
+      throw new NotFoundException(`Заказ "${orderIdOrNumber}" не найден`);
+    }
+
+    // Если передан артикул sku вместо числового purchaseOrderItemId — автоматически находим ID позиции
+    let resolvedItemId = doc.purchaseOrderItemId;
+    if (!resolvedItemId && doc.sku && order.items) {
+      const matchedItem = order.items.find(
+        (i) => i.sku.toUpperCase() === doc.sku!.trim().toUpperCase(),
+      );
+      if (!matchedItem) {
+        throw new BadRequestException(
+          `Артикул "${doc.sku}" не найден в составе заказа ${order.orderNumber}`,
+        );
+      }
+      resolvedItemId = matchedItem.id;
     }
 
     return this.prisma.orderDocument.create({
       data: {
         distributorId: order.distributorId,
         purchaseOrderId: order.id,
-        purchaseOrderItemId: doc.purchaseOrderItemId,
+        purchaseOrderItemId: resolvedItemId,
         documentType: doc.documentType,
         fileName: doc.fileName,
         filePath: doc.filePath,

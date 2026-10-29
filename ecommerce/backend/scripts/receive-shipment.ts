@@ -44,15 +44,23 @@ async function main() {
 
   const orderNumberArg = getArg('--order') || '26ALV-0074072';
   const isCheck = args.includes('--check');
-  const photosArg = getArg('--photos');
+  const photosArg = getArg('--photos') || getArg('--batch-photos');
   const notesArg = getArg('--notes');
+  const deliveryDateArg = getArg('--delivery-date');
+  const receivingDateArg = getArg('--receiving-date');
 
-  // Извлекаем все переданные флаги --item
+  // Извлекаем все переданные флаги --item, --skip-doc, --ean-check, --item-photos, --item-notes
   const itemArgs: string[] = [];
+  const skipDocArgs: string[] = [];
+  const eanCheckArgs: string[] = [];
+  const itemPhotoArgs: string[] = [];
+  const itemNoteArgs: string[] = [];
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--item' && i + 1 < args.length) {
-      itemArgs.push(args[i + 1]);
-    }
+    if (args[i] === '--item' && i + 1 < args.length) itemArgs.push(args[i + 1]);
+    if (args[i] === '--skip-doc' && i + 1 < args.length) skipDocArgs.push(args[i + 1]);
+    if (args[i] === '--ean-check' && i + 1 < args.length) eanCheckArgs.push(args[i + 1]);
+    if (args[i] === '--item-photos' && i + 1 < args.length) itemPhotoArgs.push(args[i + 1]);
+    if (args[i] === '--item-notes' && i + 1 < args.length) itemNoteArgs.push(args[i + 1]);
   }
 
   console.log('\n======================================================');
@@ -214,33 +222,56 @@ async function main() {
       }
       console.log('------------------------------------------------------\n');
 
-      console.log('📝 ИНСТРУКЦИЯ ДЛЯ ВЫПОЛНЕНИЯ ПРИЕМКИ:');
-      console.log('1. Вскройте коробки и пересчитайте фактическое количество товаров.');
-      console.log('2. Произведите замеры рулеткой каждой заводской коробки (Длина x Ширина x Высота в см).');
-      console.log('3. Взвесьте 1 единицу на кухонных весах (в граммах).');
-      console.log('4. Сфотографируйте товар, заводскую коробку со штрихкодом EAN и вложенный Albarán (с выделенной строкой TASA).');
-      console.log('5. Запустите команду фиксации приемки с замерами, например:');
-      console.log(`\n   npx tsx scripts/receive-shipment.ts --order "${order.orderNumber}" \\`);
-      console.log('     --item "34316:10:28:10:22:850:3:7" \\');
-      console.log('     --item "35536:10:30:12:16:1200:3:7" \\');
-      console.log('     --photos "../contractors/kuken/attachments/albaran_photo.jpg,../contractors/kuken/attachments/secador_box.jpg"\n');
-      console.log('   (Где 3 шт пойдут на СВХ для FBM отгрузок, а 7 шт — на Основной склад).\n');
+      console.log('📝 ДВУХФАЗНЫЙ РЕГЛАМЕНТ ВЫПОЛНЕНИЯ ПРИЕМКИ (ИЛИ КОРРЕКТИРОВКИ):');
+      console.log('ФАЗА 1 — ПРИЕМКА ВСЕЙ ПАРТИИ И ДОКУМЕНТОВ:');
+      console.log('  1.1. Укажите дату фактического получения (--delivery-date) и дату приемки (--receiving-date).');
+      console.log('  1.2. Проверьте список документов (ALBARAN, SHIPPING_LABEL, INVOICE, PAYMENT_RECEIPT).');
+      console.log('       При отсутствии документа разрешен явный пропуск с причиной: --skip-doc "INVOICE:Причина".');
+      console.log('  1.3. Сфотографируйте всю партию целиком (общие транспортные коробки с разных сторон): --batch-photos.');
+      console.log('ФАЗА 2 — ПОШТУЧНАЯ ПРИЕМКА КАЖДОЙ ОТДЕЛЬНОЙ ПОЗИЦИИ:');
+      console.log('  2.1. Обязательная тройная сверка EAN: Заказ в БД <-> Albarán <-> Коробка (--ean-check "SKU:eanAlbaran:eanBox").');
+      console.log('  2.2. Пересчитайте фактическое количество, замерьте рулеткой (ДxШxВ в см) и взвесьте 1 шт (в граммах).');
+      console.log('  2.3. Сфотографируйте каждый отдельный айтем с разных сторон (коробка, штрихкод EAN, знак WEEE, рулетка, весы): --item-photos.');
+      console.log('  2.4. Запишите все пересланные фото и выявленные повреждения/моменты в комментарий (--notes и --item-notes).');
+      console.log('  2.5. При повторном запуске по уже принятой партии скрипт автоматически выполнит дельта-корректировку без задвоения остатков!\n');
       process.exit(0);
     }
 
-    // Режим проведения приемки с замерами
-    console.log(`⚙️ Обработка фактических данных приемки...\n`);
+    // Режим проведения приемки или корректировки ранее принятой партии
+    const isOrderCorrection =
+      order.status === PurchaseOrderStatus.RECEIVED ||
+      order.status === PurchaseOrderStatus.PARTIALLY_RECEIVED ||
+      order.items.some((i) => i.quantityReceived > 0);
+
+    const actualDate = deliveryDateArg
+      ? new Date(deliveryDateArg)
+      : order.actualDeliveryDate
+      ? new Date(order.actualDeliveryDate)
+      : new Date();
+    const receivingDate = receivingDateArg ? new Date(receivingDateArg) : new Date();
+    const actualDateStr = actualDate.toISOString().split('T')[0];
+    const receivingDateStr = receivingDate.toISOString().split('T')[0];
+
+    console.log(
+      isOrderCorrection
+        ? `🔄 Режим КОРРЕКТИРОВКИ приемки по уже принятой партии ${order.orderNumber} (дельта-пересчет)...\n`
+        : `⚙️ Обработка первичной двухфазной приемки партии ${order.orderNumber}...\n`,
+    );
+    console.log(`📅 Дата получения от курьера: ${actualDateStr} | Дата проведения приемки: ${receivingDateStr}\n`);
 
     await prisma.$transaction(async (tx) => {
+      const updatedQuantitiesByItemId = new Map<number, number>();
+      const warnings: string[] = [];
+
       for (const itemStr of itemArgs) {
         // Формат: SKU:qty:length:width:height:weight:svh:main
         const parts = itemStr.split(':');
         const sku = parts[0]?.trim();
         const qtyReceived = Number(parts[1] || 0);
-        const lengthCm = parts[2] ? parseFloat(parts[2]) : null;
-        const widthCm = parts[3] ? parseFloat(parts[3]) : null;
-        const heightCm = parts[4] ? parseFloat(parts[4]) : null;
-        const weightG = parts[5] ? parseFloat(parts[5]) : null;
+        const lengthCm = parts[2] ? parseFloat(parts[2]) : undefined;
+        const widthCm = parts[3] ? parseFloat(parts[3]) : undefined;
+        const heightCm = parts[4] ? parseFloat(parts[4]) : undefined;
+        const weightG = parts[5] ? parseFloat(parts[5]) : undefined;
         const svhQty = parts[6] ? parseInt(parts[6], 10) : Math.min(3, qtyReceived);
         const mainQty = parts[7] ? parseInt(parts[7], 10) : Math.max(0, qtyReceived - svhQty);
 
@@ -249,27 +280,75 @@ async function main() {
           throw new Error(`Артикул "${sku}" не найден в составе заказа ${order.orderNumber}`);
         }
 
-        console.log(`➡️ Приемка SKU ${sku} (${existingItem.title}):`);
-        console.log(`   Фактически принято: ${qtyReceived} шт (из ${existingItem.quantityOrdered} заказанных)`);
-        if (lengthCm && widthCm && heightCm) {
-          console.log(`   Габариты упаковки:  ${lengthCm} x ${widthCm} x ${heightCm} см, Вес: ${weightG ?? 0} г`);
+        // Проверяем ранее проведенные движения по этой позиции для безопасной дельта-корректировки
+        const prevMovements = await tx.stockMovement.findMany({
+          where: {
+            purchaseOrderId: order.id,
+            purchaseOrderItemId: existingItem.id,
+          },
+        });
+        const isItemCorrection = existingItem.quantityReceived > 0 || prevMovements.length > 0;
+        let prevSvh = 0;
+        let prevMain = 0;
+        if (prevMovements.length > 0) {
+          for (const mov of prevMovements) {
+            if (mov.toWarehouse === WarehouseLocation.SVH) prevSvh += mov.quantity;
+            if (mov.fromWarehouse === WarehouseLocation.SVH) prevSvh -= mov.quantity;
+            if (mov.toWarehouse === WarehouseLocation.MAIN) prevMain += mov.quantity;
+            if (mov.fromWarehouse === WarehouseLocation.MAIN) prevMain -= mov.quantity;
+          }
+          prevSvh = Math.max(0, prevSvh);
+          prevMain = Math.max(0, prevMain);
+        } else if (existingItem.quantityReceived > 0) {
+          prevSvh = Math.min(3, existingItem.quantityReceived);
+          prevMain = Math.max(0, existingItem.quantityReceived - prevSvh);
         }
-        console.log(`   Распределение:     ${svhQty} шт на СВХ (буфер), ${mainQty} шт на Основной склад (MAIN)`);
 
-        // 1. Обновляем данные позиции заказа
+        const deltaSvh = svhQty - prevSvh;
+        const deltaMain = mainQty - prevMain;
+
+        // Тройная сверка EAN (если передан --ean-check "SKU:eanAlbaran:eanBox")
+        let eanNoteFragment: string | null = null;
+        const matchingEanArg = eanCheckArgs.find((arg) => arg.split(':')[0]?.trim().toUpperCase() === sku.toUpperCase());
+        if (matchingEanArg) {
+          const [, eanAlb, eanBox] = matchingEanArg.split(':').map((s) => s?.trim());
+          const orderEan = existingItem.ean?.trim() || null;
+          const unique = Array.from(new Set([orderEan, eanAlb, eanBox].filter(Boolean)));
+          if (unique.length <= 1) {
+            eanNoteFragment = `✅ Тройная сверка EAN пройдена (Заказ = Albarán = Коробка: ${orderEan})`;
+          } else {
+            eanNoteFragment = `⚠️ НЕСООТВЕТСТВИЕ EAN: Заказ=${orderEan}, Albarán=${eanAlb}, Коробка=${eanBox}`;
+            warnings.push(eanNoteFragment);
+          }
+        }
+
+        // Индивидуальные заметки по позиции (--item-notes "SKU:текст")
+        const matchingNoteArg = itemNoteArgs.find((arg) => arg.split(':')[0]?.trim().toUpperCase() === sku.toUpperCase());
+        const customItemNote = matchingNoteArg ? matchingNoteArg.split(':').slice(1).join(':').trim() : null;
+        const itemNoteParts = [customItemNote, eanNoteFragment].filter(Boolean);
+        const finalItemNotes = itemNoteParts.length > 0 ? itemNoteParts.join(' | ') : existingItem.notes;
+
+        console.log(`➡️ ${isItemCorrection ? 'Корректировка' : 'Приемка'} SKU ${sku} (${existingItem.title}):`);
+        console.log(`   Фактически принято: ${qtyReceived} шт (из ${existingItem.quantityOrdered} заказанных, ранее было: ${existingItem.quantityReceived} шт)`);
+        if (eanNoteFragment) console.log(`   Сверка штрихкода:   ${eanNoteFragment}`);
+        console.log(`   Распределение:     СВХ=${svhQty} шт (дельта: ${deltaSvh >= 0 ? `+${deltaSvh}` : deltaSvh}), MAIN=${mainQty} шт (дельта: ${deltaMain >= 0 ? `+${deltaMain}` : deltaMain})`);
+
+        // 1. Обновляем данные позиции заказа (сохраняя старые замеры, если при корректировке они не переданы)
         await tx.purchaseOrderItem.update({
           where: { id: existingItem.id },
           data: {
             quantityReceived: qtyReceived,
-            packageLengthCm: lengthCm,
-            packageWidthCm: widthCm,
-            packageHeightCm: heightCm,
-            packageWeightG: weightG,
+            packageLengthCm: lengthCm ?? existingItem.packageLengthCm,
+            packageWidthCm: widthCm ?? existingItem.packageWidthCm,
+            packageHeightCm: heightCm ?? existingItem.packageHeightCm,
+            packageWeightG: weightG ?? existingItem.packageWeightG,
+            notes: finalItemNotes,
           },
         });
+        updatedQuantitiesByItemId.set(existingItem.id, qtyReceived);
 
-        // 2. Оприходование на склад СВХ
-        if (svhQty > 0) {
+        // 2. Обновление остатка на складе СВХ строго по дельте
+        if (deltaSvh > 0) {
           await tx.warehouseStock.upsert({
             where: {
               warehouse_sku: {
@@ -282,11 +361,11 @@ async function main() {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               title: existingItem.title,
-              quantity: svhQty,
-              minStockAlert: 1, // Порог оповещения 1 шт
+              quantity: deltaSvh,
+              minStockAlert: 1,
             },
             update: {
-              quantity: { increment: svhQty },
+              quantity: { increment: deltaSvh },
               asinId: existingItem.asinId ?? undefined,
             },
           });
@@ -296,17 +375,42 @@ async function main() {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               toWarehouse: WarehouseLocation.SVH,
-              type: 'RECEIPT',
-              quantity: svhQty,
+              type: isItemCorrection ? 'ADJUSTMENT' : 'RECEIPT',
+              quantity: deltaSvh,
               purchaseOrderId: order.id,
               purchaseOrderItemId: existingItem.id,
-              notes: `Приемка Albarán ${order.orderNumber}: оприходовано на СВХ`,
+              notes: isItemCorrection
+                ? `Корректировка приемки Albarán ${order.orderNumber}: +${deltaSvh} шт на СВХ`
+                : `Приемка Albarán ${order.orderNumber}: оприходовано на СВХ`,
+            },
+          });
+        } else if (deltaSvh < 0) {
+          const absDelta = Math.abs(deltaSvh);
+          await tx.warehouseStock.update({
+            where: {
+              warehouse_sku: {
+                warehouse: WarehouseLocation.SVH,
+                sku: existingItem.sku,
+              },
+            },
+            data: { quantity: { decrement: absDelta } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              sku: existingItem.sku,
+              asinId: existingItem.asinId,
+              fromWarehouse: WarehouseLocation.SVH,
+              type: 'ADJUSTMENT',
+              quantity: absDelta,
+              purchaseOrderId: order.id,
+              purchaseOrderItemId: existingItem.id,
+              notes: `Корректировка приемки Albarán ${order.orderNumber}: -${absDelta} шт со склада СВХ`,
             },
           });
         }
 
-        // 3. Оприходование на Основной склад (MAIN)
-        if (mainQty > 0) {
+        // 3. Обновление остатка на Основном складе (MAIN) строго по дельте
+        if (deltaMain > 0) {
           await tx.warehouseStock.upsert({
             where: {
               warehouse_sku: {
@@ -319,11 +423,11 @@ async function main() {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               title: existingItem.title,
-              quantity: mainQty,
+              quantity: deltaMain,
               minStockAlert: 0,
             },
             update: {
-              quantity: { increment: mainQty },
+              quantity: { increment: deltaMain },
               asinId: existingItem.asinId ?? undefined,
             },
           });
@@ -333,17 +437,66 @@ async function main() {
               sku: existingItem.sku,
               asinId: existingItem.asinId,
               toWarehouse: WarehouseLocation.MAIN,
-              type: 'RECEIPT',
-              quantity: mainQty,
+              type: isItemCorrection ? 'ADJUSTMENT' : 'RECEIPT',
+              quantity: deltaMain,
               purchaseOrderId: order.id,
               purchaseOrderItemId: existingItem.id,
-              notes: `Приемка Albarán ${order.orderNumber}: оприходовано на Основной склад (MAIN)`,
+              notes: isItemCorrection
+                ? `Корректировка приемки Albarán ${order.orderNumber}: +${deltaMain} шт на склад MAIN`
+                : `Приемка Albarán ${order.orderNumber}: оприходовано на Основной склад (MAIN)`,
+            },
+          });
+        } else if (deltaMain < 0) {
+          const absDelta = Math.abs(deltaMain);
+          await tx.warehouseStock.update({
+            where: {
+              warehouse_sku: {
+                warehouse: WarehouseLocation.MAIN,
+                sku: existingItem.sku,
+              },
+            },
+            data: { quantity: { decrement: absDelta } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              sku: existingItem.sku,
+              asinId: existingItem.asinId,
+              fromWarehouse: WarehouseLocation.MAIN,
+              type: 'ADJUSTMENT',
+              quantity: absDelta,
+              purchaseOrderId: order.id,
+              purchaseOrderItemId: existingItem.id,
+              notes: `Корректировка приемки Albarán ${order.orderNumber}: -${absDelta} шт со склада MAIN`,
             },
           });
         }
+
+        // 3.1. Прикрепление фотографий конкретного айтема с разных сторон (--item-photos "SKU:path1,path2")
+        const matchingItemPhotos = itemPhotoArgs.find((arg) => arg.split(':')[0]?.trim().toUpperCase() === sku.toUpperCase());
+        if (matchingItemPhotos) {
+          const paths = matchingItemPhotos.split(':').slice(1).join(':').split(',').map((p) => p.trim());
+          for (const p of paths) {
+            if (!p) continue;
+            const fileName = p.split('/').pop() || p;
+            await tx.orderDocument.create({
+              data: {
+                distributorId: order.distributorId,
+                purchaseOrderId: order.id,
+                purchaseOrderItemId: existingItem.id,
+                documentType: p.toLowerCase().includes('measure')
+                  ? OrderDocumentType.MEASUREMENT_PHOTO
+                  : OrderDocumentType.RECEIVING_PHOTO,
+                fileName,
+                filePath: p,
+                notes: `Фото позиции SKU ${existingItem.sku} с разных сторон при приемке`,
+              },
+            });
+            console.log(`   📸 Прикреплено фото позиции ${existingItem.sku}: ${fileName}`);
+          }
+        }
       }
 
-      // 4. Прикрепление фотографий
+      // 4. Прикрепление общих фотографий всей партии и документов
       if (photosArg) {
         const photoPaths = photosArg.split(',').map((p) => p.trim());
         for (const p of photoPaths) {
@@ -360,20 +513,32 @@ async function main() {
                 : OrderDocumentType.RECEIVING_PHOTO,
               fileName,
               filePath: p,
-              notes: 'Фотофиксация при приемке поставки',
+              notes: 'Фотофиксация всей партии / документов при приемке поставки',
             },
           });
-          console.log(`   📸 Прикреплен документ: ${fileName}`);
+          console.log(`   📸 Прикреплен документ партии: ${fileName}`);
         }
       }
 
-      // 5. Переводим заказ в статус RECEIVED
+      // 5. Формируем сводный комментарий приемки (включая пропущенные документы с причиной и даты)
+      const skippedText = skipDocArgs.length > 0 ? `Пропущенные документы: ${skipDocArgs.join('; ')}` : null;
+      const summaryHeader = `[${isOrderCorrection ? 'КОРРЕКТИРОВКА ПРИЕМКИ' : 'ПРИЕМКА ПАРТИИ'} от ${receivingDateStr} (получено: ${actualDateStr})]`;
+      const combinedNotes = [order.notes, summaryHeader, notesArg, skippedText, ...warnings].filter(Boolean).join(' | ');
+
+      let allFullyReceived = order.items.length > 0;
+      for (const item of order.items) {
+        const effQty = updatedQuantitiesByItemId.has(item.id)
+          ? updatedQuantitiesByItemId.get(item.id)!
+          : item.quantityReceived;
+        if (effQty < item.quantityOrdered) allFullyReceived = false;
+      }
+
       await tx.purchaseOrder.update({
         where: { id: order.id },
         data: {
-          status: PurchaseOrderStatus.RECEIVED,
-          actualDeliveryDate: new Date(),
-          notes: notesArg ?? order.notes,
+          status: allFullyReceived ? PurchaseOrderStatus.RECEIVED : PurchaseOrderStatus.PARTIALLY_RECEIVED,
+          actualDeliveryDate: actualDate,
+          notes: combinedNotes,
         },
       });
     });
