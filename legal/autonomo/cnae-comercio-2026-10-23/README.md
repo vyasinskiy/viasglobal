@@ -77,13 +77,15 @@
 - **Прямая ссылка**: [Открыть в Google Tasks](https://tasks.google.com/task/OFCAmmI_49DHwyPV?sa=6)
 
 ### Пошаговый чек-лист выполнения:
-- [ ] **28.10.2026 (Среда)**: Зайти в личный кабинет **Importass** (Sede Electrónica Seguridad Social) с помощью Cl@ve или цифрового сертификата.
+- [ ] **28.10.2026 (Среда)**: Зайти в личный кабинет **Importass** (Sede Electrónica Seguridad Social) с помощью Cl@ve или цифрового сертификата по прямой ссылке: [TGSS Import@ss - Informe de actividades declaradas](https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+actividades+declaradas).
 - [ ] Скачать свежий отчет в формате PDF: **«Informe de actividades declaradas»**.
 - [ ] Проверить в скачанном отчете:
   1. Отображение активности CNAE 4791 с датой alta 21/09/2026.
   2. Отображение актуального адреса деятельности: `Ronda Albocacer 11, Sierra Engarcerán`.
 - [ ] Сохранить полученный файл в директорию `legal/autonomo/` под именем `Informe actividades declaradas_2026-10-28.pdf`.
+- [ ] При выявлении расхождений направить запрос хестору Jorge в [Taxfix](https://app.taxfix.es/).
 - [ ] Отметить задачу в Google Tasks как выполненную (нажатием чекбокса в Google Tasks или через CLI `task:complete --id "T0ZDQW1tSV80OURId3lQVg"`).
+
 
 
 

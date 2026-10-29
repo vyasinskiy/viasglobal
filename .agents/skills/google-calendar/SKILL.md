@@ -95,7 +95,25 @@ description: Управляет событиями, дедлайнами и за
   2. Выгрузить из банка подтверждение оплаты (`PAYMENT_RECEIPT` — выписка по карте, переводу или SEPA Direct Debit) и прикрепить к заказу/фактуре (в репозитории и через `POST /orders/:id/taxfix`).
   3. Слинковать загруженную фактуру с банковской транзакцией оплаты в сервисе **Taxfix** и отметить статус сверки (`uploadedToTaxfix: true`, `paymentLinkedInTaxfix: true`).
 
-### 7. Карточка согласования перед созданием:
+### 7. Обязательные прямые ссылки на внешние порталы и сервисы (Запрет на абстрактные указания):
+> [!IMPORTANT]
+> **Категорически запрещено указывать в чек-листе или описании задачи абстрактные фразы вида «зайти в личный кабинет tgss», «проверить на сайте налоговой» без прямой кликабельной ссылки.**
+
+Каждая задача, требующая входа в личный кабинет, проверки статуса или скачивания выписок, **обязана содержать прямую кликабельную ссылку с протоколом `https://`** непосредственно в шаге чек-листа и в блоке `🔗 Порталы и ссылки:`.
+
+#### Реестр типовых порталов и прямых ссылок Viasglobal:
+| Сервис / Портал | Назначение | Прямая ссылка |
+| :--- | :--- | :--- |
+| **TGSS / Import@ss (Autónomos)** | Управление деятельностью самозанятого, выписка *Informe de actividades declaradas*, проверка CNAE и адреса | `https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Trabajo+autonomo` |
+| **TGSS (Informe actividades)** | Прямой заказ и скачивание отчета о заявленных видах деятельности | `https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+actividades+declaradas` |
+| **TGSS (Sede Electrónica)** | Официальный электронный офис Seguridad Social | `https://sede.seg-social.gob.es/` |
+| **AEAT (Agencia Tributaria)** | Налоговая служба Испании (декларации Modelo 303, 130, ценз 036/037) | `https://sede.agenciatributaria.gob.es/` |
+| **Taxfix (Gestoría Online)** | Кабинет налогового учета, загрузка счетов-фактур, переписка с хестором | `https://app.taxfix.es/` |
+| **MITERD / RPP** | Государственный реестр упаковщиков и производителей (RPP) | `https://sede.miteco.gob.es/` |
+| **Procircular (SCRAP)** | Кабинет участника коллективной системы утилизации упаковки | `https://procircular.es/` |
+| **Amazon Seller Central** | Управление продажами, валидация номеров RAP/LUCID, инвентарь FBA | `https://sellercentral-europe.amazon.com/` |
+
+### 8. Карточка согласования перед созданием:
 Перед созданием новой задачи в Google Tasks или события в Календаре ИИ формирует наглядную карточку:
 - 📅 **Дата дедлайна / время**: (например, `дедлайн: 2026-10-27`)
 - 🏷️ **Категория**: `[Legal]` / `[E-commerce]` / `[Tech]`

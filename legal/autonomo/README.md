@@ -76,7 +76,7 @@
 - **Папка кейса**: [cnae-comercio-2026-10-23/README.md](file:///Users/usuario/code/viasglobal/legal/autonomo/cnae-comercio-2026-10-23/README.md)
 - **Проблема**: В выписке TGSS от 23.10.2026 отсутствовал код торговли CNAE 4791 (числились только IT-коды 6290, 6210, 6220), а адрес был устаревшим (Lucena del Cid).
 - **Выполнено**: Хестор Jorge Dorado Rubio оформил изменение 26.10.2026 в 09:31, получен официальный квиток TGSS (Id. CEA: `28DFII5B0DMY`, дата начала 21/09/2026).
-- **Предстоящее действие**: 28.10.2026 выгрузить сводный отчет *Informe de actividades declaradas* в Importass для контроля адреса и финального закрытия задачи в Google Tasks.
+- **Предстоящее действие**: 28.10.2026 выгрузить сводный отчет *Informe de actividades declaradas* в [TGSS Import@ss](https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+actividades+declaradas) для контроля адреса и финального закрытия задачи в Google Tasks (при необходимости связаться с хестором в [Taxfix](https://app.taxfix.es/)).
 - **Активная задача в Google Tasks**: [Открыть задачу Taxfix в Google Tasks](https://tasks.google.com/task/OFCAmmI_49DHwyPV?sa=6) (Дедлайн: `2026-10-28`, ID: `T0ZDQW1tSV80OURId3lQVg`).
 
 
