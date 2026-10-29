@@ -175,6 +175,10 @@ class ExcelReader:
                 info.append((name, sh.nrows, sh.ncols))
             else:
                 sh = self.wb[name]
+                # Пересчитываем реальные размеры листа, игнорируя возможно неверный тег <dimension>
+                if hasattr(sh, "reset_dimensions"):
+                    sh.reset_dimensions()
+                    sh.calculate_dimension(force=True)
                 rows = sh.max_row or "неизвестно"
                 cols = sh.max_column or "неизвестно"
                 info.append((name, rows, cols))
@@ -195,6 +199,11 @@ class ExcelReader:
             return selected_name, xls_gen()
         else:
             sh = self.wb[selected_name]
+            # Сбрасываем закэшированные размеры листа: некоторые генераторы (например, Taxfix)
+            # пишут в XML неверный тег <dimension ref="A1"/>, и в режиме read_only openpyxl
+            # без сброса считает лист пустым. После reset_dimensions() строки читаются полностью.
+            if hasattr(sh, "reset_dimensions"):
+                sh.reset_dimensions()
             return selected_name, sh.iter_rows(values_only=True)
 
     def close(self):
