@@ -24,6 +24,26 @@ export class OrdersController {
   }
 
   /**
+   * Сводный реестр заказов с проверкой загрузки фактур и банковских оплат в налоговый сервис Taxfix
+   * GET /orders/taxfix/status[?onlyPending=true&distributor=...]
+   */
+  @Get('taxfix/status')
+  async getTaxfixStatus(
+    @Query('onlyPending') onlyPending?: string,
+    @Query('distributor') distributor?: string,
+  ) {
+    const isOnlyPending = onlyPending === 'true' || onlyPending === '1';
+    const summary = await this.ordersService.getTaxfixStatusList({
+      onlyPending: isOnlyPending,
+      distributor,
+    });
+    return {
+      status: 'success',
+      ...summary,
+    };
+  }
+
+  /**
    * Детальная карточка заказа, обязательный чек-лист приемки и расчет юнит-экономики
    * GET /orders/:idOrNumber
    */
@@ -92,5 +112,31 @@ export class OrdersController {
   async attachDocument(@Param('id') id: string, @Body() body: any) {
     const doc = await this.ordersService.attachDocument(id, body);
     return { status: 'success', message: 'Документ успешно прикреплен', document: doc };
+  }
+
+  /**
+   * Загрузка счета-фактуры (INVOICE), подтверждения оплаты из банка (PAYMENT_RECEIPT)
+   * и обновление статуса загрузки/линковки в налоговом сервисе Taxfix
+   * POST /orders/:id/taxfix
+   */
+  @Post(':id/taxfix')
+  async updateTaxfixPost(@Param('id') id: string, @Body() body: any) {
+    const result = await this.ordersService.updateTaxfixCompliance(id, body);
+    return {
+      status: 'success',
+      message: result.taxfixCompliance.isCompliant
+        ? 'Счет-фактура и банковская оплата успешно прикреплены и слинкованы в Taxfix'
+        : 'Данные Taxfix и документы обновлены (проверьте pendingActions в taxfixCompliance)',
+      ...result,
+    };
+  }
+
+  /**
+   * Частичное обновление статуса Taxfix или дозагрузка банковской выписки / фактуры (алиас к POST /orders/:id/taxfix)
+   * PATCH /orders/:id/taxfix
+   */
+  @Patch(':id/taxfix')
+  async updateTaxfixPatch(@Param('id') id: string, @Body() body: any) {
+    return this.updateTaxfixPost(id, body);
   }
 }

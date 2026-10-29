@@ -772,7 +772,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
     ```
 
 - **`POST /orders/:id/documents`**
-  - **Описание**: Прикрепление файлов документов или фотографий к заказу в целом или к конкретной товарной позиции (по `sku` или `purchaseOrderItemId`). Поддерживаемые типы `documentType`: `ALBARAN`, `INVOICE`, `SHIPPING_LABEL`, `PAYMENT_RECEIPT`, `RECEIVING_PHOTO`, `MEASUREMENT_PHOTO`, `OTHER`.
+  - **Описание**: Прикрепление файлов документов или фотографий к заказу в целом или к конкретной товарной позиции (по `sku` или `purchaseOrderItemId`). Поддерживаемые типы `documentType`: `ALBARAN`, `INVOICE`, `SHIPPING_LABEL`, `PAYMENT_RECEIPT`, `RECEIVING_PHOTO`, `MEASUREMENT_PHOTO`, `OTHER`. При прикреплении `INVOICE` или `PAYMENT_RECEIPT` в ответе автоматически возвращается блок `taxfixCompliance` со статусом учета в налоговом сервисе **Taxfix**.
   - **Тело запроса**:
     ```json
     {
@@ -782,6 +782,47 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
       "filePath": "ecommerce/contractors/kuken/attachments/secador_box_sides.jpg",
       "notes": "Фото заводской коробки SKU 34316 с разных сторон и штрихкод EAN"
     }
+    ```
+
+- **`GET /orders/taxfix/status[?onlyPending=true&distributor=<имя_или_id>]`**
+  - **Описание**: Сводный реестр всех заказов поставщиков с проверкой налогового комплаенса в сервисе **Taxfix** (`taxfixCompliance`): наличие прикрепленной счет-фактуры (`INVOICE`), наличие прикрепленного подтверждения оплаты из банка (`PAYMENT_RECEIPT`), статус загрузки фактуры в Taxfix (`uploadedToTaxfix`), статус линковки фактуры с банковской транзакцией в Taxfix (`paymentLinkedInTaxfix`), список незавершенных шагов (`pendingActions`) и готовый шаблон задачи `[Legal]` для Google Tasks (`recommendedLegalTask`).
+  - **Примеры запросов**:
+    ```bash
+    # Все заказы со статусом Taxfix:
+    curl -s "http://backend:3000/orders/taxfix/status"
+
+    # Только заказы, где еще не загружена фактура, нет выписки из банка или не выполнена линковка в Taxfix:
+    curl -s "http://backend:3000/orders/taxfix/status?onlyPending=true"
+    ```
+
+- **`POST /orders/:id/taxfix`** (а также **`PATCH /orders/:id/taxfix`**)
+  - **Описание**: Загрузка счета-фактуры поставщика (`INVOICE`), прикрепление подтверждения оплаты из банка (`PAYMENT_RECEIPT` — квитанция SEPA / выписка по карте или переводу) и/или обновление статуса загрузки и линковки в налоговом сервисе **Taxfix**.
+  - **Тело запроса**:
+    ```json
+    {
+      "invoiceFile": {
+        "fileName": "Factura_INV_ES127926_2026-10-29.pdf",
+        "filePath": "ecommerce/contractors/embalaje24/invoices/Factura_INV_ES127926_2026-10-29.pdf",
+        "invoiceNumber": "INV#ES127926",
+        "notes": "Фактура от EMBALAJE24 SL на 18.80 EUR (IVA 21%: 3.25 EUR)"
+      },
+      "paymentReceiptFile": {
+        "fileName": "bank_receipt_ES127926.pdf",
+        "filePath": "ecommerce/contractors/embalaje24/invoices/bank_receipt_ES127926.pdf",
+        "bankReference": "Карта / Shopify Payments 18.80 EUR от 29.10.2026",
+        "notes": "Выписка из банка о списании 18.80 EUR"
+      },
+      "uploadedToTaxfix": true,
+      "paymentLinkedInTaxfix": true,
+      "bankReference": "Карта 18.80 EUR от 29.10.2026",
+      "notes": "Фактура загружена в Taxfix и слинкована с банковской оплатой"
+    }
+    ```
+  - **Пример запроса**:
+    ```bash
+    curl -s -X POST http://backend:3000/orders/26ALV-0074072/taxfix \
+      -H "Content-Type: application/json" \
+      -d '{"invoiceFile":{"fileName":"Factura_AlfaDyser.pdf","filePath":"ecommerce/contractors/kuken/attachments/Factura_AlfaDyser.pdf","invoiceNumber":"26FA-00123"},"uploadedToTaxfix":false,"paymentLinkedInTaxfix":false}'
     ```
 
 ---
@@ -903,6 +944,37 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 4. **Шаг 3. Согласование проекта и отправка запроса**:
    - Вышли пользователю сводный проект приемки (или корректировки приемки) со всеми полями (даты получения и приемки, проверенные и пропущенные с причиной документы, результаты тройной сверки EAN по каждой позиции, количество, замеры, распределение СВХ/MAIN и полный текст комментариев приемки).
    - После явного подтверждения пользователя выполни `POST http://backend:3000/orders/:id/receive` (или `PATCH http://backend:3000/orders/:id/receive`).
+
+---
+
+### 5.11. Обязательное бизнес-правило учета счетов-фактур (Factura), банковских оплат и налогового сервиса Taxfix (для OpenClaw)
+
+Каждый раз, когда владелец присылает счет-фактуру (`Factura` / `INVOICE`) или банковскую выписку об оплате (`Justificante de pago` / `PAYMENT_RECEIPT`), либо спрашивает про статус фактур и **Taxfix**:
+
+1. **Правило трех обязательных компонентов для каждой фактуры**:
+   - **Компонент 1 (`INVOICE`)**: Официальная счет-фактура с проверенными налоговыми реквизитами (`Vitalii Iasinskii`, NIF `ESZ1154366R`, `Ronda Albocacer 11, 12166 Els Ibarsos, Castellón`).
+   - **Компонент 2 (`PAYMENT_RECEIPT`)**: Документальное подтверждение факта оплаты из банка (выписка по банковской карте, переводу или списанию SEPA Direct Debit), прикрепленное к этой же фактуре/заказу.
+   - **Компонент 3 (`Taxfix UPLOADED + LINKED`)**: Загрузка самой фактуры в налоговый сервис **Taxfix** и обязательная **линковка фактуры с соответствующей банковской транзакцией оплаты внутри сервиса Taxfix**.
+
+2. **Как работать с фактурами и оплатами через OpenClaw**:
+   - Чтобы проверить, по каким заказам не хватает фактуры, банковской квитанции об оплате или линковки в Taxfix:
+     ```bash
+     curl -s "http://backend:3000/orders/taxfix/status?onlyPending=true"
+     ```
+   - Чтобы прикрепить присланный файл фактуры (`invoiceFile`), файл банковской выписки (`paymentReceiptFile`) или отметить статус загрузки (`uploadedToTaxfix`) и линковки (`paymentLinkedInTaxfix`) в Taxfix (после подтверждения пользователя):
+     ```bash
+     curl -s -X POST "http://backend:3000/orders/<orderIdOrNumber>/taxfix" \
+       -H "Content-Type: application/json" \
+       -d '{"invoiceFile":{"fileName":"...","filePath":"...","invoiceNumber":"..."},"paymentReceiptFile":{"fileName":"...","filePath":"...","bankReference":"..."},"uploadedToTaxfix":true,"paymentLinkedInTaxfix":true}'
+     ```
+
+3. **Автоматическое создание задачи категории `[Legal]` в Google Tasks**:
+   - При получении любой новой фактуры агент обязан предложить пользователю создать задачу в **Google Tasks** в категории **`[Legal]`** (используя шаблон `taxfixCompliance.recommendedLegalTask` из ответа API):
+     - **Заголовок**: `[Legal]: Taxfix — Загрузить фактуру <Номер> (<Поставщик>) и слинковать с банковской оплатой`
+     - **Чек-лист**:
+       1. Проверить реквизиты в фактуре (`Vitalii Iasinskii`, NIF `ESZ1154366R`) и загрузить PDF фактуры в сервис **Taxfix**.
+       2. Выгрузить из банка подтверждение оплаты (`PAYMENT_RECEIPT`) и прикрепить его к заказу.
+       3. Слинковать фактуру с банковской транзакцией оплаты в сервисе **Taxfix** и отметить `uploadedToTaxfix: true, paymentLinkedInTaxfix: true`.
 
 ---
 

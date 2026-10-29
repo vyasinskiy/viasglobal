@@ -90,3 +90,4 @@
 ### Контрольные задачи в Google Tasks:
 - ✅ [E-commerce: Замерить коробки KUKEN и оплатить упаковку в Embalaje24](https://tasks.google.com/task/qWU4emNQafHxmqk7?sa=6) (Дедлайн: `2026-10-29`, ID: `cVdVNGVtTlFhZkh4bXFrNw`) — **выполнено 29.10.2026** (замеры проведены, заказ `#ES127926` оплачен).
 - ⏳ **[E-commerce: Принять доставку курьерских пакетов от Embalaje24 (заказ #ES127926)](https://tasks.google.com/task/T0SD3S0z3r5-3BY2?sa=6)** (Дедлайн: `2026-10-31`, ID: `VDBTRDNTMHozcjUtM0JZMg`) — активная задача на приемку 100 пакетов и контрольную примерку на товарах KUKEN и Safta.
+- ⏳ **[[Legal]: Taxfix — Загрузить фактуру INV#ES127926 (EMBALAJE24 SL) и слинковать с банковской оплатой](https://tasks.google.com/task/5gV43FQXnoNv2BlA?sa=6)** (Дедлайн: `2026-10-30`, ID: `NWdWNDNGUVhub052MkJsQQ`) — активная задача на загрузку фактуры `INV#ES127926`, прикрепление выписки об оплате `18,80 €` из банка и линковку в сервисе **Taxfix**.

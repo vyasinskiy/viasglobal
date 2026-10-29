@@ -63,6 +63,133 @@ export class OrdersService {
   }
 
   /**
+   * Вычисление статуса налогового комплаенса Taxfix по заказу:
+   * 1) Наличие прикрепленной фактуры поставщика (INVOICE),
+   * 2) Наличие прикрепленного документа факта оплаты из банка (PAYMENT_RECEIPT),
+   * 3) Загрузка фактуры в сервис Taxfix (uploadedToTaxfix),
+   * 4) Линковка фактуры с банковской транзакцией оплаты в Taxfix (paymentLinkedInTaxfix).
+   */
+  public computeTaxfixCompliance(order: {
+    id: number;
+    orderNumber: string;
+    paymentStatus?: string | null;
+    notes?: string | null;
+    distributor?: { name?: string | null } | null;
+    documents?: Array<{
+      id?: number;
+      documentType: OrderDocumentType | string;
+      fileName: string;
+      filePath: string;
+      notes?: string | null;
+      createdAt?: Date | string;
+    }>;
+  }) {
+    const docs = order.documents ?? [];
+    // Отбираем прикрепленные счета-фактуры и банковские подтверждения оплаты
+    const invoices = docs.filter((d) => d.documentType === OrderDocumentType.INVOICE);
+    const paymentReceipts = docs.filter((d) => d.documentType === OrderDocumentType.PAYMENT_RECEIPT);
+
+    const hasInvoice = invoices.length > 0;
+    const hasPaymentReceipt = paymentReceipts.length > 0;
+
+    // Извлекаем метаданные Taxfix из структурированного тега [TAXFIX: UPLOADED=..., LINKED=..., REF=...] в примечаниях заказа или документов
+    const combinedNotes = [
+      order.notes ?? '',
+      ...invoices.map((i) => i.notes ?? ''),
+      ...paymentReceipts.map((p) => p.notes ?? ''),
+    ].join('\n');
+
+    const uploadedMatch = combinedNotes.match(/UPLOADED=(true|false)/i);
+    const linkedMatch = combinedNotes.match(/LINKED=(true|false)/i);
+    const refMatch = combinedNotes.match(/REF=([^\]|;\n]+)/i);
+
+    const uploadedToTaxfix = uploadedMatch ? uploadedMatch[1].toLowerCase() === 'true' : false;
+    const paymentLinkedInTaxfix = linkedMatch ? linkedMatch[1].toLowerCase() === 'true' : false;
+    const bankReference = refMatch ? refMatch[1].trim() : null;
+
+    // Формируем список незавершенных шагов по бизнес-правилу Taxfix
+    const pendingActions: string[] = [];
+    if (!hasInvoice) {
+      pendingActions.push('Получить и загрузить счет-фактуру поставщика (INVOICE)');
+    }
+    if (!hasPaymentReceipt) {
+      pendingActions.push('Выгрузить из банка и прикрепить подтверждение оплаты (PAYMENT_RECEIPT)');
+    }
+    if (!uploadedToTaxfix) {
+      pendingActions.push('Загрузить счет-фактуру в налоговый сервис Taxfix');
+    }
+    if (!paymentLinkedInTaxfix) {
+      pendingActions.push('Слинковать счет-фактуру с банковской транзакцией оплаты в сервисе Taxfix');
+    }
+
+    // Определяем сводный статус Taxfix для заказа
+    let status:
+      | 'MISSING_INVOICE'
+      | 'PENDING_TAXFIX_AND_PAYMENT'
+      | 'PENDING_BANK_RECEIPT'
+      | 'PENDING_TAXFIX_UPLOAD'
+      | 'PENDING_TAXFIX_LINK'
+      | 'COMPLETED';
+
+    if (hasInvoice && hasPaymentReceipt && uploadedToTaxfix && paymentLinkedInTaxfix) {
+      status = 'COMPLETED';
+    } else if (!hasInvoice) {
+      status = 'MISSING_INVOICE';
+    } else if (!hasPaymentReceipt && !uploadedToTaxfix) {
+      status = 'PENDING_TAXFIX_AND_PAYMENT';
+    } else if (!hasPaymentReceipt) {
+      status = 'PENDING_BANK_RECEIPT';
+    } else if (!uploadedToTaxfix) {
+      status = 'PENDING_TAXFIX_UPLOAD';
+    } else {
+      status = 'PENDING_TAXFIX_LINK';
+    }
+
+    const supplierName = order.distributor?.name || 'Поставщик';
+    const invoiceLabel = invoices[0]?.fileName || order.orderNumber;
+
+    // Если процесс по Taxfix еще не завершен полностью, формируем готовый шаблон задачи [Legal] для Google Tasks
+    const recommendedLegalTask =
+      status === 'COMPLETED'
+        ? null
+        : {
+            category: 'Legal',
+            title: `[Legal]: Taxfix — Загрузить фактуру по заказу ${order.orderNumber} (${supplierName}) и слинковать с банковской оплатой`,
+            checklist: [
+              `1. Проверить реквизиты в фактуре ${invoiceLabel} (Vitalii Iasinskii, NIF ESZ1154366R, Ronda Albocacer 11, 12166 Els Ibarsos) и загрузить PDF фактуры в сервис Taxfix.`,
+              `2. Выгрузить из банка подтверждение оплаты (PAYMENT_RECEIPT: выписка SEPA / карта / перевод) и прикрепить к заказу через POST /orders/${order.orderNumber}/taxfix.`,
+              `3. Слинковать загруженную фактуру с фактом оплаты из банка внутри сервиса Taxfix и отметить статус LINKED.`,
+            ],
+          };
+
+    return {
+      status,
+      isCompliant: status === 'COMPLETED',
+      hasInvoice,
+      hasPaymentReceipt,
+      uploadedToTaxfix,
+      paymentLinkedInTaxfix,
+      bankReference,
+      invoices: invoices.map((i) => ({
+        id: i.id,
+        fileName: i.fileName,
+        filePath: i.filePath,
+        notes: i.notes,
+        createdAt: i.createdAt,
+      })),
+      paymentReceipts: paymentReceipts.map((p) => ({
+        id: p.id,
+        fileName: p.fileName,
+        filePath: p.filePath,
+        notes: p.notes,
+        createdAt: p.createdAt,
+      })),
+      pendingActions,
+      recommendedLegalTask,
+    };
+  }
+
+  /**
    * Создать новый заказ на закупку (партию)
    */
   async createOrder(data: {
@@ -401,6 +528,8 @@ export class OrdersService {
       documents: order.documents,
       stockMovements: order.stockMovements,
       notes: order.notes,
+      // Статус налогового учета фактуры и привязки банковской оплаты в сервисе Taxfix
+      taxfixCompliance: this.computeTaxfixCompliance(order),
       // Структурированный регламент и текущий прогресс двухфазной приемки (партия -> позиции)
       receivingChecklist: {
         isAlreadyReceived,
@@ -1086,7 +1215,7 @@ export class OrdersService {
       resolvedItemId = matchedItem.id;
     }
 
-    return this.prisma.orderDocument.create({
+    const createdDoc = await this.prisma.orderDocument.create({
       data: {
         distributorId: order.distributorId,
         purchaseOrderId: order.id,
@@ -1098,6 +1227,240 @@ export class OrdersService {
         mimeType: doc.mimeType,
         notes: doc.notes,
       },
+    });
+
+    // Если прикреплен финансовый документ (INVOICE или PAYMENT_RECEIPT), пересчитываем статус Taxfix
+    const updatedOrderWithDocs = await this.prisma.purchaseOrder.findUnique({
+      where: { id: order.id },
+      include: { distributor: true, documents: true },
+    });
+
+    const taxfixCompliance = updatedOrderWithDocs
+      ? this.computeTaxfixCompliance(updatedOrderWithDocs)
+      : undefined;
+
+    return {
+      ...createdDoc,
+      taxfixCompliance,
+    };
+  }
+
+  /**
+   * Получить сводный реестр всех заказов с проверкой загрузки фактур и банковских оплат в сервис Taxfix
+   */
+  async getTaxfixStatusList(filters?: { onlyPending?: boolean; distributor?: string | number }) {
+    const orders = await this.getOrders({ distributor: filters?.distributor });
+    const items = orders.map((order) => {
+      const compliance = this.computeTaxfixCompliance(order);
+      return {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        orderDate: order.orderDate,
+        status: order.status,
+        totalGross: order.totalGross,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        supplier: order.distributor,
+        taxfixCompliance: compliance,
+      };
+    });
+
+    const filteredItems = filters?.onlyPending
+      ? items.filter((item) => !item.taxfixCompliance.isCompliant)
+      : items;
+
+    return {
+      totalOrders: filteredItems.length,
+      completedCount: filteredItems.filter((i) => i.taxfixCompliance.isCompliant).length,
+      pendingCount: filteredItems.filter((i) => !i.taxfixCompliance.isCompliant).length,
+      missingInvoiceCount: filteredItems.filter((i) => !i.taxfixCompliance.hasInvoice).length,
+      missingPaymentReceiptCount: filteredItems.filter((i) => !i.taxfixCompliance.hasPaymentReceipt).length,
+      pendingTaxfixUploadCount: filteredItems.filter((i) => !i.taxfixCompliance.uploadedToTaxfix).length,
+      pendingTaxfixLinkCount: filteredItems.filter((i) => !i.taxfixCompliance.paymentLinkedInTaxfix).length,
+      orders: filteredItems,
+    };
+  }
+
+  /**
+   * Загрузить фактуру (INVOICE), факт оплаты из банка (PAYMENT_RECEIPT) и/или обновить статус сверки в сервисе Taxfix
+   */
+  async updateTaxfixCompliance(
+    orderIdOrNumber: number | string,
+    data: {
+      // Файл счета-фактуры поставщика (если прикрепляется при вызове)
+      invoiceFile?: {
+        fileName: string;
+        filePath: string;
+        fileSize?: number;
+        mimeType?: string;
+        invoiceNumber?: string;
+        notes?: string;
+      };
+      // Файл подтверждения оплаты из банка (квитанция SEPA / выписка по карте / переводу)
+      paymentReceiptFile?: {
+        fileName: string;
+        filePath: string;
+        fileSize?: number;
+        mimeType?: string;
+        bankReference?: string;
+        notes?: string;
+      };
+      // Отметка о загрузке фактуры в налоговый сервис Taxfix
+      uploadedToTaxfix?: boolean;
+      // Отметка о линковке фактуры с банковской оплатой внутри Taxfix
+      paymentLinkedInTaxfix?: boolean;
+      // Номер/референс банковской транзакции или способа оплаты
+      bankReference?: string;
+      // Обновление статуса оплаты заказа (PENDING / PAID)
+      paymentStatus?: string;
+      // Дополнительный комментарий по налоговому учету
+      notes?: string;
+    },
+  ) {
+    this.validateNoPlaceholders('orderId', orderIdOrNumber);
+    if (data?.invoiceFile) {
+      this.validateNoPlaceholders('invoiceFile.fileName', data.invoiceFile.fileName);
+      this.validateNoPlaceholders('invoiceFile.filePath', data.invoiceFile.filePath);
+    }
+    if (data?.paymentReceiptFile) {
+      this.validateNoPlaceholders('paymentReceiptFile.fileName', data.paymentReceiptFile.fileName);
+      this.validateNoPlaceholders('paymentReceiptFile.filePath', data.paymentReceiptFile.filePath);
+    }
+
+    const isNumericId =
+      typeof orderIdOrNumber === 'number' ||
+      (!isNaN(Number(orderIdOrNumber)) && !String(orderIdOrNumber).includes('-'));
+
+    const order = isNumericId
+      ? await this.prisma.purchaseOrder.findUnique({
+          where: { id: Number(orderIdOrNumber) },
+          include: { distributor: true, documents: true },
+        })
+      : await this.prisma.purchaseOrder.findFirst({
+          where: { orderNumber: String(orderIdOrNumber).trim() },
+          include: { distributor: true, documents: true },
+        });
+
+    if (!order) {
+      throw new NotFoundException(`Заказ "${orderIdOrNumber}" не найден`);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const createdDocs: any[] = [];
+
+      // 1. Если передан файл фактуры (INVOICE), сохраняем его в OrderDocument
+      if (data?.invoiceFile) {
+        const invNoteParts: string[] = [];
+        if (data.invoiceFile.invoiceNumber) {
+          invNoteParts.push(`Factura № ${data.invoiceFile.invoiceNumber}`);
+        }
+        if (data.invoiceFile.notes) {
+          invNoteParts.push(data.invoiceFile.notes.trim());
+        }
+        const createdInvoice = await tx.orderDocument.create({
+          data: {
+            distributorId: order.distributorId,
+            purchaseOrderId: order.id,
+            documentType: OrderDocumentType.INVOICE,
+            fileName: data.invoiceFile.fileName.trim(),
+            filePath: data.invoiceFile.filePath.trim(),
+            fileSize: data.invoiceFile.fileSize,
+            mimeType: data.invoiceFile.mimeType ?? 'application/pdf',
+            notes: invNoteParts.length > 0 ? invNoteParts.join(' | ') : 'Счет-фактура поставщика (Factura)',
+          },
+        });
+        createdDocs.push(createdInvoice);
+      }
+
+      // 2. Если передан файл банковского подтверждения оплаты (PAYMENT_RECEIPT), сохраняем его в OrderDocument
+      if (data?.paymentReceiptFile) {
+        const payNoteParts: string[] = [];
+        const bankRef = data.paymentReceiptFile.bankReference ?? data.bankReference;
+        if (bankRef) {
+          payNoteParts.push(`Банковская оплата: ${bankRef}`);
+        }
+        if (data.paymentReceiptFile.notes) {
+          payNoteParts.push(data.paymentReceiptFile.notes.trim());
+        }
+        const createdReceipt = await tx.orderDocument.create({
+          data: {
+            distributorId: order.distributorId,
+            purchaseOrderId: order.id,
+            documentType: OrderDocumentType.PAYMENT_RECEIPT,
+            fileName: data.paymentReceiptFile.fileName.trim(),
+            filePath: data.paymentReceiptFile.filePath.trim(),
+            fileSize: data.paymentReceiptFile.fileSize,
+            mimeType: data.paymentReceiptFile.mimeType ?? 'application/pdf',
+            notes:
+              payNoteParts.length > 0
+                ? payNoteParts.join(' | ')
+                : 'Подтверждение оплаты из банка (Justificante de pago)',
+          },
+        });
+        createdDocs.push(createdReceipt);
+      }
+
+      // 3. Вычисляем актуальные значения флагов Taxfix (сохраняя ранее установленные, если новые не переданы)
+      const prevCompliance = this.computeTaxfixCompliance(order);
+      const nextUploaded =
+        data?.uploadedToTaxfix !== undefined ? data.uploadedToTaxfix : prevCompliance.uploadedToTaxfix;
+      const nextLinked =
+        data?.paymentLinkedInTaxfix !== undefined
+          ? data.paymentLinkedInTaxfix
+          : prevCompliance.paymentLinkedInTaxfix;
+      const nextBankRef =
+        data?.bankReference ??
+        data?.paymentReceiptFile?.bankReference ??
+        prevCompliance.bankReference ??
+        null;
+
+      // Формируем структурированный тег [TAXFIX: ...] в примечании заказа
+      const taxfixTagParts = [`UPLOADED=${nextUploaded}`, `LINKED=${nextLinked}`];
+      if (nextBankRef) {
+        taxfixTagParts.push(`REF=${nextBankRef}`);
+      }
+      const taxfixTag = `[TAXFIX: ${taxfixTagParts.join(', ')}]`;
+
+      let cleanedNotes = (order.notes ?? '').replace(/\[TAXFIX:[^\]]*\]\s*/g, '').trim();
+      if (data?.notes && data.notes.trim() && !cleanedNotes.includes(data.notes.trim())) {
+        cleanedNotes = cleanedNotes ? `${cleanedNotes} | ${data.notes.trim()}` : data.notes.trim();
+      }
+      const finalOrderNotes = cleanedNotes ? `${cleanedNotes}\n${taxfixTag}` : taxfixTag;
+
+      // Если прикреплен документ об оплате или слинкована оплата в Taxfix, статус оплаты заказа переходит в PAID
+      const nextPaymentStatus =
+        data?.paymentStatus ??
+        (data?.paymentReceiptFile || nextLinked ? 'PAID' : order.paymentStatus);
+
+      const updatedOrder = await tx.purchaseOrder.update({
+        where: { id: order.id },
+        data: {
+          notes: finalOrderNotes,
+          paymentStatus: nextPaymentStatus,
+        },
+        include: {
+          distributor: true,
+          documents: true,
+        },
+      });
+
+      const finalOrderForCompliance = {
+        ...order,
+        ...updatedOrder,
+        notes: finalOrderNotes,
+        paymentStatus: nextPaymentStatus,
+        documents: [...(order.documents ?? []), ...createdDocs],
+      };
+
+      const taxfixCompliance = this.computeTaxfixCompliance(finalOrderForCompliance);
+
+      return {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        paymentStatus: nextPaymentStatus,
+        attachedDocumentsCount: createdDocs.length,
+        taxfixCompliance,
+      };
     });
   }
 }

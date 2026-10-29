@@ -896,4 +896,83 @@ describe('Подсистема закупок, приемки товара, ск
       }),
     });
   });
+
+  it('при загрузке фактуры (INVOICE) без выписки из банка система должна требовать прикрепления банковской оплаты и формировать задачу категории [Legal] для Taxfix', async () => {
+    const orderWithoutDocs = {
+      id: 202,
+      orderNumber: 'ES127926',
+      distributorId: 9,
+      paymentStatus: 'PENDING',
+      notes: 'Заказ упаковки Embalaje24',
+      distributor: { id: 9, name: 'EMBALAJE24, S.L.' },
+      documents: [],
+    };
+
+    mockPrismaService.purchaseOrder.findFirst.mockResolvedValue(orderWithoutDocs);
+    mockPrismaService.orderDocument.create.mockImplementation(async (args) => ({
+      id: 501,
+      ...args.data,
+    }));
+    mockPrismaService.purchaseOrder.update.mockImplementation(async (args) => ({
+      ...orderWithoutDocs,
+      ...args.data,
+    }));
+
+    // Шаг 1: Пользователь загружает только счет-фактуру INV#ES127926
+    const step1 = await ordersService.updateTaxfixCompliance('ES127926', {
+      invoiceFile: {
+        fileName: 'Factura_INV_ES127926_2026-10-29.pdf',
+        filePath: '../contractors/embalaje24/invoices/Factura_INV_ES127926_2026-10-29.pdf',
+        invoiceNumber: 'INV#ES127926',
+        notes: 'Фактура 18.80 EUR (IVA 3.25 EUR)',
+      },
+    });
+
+    expect(step1.taxfixCompliance.hasInvoice).toBe(true);
+    expect(step1.taxfixCompliance.hasPaymentReceipt).toBe(false);
+    expect(step1.taxfixCompliance.uploadedToTaxfix).toBe(false);
+    expect(step1.taxfixCompliance.paymentLinkedInTaxfix).toBe(false);
+    expect(step1.taxfixCompliance.status).toBe('PENDING_TAXFIX_AND_PAYMENT');
+    expect(step1.taxfixCompliance.recommendedLegalTask).toEqual(
+      expect.objectContaining({
+        category: 'Legal',
+        title: '[Legal]: Taxfix — Загрузить фактуру по заказу ES127926 (EMBALAJE24, S.L.) и слинковать с банковской оплатой',
+      }),
+    );
+
+    // Шаг 2: Прикрепляем выписку об оплате из банка (PAYMENT_RECEIPT) и отмечаем загрузку и линковку в Taxfix
+    mockPrismaService.purchaseOrder.findFirst.mockResolvedValue({
+      ...orderWithoutDocs,
+      notes: 'Заказ упаковки Embalaje24\n[TAXFIX: UPLOADED=false, LINKED=false]',
+      documents: [
+        {
+          id: 501,
+          documentType: 'INVOICE',
+          fileName: 'Factura_INV_ES127926_2026-10-29.pdf',
+          filePath: '../contractors/embalaje24/invoices/Factura_INV_ES127926_2026-10-29.pdf',
+          notes: 'Factura № INV#ES127926',
+        },
+      ],
+    });
+
+    const step2 = await ordersService.updateTaxfixCompliance('ES127926', {
+      paymentReceiptFile: {
+        fileName: 'bank_receipt_ES127926.pdf',
+        filePath: '../contractors/embalaje24/invoices/bank_receipt_ES127926.pdf',
+        bankReference: 'Карта 18.80 EUR от 29.10.2026',
+      },
+      uploadedToTaxfix: true,
+      paymentLinkedInTaxfix: true,
+    });
+
+    expect(step2.paymentStatus).toBe('PAID');
+    expect(step2.taxfixCompliance.isCompliant).toBe(true);
+    expect(step2.taxfixCompliance.status).toBe('COMPLETED');
+    expect(step2.taxfixCompliance.hasInvoice).toBe(true);
+    expect(step2.taxfixCompliance.hasPaymentReceipt).toBe(true);
+    expect(step2.taxfixCompliance.uploadedToTaxfix).toBe(true);
+    expect(step2.taxfixCompliance.paymentLinkedInTaxfix).toBe(true);
+    expect(step2.taxfixCompliance.bankReference).toBe('Карта 18.80 EUR от 29.10.2026');
+    expect(step2.taxfixCompliance.recommendedLegalTask).toBeNull();
+  });
 });
