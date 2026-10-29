@@ -978,6 +978,58 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 
 ---
 
+### 5.12. Сводный финансовый учет и консолидированный дашборд (`/finance`)
+
+- **`GET /finance/dashboard[?year=2026&eurRubRate=105]`**
+  - **Описание**: Получить консолидированную финансовую аналитику доходов, расходов, налогов и чистой прибыли по всем трем видам экономической деятельности:
+    1. **IT-разработка** (Autónomo IAE 763 / CNAE 6201): авто-учет ежемесячного инвойса на 4 000 € в конце каждого месяца, статус генерации Word/PDF и выпуска электронной фактуры в гос. системе Испании через Taxfix.
+    2. **E-Commerce Amazon Wholesale** (Autónomo IAE 665 / CNAE 4791): закупки у дистрибьюторов (PurchaseOrder: Netto, IVA + RE 1.262, эко-таса RAEE), продажи (SalesOrder: выручка, комиссии, FBM логистика, FIFO себестоимость), операционные расходы (упаковка Embalaje24, софт, взносы RAP/SCRAP).
+    3. **Аренда недвижимости** (РФ, отдельное юрлицо): поступления от жильцов в рублях, расходы на коммунальные платежи ЖКУ, пересчет в EUR по курсу и изоляция от налоговой базы Испании.
+  - **Пример**:
+    ```bash
+    curl -s "http://backend:3000/finance/dashboard?year=2026"
+    ```
+
+- **`GET /finance/ledger[?year=2026&segment=IT_DEV|ECOMMERCE|COMMON_AUTONOMO]`**
+  - **Описание**: Реестр финансовых записей и счетов-фактур Autónomo.
+  - **Пример**:
+    ```bash
+    curl -s "http://backend:3000/finance/ledger?year=2026"
+    ```
+
+- **`POST /finance/ledger`**
+  - **Описание**: Создание новой финансовой записи (выставленный IT-инвойс или полученная фактура расходов: упаковка, софт, квота Autónomo, Taxfix).
+  - **Тело запроса**:
+    ```json
+    {
+      "segment": "IT_DEV",
+      "type": "INCOME",
+      "date": "2026-10-31",
+      "invoiceNumber": "FACT-IT-2026-10",
+      "counterpartyName": "IT B2B Client",
+      "description": "IT Architecture & Software Development Services",
+      "amountNetto": 4000,
+      "vatRate": 0,
+      "createdInTaxfix": true,
+      "paymentStatus": "PAID"
+    }
+    ```
+
+- **`PATCH /finance/ledger/:id`**
+  - **Описание**: Обновление финансовой записи или отметка о выпуске электронной фактуры и линковке в сервисе Taxfix.
+
+- **`GET /finance/it-invoice/:idOrPeriod/document`**
+  - **Описание**: Генерация официального шаблона инвойса для сохранения в Word (.doc) и печати в PDF со всеми налоговыми реквизитами (ROI/VIES ESZ1154366R, IAE 763) и готовым телом для отправки в Taxfix.
+  - **Пример**:
+    ```bash
+    curl -s "http://backend:3000/finance/it-invoice/2026-10/document"
+    ```
+
+- **`PATCH /finance/settings`**
+  - **Описание**: Обновление настроек курса валют EUR/RUB и параметров ежемесячного IT-инвойса по умолчанию.
+
+---
+
 ## 6. API сервиса Viaslangs — Тренажер испанского и аналитика сессий (`viaslangs-web:3000`)
 
 Базовый URL: `http://localhost:3000` (локально) или `https://langs.viasglobal.es`

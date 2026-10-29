@@ -1,0 +1,291 @@
+'use client';
+import * as React from 'react';
+import { useState, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import useSWR from 'swr';
+import axios from 'axios';
+import styles from '../../shared-table.module.css';
+
+// MUI Components
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import EditIcon from '@mui/icons-material/Edit';
+import TextField from '@mui/material/TextField';
+
+interface Account {
+  id: number;
+  externalId: string;
+  apartmentId: number;
+  accountNumber: string | null;
+  accountLabel: string | null;
+  customLabel: string | null;
+  balance: string | number | null;
+  firstSeenAt: string;
+  apartment?: {
+    address: string | null;
+  };
+  _count?: {
+    invoices: number;
+  };
+}
+
+const fetcher = (url: string) => axios.get(url).then(res => res.data);
+
+export default function AccountsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const apartmentIdParam = searchParams.get('apartmentId');
+  const [search, setSearch] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const apiUrl = apartmentIdParam 
+    ? `/api/accounts?apartmentId=${apartmentIdParam}` 
+    : '/api/accounts';
+
+  const { data: accounts, error, isLoading, mutate } = useSWR<Account[]>(apiUrl, fetcher);
+
+  const [editAccount, setEditAccount] = useState<Account | null>(null);
+  const [formCustomLabel, setFormCustomLabel] = useState('');
+
+  const filteredAccounts = useMemo(() => {
+    if (!accounts) return [];
+    return accounts.filter(item => {
+      const numMatch = item.accountNumber?.toLowerCase().includes(search.toLowerCase()) ?? false;
+      const customMatch = item.customLabel?.toLowerCase().includes(search.toLowerCase()) ?? false;
+      const labelMatch = item.accountLabel?.toLowerCase().includes(search.toLowerCase()) ?? false;
+      const addressMatch = item.apartment?.address?.toLowerCase().includes(search.toLowerCase()) ?? false;
+      return numMatch || customMatch || labelMatch || addressMatch;
+    });
+  }, [accounts, search]);
+
+  if (isLoading) return <div className={styles.emptyState}>Загрузка лицевых счетов...</div>;
+  if (error) return <div className={styles.emptyState}>Ошибка загрузки лицевых счетов.</div>;
+
+  const handleRowClick = (id: number) => {
+    router.push(`/rent/accounts/${id}`);
+  };
+
+  const handleClearFilter = () => {
+    router.push('/rent/accounts');
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    setDeleteId(id);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, account: Account) => {
+    e.stopPropagation();
+    setEditAccount(account);
+    setFormCustomLabel(account.customLabel || '');
+  };
+
+  // Обработчик сохранения изменений лицевого счета
+  const handleSaveEdit = async () => {
+    if (!editAccount) return;
+    try {
+      // Отправляем обновленное название счета
+      await axios.put(`/api/accounts/${editAccount.id}`, {
+        customLabel: formCustomLabel.trim() || null,
+      });
+      // Обновляем данные таблицы через SWR
+      mutate();
+      // Закрываем модальное окно редактирования
+      setEditAccount(null);
+    } catch (err: any) {
+      // Извлекаем детальный текст ошибки из ответа бэкенда при сбое
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Неизвестная ошибка';
+      alert(`Ошибка при сохранении лицевого счета: ${msg}`);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await axios.delete(`/api/accounts/${deleteId}`);
+      mutate();
+    } catch (err: unknown) {
+      alert('Ошибка при удалении лицевого счета.');
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* Search and Filters */}
+      <div className={styles.filterCard}>
+        <div className={styles.searchWrapper}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Поиск по номеру ЛС, названию или адресу..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        
+        {apartmentIdParam && (
+          <div className={styles.activeFilterBadge}>
+            <span>Показаны ЛС квартиры #{apartmentIdParam}</span>
+            <button className={styles.clearFilterBtn} onClick={handleClearFilter} title="Сбросить фильтр">
+              <CloseIcon style={{ fontSize: '1rem' }} />
+            </button>
+          </div>
+        )}
+
+        <div>
+          Найдено лицевых счетов: {filteredAccounts.length}
+        </div>
+      </div>
+
+      {/* Table */}
+      <TableContainer component={Paper} className={styles.tableCard}>
+        <Table aria-label="accounts table">
+          <TableHead>
+            <TableRow>
+              <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Номер ЛС</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Название</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Баланс</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Адрес квартиры</TableCell>
+              <TableCell style={{ fontWeight: 'bold' }}>Инвойсы</TableCell>
+              <TableCell style={{ fontWeight: 'bold', textAlign: 'center' }}>Действия</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredAccounts.length > 0 ? (
+              filteredAccounts.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className={styles.interactiveRow}
+                  onClick={() => handleRowClick(row.id)}
+                >
+                  <TableCell>{row.id}</TableCell>
+                  <TableCell style={{ fontWeight: 600 }}>{row.accountNumber || '—'}</TableCell>
+                  <TableCell>{row.customLabel || row.accountLabel || '—'}</TableCell>
+                  <TableCell style={{ 
+                    fontWeight: 600, 
+                    color: Number(row.balance) < 0 ? '#ef4444' : '#0f172a' 
+                  }}>
+                    {row.balance !== null ? `${Number(row.balance).toFixed(2)} руб.` : '—'}
+                  </TableCell>
+                  <TableCell style={{ color: '#475569' }}>{row.apartment?.address || '—'}</TableCell>
+                  <TableCell style={{ color: '#2563eb', fontWeight: 600 }}>
+                    {row._count?.invoices ?? 0} шт.
+                  </TableCell>
+                  <TableCell style={{ textAlign: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                      <button
+                        className={styles.downloadLink}
+                        style={{ padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none', border: 'none', cursor: 'pointer', backgroundColor: '#2563eb', color: '#fff' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/rent/invoices?create=true&accountId=${row.id}`);
+                        }}
+                      >
+                        <AddIcon style={{ fontSize: '0.9rem' }} />
+                        Выставить счет
+                      </button>
+                      <button
+                        className={styles.downloadLink}
+                        style={{ padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none', border: '1px solid #cbd5e1', cursor: 'pointer', backgroundColor: '#fff', color: '#475569' }}
+                        onClick={(e) => handleEditClick(e, row)}
+                      >
+                        <EditIcon style={{ fontSize: '0.9rem' }} />
+                        Изменить
+                      </button>
+                      <button
+                        className={styles.rejectBtn}
+                        style={{ padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        onClick={(e) => handleDeleteClick(e, row.id)}
+                      >
+                        <DeleteIcon style={{ fontSize: '0.9rem' }} />
+                        Удалить
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <div className={styles.emptyState}>Лицевые счета не найдены</div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* MUI Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteId !== null}
+        onClose={() => setDeleteId(null)}
+        aria-labelledby="delete-account-title"
+        aria-describedby="delete-account-description"
+      >
+        <DialogTitle id="delete-account-title" style={{ fontWeight: 700 }}>
+          Подтверждение удаления лицевого счета
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-account-description">
+            Вы действительно хотите удалить этот лицевой счет? Это действие приведет к удалению всех связанных с ним начислений, инвойсов и событий счетчиков. Восстановить эти данные будет невозможно.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions style={{ padding: '16px 24px' }}>
+          <Button onClick={() => setDeleteId(null)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
+            Отмена
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" style={{ textTransform: 'none', backgroundColor: '#ef4444' }} autoFocus>
+            Удалить счет
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Account Modal */}
+      <Dialog
+        open={editAccount !== null}
+        onClose={() => setEditAccount(null)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle style={{ fontWeight: 700 }}>
+          Редактирование лицевого счета {editAccount?.accountNumber}
+        </DialogTitle>
+        <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '16px' }}>
+          <TextField
+            label="Свое название (custom label)"
+            variant="outlined"
+            fullWidth
+            value={formCustomLabel}
+            onChange={(e) => setFormCustomLabel(e.target.value)}
+            placeholder="Например: Моя квартира"
+          />
+        </DialogContent>
+        <DialogActions style={{ padding: '16px 24px' }}>
+          <Button onClick={() => setEditAccount(null)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
+            Отмена
+          </Button>
+          <Button onClick={handleSaveEdit} variant="contained" style={{ textTransform: 'none', backgroundColor: '#2563eb' }}>
+            Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+}

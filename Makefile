@@ -46,6 +46,12 @@ redeploy-back:
 	@echo "Пересборка и перезапуск бэкенда (с новыми переменными окружения)..."
 	@cd ecommerce/backend && docker compose up -d --build backend
 
+redeploy-crm:
+	@echo "Синхронизация файлов ecommerce/crm на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.next' ./ecommerce/crm/ huawei@100.92.50.18:~/viasglobal/ecommerce/crm/
+	@echo "Пересборка и перезапуск контейнера ecommerce-admin на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/ecommerce/backend && docker compose up -d --build ecommerce-admin"
+
 deploy-master:
 	@echo "Синхронизация файлов на сервер..."
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'postgres-data' --exclude '.env' --exclude '.next' --exclude '.playwright-browsers' --exclude 'backups' --exclude 'data' --exclude 'uploads' ./ huawei@100.92.50.18:~/viasglobal/

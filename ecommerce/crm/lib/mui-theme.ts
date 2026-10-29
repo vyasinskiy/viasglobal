@@ -1,5 +1,3 @@
-// ecommerce/crm/lib/mui-theme.ts
-// Единая цветовая тема Material UI для Viasglobal E-Commerce CRM
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
@@ -28,12 +26,24 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: 'Inter, sans-serif',
-    h1: { fontWeight: 700 },
-    h2: { fontWeight: 700 },
-    h3: { fontWeight: 600 },
-    h4: { fontWeight: 600 },
-    h5: { fontWeight: 500 },
-    h6: { fontWeight: 500 },
+    h1: {
+      fontWeight: 700,
+    },
+    h2: {
+      fontWeight: 700,
+    },
+    h3: {
+      fontWeight: 600,
+    },
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 500,
+    },
+    h6: {
+      fontWeight: 500,
+    },
     button: {
       textTransform: 'none',
       fontWeight: 600,
@@ -45,4 +55,3 @@ const theme = createTheme({
 });
 
 export default theme;
-

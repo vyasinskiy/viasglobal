@@ -1,0 +1,996 @@
+'use client';
+import * as React from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import useSWR from 'swr';
+import axios from 'axios';
+import styles from '../../shared-table.module.css';
+
+// MUI Components
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+
+import AddIcon from '@mui/icons-material/Add';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+
+interface Payment {
+  id: number;
+  userId: number;
+  amount: string | number;
+  receiptPhotoId: string | null;
+  receiptUrl?: string | null;
+  status: string; // unconfirmed, confirmed, rejected
+  paymentDate?: string;
+  createdAt: string;
+  confirmedAt: string | null;
+  comment: string | null;
+  bank?: {
+    id: number;
+    name: string;
+  } | null;
+  user?: {
+    name: string | null;
+  };
+}
+
+interface Bank {
+  id: number;
+  name: string;
+}
+
+interface Tenant {
+  id: number;
+  userId: number;
+  user?: {
+    id: number;
+    name: string;
+  };
+  apartment?: {
+    id: number;
+    address: string | null;
+  } | null;
+}
+
+const fetcher = (url: string) => axios.get(url).then(res => res.data);
+
+export default function PaymentsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userIdParam = searchParams.get('userId');
+  const bankIdParam = searchParams.get('bankId');
+  const createParam = searchParams.get('create');
+  const [search, setSearch] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  
+  // Модальные окна и состояния управления чеком
+  const [selectedPaymentForReceipt, setSelectedPaymentForReceipt] = useState<Payment | null>(null);
+  const [uploadingReceiptId, setUploadingReceiptId] = useState<number | null>(null);
+  const [rejectPaymentId, setRejectPaymentId] = useState<number | null>(null);
+  const [rejectComment, setRejectComment] = useState('');
+
+  // Модальное окно подтверждения платежа с банком зачисления
+  const [confirmPaymentModal, setConfirmPaymentModal] = useState<Payment | null>(null);
+  const [confirmBankId, setConfirmBankId] = useState<string>('');
+  const [updatingBankId, setUpdatingBankId] = useState<number | null>(null);
+
+  // Прикрепление или замена чека у платежа
+  const handleAttachReceipt = async (paymentId: number, file: File) => {
+    try {
+      setUploadingReceiptId(paymentId);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const dataUri = reader.result as string;
+          await axios.post(`/api/payments/${paymentId}/receipt`, {
+            dataUri,
+            fileName: file.name,
+            mimeType: file.type,
+          });
+          mutate();
+          if (selectedPaymentForReceipt?.id === paymentId) {
+            const { data: updatedPayment } = await axios.get(`/api/payments/${paymentId}`);
+            setSelectedPaymentForReceipt(updatedPayment);
+          }
+        } catch {
+          alert('Ошибка при загрузке чека.');
+        } finally {
+          setUploadingReceiptId(null);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      alert('Ошибка при чтении файла чека.');
+      setUploadingReceiptId(null);
+    }
+  };
+
+  // Удаление прикрепленного чека у платежа
+  const handleDetachReceipt = async (paymentId: number) => {
+    if (!confirm('Вы уверены, что хотите удалить чек у этого платежа?')) return;
+    try {
+      await axios.delete(`/api/payments/${paymentId}/receipt`);
+      mutate();
+      setSelectedPaymentForReceipt(null);
+    } catch {
+      alert('Ошибка при удалении чека.');
+    }
+  };
+
+  // Add Payment Modal states
+  const { data: tenants } = useSWR<Tenant[]>('/api/tenants', fetcher);
+  const { data: banks } = useSWR<Bank[]>('/api/banks', fetcher);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addTenantId, setAddTenantId] = useState('');
+  const [addBankId, setAddBankId] = useState('');
+  const [addAmount, setAddAmount] = useState('');
+  const [addDate, setAddDate] = useState('');
+  const [addComment, setAddComment] = useState('');
+  const [addStatus, setAddStatus] = useState('confirmed');
+  const [addReceiptPreview, setAddReceiptPreview] = useState<string | null>(null);
+  const [isSubmittingAdd, setIsSubmittingAdd] = useState(false);
+
+  const resetAddForm = () => {
+    setAddTenantId('');
+    setAddBankId('');
+    setAddAmount('');
+    setAddDate(new Date().toISOString().slice(0, 16));
+    setAddComment('');
+    setAddStatus('confirmed');
+    setAddReceiptPreview(null);
+  };
+
+  const handleOpenAdd = () => {
+    resetAddForm();
+    setAddOpen(true);
+  };
+
+  useEffect(() => {
+    if (createParam !== 'true' || addOpen || !tenants) return;
+    const presetTenant = userIdParam
+      ? tenants.find(t => String(t.userId) === userIdParam)
+      : null;
+    resetAddForm();
+    if (presetTenant) {
+      setAddTenantId(String(presetTenant.id));
+    }
+    if (bankIdParam) {
+      setAddBankId(bankIdParam);
+    }
+    setAddOpen(true);
+  }, [createParam, userIdParam, bankIdParam, addOpen, tenants]);
+
+  const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAddReceiptPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addTenantId) {
+      alert('Пожалуйста, выберите арендатора.');
+      return;
+    }
+    if (!addAmount || parseFloat(addAmount) <= 0) {
+      alert('Пожалуйста, введите корректную сумму.');
+      return;
+    }
+
+    try {
+      setIsSubmittingAdd(true);
+      await axios.post('/api/payments', {
+        action: 'create',
+        tenantId: parseInt(addTenantId, 10),
+        amount: parseFloat(addAmount),
+        paymentDate: addDate ? new Date(addDate).toISOString() : new Date().toISOString(),
+        createdAt: addDate ? new Date(addDate).toISOString() : new Date().toISOString(),
+        comment: addComment || null,
+        receiptPhotoId: addReceiptPreview || null,
+        status: addStatus,
+        bankId: addBankId ? parseInt(addBankId, 10) : null,
+      });
+      setAddOpen(false);
+      resetAddForm();
+      mutate();
+    } catch (err: unknown) {
+      alert('Ошибка при добавлении платежа.');
+    } finally {
+      setIsSubmittingAdd(false);
+    }
+  };
+
+  const apiUrl = userIdParam || bankIdParam
+    ? `/api/payments?${new URLSearchParams({
+        ...(userIdParam ? { userId: userIdParam } : {}),
+        ...(bankIdParam ? { bankId: bankIdParam } : {}),
+      })}`
+    : '/api/payments';
+
+  const { data: payments, error, mutate, isLoading } = useSWR<Payment[]>(apiUrl, fetcher);
+
+  const selectedBankName = bankIdParam && banks
+    ? banks.find(b => String(b.id) === bankIdParam)?.name
+    : null;
+
+  const filteredPayments = useMemo(() => {
+    if (!payments) return [];
+    return payments.filter(item => {
+      const displayName = item.user?.name || '';
+      const nameMatch = displayName.toLowerCase().includes(search.toLowerCase());
+      const statusMatch = item.status.toLowerCase().includes(search.toLowerCase());
+      const commentMatch = item.comment?.toLowerCase().includes(search.toLowerCase()) ?? false;
+      return nameMatch || statusMatch || commentMatch;
+    });
+  }, [payments, search]);
+
+  if (isLoading) return <div className={styles.emptyState}>Загрузка платежей...</div>;
+  if (error) return <div className={styles.emptyState}>Ошибка загрузки платежей.</div>;
+
+  // Быстрая смена банка зачисления прямо из строки таблицы
+  const handleBankChange = async (paymentId: number, bankId: number | null) => {
+    try {
+      setUpdatingBankId(paymentId);
+      await axios.put(`/api/payments/${paymentId}`, { bankId });
+      mutate();
+    } catch {
+      alert('Ошибка при изменении банка зачисления.');
+    } finally {
+      setUpdatingBankId(null);
+    }
+  };
+
+  // Открытие диалога подтверждения платежа
+  const handleOpenConfirm = (payment: Payment) => {
+    setConfirmPaymentModal(payment);
+    setConfirmBankId(payment.bank?.id ? String(payment.bank.id) : '');
+  };
+
+  // Отправка подтверждения платежа с выбранным банком
+  const handleConfirmSubmit = async () => {
+    if (!confirmPaymentModal) return;
+    try {
+      await axios.post('/api/payments', {
+        action: 'confirm',
+        paymentId: confirmPaymentModal.id,
+        bankId: confirmBankId ? Number(confirmBankId) : undefined,
+      });
+      setConfirmPaymentModal(null);
+      mutate();
+    } catch {
+      alert('Ошибка при подтверждении платежа.');
+    }
+  };
+
+  const handleConfirm = async (paymentId: number) => {
+    const payment = payments?.find(p => p.id === paymentId);
+    if (payment) {
+      handleOpenConfirm(payment);
+    }
+  };
+
+  const handleOpenReject = (paymentId: number) => {
+    setRejectPaymentId(paymentId);
+    setRejectComment('');
+  };
+
+  const handleRejectSubmit = async () => {
+    if (!rejectPaymentId) return;
+    try {
+      await axios.post('/api/payments', { 
+        action: 'reject', 
+        paymentId: rejectPaymentId, 
+        comment: rejectComment 
+      });
+      setRejectPaymentId(null);
+      mutate();
+    } catch (err: unknown) {
+      alert('Ошибка при отклонении платежа.');
+    }
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setDeleteId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await axios.delete(`/api/payments/${deleteId}`);
+      mutate();
+    } catch (err: unknown) {
+      alert('Ошибка при удалении платежа.');
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const renderStatus = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return (
+          <span className={styles.statusConfirmed}>
+            <CheckCircleIcon style={{ fontSize: '0.9rem', marginRight: '4px', verticalAlign: 'middle' }} />
+            Подтвержден
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className={styles.statusRejected}>
+            <CancelIcon style={{ fontSize: '0.9rem', marginRight: '4px', verticalAlign: 'middle' }} />
+            Отклонен
+          </span>
+        );
+      default:
+        return (
+          <span className={styles.statusPending}>
+            <HourglassEmptyIcon style={{ fontSize: '0.9rem', marginRight: '4px', verticalAlign: 'middle' }} />
+            Ожидает проверки
+          </span>
+        );
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* Search and Filters */}
+      <div className={styles.filterCard} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1', minWidth: '300px' }}>
+          <div className={styles.searchWrapper} style={{ width: '100%', margin: 0 }}>
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Поиск по имени пользователя или статусу..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {userIdParam && (
+            <div className={styles.activeFilterBadge}>
+              <span>Показаны платежи пользователя #{userIdParam}</span>
+              <button className={styles.clearFilterBtn} onClick={() => router.push(bankIdParam ? `/payments?bankId=${bankIdParam}` : '/payments')} title="Сбросить фильтр">
+                <CloseIcon style={{ fontSize: '1rem' }} />
+              </button>
+            </div>
+          )}
+
+          {bankIdParam && (
+            <div className={styles.activeFilterBadge}>
+              <span>Показаны платежи банка «{selectedBankName || `#${bankIdParam}`}»</span>
+              <button className={styles.clearFilterBtn} onClick={() => router.push(userIdParam ? `/payments?userId=${userIdParam}` : '/payments')} title="Сбросить фильтр">
+                <CloseIcon style={{ fontSize: '1rem' }} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+            Найдено платежей: {filteredPayments.length}
+          </span>
+          <button
+            className={styles.downloadLink}
+            style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer' }}
+            onClick={handleOpenAdd}
+          >
+            <AddIcon style={{ fontSize: '1.2rem' }} />
+            Добавить платеж
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <TableContainer component={Paper} className={styles.tableCard}>
+        <Table aria-label="payments table" size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell style={{ fontWeight: 'bold', width: '45px' }}>ID</TableCell>
+              <TableCell style={{ fontWeight: 'bold', minWidth: '120px' }}>Пользователь</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Сумма</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Чек</TableCell>
+              <TableCell style={{ fontWeight: 'bold', minWidth: '135px' }}>Банк зачисления</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Статус</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Дата платежа</TableCell>
+              <TableCell style={{ fontWeight: 'bold', maxWidth: '170px' }}>Комментарий</TableCell>
+              <TableCell style={{ fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'right' }}>Действия</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredPayments.length > 0 ? (
+              filteredPayments.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className={styles.interactiveRow}
+                  onClick={() => router.push(`/rent/payments/${row.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <TableCell>{row.id}</TableCell>
+                  <TableCell style={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                    {row.user?.name || `ID пользователя: ${row.userId}`}
+                  </TableCell>
+                  <TableCell style={{ fontWeight: 600, whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
+                    {Number(row.amount).toFixed(2)} руб.
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {row.receiptPhotoId ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        {(row.receiptPhotoId.toLowerCase().endsWith('.pdf') || row.receiptPhotoId === '***') ? (
+                          <button
+                            type="button"
+                            className={styles.downloadLink}
+                            style={{ padding: '3px 7px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPaymentForReceipt(row);
+                            }}
+                            title="Открыть просмотр PDF чека"
+                          >
+                            <PictureAsPdfIcon style={{ fontSize: '0.95rem', color: '#dc2626' }} />
+                            PDF
+                          </button>
+                        ) : (
+                          <img
+                            src={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
+                            alt="Чек"
+                            className={styles.receiptThumbnail}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPaymentForReceipt(row);
+                            }}
+                            title="Нажмите для просмотра чека"
+                          />
+                        )}
+                        {/* Прямая ссылка для открытия документа в новой вкладке в 1 клик */}
+                        <a
+                          href={`/api/payments/receipt?fileId=${encodeURIComponent(row.receiptPhotoId)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: '#64748b', display: 'inline-flex', alignItems: 'center', padding: '2px' }}
+                          title="Открыть чек в новой вкладке"
+                        >
+                          <OpenInNewIcon style={{ fontSize: '0.95rem' }} />
+                        </a>
+                      </div>
+                    ) : (
+                      <label
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem', color: '#2563eb', fontWeight: 500 }}
+                      >
+                        <AttachFileIcon style={{ fontSize: '0.95rem' }} />
+                        {uploadingReceiptId === row.id ? 'Загрузка...' : '+ Чек'}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          style={{ display: 'none' }}
+                          disabled={uploadingReceiptId === row.id}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleAttachReceipt(row.id, file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                    {row.bank ? (
+                      <Link
+                        href={`/banks/${row.bank.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'none' }}
+                        title="Перейти к банку"
+                      >
+                        {row.bank.name}
+                      </Link>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{renderStatus(row.status)}</TableCell>
+                  <TableCell style={{ color: '#64748b', whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
+                    {formatDate(row.paymentDate || row.createdAt)}
+                  </TableCell>
+                  <TableCell style={{ color: '#475569', maxWidth: '170px' }}>
+                    <div 
+                      style={{ 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 2, 
+                        WebkitBoxOrient: 'vertical', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        fontSize: '0.8rem',
+                        lineHeight: '1.25'
+                      }}
+                      title={row.comment || ''}
+                    >
+                      {row.comment || '-'}
+                    </div>
+                  </TableCell>
+                  <TableCell align="right" style={{ whiteSpace: 'nowrap', width: '95px' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'stretch' }}>
+                      {/* Кнопки подтверждения и отклонения доступны как для unconfirmed, так и для pending */}
+                      {(row.status === 'unconfirmed' || row.status === 'pending') && (
+                        <>
+                          <button 
+                            className={styles.confirmBtn}
+                            style={{ padding: '3px 6px', fontSize: '0.72rem', width: '100%', textAlign: 'center' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenConfirm(row);
+                            }}
+                            title="Подтвердить платеж"
+                          >
+                            Подтвердить
+                          </button>
+                          <button 
+                            className={styles.rejectBtn}
+                            style={{ padding: '3px 6px', fontSize: '0.72rem', width: '100%', textAlign: 'center' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenReject(row.id);
+                            }}
+                            title="Отклонить платеж"
+                          >
+                            Отклонить
+                          </button>
+                        </>
+                      )}
+                      <button
+                        className={styles.rejectBtn}
+                        style={{
+                          padding: '3px 6px',
+                          fontSize: '0.72rem',
+                          backgroundColor: '#f1f5f9',
+                          color: '#64748b',
+                          border: '1px solid #cbd5e1',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          width: '100%',
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(row.id);
+                        }}
+                        title="Удалить платеж"
+                      >
+                        <DeleteIcon style={{ fontSize: '0.85rem' }} />
+                        <span>Удалить</span>
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={9} align="center">
+                  <div className={styles.emptyState}>Платежи не найдены</div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Модальное окно детального просмотра и управления чеком платежа */}
+      {selectedPaymentForReceipt && selectedPaymentForReceipt.receiptPhotoId && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedPaymentForReceipt(null)}>
+          <div className={styles.modalContent} style={{ maxWidth: '880px', width: '95%' }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>
+                Чек по платежу #{selectedPaymentForReceipt.id} ({Number(selectedPaymentForReceipt.amount).toFixed(2)} руб.)
+              </span>
+              <button 
+                type="button" 
+                className={styles.modalCloseBtn} 
+                onClick={() => setSelectedPaymentForReceipt(null)}
+                title="Закрыть"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              {/* Проверяем формат файла: для PDF отображаем интерактивный фрейм предпросмотра */}
+              {(selectedPaymentForReceipt.receiptPhotoId.toLowerCase().endsWith('.pdf') || selectedPaymentForReceipt.receiptPhotoId === '***') ? (
+                <div style={{ width: '100%', height: '540px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
+                  <iframe
+                    src={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    title="Предпросмотр чека PDF"
+                  />
+                </div>
+              ) : (
+                /* Для графических форматов отображаем изображение через прокси-роут Next.js, так как внутренний URL контейнера недоступен из браузера */
+                <img
+                  src={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  alt="Чек об оплате крупно"
+                  className={styles.largeReceiptImage}
+                  style={{ maxHeight: '540px' }}
+                />
+              )}
+
+              {/* Панель действий с прикрепленным чеком */}
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', width: '100%', marginTop: '8px' }}>
+                {/* Кнопка открытия чека в новой вкладке браузера без принудительного скачивания */}
+                <a
+                  href={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.downloadLink}
+                  style={{ textDecoration: 'none', backgroundColor: '#2563eb' }}
+                  title="Открыть документ в соседней вкладке"
+                >
+                  <OpenInNewIcon style={{ fontSize: '1rem' }} />
+                  Открыть во вкладке
+                </a>
+
+                {/* Кнопка прямого скачивания файла чека на диск */}
+                <a
+                  href={`/api/payments/receipt?fileId=${encodeURIComponent(selectedPaymentForReceipt.receiptPhotoId)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className={styles.downloadLink}
+                  style={{ textDecoration: 'none', backgroundColor: '#475569' }}
+                  title="Скачать файл чека на компьютер"
+                >
+                  <DownloadIcon style={{ fontSize: '1rem' }} />
+                  Скачать
+                </a>
+
+                {/* Кнопка загрузки нового файла для замены существующего чека */}
+                <label className={styles.downloadLink} style={{ backgroundColor: '#0284c7', cursor: 'pointer' }}>
+                  <CloudUploadIcon style={{ fontSize: '1rem' }} />
+                  {uploadingReceiptId === selectedPaymentForReceipt.id ? 'Загрузка...' : 'Заменить чек'}
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    style={{ display: 'none' }}
+                    disabled={uploadingReceiptId === selectedPaymentForReceipt.id}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && selectedPaymentForReceipt) {
+                        handleAttachReceipt(selectedPaymentForReceipt.id, file);
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+
+                {/* Кнопка удаления чека у платежа */}
+                <button
+                  type="button"
+                  className={styles.rejectBtn}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}
+                  onClick={() => {
+                    if (selectedPaymentForReceipt) {
+                      handleDetachReceipt(selectedPaymentForReceipt.id);
+                    }
+                  }}
+                >
+                  <DeleteIcon style={{ fontSize: '1rem' }} />
+                  Удалить чек
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Comment Dialog */}
+      {rejectPaymentId && (
+        <div className={styles.modalOverlay} onClick={() => setRejectPaymentId(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>Причина отклонения платежа</span>
+              <button className={styles.modalCloseBtn} onClick={() => setRejectPaymentId(null)}>
+                <CloseIcon />
+              </button>
+            </div>
+            <div className={styles.modalBody} style={{ alignItems: 'stretch' }}>
+              <p style={{ margin: '0 0 8px 0', fontSize: '0.875rem', color: '#475569' }}>
+                Пожалуйста, укажите причину отклонения платежа. Арендатор получит это сообщение в Telegram-боте.
+              </p>
+              <textarea
+                className={styles.searchInput}
+                style={{ height: '80px', resize: 'vertical' }}
+                placeholder="Причина отклонения (например: нечеткий снимок, сумма не совпадает)..."
+                value={rejectComment}
+                onChange={(e) => setRejectComment(e.target.value)}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button 
+                  className={styles.logoutBtn}
+                  style={{ border: 'none', backgroundColor: '#f1f5f9', color: '#334155' }}
+                  onClick={() => setRejectPaymentId(null)}
+                >
+                  Отмена
+                </button>
+                <button 
+                  className={styles.rejectBtn}
+                  style={{ padding: '8px 16px', fontSize: '0.875rem' }}
+                  onClick={handleRejectSubmit}
+                >
+                  Отклонить платеж
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Диалог подтверждения платежа с выбором банка зачисления */}
+      {confirmPaymentModal && (
+        <div className={styles.modalOverlay} onClick={() => setConfirmPaymentModal(null)}>
+          <div className={styles.modalContent} style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>Подтверждение платежа #{confirmPaymentModal.id}</span>
+              <button className={styles.modalCloseBtn} onClick={() => setConfirmPaymentModal(null)}>
+                <CloseIcon />
+              </button>
+            </div>
+            <div className={styles.modalBody} style={{ alignItems: 'stretch', gap: '14px' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
+                Подтвердить получение оплаты на сумму <b style={{ color: '#0f172a' }}>{Number(confirmPaymentModal.amount).toFixed(2)} руб.</b> от пользователя <b>{confirmPaymentModal.user?.name || `ID: ${confirmPaymentModal.userId}`}</b>?
+              </p>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Банк зачисления
+                </label>
+                <select
+                  className={styles.searchInput}
+                  style={{ height: '40px', width: '100%', margin: 0, cursor: 'pointer' }}
+                  value={confirmBankId}
+                  onChange={(e) => setConfirmBankId(e.target.value)}
+                >
+                  <option value="">— Не указывать банк —</option>
+                  {banks?.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                  Вы можете выбрать банк зачисления сейчас или изменить его в таблице в любой момент.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  className={styles.logoutBtn}
+                  style={{ border: 'none', backgroundColor: '#f1f5f9', color: '#334155' }}
+                  onClick={() => setConfirmPaymentModal(null)}
+                >
+                  Отмена
+                </button>
+                <button
+                  className={styles.confirmBtn}
+                  style={{ padding: '8px 16px', fontSize: '0.875rem' }}
+                  onClick={handleConfirmSubmit}
+                >
+                  Подтвердить платеж
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MUI Add Payment Dialog Modal */}
+      <Dialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        aria-labelledby="add-payment-title"
+        maxWidth="sm"
+        fullWidth
+      >
+        <form onSubmit={handleAddSubmit}>
+          <DialogTitle id="add-payment-title" style={{ fontWeight: 700 }}>
+            Добавление нового платежа
+          </DialogTitle>
+          <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '8px' }}>
+            <FormControl fullWidth variant="outlined" required>
+              <InputLabel id="select-tenant-label">Арендатор</InputLabel>
+              <Select
+                labelId="select-tenant-label"
+                id="select-tenant"
+                value={addTenantId}
+                onChange={(e) => setAddTenantId(e.target.value as string)}
+                label="Арендатор"
+              >
+                {tenants?.map((t) => (
+                  <MenuItem key={t.id} value={String(t.id)}>
+                    {t.user?.name || `Арендатор #${t.id}`}
+                    {t.apartment?.address ? ` (${t.apartment.address})` : ''}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined">
+              <InputLabel id="select-bank-label">Банк зачисления</InputLabel>
+              <Select
+                labelId="select-bank-label"
+                id="select-bank"
+                value={addBankId}
+                onChange={(e) => setAddBankId(e.target.value as string)}
+                label="Банк зачисления"
+              >
+                <MenuItem value="">
+                  <em>Не выбран</em>
+                </MenuItem>
+                {banks?.map((b) => (
+                  <MenuItem key={b.id} value={String(b.id)}>
+                    {b.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Сумма платежа (руб.)"
+              type="number"
+              fullWidth
+              required
+              variant="outlined"
+              value={addAmount}
+              onChange={(e) => setAddAmount(e.target.value)}
+              inputProps={{ min: "0.01", step: "0.01" }}
+            />
+
+            <TextField
+              label="Дата и время платежа"
+              type="datetime-local"
+              fullWidth
+              required
+              variant="outlined"
+              value={addDate}
+              onChange={(e) => setAddDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+
+            <FormControl fullWidth variant="outlined">
+              <InputLabel id="select-status-label">Статус платежа</InputLabel>
+              <Select
+                labelId="select-status-label"
+                id="select-status"
+                value={addStatus}
+                onChange={(e) => setAddStatus(e.target.value as string)}
+                label="Статус платежа"
+              >
+                <MenuItem value="confirmed">Подтвержден</MenuItem>
+                <MenuItem value="unconfirmed">Ожидает проверки</MenuItem>
+              </Select>
+            </FormControl>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', fontWeight: 500, color: '#334155' }}>
+                Чек об оплате (изображение)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleReceiptFileChange}
+                style={{ fontSize: '0.875rem' }}
+              />
+              {addReceiptPreview && (
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img
+                    src={addReceiptPreview}
+                    alt="Предпросмотр чека"
+                    style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAddReceiptPreview(null)}
+                    style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.875rem' }}
+                  >
+                    Удалить чек
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <TextField
+              label="Комментарий"
+              multiline
+              rows={3}
+              fullWidth
+              variant="outlined"
+              placeholder="Дополнительная информация по платежу..."
+              value={addComment}
+              onChange={(e) => setAddComment(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions style={{ padding: '16px 24px' }}>
+            <Button onClick={() => setAddOpen(false)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
+              Отмена
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmittingAdd}
+              style={{ textTransform: 'none', backgroundColor: '#2563eb' }}
+            >
+              {isSubmittingAdd ? 'Сохранение...' : 'Создать платеж'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* MUI Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteId !== null}
+        onClose={() => setDeleteId(null)}
+        aria-labelledby="delete-payment-title"
+        aria-describedby="delete-payment-description"
+      >
+        <DialogTitle id="delete-payment-title" style={{ fontWeight: 700 }}>
+          Подтверждение удаления платежа
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-payment-description">
+            Вы действительно хотите удалить этот платеж? Запись о транзакции будет безвозвратно стерта из базы данных.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions style={{ padding: '16px 24px' }}>
+          <Button onClick={() => setDeleteId(null)} variant="outlined" style={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none' }}>
+            Отмена
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" style={{ textTransform: 'none', backgroundColor: '#ef4444' }} autoFocus>
+            Удалить платеж
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+}

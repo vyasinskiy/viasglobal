@@ -1,0 +1,79 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { accountantClient } from '../../../lib/accountant-client';
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const status = searchParams.get('status');
+    const userName = searchParams.get('userName');
+    const accountId = searchParams.get('accountId');
+    const bankId = searchParams.get('bankId');
+
+    const params: Record<string, string> = {};
+    if (userId) params.userId = userId;
+    if (status) params.status = status;
+    if (userName) params.userName = userName;
+    if (accountId) params.accountId = accountId;
+    if (bankId) params.bankId = bankId;
+
+    const { data } = await accountantClient.get('/payments', { params });
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { action, paymentId, comment } = body;
+
+    if (action === 'create') {
+      const { tenantId, amount, createdAt, comment: newComment, receiptPhotoId, status: paymentStatus, bankId } = body;
+      if (!tenantId) {
+        return NextResponse.json({ error: 'Missing tenantId' }, { status: 400 });
+      }
+      if (!amount) {
+        return NextResponse.json({ error: 'Missing amount' }, { status: 400 });
+      }
+      const { data } = await accountantClient.post('/payments', {
+        tenantId: Number(tenantId),
+        amount: Number(amount),
+        createdAt,
+        comment: newComment,
+        receiptPhotoId,
+        status: paymentStatus || 'unconfirmed',
+        bankId: bankId ? Number(bankId) : null,
+      });
+      return NextResponse.json(data);
+    }
+
+    if (!paymentId) {
+      return NextResponse.json({ error: 'Missing paymentId' }, { status: 400 });
+    }
+
+    if (action === 'confirm') {
+      const { bankId } = body;
+      const { data } = await accountantClient.post('/payments/confirm', {
+        paymentId: Number(paymentId),
+        confirmedBy: 1, // default admin ID or verified ID
+        bankId: bankId ? Number(bankId) : undefined,
+      });
+      return NextResponse.json(data);
+    } else if (action === 'reject') {
+      const { data } = await accountantClient.post('/payments/reject', {
+        paymentId: Number(paymentId),
+        confirmedBy: 1,
+        comment,
+      });
+      return NextResponse.json(data);
+    } else {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

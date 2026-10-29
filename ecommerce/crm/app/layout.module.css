@@ -1,32 +1,34 @@
-/* ecommerce/crm/app/layout.module.css - Макет панели управления Viasglobal E-Commerce CRM */
+/* ecommerce/crm/app/layout.module.css - Главный макет CRM с 2-уровневой навигацией */
 
 .layoutContainer {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: #f8fafc;
 }
 
-.sidebar {
-  width: 265px;
-  background: linear-gradient(185deg, #0f172a 0%, #1e1b4b 100%);
-  color: #f8fafc;
-  display: flex;
-  flex-direction: column;
+/* 1. Верхнее главное меню в шапке (Top Navbar) */
+.topHeader {
   position: fixed;
   top: 0;
-  bottom: 0;
   left: 0;
-  z-index: 10;
-  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.15);
-  overflow-y: auto;
-}
-
-.logoArea {
-  padding: 22px 24px;
+  right: 0;
+  height: 64px;
+  background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.brandArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 236px;
 }
 
 .logoText {
@@ -35,15 +37,157 @@
   background: linear-gradient(90deg, #38bdf8, #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-decoration: none;
   letter-spacing: 0.3px;
 }
 
-.logoSubtext {
-  font-size: 0.72rem;
+/* Главные подразделы по бизнесам в шапке */
+.businessNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 820px;
+  margin: 0 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.businessNav::-webkit-scrollbar {
+  display: none;
+}
+
+.businessTab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
   color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.businessTab:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.activeBusinessTab {
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+}
+
+.activeBusinessTab:hover {
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+}
+
+.tabIcon {
+  font-size: 1.15rem;
+}
+
+/* Блок профиля и контуров справа */
+.topRightInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.taxBadge {
+  background-color: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #4ade80;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.userBadge {
+  background-color: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #93c5fd;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.logoutBtn {
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logoutBtn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: #ef4444;
+}
+
+/* 2. Тело страницы под шапкой */
+.bodyContainer {
+  display: flex;
+  flex: 1;
+  margin-top: 64px;
+}
+
+/* 3. Боковая панель текущего бизнеса (Sidebar) */
+.sidebar {
+  width: 260px;
+  background: linear-gradient(185deg, #0f172a 0%, #1e1b4b 100%);
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  z-index: 90;
+  box-shadow: 4px 0 20px rgba(15, 23, 42, 0.15);
+  overflow-y: auto;
+}
+
+.sidebarSectionHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.sidebarSectionSub {
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.sidebarSectionTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .menuList {
@@ -53,15 +197,6 @@
   margin: 0;
 }
 
-.menuSectionLabel {
-  padding: 12px 24px 4px 24px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #64748b;
-}
-
 .menuItem {
   margin: 3px 12px;
 }
@@ -69,12 +204,12 @@
 .menuLink {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 11px 16px;
+  gap: 12px;
+  padding: 10px 14px;
   color: #94a3b8;
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -96,90 +231,24 @@
 }
 
 .menuIcon {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
 }
 
+/* 4. Контентная область */
 .mainWrapper {
   flex: 1;
-  margin-left: 265px;
+  margin-left: 260px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh - 64px);
   min-width: 0;
-  max-width: calc(100vw - 265px);
-}
-
-.header {
-  height: 68px;
-  background-color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid #e2e8f0;
-  position: sticky;
-  top: 0;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 28px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-}
-
-.pageTitle {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.taxBadge {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
-  padding: 5px 12px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.userBadge {
-  background-color: #dbeafe;
-  color: #1d4ed8;
-  padding: 5px 12px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.logoutBtn {
-  color: #64748b;
-  border: 1px solid #cbd5e1;
-  background: transparent;
-  padding: 7px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-}
-
-.logoutBtn:hover {
-  background-color: #fee2e2;
-  color: #ef4444;
-  border-color: #fca5a5;
+  max-width: calc(100vw - 260px);
 }
 
 .contentArea {
   flex: 1;
-  padding: 28px;
+  padding: 24px 28px;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
 }
-
