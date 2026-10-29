@@ -5,7 +5,7 @@
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
-import { formatEventSummary, normalizeCategoryKey, CALENDAR_CATEGORIES } from './calendar';
+import { formatEventSummary, normalizeCategoryKey, CALENDAR_CATEGORIES, getTaskWebViewUrl } from './calendar';
 
 describe('Тестирование 2 категорий и форматирования событий Google Calendar', () => {
   it('должен форматировать Legal в яркий контрастный оранжевый цвет (Tangerine, 6)', () => {
@@ -66,5 +66,21 @@ describe('Тестирование 2 категорий и форматиров�
     const res = formatEventSummary('UnknownCategory', 'Справка о счетах в банке');
     assert.strictEqual(res.summary, '[Legal]: Справка о счетах в банке');
     assert.strictEqual(res.colorId, '6');
+  });
+
+  it('должен возвращать рабочую прямую ссылку webViewLink для задач Google Tasks вместо сырого Base64 ID', () => {
+    // Проверяем приоритет поля webViewLink из ответа Google Tasks API
+    const fromApi = getTaskWebViewUrl({
+      id: 'cVdVNGVtTlFhZkh4bXFrNw',
+      webViewLink: 'https://tasks.google.com/task/qWU4emNQafHxmqk7?sa=6',
+    });
+    assert.strictEqual(fromApi, 'https://tasks.google.com/task/qWU4emNQafHxmqk7?sa=6');
+
+    // Проверяем автоматическое декодирование Base64 ID при отсутствии поля webViewLink (кейс Embalaje24 и Alfa Dyser)
+    const decodedEmbalaje = getTaskWebViewUrl({ id: 'cVdVNGVtTlFhZkh4bXFrNw' });
+    assert.strictEqual(decodedEmbalaje, 'https://tasks.google.com/task/qWU4emNQafHxmqk7?sa=6');
+
+    const decodedAlfaDyser = getTaskWebViewUrl({ id: 'SFRTMHQ4ZVZSVnBUQmFnOA' });
+    assert.strictEqual(decodedAlfaDyser, 'https://tasks.google.com/task/HTS0t8eVRVpTBag8?sa=6');
   });
 });

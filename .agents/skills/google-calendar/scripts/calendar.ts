@@ -455,6 +455,34 @@ export async function deleteGoogleTask(taskId: string, category?: string, listNa
 
 
 /**
+ * Формирование корректной прямой веб-ссылки на задачу в Google Tasks Web UI.
+ * Важно: поле task.id в Google Tasks API хранится в Base64 (например, 'cVdVNGVtTlFhZkh4bXFrNw'),
+ * тогда как веб-интерфейс Google Tasks использует декодированный идентификатор в параметре пути
+ * (например, 'https://tasks.google.com/task/qWU4emNQafHxmqk7?sa=6'), который возвращается в поле task.webViewLink.
+ */
+export function getTaskWebViewUrl(task: { id?: string | null; webViewLink?: string | null }): string {
+  // 1. Если Google Tasks API вернул готовый webViewLink — используем его напрямую
+  if (task.webViewLink && task.webViewLink.trim().length > 0) {
+    return task.webViewLink.trim();
+  }
+  // 2. Если передан только Base64 ID задачи — декодируем его из Base64url/Base64 в сырой ID для URL
+  if (task.id && task.id.trim().length > 0) {
+    const rawId = task.id.trim();
+    try {
+      const decoded = Buffer.from(rawId, 'base64url').toString('utf-8');
+      // Проверяем, что декодированная строка состоит из печатных ASCII-символов идентификатора
+      if (decoded && /^[\w-]+$/.test(decoded)) {
+        return `https://tasks.google.com/task/${decoded}?sa=6`;
+      }
+    } catch {
+      // Игнорируем ошибку декодирования и возвращаем запасной вариант
+    }
+    return `https://tasks.google.com/task/${rawId}?sa=6`;
+  }
+  return 'https://tasks.google.com/';
+}
+
+/**
  * Форматирование заголовка события в соответствии со стандартом категорий
  */
 export function formatEventSummary(categoryKey?: string, title = ''): { summary: string; colorId: string } {
@@ -786,8 +814,10 @@ async function main() {
       for (const l of lists) {
         console.log(`\n📂 Список: ${l.listTitle} (${l.tasks.length} задач):`);
         for (const t of l.tasks) {
+          // Формируем строку дедлайна и прямой ссылки webViewLink из API Google Tasks
           const dueStr = t.due ? ` [Дедлайн: ${t.due.split('T')[0]}]` : '';
-          console.log(`  ◻️ ${t.title}${dueStr} (ID: ${t.id})`);
+          const linkStr = ` | 🔗 ${getTaskWebViewUrl(t)}`;
+          console.log(`  ◻️ ${t.title}${dueStr} (ID: ${t.id})${linkStr}`);
           if (t.notes) {
             console.log(`     ${t.notes.split('\n')[0]}...`);
           }
@@ -821,6 +851,8 @@ async function main() {
       console.log(`• Заголовок: ${res.task.title}`);
       if (res.task.due) console.log(`• Дедлайн: ${res.task.due.split('T')[0]}`);
       console.log(`• ID: ${res.task.id}`);
+      // Выводим прямую веб-ссылку webViewLink, возвращаемую Google Tasks API
+      console.log(`• Ссылка: ${getTaskWebViewUrl(res.task)}`);
       if (res.secondaryTask) {
         console.log(`• Также добавлена в общий список 'Tasks' (ID: ${res.secondaryTask.id})`);
       }
@@ -857,7 +889,9 @@ async function main() {
       console.log(`\n✏️ Задача ${id} успешно обновлена.`);
       if (updated.title) console.log(`• Заголовок: ${updated.title}`);
       if (updated.notes) console.log(`• Описание: ${updated.notes}`);
-      if (updated.due) console.log(`• Дедлайн: ${updated.due.split('T')[0]}\n`);
+      if (updated.due) console.log(`• Дедлайн: ${updated.due.split('T')[0]}`);
+      // Выводим прямую веб-ссылку webViewLink после обновления
+      console.log(`• Ссылка: ${getTaskWebViewUrl(updated)}\n`);
     } else if (command === 'task:delete') {
 
       const getArg = (flag: string): string | undefined => {

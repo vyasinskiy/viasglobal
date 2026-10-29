@@ -36,11 +36,11 @@
   - **Тема:** `Datos de cliente y facturación - Albarán 26ALV-0074072`.
   - **Message-ID:** `<1793093354437284343.1793093354@viasglobal.es>` (папка `INBOX.Sent`, UID 32).
   - **Суть запроса:** Обновление карточки клиента (фамилия с буквы I: `Vitalii Iasinskii`, адрес `Ronda Albocacer 11, 12166 Ibarsos (Castellón)`, NIF `Z1154366R`) для выпуска корректной официальной фактуры.
-- **Активная задача в Google Tasks:** [ALFA DYSER — Проконтролировать исправление фамилии и адреса в фактуре (Albarán 26ALV-0074072)](https://tasks.google.com/task/SFRTMHQ4ZVZSVnBUQmFnOA) (Дедлайн: `2026-10-29`, ID: `SFRTMHQ4ZVZSVnBUQmFnOA`).
+- **Активная задача в Google Tasks:** [ALFA DYSER — Проконтролировать исправление фамилии и адреса в фактуре (Albarán 26ALV-0074072)](https://tasks.google.com/task/HTS0t8eVRVpTBag8?sa=6) (Дедлайн: `2026-10-29`, ID: `SFRTMHQ4ZVZSVnBUQmFnOA`).
 - **Приемка груза и физический замер упаковочных коробок (27–28.10.2026):**
   - При получении поставки от DHL замерить рулеткой физические размеры заводских коробок фена `34316` и утюга `35536`.
   - Цель: подтвердить свободный вход в курьерские пакеты $40 \times 50\text{ см}$ перед оплатой корзины у официального поставщика упаковки [EMBALAJE24, S.L.](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) (заказ на 18,80 € сформирован и ждет оплаты).
-  - **Активная задача в Google Tasks:** [E-commerce: Замерить коробки KUKEN и оплатить упаковку в Embalaje24](https://tasks.google.com/task/cVdVNGVtTlFhZkh4bXFrNw) (Дедлайн: `2026-10-28`, ID: `cVdVNGVtTlFhZkh4bXFrNw`).
+  - **Активная задача в Google Tasks:** [E-commerce: Замерить коробки KUKEN и оплатить упаковку в Embalaje24](https://tasks.google.com/task/qWU4emNQafHxmqk7?sa=6) (Дедлайн: `2026-10-29`, ID: `cVdVNGVtTlFhZkh4bXFrNw`).
 
 ---
 
