@@ -6,20 +6,20 @@
   "model": {
     "id": "openai/gpt-6-luna",
     "name": "OpenAI: GPT-6 Luna",
-    "contextTokens": 128000,
+    "contextTokens": 200000,
     "contextWindow": 1050000
   },
   "compaction": {
     "enabled": true,
     "mode": "safeguard",
-    "maxActiveTranscriptBytes": "3mb",
-    "recentTurnsPreserve": 3,
+    "maxActiveTranscriptBytes": "5mb",
+    "recentTurnsPreserve": 5,
     "midTurnPrecheck": {
       "enabled": true
     }
   },
   "contextPruning": {
     "mode": "cache-ttl",
-    "ttl": "5m"
+    "ttl": "30m"
   }
 }

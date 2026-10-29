@@ -6,12 +6,15 @@
   },
   "agents": {
     "defaults": {
+      "bootstrapMaxChars": 40000,
       "heartbeat": {
         "every": "0m"
       }
     },
     "entries": {
-      "main": {}
+      "main": {
+        "bootstrapMaxChars": 40000
+      }
     }
   },
   "messages": {
