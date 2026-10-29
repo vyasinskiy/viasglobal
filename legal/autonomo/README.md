@@ -115,6 +115,7 @@
 - **Папка кейса**: [base-cotizacion-2026-10-29/README.md](file:///Users/usuario/code/viasglobal/legal/autonomo/base-cotizacion-2026-10-29/README.md)
 - **Проблема**: с 03.2025 стоит минимальная база 653,59 € (cuota ≈200 €), хотя доход ≈4 000 €/мес; есть риск регуляризации.
 - **Статус**: 29.10.2026 подготовлено письмо хестору ([carta_para_gestor.md](file:///Users/usuario/code/viasglobal/legal/autonomo/base-cotizacion-2026-10-29/carta_para_gestor.md)) с просьбой выставить верную базу с 01.11.2026 (или не позднее 01.01.2027).
+- **Активная задача в Google Tasks**: [Проконтролировать изменение базы RETA](https://tasks.google.com/task/zJFjPxwHSrGL6y5c?sa=6) (Дедлайн: `2026-11-03`, ID: `ekpGalB4d0hTckdMNnk1Yw`).
 
 
 
