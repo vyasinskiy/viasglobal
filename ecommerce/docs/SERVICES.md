@@ -620,43 +620,157 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 
 ---
 
-### 5.7. Закупки и юнит-экономика партий (`/orders`)
+### 5.7. Закупки, приемка товара и юнит-экономика партий (`/orders`)
 
-- **`GET /orders?distributor=<имя_или_id>`**
-  - **Описание**: Получить список всех заказов и партий конкретного дистрибьютора.
-  - **Пример**: `curl -s "http://backend:3000/orders?distributor=Alfa+Dyser"`
+- **`GET /orders[?distributor=<имя_или_id>&status=<статус>&search=<запрос>]`**
+  - **Описание**: Получить список всех текущих заказов поставщиков (включая состав позиций `items`, ожидаемое количество `quantityOrdered`, принятое количество `quantityReceived` и документы). Если параметры не переданы, возвращает **все заказы** в базе данных (отсортированные от новых к старым).
+  - **Query-параметры (все опциональны)**:
+    - `distributor`: фильтр по ID, названию поставщика или бренду в заметках (например, `Alfa+Dyser` или `Kuken`).
+    - `status`: фильтр по статусу заказа (`CONFIRMED`, `SHIPPED`, `PARTIALLY_RECEIVED`, `RECEIVED`, `DRAFT`, `CANCELLED`).
+    - `search`: универсальный поиск по номеру заказа (`orderNumber`), поставщику, артикулу (`sku`), штрихкоду (`ean`) или названию товара (`title`).
+  - **Примеры**:
+    ```bash
+    # Посмотреть все текущие заказы (используется на первом шаге приемки товара):
+    curl -s "http://backend:3000/orders"
+
+    # Найти заказы со статусом CONFIRMED (ожидающие приемки):
+    curl -s "http://backend:3000/orders?status=CONFIRMED"
+
+    # Найти заказ по названию товара, бренду или артикулу:
+    curl -s "http://backend:3000/orders?search=SECADOR"
+    curl -s "http://backend:3000/orders?distributor=Alfa+Dyser"
+    ```
 
 - **`GET /orders/:idOrNumber`**
-  - **Описание**: Полная карточка заказа с составом, накладной Albarán, фактическими замерами упаковки, розничными ценами BuyBox, комиссиями Amazon и юнит-экономикой.
-  - **Пример**: `curl -s "http://backend:3000/orders/26ALV-0074072"`
+  - **Описание**: Полная карточка заказа по числовому `id` или номеру накладной (`26ALV-0074072`) с составом позиций, ожидаемым (`quantityOrdered`) и принятым (`quantityReceived`) количеством, фактическими замерами упаковки (`packageMeasurements`), розничными ценами BuyBox, комиссиями Amazon и расчетом юнит-экономики партии.
+  - **Пример**:
+    ```bash
+    curl -s "http://backend:3000/orders/26ALV-0074072"
+    ```
 
 - **`POST /orders`**
-  - **Описание**: Создание нового заказа на закупку поставщику с расчетом налогов RE (1.262) и эко-тасы.
+  - **Описание**: Создание нового заказа на закупку поставщику с автоматическим расчетом налогов Recargo de Equivalencia (21% IVA + 5.2% RE = коэффициент `1.262`) и экологического сбора (`ecoTasa`).
+  - **Тело запроса (JSON)**:
+    ```json
+    {
+      "distributorId": 3,
+      "orderNumber": "26ALV-0074072",
+      "shippingCost": 0,
+      "paymentMethod": "SEPA Direct Debit B2B",
+      "notes": "Отгрузка DHL, 2 грузовых места",
+      "items": [
+        {
+          "sku": "34316",
+          "ean": "8425160343163",
+          "title": "SECADOR PROF.IONICO 2000w. NEGRO KUKEN",
+          "quantityOrdered": 10,
+          "priceNetto": 11.82,
+          "ecoTasa": 0.65
+        }
+      ]
+    }
+    ```
 
 - **`POST /orders/:id/receive`**
-  - **Описание**: Проведение приемки поставки: сохранение замеров коробок, фактического количества, фотофиксации и автоматическое разделение (3 шт на СВХ, остальное на MAIN).
+  - **Описание**: Проведение физической приемки поставки по числовому `id` заказа (`orderId`): фиксация фактически принятого количества (`quantityReceived`), габаритов заводских коробок (`packageLengthCm`, `packageWidthCm`, `packageHeightCm` в см) и веса (`packageWeightG` в граммах), прикрепление документов/фотографий и распределение партии между **СВХ (`SVH`)** и **Основным складом (`MAIN`)**.
+  - **Логика складов при приемке**:
+    - Приемка осуществляется на **СВХ (`SVH`)** (оперативный буфер FBM, порог алерта `minStockAlert = 1`), после чего часть товара уходит на **Основной склад (`MAIN`)**.
+    - По умолчанию на СВХ остается **3 шт** каждого артикула (`svhQuantity: 3`), а остальное количество (`mainQuantity: quantityReceived - 3`, например 7 шт из 10) направляется на Основной склад (`MAIN`). Если параметры `svhQuantity` и `mainQuantity` не переданы явно, сервер рассчитывает их автоматически по правилу `3 шт на СВХ / остальное на MAIN`.
+  - **Тело запроса (JSON)**:
+    ```json
+    {
+      "notes": "Приемка на СВХ с отправкой основной части партии на склад MAIN",
+      "items": [
+        {
+          "sku": "34316",
+          "quantityReceived": 10,
+          "packageLengthCm": 28,
+          "packageWidthCm": 10,
+          "packageHeightCm": 22,
+          "packageWeightG": 850,
+          "svhQuantity": 3,
+          "mainQuantity": 7,
+          "itemNotes": "Коробки целые, входит в курьерский пакет 40x50 см"
+        },
+        {
+          "sku": "35536",
+          "quantityReceived": 10,
+          "packageLengthCm": 30,
+          "packageWidthCm": 12,
+          "packageHeightCm": 16,
+          "packageWeightG": 1200,
+          "svhQuantity": 3,
+          "mainQuantity": 7
+        }
+      ],
+      "documents": [
+        {
+          "documentType": "ALBARAN",
+          "fileName": "albaran_26ALV-0074072.jpg",
+          "filePath": "ecommerce/contractors/kuken/attachments/albaran_26ALV-0074072.jpg",
+          "notes": "Накладная Albarán с выделенной строкой TASA 0.65 €"
+        }
+      ]
+    }
+    ```
+  - **Пример запроса**:
+    ```bash
+    curl -s -X POST http://backend:3000/orders/1/receive \
+      -H "Content-Type: application/json" \
+      -d '{"items":[{"sku":"34316","quantityReceived":10,"packageLengthCm":28,"packageWidthCm":10,"packageHeightCm":22,"packageWeightG":850,"svhQuantity":3,"mainQuantity":7},{"sku":"35536","quantityReceived":10,"packageLengthCm":30,"packageWidthCm":12,"packageHeightCm":16,"packageWeightG":1200,"svhQuantity":3,"mainQuantity":7}]}'
+    ```
 
 - **`POST /orders/:id/documents`**
-  - **Описание**: Прикрепление файлов документов (Albarán, фото замеров рулеткой, фото упаковок, счета).
+  - **Описание**: Прикрепление файлов документов к заказу (`ALBARAN`, `INVOICE`, `PAYMENT_PROOF`, `RECEIVING_PHOTO`, `MEASUREMENT_PHOTO`, `OTHER`).
+  - **Тело запроса**:
+    ```json
+    {
+      "documentType": "RECEIVING_PHOTO",
+      "fileName": "secador_box.jpg",
+      "filePath": "ecommerce/contractors/kuken/attachments/secador_box.jpg",
+      "notes": "Фото заводской коробки с EAN и замерами рулеткой"
+    }
+    ```
 
 ---
 
-### 5.8. Складской учет и алерты пополнения СВХ (`/inventory`)
+### 5.8. Складской учет, перемещения СВХ <-> MAIN и алерты (`/inventory`)
 
 - **`GET /inventory/stocks[?warehouse=SVH|MAIN]`**
-  - **Описание**: Список текущих складских остатков по складам.
-  - **Пример**: `curl -s "http://backend:3000/inventory/stocks?warehouse=SVH"`
+  - **Описание**: Список текущих складских остатков по всем складам или по конкретному складу (`SVH` — склад временного хранения / оперативный буфер, `MAIN` — основной склад длительного хранения).
+  - **Пример**:
+    ```bash
+    curl -s "http://backend:3000/inventory/stocks"
+    curl -s "http://backend:3000/inventory/stocks?warehouse=SVH"
+    ```
 
 - **`GET /inventory/alerts`**
-  - **Описание**: Список алертов по заканчивающимся товарам на складе СВХ (остаток `<= 1` шт) с автоматической рекомендацией объема пополнения с Основного склада MAIN.
+  - **Описание**: Список алертов по заканчивающимся товарам на складе СВХ (остаток `<= 1` шт) с автоматической рекомендацией объема пополнения (по умолчанию 3 шт) с Основного склада `MAIN`.
   - **Пример**: `curl -s "http://backend:3000/inventory/alerts"`
 
 - **`POST /inventory/transfer`**
-  - **Описание**: Оформление перемещения между складами (например, `MAIN` -> `SVH`).
-  - **Тело запроса**: `{"sku": "34316", "fromWarehouse": "MAIN", "toWarehouse": "SVH", "quantity": 3}`
+  - **Описание**: Оформление физического перемещения товара между складами:
+    - Из `SVH` в `MAIN` (`"fromWarehouse": "SVH", "toWarehouse": "MAIN"`) — когда после приемки на СВХ часть товара увозится на Основной склад.
+    - Из `MAIN` в `SVH` (`"fromWarehouse": "MAIN", "toWarehouse": "SVH"`) — когда на СВХ заканчивается оперативный буфер (`<= 1` шт) и его пополняют с Основного склада.
+  - **Тело запроса**:
+    ```json
+    {
+      "sku": "34316",
+      "fromWarehouse": "MAIN",
+      "toWarehouse": "SVH",
+      "quantity": 3,
+      "notes": "Пополнение оперативного буфера СВХ с основного склада"
+    }
+    ```
+  - **Пример**:
+    ```bash
+    curl -s -X POST http://backend:3000/inventory/transfer \
+      -H "Content-Type: application/json" \
+      -d '{"sku":"34316","fromWarehouse":"MAIN","toWarehouse":"SVH","quantity":3}'
+    ```
 
 - **`GET /inventory/movements[?sku=...&limit=50]`**
-  - **Описание**: Журнал всех складских перемещений, приходов и списаний.
+  - **Описание**: Журнал всех складских перемещений (`TRANSFER`), приходов при приемке (`RECEIPT`) и списаний при продажах (`SALE`).
 
 ---
 

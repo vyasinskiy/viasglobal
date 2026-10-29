@@ -10,15 +10,17 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   /**
-   * Список заказов поставщика
-   * GET /orders?distributor=...
+   * Список заказов (всех или с фильтрацией по поставщику, статусу и поисковому запросу)
+   * GET /orders[?distributor=...&status=...&search=...]
    */
   @Get()
-  async getOrders(@Query('distributor') distributor?: string) {
-    if (!distributor) {
-      return { status: 'error', message: 'Укажите параметр ?distributor=...' };
-    }
-    const orders = await this.ordersService.getOrdersByDistributor(distributor);
+  async getOrders(
+    @Query('distributor') distributor?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    // Получаем список заказов с учетом переданных фильтров (или все заказы, если фильтры не указаны)
+    const orders = await this.ordersService.getOrders({ distributor, status, search });
     return { status: 'success', total: orders.length, orders };
   }
 

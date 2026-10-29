@@ -186,8 +186,37 @@ async function main() {
           console.log(`  [${m.createdAt.toISOString().split('T')[0]}] ${m.type} ${m.quantity} шт (SKU: ${m.sku}) ${m.fromWarehouse ? `со склада ${m.fromWarehouse}` : ''} ${m.toWarehouse ? `на склад ${m.toWarehouse}` : ''} - ${m.notes ?? ''}`);
         });
       }
+    } else if (isList) {
+      // 3. Просмотр всех заказов всех поставщиков при запуске с флагом --list без --distributor
+      const allOrders = await prisma.purchaseOrder.findMany({
+        include: {
+          distributor: true,
+          items: true,
+          documents: true,
+        },
+        orderBy: { orderDate: 'desc' },
+      });
+
+      console.log(`📋 Всего заказов в базе: ${allOrders.length}\n`);
+      if (allOrders.length > 0) {
+        console.table(
+          allOrders.map((o) => ({
+            'ID': o.id,
+            'Поставщик': o.distributor.name,
+            'Номер заказа / Накладная': o.orderNumber,
+            'Статус': o.status,
+            'Дата заказа': o.orderDate.toISOString().split('T')[0],
+            'Дата приемки': o.actualDeliveryDate ? o.actualDeliveryDate.toISOString().split('T')[0] : '—',
+            'Позиций': o.items.length,
+            'Чистая база (€)': o.subtotalNetto.toFixed(2),
+            'Эко-таса (€)': o.totalEcoTasa.toFixed(2),
+            'Итого брутто (€)': o.totalGross.toFixed(2),
+          })),
+        );
+      }
     } else {
       console.log('Укажите параметры для работы:');
+      console.log('  npx tsx scripts/orders.ts --list');
       console.log('  npx tsx scripts/orders.ts --distributor "<имя>" --list');
       console.log('  npx tsx scripts/orders.ts --order "<номер_или_id>"');
     }

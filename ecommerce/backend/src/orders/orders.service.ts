@@ -92,25 +92,64 @@ export class OrdersService {
   }
 
   /**
-   * Получить список всех заказов по дистрибьютору (по ID или имени)
+   * Получить список всех заказов с опциональной фильтрацией по поставщику, статусу и поиску по товарам/номеру
    */
-  async getOrdersByDistributor(distributorQuery: string | number) {
-    let distributorId: number;
+  async getOrders(filters?: { distributor?: string | number; status?: string; search?: string }) {
+    // Формируем объект условий фильтрации для Prisma
+    const where: any = {};
 
-    if (typeof distributorQuery === 'number' || !isNaN(Number(distributorQuery))) {
-      distributorId = Number(distributorQuery);
-    } else {
-      const dist = await this.prisma.distributor.findFirst({
-        where: { name: { contains: distributorQuery, mode: 'insensitive' } },
-      });
-      if (!dist) {
-        throw new NotFoundException(`Дистрибьютор "${distributorQuery}" не найден`);
+    // Если передан фильтр по дистрибьютору (ID, название компании или бренд в заметках)
+    if (filters?.distributor !== undefined && String(filters.distributor).trim() !== '') {
+      const distQuery = String(filters.distributor).trim();
+      if (!isNaN(Number(distQuery))) {
+        where.distributorId = Number(distQuery);
+      } else {
+        // Ищем дистрибьютора по имени или по упоминанию бренда в поле notes (например, KUKEN -> ALFA DYSER)
+        const dist = await this.prisma.distributor.findFirst({
+          where: {
+            OR: [
+              { name: { contains: distQuery, mode: 'insensitive' } },
+              { notes: { contains: distQuery, mode: 'insensitive' } },
+            ],
+          },
+        });
+        if (!dist) {
+          throw new NotFoundException(`Дистрибьютор "${distQuery}" не найден`);
+        }
+        where.distributorId = dist.id;
       }
-      distributorId = dist.id;
     }
 
+    // Если передан фильтр по статусу заказа (например, CONFIRMED, SHIPPED, PARTIALLY_RECEIVED, RECEIVED)
+    if (filters?.status && filters.status.trim() !== '') {
+      where.status = filters.status.trim().toUpperCase() as PurchaseOrderStatus;
+    }
+
+    // Если передан универсальный поисковый запрос (номер заказа, поставщик, SKU, EAN, название товара)
+    if (filters?.search && filters.search.trim() !== '') {
+      const q = filters.search.trim();
+      where.OR = [
+        { orderNumber: { contains: q, mode: 'insensitive' } },
+        { notes: { contains: q, mode: 'insensitive' } },
+        { distributor: { name: { contains: q, mode: 'insensitive' } } },
+        { distributor: { notes: { contains: q, mode: 'insensitive' } } },
+        {
+          items: {
+            some: {
+              OR: [
+                { sku: { contains: q, mode: 'insensitive' } },
+                { ean: { contains: q, mode: 'insensitive' } },
+                { title: { contains: q, mode: 'insensitive' } },
+              ],
+            },
+          },
+        },
+      ];
+    }
+
+    // Запрашиваем заказы вместе с данными поставщика, позициями и документами
     return this.prisma.purchaseOrder.findMany({
-      where: { distributorId },
+      where,
       include: {
         distributor: { select: { id: true, name: true, email: true } },
         items: true,
@@ -119,6 +158,14 @@ export class OrdersService {
       },
       orderBy: { orderDate: 'desc' },
     });
+  }
+
+  /**
+   * Получить список всех заказов по дистрибьютору (по ID или имени)
+   */
+  async getOrdersByDistributor(distributorQuery: string | number) {
+    // Делегируем вызов универсальному методу getOrders с фильтром по дистрибьютору
+    return this.getOrders({ distributor: distributorQuery });
   }
 
   /**

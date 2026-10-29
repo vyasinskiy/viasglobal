@@ -473,4 +473,57 @@ describe('Подсистема закупок, приемки товара, ск
     expect(amazonEprPayOnBehalfFee).toBe(0.00);
     expect(netProfit).toBeCloseTo(2.45, 2); // 26.70 - 4.01 - 4.50 - 15.74 = 2.45 €
   });
+
+  it('получение списка всех текущих заказов без параметров (для старта приемки товара в OpenClaw) должно возвращать все заказы с составом позиций', async () => {
+    // Мокаем возврат текущего активного заказа 26ALV-0074072 при вызове getOrders() без фильтров
+    const mockOrders = [
+      {
+        id: 1,
+        orderNumber: '26ALV-0074072',
+        status: PurchaseOrderStatus.CONFIRMED,
+        distributor: { id: 3, name: 'ALFA DYSER, S.L.', email: 'guido@alfadyser.es' },
+        items: [
+          { sku: '34316', title: 'SECADOR PROF.IONICO 2000w. NEGRO KUKEN', quantityOrdered: 10, quantityReceived: 0 },
+          { sku: '35536', title: 'PLANCHA VAPOR 2600W. SUELA CERAMICA KUKEN', quantityOrdered: 10, quantityReceived: 0 },
+        ],
+        documents: [],
+      },
+    ];
+    mockPrismaService.purchaseOrder.findMany.mockResolvedValue(mockOrders);
+
+    // Вызываем getOrders без параметров (как делает OpenClaw при сообщении "мне пришел товар, хочу произвести приемку")
+    const result = await ordersService.getOrders();
+
+    expect(result).toHaveLength(1);
+    expect(result[0].orderNumber).toBe('26ALV-0074072');
+    expect(result[0].items).toHaveLength(2);
+    expect(mockPrismaService.purchaseOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {},
+      }),
+    );
+  });
+
+  it('поиск заказов по строке search и статусу должен находить партию по названию товара, SKU, EAN или бренду поставщика', async () => {
+    // Проверяем, что при передаче search="SECADOR" и status="CONFIRMED" формируется корректный фильтр Prisma
+    mockPrismaService.purchaseOrder.findMany.mockResolvedValue([
+      {
+        id: 1,
+        orderNumber: '26ALV-0074072',
+        status: PurchaseOrderStatus.CONFIRMED,
+      },
+    ]);
+
+    const result = await ordersService.getOrders({ search: 'SECADOR', status: 'CONFIRMED' });
+
+    expect(result).toHaveLength(1);
+    expect(mockPrismaService.purchaseOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: PurchaseOrderStatus.CONFIRMED,
+          OR: expect.any(Array),
+        }),
+      }),
+    );
+  });
 });
