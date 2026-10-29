@@ -1,7 +1,7 @@
 # Добавление кода торговой деятельности в Seguridad Social (CNAE 4791)
 
 **Дата начала кейса:** 23 октября 2026 г.  
-**Текущий статус:** Основная часть выполнена (CNAE 4791 зарегистрирован 26.10.2026), на контроле финальная выписка в среду 28.10.2026.
+**Текущий статус:** Кейс успешно завершен (CNAE 4791 и актуальный адрес подтверждены в официальной выписке TGSS от 29.10.2026).
 
 ---
 
@@ -57,34 +57,43 @@
   - Контроль полностью перенесен в Google Tasks (ID: `T0ZDQW1tSV80OURId3lQVg`).
 - **26.10.2026 10:58 - Актуализация описания задачи в Google Tasks**:
   - В задачу `[Legal]: Taxfix — Проконтролировать внесение CNAE 4791 и адреса в Seguridad Social` внесено обновленное описание с пошаговым чек-листом действий для проверки в среду.
+- **29.10.2026 16:22 - Финальная проверка выписки TGSS (Выполнено успешно)**:
+  - В личном кабинете Import@ss получен свежий отчет `Informe actividades declaradas.pdf` от 29/10/2026 16:22:24 (Id. CEA `2235SP5E5AWS`, Código CEA `NOKKY-XGY4F-BWLZZ-FSCVG-YKYYY-UIEJW`).
+  - Проверено и подтверждено:
+    1. Торговая деятельность **CNAE 4791** (*Actividades de servicios de intermediación para el comercio al por menor no especializado*) / **IAE 6651** отображается с корректной датой alta **21/09/2026** (день в день с Hacienda / AEAT).
+    2. Адрес деятельности актуализирован: `ALBOCACER 11, Piso 19, Puerta 1, 12166, Ibarsos, els, Castelló/castellón`. Старый адрес в Lucena del Cid полностью заменен во всех видах активности.
+    3. IT-деятельности (CNAE 6290, 6210, 6220 с 15/01/2024) также сохранены без ошибок.
+  - Файлы сохранены в репозитории:
+    - [Informe actividades declaradas_2026-10-29.pdf](file:///Users/usuario/code/viasglobal/legal/autonomo/cnae-comercio-2026-10-23/Informe%20actividades%20declaradas_2026-10-29.pdf)
+    - [Informe actividades declaradas.pdf](file:///Users/usuario/code/viasglobal/legal/autonomo/Informe%20actividades%20declaradas.pdf)
 
 ---
 
 ## 4. Текущий статус
 
-- **CNAE 4791 / IAE 665.1**: Зарегистрирован в базе TGSS с даты 21/09/2026. Юридический факт подтвержден официальной квитанцией с кодом CEA.
-- **Адрес деятельности**: В форме новой активности поле адреса не выводится отдельно. Требуется финальная сверка по сводному отчету.
-- **Синхронизация баз**: Для полной консолидации данных во всех внутренних регистрах Seguridad Social требуется 24-48 часов (ночной цикл репликации).
+- **CNAE 4791 / IAE 665.1**: Зарегистрирован и отображается в сводной выписке Seguridad Social с даты 21/09/2026.
+- **Адрес деятельности**: Полностью актуализирован во всех регистрах (`ALBOCACER 11, Piso 19, Puerta 1, 12166, Ibarsos, els, Castelló/castellón`).
+- **Синхронизация баз**: Расхождение между AEAT и TGSS полностью устранено (100% соответствие). Кейс закрыт.
 
 ---
 
-## 5. Предстоящие действия (Roadmap)
+## 5. Выполненные действия (Roadmap)
 
-### Активная задача в Google Tasks:
+### Завершенная задача в Google Tasks:
 - **Задача**: `[Legal]: Taxfix — Проконтролировать внесение CNAE 4791 и адреса в Seguridad Social`
-- **Дедлайн**: `2026-10-28` (Среда)
+- **Дедлайн**: `2026-10-28`
 - **ID**: `T0ZDQW1tSV80OURId3lQVg`
 - **Прямая ссылка**: [Открыть в Google Tasks](https://tasks.google.com/task/OFCAmmI_49DHwyPV?sa=6)
 
-### Пошаговый чек-лист выполнения:
-- [ ] **28.10.2026 (Среда)**: Зайти в личный кабинет **Importass** (Sede Electrónica Seguridad Social) с помощью Cl@ve или цифрового сертификата по прямой ссылке: [TGSS Import@ss - Informe de actividades declaradas](https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+actividades+declaradas).
-- [ ] Скачать свежий отчет в формате PDF: **«Informe de actividades declaradas»**.
-- [ ] Проверить в скачанном отчете:
-  1. Отображение активности CNAE 4791 с датой alta 21/09/2026.
-  2. Отображение актуального адреса деятельности: `Ronda Albocacer 11, Sierra Engarcerán`.
-- [ ] Сохранить полученный файл в директорию `legal/autonomo/` под именем `Informe actividades declaradas_2026-10-28.pdf`.
-- [ ] При выявлении расхождений направить запрос хестору Jorge в [Taxfix](https://app.taxfix.es/).
-- [ ] Отметить задачу в Google Tasks как выполненную (нажатием чекбокса в Google Tasks или через CLI `task:complete --id "T0ZDQW1tSV80OURId3lQVg"`).
+### Чек-лист выполнения:
+- [x] **29.10.2026**: Зайти в личный кабинет **Importass** (Sede Electrónica Seguridad Social) по прямой ссылке: [TGSS Import@ss - Informe de actividades declaradas](https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+actividades+declaradas).
+- [x] Скачать свежий отчет в формате PDF: **«Informe de actividades declaradas»**.
+- [x] Проверить в скачанном отчете:
+  1. Отображение активности CNAE 4791 с датой alta 21/09/2026 — **Подтверждено**.
+  2. Отображение актуального адреса деятельности: `ALBOCACER 11, Els Ibarsos` — **Подтверждено**.
+- [x] Сохранить полученный файл в директорию `legal/autonomo/` под именем `Informe actividades declaradas_2026-10-29.pdf`.
+- [x] Данные сверены, расхождений нет (обращение к хестору не требуется).
+- [x] Отметить задачу в Google Tasks как выполненную после подтверждения пользователя (выполнено 29.10.2026, ID: `T0ZDQW1tSV80OURId3lQVg`).
 
 
 

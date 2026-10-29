@@ -11,12 +11,15 @@
 - **Код электронной верификации (CSV)**: `B2LR8ME9RKYAX683` (проверка подлинности на `https://sede.agenciatributaria.gob.es`).
 
 ### `Informe actividades declaradas.pdf`
-- **Что это**: Отчёт Tesorería General de la Seguridad Social (TGSS) о задекларированных видах деятельности autónomo.
-- **Дата выдачи**: 23 октября 2026 г. (запрос от 23/10/2026 12:12:46, CEA `2AE6KT5AECMW`).
-- **Задекларированные CNAE** (все с датой начала 15/01/2024, только IT, торговли нет):
-  - `6290` Otros servicios relacionados con las tecnologías de la información y la informática
-  - `6210` Actividades de programación informática
-- **Статус по e-commerce**: код торговли `4791` (IAE 665.1) добавлен хестором 26/10/2026 с датой начала 21/09/2026 (квитанция `cnae-comercio-2026-10-23/justificante_nueva_actividad_2026-10-26.pdf`, Id. CEA `28DFII5B0DMY`).
+- **Что это**: Официальный отчет Tesorería General de la Seguridad Social (TGSS) о задекларированных видах деятельности autónomo.
+- **Дата выдачи**: 29 октября 2026 г. (запрос от 29/10/2026 16:22:24, Id. CEA `2235SP5E5AWS`, Código CEA `NOKKY-XGY4F-BWLZZ-FSCVG-YKYYY-UIEJW`).
+- **Задекларированные CNAE**:
+  - `4791` Actividades de servicios de intermediación para el comercio al por menor no especializado (IAE `6651`, дата начала: **21/09/2026**) — *онлайн-торговля e-commerce*.
+  - `6290` Otros servicios relacionados con las tecnologías de la información y la informática (дата начала: 15/01/2024).
+  - `6210` Actividades de programación informática (дата начала: 15/01/2024).
+  - `6220` Actividades de consultoría informática y gestión de instalaciones informáticas (дата начала: 15/01/2024).
+- **Адрес деятельности**: `ALBOCACER 11, Piso 19, Puerta 1, 12166, Ibarsos, els, Castelló/castellón`.
+- **Статус соответствия**: Полная 100% синхронизация между Seguridad Social (TGSS) и налоговой службой (AEAT).
 
 ---
 
