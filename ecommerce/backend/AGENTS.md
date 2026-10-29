@@ -241,5 +241,14 @@
    - Перед оприходованием обязательно сверять ожидаемые позиции по Albarán (`scripts/receive-shipment.ts --order <Albaran> --check`).
    - Обязательно проводить рулеточные замеры заводских коробок (ДxШxВ в см) и взвешивание (в граммах), чтобы проверять входимость в курьерские пакеты $40 \times 50$ см (Embalaje24) перед отправкой покупателям.
    - Все фотографии приемки (Albarán, коробка с EAN, замеры) сохраняются в `ecommerce/contractors/<дистрибьютор>/attachments/` и прикрепляются к партии в `OrderDocument`.
+5. **Веб-интерфейс E-Commerce CRM & WMS (`ecommerce/crm`, `https://crm.viasglobal.es`) и агрегирующий модуль `CrmModule` (`/crm/*`)**:
+   - Модуль `src/crm/` (`CrmController`, `CrmService`) предоставляет комплексные эндпоинты для веб-панели `ecommerce/crm` (Docker-контейнер `ecommerce-admin`, внешний порт `3006`, публичный домен через Cloudflare Tunnel: `https://crm.viasglobal.es`):
+     * `GET /crm/dashboard` — сводный дашборд: KPI каталога, товаров в работе, оптовых кандидатов, воронки дистрибьюторов, писем IMAP, партий закупок, складов СВХ/MAIN и алертов пополнения, продаж FIFO, очередей Keepa и здоровья бэкапов.
+     * `GET /crm/products/contracted` — каталог товаров в работе (`ContractedFilteredProductsView` / `ContractedAllProductsView`) с переключением налогового режима (`includeVatOnFees=true|false`: Autónomo Recargo de Equivalencia vs SL) и проверкой свежести снапшота Keepa (правило 48 часов: `isSnapshotStale`).
+     * `GET /crm/products/candidates` (`CandidatesProductsView`), `GET /crm/products/asins` (`AsinView`), `GET /crm/products/asin/:code` (полное досье ASIN с `get_asin_filter_reason` и `calculate_max_buy_price`).
+     * `GET /crm/brands`, `PATCH /crm/brands/:id`, `GET /crm/manufacturers` (с `ManufacturerAlias`), `GET /crm/private-labels` (`PrivateLabelView`).
+     * `GET /crm/distributors`, `GET /crm/distributors/:id` (полное досье поставщика), `GET /crm/emails` (глобальный Read-Only поиск писем Hostinger IMAP), `GET /crm/orders`, `GET /crm/keepa/overview`.
+   - Деплой веб-панели и бэкенда на сервер Huawei выполняется командой `make redeploy-crm`.
+
 
 

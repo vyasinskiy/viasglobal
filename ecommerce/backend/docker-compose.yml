@@ -25,5 +25,30 @@ services:
     depends_on:
       - db
 
+  ecommerce-admin:
+    image: ecommerce-admin:latest
+    build:
+      context: ../crm
+      dockerfile: Dockerfile
+    container_name: ecommerce-admin
+    restart: always
+    ports:
+      - "3006:3000"
+    env_file:
+      - ../crm/.env
+    environment:
+      PORT: 3000
+      BACKEND_API_URL: "http://backend:3000"
+    depends_on:
+      - backend
+    networks:
+      - default
+      - accruals-network
+
+networks:
+  accruals-network:
+    external: true
+    name: infra_accruals-network
+
 volumes:
   pgdata:

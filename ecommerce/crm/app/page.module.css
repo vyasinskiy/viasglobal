@@ -1,0 +1,191 @@
+/* ecommerce/crm/app/page.module.css - Стили главного дашборда Viasglobal CRM */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.welcomeSection {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  padding: 28px 32px;
+  border-radius: 16px;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.welcomeTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+}
+
+.welcomeSubtitle {
+  font-size: 0.95rem;
+  color: #dbeafe;
+  margin: 0;
+  max-width: 760px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 145px;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 20px -5px rgba(15, 23, 42, 0.08);
+  border-color: #93c5fd;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cardTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.iconWrapper {
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blueIcon {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.greenIcon {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.yellowIcon {
+  background-color: #fefbeb;
+  color: #d97706;
+}
+
+.purpleIcon {
+  background-color: #faf5ff;
+  color: #9333ea;
+}
+
+.redIcon {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.cardValue {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 10px;
+}
+
+.cardMeta {
+  font-size: 0.82rem;
+  color: #475569;
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sectionCard {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+}
+
+.sectionTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .actionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.actionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.86rem;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.actionBtn:hover {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+  transform: translateY(-2px);
+}
+

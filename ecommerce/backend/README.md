@@ -313,6 +313,16 @@ cd ecommerce/backend && npx tsx scripts/record-sale.ts \
 ```
 *Если после списания остаток на СВХ опустился до $\le 1$ шт, скрипт выводит немедленное предупреждение о необходимости перемещения со склада MAIN.*
 
+#### Д. Веб-панель управления E-Commerce CRM & WMS (`ecommerce/crm`)
+Помимо CLI-скриптов, все сущности `ecommerce/backend` доступны в едином веб-интерфейсе **Viasglobal E-Commerce CRM & WMS**:
+- **Исходный код фронтенда**: `ecommerce/crm` (Next.js 14 + MUI v5 + BFF-прокси к `http://backend:3000`).
+- **Docker-контейнер**: `ecommerce-admin` (описан в `ecommerce/backend/docker-compose.yml`, порт `3006:3000`, подключен к сетям `backend_default` и `infra_accruals-network`).
+- **Публичный домен (Cloudflare Tunnel)**: `https://crm.viasglobal.es`.
+- **Деплой на сервер Huawei**:
+  ```bash
+  make redeploy-crm
+  ```
+
 ---
 
 ## Project setup

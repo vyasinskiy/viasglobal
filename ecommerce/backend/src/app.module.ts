@@ -11,6 +11,7 @@ import { AnalysisModule } from './analysis/analysis.module';
 import { OrdersModule } from './orders/orders.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SalesModule } from './sales/sales.module';
+import { CrmModule } from './crm/crm.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SalesModule } from './sales/sales.module';
     OrdersModule,
     InventoryModule,
     SalesModule,
+    CrmModule,
     ScheduleModule.forRoot()
   ],
   controllers: [AppController],
