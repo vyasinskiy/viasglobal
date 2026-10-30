@@ -105,16 +105,20 @@ redeploy-rent-services: redeploy-rent-accountant redeploy-rent-watcher redeploy-
 
 
 deploy-openclaw:
-	@echo "Синхронизация документации на сервер Huawei..."
+	@echo "Синхронизация документации и базы знаний на сервер Huawei..."
 	rsync -avz ./ecommerce/docs/ huawei@100.92.50.18:~/viasglobal/ecommerce/docs/
+	rsync -avz ./ecommerce/contractors/ huawei@100.92.50.18:~/viasglobal/ecommerce/contractors/
+	rsync -avz ./legal/ huawei@100.92.50.18:~/viasglobal/legal/
 	@echo "Синхронизация файлов OpenClaw на сервер Huawei..."
 	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
 	@echo "Развертывание сервиса viasglobal-openclaw на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && bash deploy.sh"
 
 redeploy-openclaw:
-	@echo "Синхронизация документации на сервер Huawei..."
+	@echo "Синхронизация документации и базы знаний на сервер Huawei..."
 	rsync -avz ./ecommerce/docs/ huawei@100.92.50.18:~/viasglobal/ecommerce/docs/
+	rsync -avz ./ecommerce/contractors/ huawei@100.92.50.18:~/viasglobal/ecommerce/contractors/
+	rsync -avz ./legal/ huawei@100.92.50.18:~/viasglobal/legal/
 	@echo "Синхронизация файлов OpenClaw на сервер Huawei..."
 	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
 	@echo "Развертывание и перезапуск сервиса viasglobal-openclaw..."
