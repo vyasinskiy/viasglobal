@@ -32,9 +32,11 @@
 - **Подключенные сети Docker**:
   - `backend_default` (для прямого обращения BFF-прокси `/api/backend/[...path]` к `http://backend:3000`).
   - `infra_accruals-network` (внешняя сеть, в которой работает контейнер `cloudflared` и автономный агент `viasglobal-openclaw`).
-- **Аутентификация**:
+- **Аутентификация и разлогин**:
   - Защищена паролем администратора (`ADMIN_PASSWORD`, по умолчанию `viasglobal`) через `middleware.ts` и подписанную HMAC-SHA256 сессионную куку `vias_crm_session` со скользящим продлением на 400 дней.
   - Также поддерживает заголовок `x-app-password: viasglobal` для вызовов со стороны ИИ-агентов и проверок.
+  - **Регламент выхода (`handleLogout`)**: При выходе из системы (`POST /api/auth/logout`) переход на экран `/login` **строго выполняется через полную перезагрузку страницы (`window.location.href = '/login'`)**, а не через клиентский роутер `router.push('/login')`. Это предотвращает гонки фоновых SWR-запросов и гарантирует полную очистку клиентского кэша.
+  - **Строгое соблюдение правил хуков React (Rules of Hooks)**: В компоненте `LayoutClient` все хуки (`useState`, `useEffect`, `useSWR`, `useMemo`) обязаны вызываться безусловно в самом верху компонента, до любой проверки `if (pathname === '/login') return <>{children}</>;`, чтобы смена роута на `/login` не приводила к ошибке `Rendered fewer hooks than expected` и белому экрану ошибки Next.js.
 - **Команды деплоя в корневом `Makefile`**:
   - `make redeploy-crm` — синхронизация `ecommerce/crm` и `ecommerce/backend/docker-compose.yml` на сервер Huawei и пересборка контейнера `ecommerce-admin`.
   - `make deploy-master` — полный деплой бэкенда и CRM на сервер Huawei.

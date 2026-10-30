@@ -95,11 +95,6 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   );
   const pendingEventsCount = pendingEventsData?.count || 0;
 
-  // На странице входа скрываем боковую панель и шапку
-  if (pathname === '/login') {
-    return <>{children}</>;
-  }
-
   // Определение активного бизнес-подраздела по URL
   const activeBusinessId: 'finance' | 'amazon' | 'rent' = React.useMemo(() => {
     if (pathname === '/finance' || pathname.startsWith('/finance/')) {
@@ -110,6 +105,11 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     }
     return 'amazon';
   }, [pathname]);
+
+  // На странице входа скрываем боковую панель и шапку (проверяем строго после вызова всех React-хуков)
+  if (pathname === '/login') {
+    return <>{children}</>;
+  }
 
   // Конфигурация всех бизнес-подразделов и их внутренних страниц
   const businessUnits: BusinessUnit[] = [
@@ -263,7 +263,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   const currentBusiness =
     businessUnits.find((b) => b.id === activeBusinessId) || businessUnits[1];
 
-  // Выход из системы со сбросом сессионных cookie
+  // Выход из системы со сбросом сессионных cookie и полной перезагрузкой состояния
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -272,7 +272,8 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     }
     document.cookie = 'vias_crm_session=; Path=/; Max-Age=0;';
     document.cookie = 'vias_rent_session=; Path=/; Max-Age=0;';
-    router.push('/login');
+    // Выполняем полную перезагрузку страницы на экран логина для сброса SWR кэша и состояния React
+    window.location.href = '/login';
   };
 
   return (
