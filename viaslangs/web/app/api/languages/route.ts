@@ -5,7 +5,7 @@ import { Language } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 async function seedDefaultLanguages() {
-  const result = await pool.query("SELECT COUNT(*)::int AS count FROM vy_languages");
+  const result = await pool.query("SELECT COUNT(*)::int AS count FROM languages");
   if (result.rows[0].count > 0) return;
 
   const defaults = [
@@ -14,7 +14,7 @@ async function seedDefaultLanguages() {
   ];
   for (const lang of defaults) {
     await pool.query(
-      "INSERT INTO vy_languages (code, name) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
+      "INSERT INTO languages (code, name) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING",
       [lang.code, lang.name]
     );
   }
@@ -23,7 +23,7 @@ async function seedDefaultLanguages() {
 export async function GET() {
   try {
     await seedDefaultLanguages();
-    const result = await pool.query("SELECT * FROM vy_languages ORDER BY id ASC");
+    const result = await pool.query("SELECT * FROM languages ORDER BY id ASC");
     return NextResponse.json({
       success: true,
       data: mapRows<Language>(result.rows),
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     }
 
     const result = await pool.query(
-      "INSERT INTO vy_languages (code, name) VALUES ($1, $2) RETURNING *",
+      "INSERT INTO languages (code, name) VALUES ($1, $2) RETURNING *",
       [code.trim().toLowerCase(), name.trim()]
     );
 

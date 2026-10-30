@@ -117,7 +117,7 @@ npm run scrape -- "https://es.ankorstore.com/collection/backtoschool2025" --marg
 - **Supabase Storage**:
   - Единственный публичный бакет `products` (хранение фотографий каталога товаров, обслуживаемое через CDN Cloudflare, 6 075 файлов).
 - **Изоляция остальных сервисов на сервере Huawei**:
-  - Любые персональные сервисы (`viaslangs`), сервисы аренды (`rent`) и оптового учета (`wholesale`) изолированы от облака Supabase и функционируют на локальном сервере Huawei в PostgreSQL (`accruals-postgres`). Таблицы сервиса `viaslangs` (`vy_*`) были экспортированы и удалены из Supabase.
+  - Любые персональные сервисы (`viaslangs`), сервисы аренды (`rent`) и оптового учета (`wholesale`) изолированы от облака Supabase и функционируют на локальном сервере Huawei в PostgreSQL (`accruals-postgres`). Таблицы сервиса `viaslangs` (`vias_*`) были экспортированы и удалены из Supabase.
 
 ### Настройка базы данных Supabase
 1. Создайте проект в [Supabase](https://supabase.com).

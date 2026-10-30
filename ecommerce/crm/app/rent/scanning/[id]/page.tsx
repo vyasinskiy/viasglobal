@@ -329,7 +329,7 @@ export default function ScraperRunDetailPage({ params }: { params: { id: string 
               <li>Запустите удаленный браузер кнопкой в панели управления или через API.</li>
               <li>Откройте ссылку удаленного браузера (порт 3002).</li>
               <li>Войдите в личный кабинет kvartplata.online и подтвердите SMS-код.</li>
-              <li>Сохраните профиль: <code>docker exec accruals-watcher npm run bootstrap</code>.</li>
+              <li>Сохраните профиль: <code>docker exec viasrent-watcher npm run bootstrap</code>.</li>
             </ol>
           </div>
         </div>

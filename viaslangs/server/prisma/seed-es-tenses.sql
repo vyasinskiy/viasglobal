@@ -4,18 +4,18 @@
 -- ==============================================================================
 
 -- 1. Добавление колонки base_word_id со связью к базовому инфинитиву
-ALTER TABLE vy_words ADD COLUMN IF NOT EXISTS base_word_id INTEGER REFERENCES vy_words(id) ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_vy_words_base_word_id ON vy_words(base_word_id);
+ALTER TABLE words ADD COLUMN IF NOT EXISTS base_word_id INTEGER REFERENCES words(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_words_base_word_id ON words(base_word_id);
 
 -- 2. Создание тегов времён для испанского языка
-INSERT INTO vy_tags (language_id, name)
+INSERT INTO tags (language_id, name)
 SELECT l.id, 'Pretérito Indefinido'
-FROM vy_languages l WHERE l.code = 'es'
+FROM languages l WHERE l.code = 'es'
 ON CONFLICT (language_id, name) DO NOTHING;
 
-INSERT INTO vy_tags (language_id, name)
+INSERT INTO tags (language_id, name)
 SELECT l.id, 'Pretérito Imperfecto'
-FROM vy_languages l WHERE l.code = 'es'
+FROM languages l WHERE l.code = 'es'
 ON CONFLICT (language_id, name) DO NOTHING;
 
 -- 3. Временная таблица для массовой загрузки карточек
@@ -630,8 +630,8 @@ INSERT INTO tmp_tenses_words (base_inf, tense_tag, english, russian, example_en,
   ('verificar', 'Pretérito Indefinido', 'verificaron', 'проверили (они / Вы)', 'Esta mañana ellos verificaron el stock físico disponible en el almacén.', 'Сегодня утром они проверили физический остаток на складе.'),
   ('verificar', 'Pretérito Imperfecto', 'verificaban', 'проверяли (они / Вы)', 'Ellos habitualmente verificaban el stock físico disponible en el almacén.', 'Они обычно проверяли физический остаток на складе.');
 
--- 4. Вставка 600 карточек в таблицу vy_words с привязкой base_word_id
-INSERT INTO vy_words (language_id, english, russian, example_en, example_ru, base_word_id)
+-- 4. Вставка 600 карточек в таблицу words с привязкой base_word_id
+INSERT INTO words (language_id, english, russian, example_en, example_ru, base_word_id)
 SELECT 
   l.id,
   t.english,
@@ -640,11 +640,11 @@ SELECT
   t.example_ru,
   base_w.id AS base_word_id
 FROM tmp_tenses_words t
-CROSS JOIN vy_languages l
-JOIN vy_words base_w ON base_w.language_id = l.id AND lower(base_w.english) = lower(t.base_inf)
+CROSS JOIN languages l
+JOIN words base_w ON base_w.language_id = l.id AND lower(base_w.english) = lower(t.base_inf)
 WHERE l.code = 'es'
   AND NOT EXISTS (
-    SELECT 1 FROM vy_words w 
+    SELECT 1 FROM words w 
     WHERE w.language_id = l.id 
       AND lower(w.english) = lower(t.english) 
       AND w.russian = t.russian
@@ -652,29 +652,29 @@ WHERE l.code = 'es'
   );
 
 -- 5. Привязка карточек к соответствующему тегу времени (Pretérito Indefinido / Imperfecto)
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT DISTINCT w.id, tag.id
-FROM vy_words w
+FROM words w
 JOIN tmp_tenses_words t ON lower(w.english) = lower(t.english) AND w.russian = t.russian
-JOIN vy_languages l ON l.id = w.language_id AND l.code = 'es'
-JOIN vy_tags tag ON tag.language_id = l.id AND tag.name = t.tense_tag
+JOIN languages l ON l.id = w.language_id AND l.code = 'es'
+JOIN tags tag ON tag.language_id = l.id AND tag.name = t.tense_tag
 WHERE w.base_word_id IS NOT NULL
 ON CONFLICT (word_id, tag_id) DO NOTHING;
 
 -- 6. Привязка всех карточек к тегу «Глаголы»
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT DISTINCT w.id, tag.id
-FROM vy_words w
-JOIN vy_languages l ON l.id = w.language_id AND l.code = 'es'
-JOIN vy_tags tag ON tag.language_id = l.id AND tag.name = 'Глаголы'
+FROM words w
+JOIN languages l ON l.id = w.language_id AND l.code = 'es'
+JOIN tags tag ON tag.language_id = l.id AND tag.name = 'Глаголы'
 WHERE w.base_word_id IS NOT NULL
 ON CONFLICT (word_id, tag_id) DO NOTHING;
 
 -- 7. Привязка всех карточек к тегу «Для общения с поставщиками»
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT DISTINCT w.id, tag.id
-FROM vy_words w
-JOIN vy_languages l ON l.id = w.language_id AND l.code = 'es'
-JOIN vy_tags tag ON tag.language_id = l.id AND tag.name = 'Для общения с поставщиками'
+FROM words w
+JOIN languages l ON l.id = w.language_id AND l.code = 'es'
+JOIN tags tag ON tag.language_id = l.id AND tag.name = 'Для общения с поставщиками'
 WHERE w.base_word_id IS NOT NULL
 ON CONFLICT (word_id, tag_id) DO NOTHING;

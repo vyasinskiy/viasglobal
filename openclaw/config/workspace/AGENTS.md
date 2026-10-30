@@ -10,13 +10,13 @@
 
 | Имя контейнера | Docker DNS хост | Внутренний порт | Назначение и функции |
 | :--- | :--- | :--- | :--- |
-| `accruals-accountant` | `accruals-accountant` | `3005` | **Учет аренды (Accountant Service)**: квартиры, арендаторы, коммунальные счета, начисления, квитанции, подтверждение и учет платежей |
-| `accruals-watcher` | `accruals-watcher` | `4500` | **Сканер порталов ЖКХ (Watcher Service)**: автоматический парсинг квитанций и начислений через Playwright |
-| `backend` | `backend` | `3000` | **Каталог Amazon Wholesale (Backend API)**: база брендов, воронка дистрибьюторов, Keepa очереди, Private Label |
-| `accruals-admin-ui` | `accruals-admin-ui` | `3000` | Веб-интерфейс администратора аренды |
-| `accruals-rabbitmq` | `accruals-rabbitmq` | `5672`, `15672` | Брокер сообщений RabbitMQ и веб-консоль управления |
-| `accruals-postgres` | `accruals-postgres` | `5432` | База данных PostgreSQL (`accountant_db`, `watcher_db`, `telegram_bot_db`, `vy_langs_db`) |
-| `accruals-telegram-bot` | `accruals-telegram-bot` | - | Бот учета аренды для арендаторов |
+| `viasrent-accountant` | `viasrent-accountant` | `3005` | **Учет аренды (Accountant Service)**: квартиры, арендаторы, коммунальные счета, начисления, квитанции, подтверждение и учет платежей |
+| `viasrent-watcher` | `viasrent-watcher` | `4500` | **Сканер порталов ЖКХ (Watcher Service)**: автоматический парсинг квитанций и начислений через Playwright |
+| `viasglobal-backend` | `viasglobal-backend` | `3000` | **Каталог Amazon Wholesale (Backend API)**: база брендов, воронка дистрибьюторов, Keepa очереди, Private Label |
+| `viasrent-admin-ui` | `viasrent-admin-ui` | `3000` | Веб-интерфейс администратора аренды |
+| `viasrent-rabbitmq` | `viasrent-rabbitmq` | `5672`, `15672` | Брокер сообщений RabbitMQ и веб-консоль управления |
+| `viasglobal-postgres` | `viasglobal-postgres` | `5432` | База данных PostgreSQL (`viasglobal_db`, `viasrent_db`, `viaslangs_db`) |
+| `viasrent-telegram-bot` | `viasrent-telegram-bot` | - | Бот учета аренды для арендаторов |
 | `viasglobal-openclaw` | `viasglobal-openclaw` | `18789` | Твой собственный контейнер (OpenClaw шлюз) |
 | `viaslangs` | `viaslangs-web` | `3000` | **Тренажер языков Viaslangs**: сессии изучения, клики Next, статистика ошибок по временам/формам лица, динамика активности (хост: `3007`, сеть: `viaslangs-web:3000`) |
 | `sms-gateway` | `sms-gateway` | `3040` | **Приемник SMS (SMS Gateway)**: чтение входящих SMS с телефона Meizu U20, коды подтверждения терминалов, статус батареи |
@@ -33,19 +33,19 @@
 - Примеры вызовов через bash/curl:
   - Проверить общую статистику по аренде:
     ```bash
-    curl -s http://accruals-accountant:3005/accountant/stats
+    curl -s http://viasrent-accountant:3005/accountant/stats
     ```
   - Посмотреть активных арендаторов:
     ```bash
-    curl -s http://accruals-accountant:3005/accountant/tenants
+    curl -s http://viasrent-accountant:3005/accountant/tenants
     ```
   - Проверить наличие бренда в товарной базе:
     ```bash
-    curl -s "http://backend:3000/brands/check?name=LEGO"
+    curl -s "http://viasglobal-backend:3000/brands/check?name=LEGO"
     ```
   - Проверить статус последнего сбора квитанций:
     ```bash
-    curl -s http://accruals-watcher:4500/scraping/runs
+    curl -s http://viasrent-watcher:4500/scraping/runs
     ```
   - Проверить статистику текущей сессии изучения испанского языка за сегодня (клики Next, ошибки по временам и формам лица):
     ```bash
@@ -103,7 +103,7 @@
 2. **КАТЕГОРИЧЕСКИЙ ЗАПРЕТ НА САМОСТОЯТЕЛЬНОЕ ДОБАВЛЕНИЕ И ИЗМЕНЕНИЕ ДАННЫХ**:
    Тебе **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** самостоятельно инициировать или выполнять любые запросы создания, изменения или удаления данных (`POST`, `PUT`, `PATCH`, `DELETE`) без явного предварительного подтверждения пользователя! Никаких самовольных действий не допускается.
 3. **СТРОГИЙ ПОШАГОВЫЙ РЕГЛАМЕНТ ДЛЯ ИЗМЕНЕНИЯ ДАННЫХ**:
-   Перед отправкой ЛЮБОГО изменяющего запроса к микросервисам (`accruals-accountant`, `backend`, `accruals-watcher`), ты **ОБЯЗАН**:
+   Перед отправкой ЛЮБОГО изменяющего запроса к микросервисам (`viasrent-accountant`, `viasglobal-backend`, `viasrent-watcher`), ты **ОБЯЗАН**:
    - **Шаг 1: Уточнить недостающую информацию**. Если пользователь не указал обязательные поля (например, сумму, дату платежа, номер квартиры, день оплаты арендатора, email поставщика), сначала задай уточняющий вопрос.
    - **Шаг 2: Выслать проект сущности и изменений**. Вышли пользователю четкое сообщение с описанием того, что конкретно ты собираешься сделать:
      * Какая именно сущность создается или изменяется (например: "Создание нового арендатора", "Регистрация платежа", "Изменение статуса поставщика").

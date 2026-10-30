@@ -11,9 +11,9 @@ const WORD_SELECT = `
          w.is_favorite AS "isFavorite",
          COALESCE((
            SELECT array_agg(wt.tag_id ORDER BY wt.tag_id)
-           FROM vy_word_tags wt WHERE wt.word_id = w.id
+           FROM word_tags wt WHERE wt.word_id = w.id
          ), '{}') AS "tagIds"
-  FROM vy_words w
+  FROM words w
 `;
 
 export async function GET(
@@ -54,7 +54,7 @@ export async function PUT(
     const wordId = parseInt(id);
 
     const current = await pool.query(
-      `SELECT id FROM vy_words WHERE id = $1`,
+      `SELECT id FROM words WHERE id = $1`,
       [wordId]
     );
     if (!current.rows[0]) {
@@ -96,16 +96,16 @@ export async function PUT(
     if (updates.length > 0) {
       paramsArr.push(wordId);
       await pool.query(
-        `UPDATE vy_words SET ${updates.join(", ")} WHERE id = $${paramsArr.length}`,
+        `UPDATE words SET ${updates.join(", ")} WHERE id = $${paramsArr.length}`,
         paramsArr
       );
     }
 
     if (Array.isArray(body.tagIds)) {
-      await pool.query(`DELETE FROM vy_word_tags WHERE word_id = $1`, [wordId]);
+      await pool.query(`DELETE FROM word_tags WHERE word_id = $1`, [wordId]);
       for (const tagId of body.tagIds) {
         await pool.query(
-          `INSERT INTO vy_word_tags (word_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          `INSERT INTO word_tags (word_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
           [wordId, tagId]
         );
       }
@@ -129,7 +129,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await pool.query(`DELETE FROM vy_words WHERE id = $1`, [parseInt(id)]);
+    await pool.query(`DELETE FROM words WHERE id = $1`, [parseInt(id)]);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting word:", error);

@@ -1,29 +1,18 @@
 version: '3.8'
 services:
-  db:
-    build:
-      context: .
-      dockerfile: postgres.Dockerfile
-    restart: always
-    environment:
-      POSTGRES_USER: viasuser
-      POSTGRES_PASSWORD: viaspassword
-      POSTGRES_DB: viasglobal_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
   backend:
     build: .
+    container_name: viasglobal-backend
     restart: always
     ports:
       - "3001:3000"
     env_file: .env
     environment:
-      DATABASE_URL: "postgresql://viasuser:viaspassword@db:5432/viasglobal_db?schema=public"
-    depends_on:
-      - db
+      # Подключение к единому инстансу PostgreSQL viasglobal-postgres в общей сети
+      DATABASE_URL: "postgresql://viasuser:viaspassword@viasglobal-postgres:5432/viasglobal_db?schema=public"
+    networks:
+      - default
+      - accruals-network
 
   ecommerce-admin:
     image: ecommerce-admin:latest
@@ -50,5 +39,3 @@ networks:
     external: true
     name: infra_accruals-network
 
-volumes:
-  pgdata:

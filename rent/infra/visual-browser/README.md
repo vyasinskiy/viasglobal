@@ -1,4 +1,4 @@
-# Визуальный браузер (accruals-visual-browser)
+# Визуальный браузер (viasrent-visual-browser)
 
 Кастомный Dockerfile для удаленного браузера Chromium на базе `lscr.io/linuxserver/chromium:latest` с веб-доступом (KasmVNC/Selkies).
 

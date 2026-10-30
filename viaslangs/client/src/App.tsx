@@ -62,7 +62,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const LANGUAGE_STORAGE_KEY = 'vy-langs-selected-language';
+const LANGUAGE_STORAGE_KEY = 'viaslangs-selected-language';
 
 function App() {
   const [tabValue, setTabValue] = useState(0);

@@ -67,7 +67,15 @@ echo "======================================================================"
 
 case "${TARGET_DB}" in
   viasglobal)
-    CONTAINER_NAME="${CONTAINER_NAME:-backend-db-1}"
+    if [ -z "${CONTAINER_NAME}" ]; then
+      if docker ps --format '{{.Names}}' | grep -q '^viasglobal-postgres$'; then
+        CONTAINER_NAME="viasglobal-postgres"
+      elif docker ps --format '{{.Names}}' | grep -q '^accruals-postgres$'; then
+        CONTAINER_NAME="accruals-postgres"
+      else
+        CONTAINER_NAME="backend-db-1"
+      fi
+    fi
     DB_USER="${DB_USER:-viasuser}"
     DB_NAME="${DB_NAME:-viasglobal_db}"
     # Если файл не указан явно, берем самый свежий бэкап
@@ -76,9 +84,15 @@ case "${TARGET_DB}" in
     fi
     ;;
   rent)
-    CONTAINER_NAME="${CONTAINER_NAME:-accruals-postgres}"
+    if [ -z "${CONTAINER_NAME}" ]; then
+      if docker ps --format '{{.Names}}' | grep -q '^viasglobal-postgres$'; then
+        CONTAINER_NAME="viasglobal-postgres"
+      else
+        CONTAINER_NAME="accruals-postgres"
+      fi
+    fi
     DB_USER="${DB_USER:-postgres}"
-    DB_NAME="${DB_NAME:-postgres}"
+    DB_NAME="${DB_NAME:-viasrent_db}"
     if [ -z "${BACKUP_FILE}" ]; then
       BACKUP_FILE="$(find "${BACKUP_BASE_DIR}/rent" "${PROJECT_ROOT}/rent/infra/backups" -type f -name "*rent*.sql.gz" -o -name "db_backup_*.sql.gz" 2>/dev/null | sort -r | head -n 1 || true)"
     fi

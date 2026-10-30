@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     }
 
     const wordResult = await client.query(
-      `SELECT id, language_id, english, russian, base_word_id FROM vy_words WHERE id = $1`,
+      `SELECT id, language_id, english, russian, base_word_id FROM words WHERE id = $1`,
       [wordId]
     );
     const word = wordResult.rows[0];
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     if (!isCorrect) {
       // Поиск синонимов среди других слов того же языка с нормализацией акцентов
       const synonymResult = await client.query(
-        `SELECT id, english FROM vy_words
+        `SELECT id, english FROM words
          WHERE russian = $1 AND language_id = $2`,
         [word.russian, word.language_id]
       );
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     }
 
     await client.query(
-      `INSERT INTO vy_answers (word_id, answer, is_correct, is_synonym)
+      `INSERT INTO answers (word_id, answer, is_correct, is_synonym)
        VALUES ($1, $2, $3, $4)`,
       [wordId, rawUserAnswer.toLowerCase(), isCorrect, isSynonym]
     );
@@ -140,21 +140,21 @@ export async function POST(req: Request) {
     // Автозачёт всех 6 форм глагола при изучении конкретного времени (Pretérito Indefinido / Imperfecto)
     if (isCorrect && word.base_word_id) {
       await client.query(
-        `INSERT INTO vy_answers (word_id, answer, is_correct)
+        `INSERT INTO answers (word_id, answer, is_correct)
          SELECT DISTINCT w2.id, w2.english, true
-         FROM vy_words w2
-         JOIN vy_word_tags wt2 ON wt2.word_id = w2.id
+         FROM words w2
+         JOIN word_tags wt2 ON wt2.word_id = w2.id
          WHERE w2.base_word_id = $1
            AND w2.id != $2
            AND wt2.tag_id IN (
              SELECT t.id
-             FROM vy_word_tags wt
-             JOIN vy_tags t ON t.id = wt.tag_id
+             FROM word_tags wt
+             JOIN tags t ON t.id = wt.tag_id
              WHERE wt.word_id = $2
                AND t.name IN ('Pretérito Indefinido', 'Pretérito Imperfecto')
            )
            AND NOT EXISTS (
-             SELECT 1 FROM vy_answers a WHERE a.word_id = w2.id AND a.is_correct = true
+             SELECT 1 FROM answers a WHERE a.word_id = w2.id AND a.is_correct = true
            )`,
         [word.base_word_id, wordId]
       );
@@ -162,12 +162,12 @@ export async function POST(req: Request) {
 
     if (isSynonym && synonymWord) {
       const existingCorrect = await client.query(
-        `SELECT id FROM vy_answers WHERE word_id = $1 AND is_correct = true LIMIT 1`,
+        `SELECT id FROM answers WHERE word_id = $1 AND is_correct = true LIMIT 1`,
         [synonymWord.id]
       );
       if (!existingCorrect.rows[0]) {
         await client.query(
-          `INSERT INTO vy_answers (word_id, answer, is_correct) VALUES ($1, $2, true)`,
+          `INSERT INTO answers (word_id, answer, is_correct) VALUES ($1, $2, true)`,
           [synonymWord.id, rawUserAnswer.toLowerCase()]
         );
       }
@@ -179,22 +179,22 @@ export async function POST(req: Request) {
     endOfDay.setHours(23, 59, 59, 999);
 
     const todayCorrect = await client.query(
-      `SELECT COUNT(*)::int AS count FROM vy_answers a
-       JOIN vy_words w ON w.id = a.word_id
+      `SELECT COUNT(*)::int AS count FROM answers a
+       JOIN words w ON w.id = a.word_id
        WHERE a.is_correct = true AND w.language_id = $1
          AND a.created_at >= $2 AND a.created_at <= $3`,
       [word.language_id, startOfDay, endOfDay]
     );
 
     const totalCorrect = await client.query(
-      `SELECT COUNT(*)::int AS count FROM vy_answers a
-       JOIN vy_words w ON w.id = a.word_id
+      `SELECT COUNT(*)::int AS count FROM answers a
+       JOIN words w ON w.id = a.word_id
        WHERE a.is_correct = true AND w.language_id = $1`,
       [word.language_id]
     );
 
     const totalWords = await client.query(
-      `SELECT COUNT(*)::int AS count FROM vy_words WHERE language_id = $1`,
+      `SELECT COUNT(*)::int AS count FROM words WHERE language_id = $1`,
       [word.language_id]
     );
 

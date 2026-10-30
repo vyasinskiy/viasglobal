@@ -12,9 +12,9 @@ const WORD_SELECT = `
          w.is_favorite AS "isFavorite",
          COALESCE((
            SELECT array_agg(wt.tag_id ORDER BY wt.tag_id)
-           FROM vy_word_tags wt WHERE wt.word_id = w.id
+           FROM word_tags wt WHERE wt.word_id = w.id
          ), '{}') AS "tagIds"
-  FROM vy_words w
+  FROM words w
 `;
 
 export async function GET(req: Request) {
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     if (tagId) {
       params.push(tagId);
       conditions.push(
-        `w.id IN (SELECT word_id FROM vy_word_tags WHERE tag_id = $${params.length})`
+        `w.id IN (SELECT word_id FROM word_tags WHERE tag_id = $${params.length})`
       );
     }
 
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     let targetLanguageId = languageId;
     if (!targetLanguageId) {
       const langResult = await pool.query(
-        "SELECT id FROM vy_languages ORDER BY id ASC LIMIT 1"
+        "SELECT id FROM languages ORDER BY id ASC LIMIT 1"
       );
       targetLanguageId = langResult.rows[0]?.id;
     }
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     }
 
     const result = await pool.query(
-      `INSERT INTO vy_words (language_id, english, russian, example_en, example_ru, base_word_id)
+      `INSERT INTO words (language_id, english, russian, example_en, example_ru, base_word_id)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
       [
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     if (Array.isArray(tagIds) && tagIds.length > 0) {
       for (const tagId of tagIds) {
         await pool.query(
-          `INSERT INTO vy_word_tags (word_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          `INSERT INTO word_tags (word_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
           [wordId, tagId]
         );
       }

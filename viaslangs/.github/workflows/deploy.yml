@@ -23,13 +23,13 @@ jobs:
 
     - name: Create ECR repository if not exists
       run: |
-        aws ecr describe-repositories --repository-names vy-langs || \
-        aws ecr create-repository --repository-name vy-langs
+        aws ecr describe-repositories --repository-names viaslangs || \
+        aws ecr create-repository --repository-name viaslangs
 
     - name: Apply ECR lifecycle policy
       run: |
         aws ecr put-lifecycle-policy \
-          --repository-name vy-langs \
+          --repository-name viaslangs \
           --lifecycle-policy-text file://ecr-lifecycle-policy.json
 
     - name: Login to Amazon ECR
@@ -38,7 +38,7 @@ jobs:
 
     - name: Build and push Docker image
       env:
-        ECR_REPOSITORY: vy-langs
+        ECR_REPOSITORY: viaslangs
         IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
       run: |
         docker build \
@@ -73,31 +73,31 @@ jobs:
           export AWS_REGION=${{ vars.AWS_REGION }}
           export ECR_REGISTRY=${{ env.ECR_REGISTRY }}
           export IMAGE_TAG=${{ env.IMAGE_TAG }}
-          cd /home/ubuntu/vy-langs/
+          cd /home/ubuntu/viaslangs/
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
           
-          echo "Pulling image $ECR_REGISTRY/vy-langs:$IMAGE_TAG ..."
-          docker pull "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
+          echo "Pulling image $ECR_REGISTRY/viaslangs:$IMAGE_TAG ..."
+          docker pull "$ECR_REGISTRY/viaslangs:$IMAGE_TAG"
 
-          docker stop vy-langs || true
-          docker rm vy-langs || true
+          docker stop viaslangs || true
+          docker rm viaslangs || true
 
           echo "Starting container..."
-          docker run -d --restart=always --name vy-langs \
+          docker run -d --restart=always --name viaslangs \
             -p '${{ vars.BACKEND_PORT }}':'${{ vars.BACKEND_PORT }}' \
             -e NODE_ENV='${{ vars.NODE_ENV }}' \
             -e BACKEND_PORT='${{ vars.BACKEND_PORT }}' \
             -e DATABASE_URL='${{ vars.DATABASE_URL }}' \
-            "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
+            "$ECR_REGISTRY/viaslangs:$IMAGE_TAG"
 
           sleep 5
 
           echo "Checking container status..."
-          CONTAINER_ID=$(docker ps -q -f name=^/vy-langs$)
+          CONTAINER_ID=$(docker ps -q -f name=^/viaslangs$)
 
           if [ -z "$CONTAINER_ID" ]; then
-            echo "Container vy-langs is not running"
-            docker logs vy-langs || true
+            echo "Container viaslangs is not running"
+            docker logs viaslangs || true
             exit 1
           fi
 

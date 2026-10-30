@@ -1,7 +1,7 @@
 # ==============================================================================
 # Docker Compose конфигурация для сервиса Viaslangs на сервере Huawei
 # ==============================================================================
-name: vy-langs
+name: viaslangs
 
 services:
   web:
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     environment:
       # Подключение к PostgreSQL внутри общей Docker-сети infra_accruals-network
-      DATABASE_URL: postgresql://postgres:postgres@accruals-postgres:5432/vy_langs_db
+      DATABASE_URL: postgresql://postgres:postgres@viasglobal-postgres:5432/viaslangs_db
       PORT: 3000
       NODE_ENV: production
       VIASLANGS_APP_SECRET: e4201cba41a7cddd45d1a0e6ffff3b30d610c98a2d4f50c4d24f6d4b9513916c

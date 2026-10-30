@@ -6,12 +6,11 @@
 
 ## 1. Архитектура баз данных кластера
 
-На боевом сервере Huawei (`100.92.50.18`) развернуты 2 независимых СУБД в изолированных Docker-контейнерах:
+На боевом сервере Huawei (`100.92.50.18`) все базы данных консолидированы в единый инстанс PostgreSQL 16 в изолированном Docker-контейнере с общим хранилищем данных и Docker-сетью `infra_accruals-network`:
 
-| Контейнер Docker | База данных | СУБД | Назначение | Примерный объем | Внешний домен |
+| Контейнер Docker | Базы данных | СУБД | Назначение | Порты хоста | Внешний домен |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`backend-db-1`** | `viasglobal_db` | PostgreSQL 15 | Каталог Wholesale, товары, 100k+ ASIN, Keepa очереди, закупки, остатки | ~1.75 ГБ (gzip ~791 МБ) | `api.viasglobal.es` / порт `3001` |
-| **`accruals-postgres`** | `accountant_db`, `watcher_db`, `telegram_bot_db`, `kvartplata_watcher` | PostgreSQL 16 | Сервис учета аренды: жильцы, квитанции, начисления, платежи, парсер ЖКХ | ~35 МБ (gzip ~220 КБ) | **`https://rent.viasglobal.es`** (порт `3000`) |
+| **`viasglobal-postgres`** | `viasglobal_db`, `viasrent_db`, `viaslangs_db` | PostgreSQL 16 | Каталог Wholesale + Ecommerce (закупки, остатки, склад), единый учет аренды (accountant, watcher, bot), Viaslangs | `5432`, `5433` | `api.viasglobal.es` (порт `3001`), **`https://rent.viasglobal.es`** (порт `3000`), **`https://langs.viasglobal.es`** (порт `3007`) |
 
 ---
 
@@ -100,15 +99,14 @@ make dr-failover
 #### Что произойдет автоматически:
 1. Скрипт проверит наличие `.env` файлов на машине и при их отсутствии автоматически распакует все боевые секреты и переменные окружения из архива `ecommerce/backend/backups/configs/configs_*.tar.gz`.
 2. Проверит наличие свежих дампов баз данных.
-3. Поднимет локальные базы данных в Docker на Mac:
-   - `backend-db-1` (Postgres 15, порт `5432`)
-   - `accruals-postgres` (Postgres 16, порт `5433`)
-3. Автоматически распакует и импортирует самые свежие дампы всех баз через `restore.sh`.
-4. Запустит локальные веб-сервисы и API (`admin-ui`, `accountant`, `backend`).
-5. Запустит локальный контейнер **`cloudflared-failover`**.
+3. Поднимет локальную единую базу данных в Docker на Mac:
+   - `viasglobal-postgres` (Postgres 16, порты `5432`, `5433`)
+4. Автоматически распакует и импортирует самые свежие дампы всех баз через `restore.sh`.
+5. Запустит локальные веб-сервисы и API (`viasrent-admin-ui`, `viasrent-accountant`, `viasglobal-backend`).
+6. Запустит локальный контейнер **`cloudflared-failover`**.
 
 #### Как сайты продолжают работать БЕЗ смены DNS:
-- Контейнер `cloudflared-failover` и `accruals-admin-ui` подключаются к специальной bridge-сети `failover-net` (подсеть `100.92.50.0/24`), благодаря чему вызовы Cloudflare Ingress к `http://100.92.50.18:3000` перехватываются сетевым стеком ядра и мгновенно попадают в веб-панель Mac без каких-либо задержек и без необходимости менять настройки в дашборде Cloudflare.
+- Контейнер `cloudflared-failover` и `viasrent-admin-ui` подключаются к специальной bridge-сети `failover-net` (подсеть `100.92.50.0/24`), благодаря чему вызовы Cloudflare Ingress к `http://100.92.50.18:3000` перехватываются сетевым стеком ядра и мгновенно попадают в веб-панель Mac без каких-либо задержек и без необходимости менять настройки в дашборде Cloudflare.
 - Сайт **`https://rent.viasglobal.es`** продолжает открываться в браузере без единой секунды простоя!
 
 #### Шаг 2. Проверка статуса:
@@ -177,10 +175,10 @@ make dr-rollback
 
 ```bash
 # Восстановление Wholesale БД (viasglobal_db)
-./backup/scripts/restore.sh --db viasglobal [--file /path/to/backup.sql.gz] [--container backend-db-1]
+./backup/scripts/restore.sh --db viasglobal [--file /path/to/backup.sql.gz] [--container viasglobal-postgres]
 
-# Восстановление базы аренды (accruals-postgres)
-./backup/scripts/restore.sh --db rent [--file /path/to/backup.sql.gz] [--container accruals-postgres]
+# Восстановление базы аренды (viasrent_db)
+./backup/scripts/restore.sh --db rent [--file /path/to/backup.sql.gz] [--container viasglobal-postgres]
 ```
 
 ---

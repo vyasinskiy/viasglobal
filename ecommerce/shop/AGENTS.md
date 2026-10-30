@@ -112,7 +112,7 @@
   - Единственный бакет `products` (публичный CDN Cloudflare / Supabase Storage для фотографий каталога товаров, 6 075 объектов).
 - **Полная изоляция персональных и внутренних сервисов на локальном сервере Huawei**:
   - Категорически запрещено размещать в Supabase таблицы персональных и локальных сервисов (`viaslangs`, `rent`, `wholesale`).
-  - Таблицы сервиса `viaslangs` (`vy_words`, `vy_answers`, `vy_languages`, `vy_tags`, `vy_word_tags`, `vy_study_sessions`, `vy_session_activities`) полностью выгружены из Supabase и перенесены в локальную базу данных PostgreSQL на сервере Huawei (`vy_langs_db`, порт `5433` на хосте, порт `5432` в Docker-сети `infra_accruals-network`).
+  - Таблицы сервиса `viaslangs` (`words`, `answers`, `languages`, `tags`, `word_tags`, `study_sessions`, `session_activities`) полностью выгружены из Supabase и перенесены в локальную базу данных PostgreSQL на сервере Huawei (`viaslangs_db`, порт `5433` на хосте, порт `5432` в Docker-сети `infra_accruals-network`).
   - Сервисы аренды `rent` (`accountant_db`, `watcher_db`, `telegram_bot_db`) и оптового учета `wholesale` (`viasglobal_db`) также изолированно работают на сервере Huawei.
 
 - **Детальное пошаговое логирование (`core/logger.ts`)**:

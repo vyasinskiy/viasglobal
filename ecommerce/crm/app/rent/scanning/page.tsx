@@ -221,7 +221,7 @@ export default function ScanningPage() {
             <div>{errorMsg}</div>
             {lastRunResult?.status === 'needs_login' && (
               <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#78350f' }}>
-                💡 <b>Решение:</b> запустите контейнер <code>visual-browser</code> на сервере (порт 3002), залогиньтесь по SMS и сохраните сессию через <code>docker exec accruals-watcher npm run bootstrap</code>.
+                💡 <b>Решение:</b> запустите контейнер <code>visual-browser</code> на сервере (порт 3002), залогиньтесь по SMS и сохраните сессию через <code>docker exec viasrent-watcher npm run bootstrap</code>.
               </div>
             )}
           </div>

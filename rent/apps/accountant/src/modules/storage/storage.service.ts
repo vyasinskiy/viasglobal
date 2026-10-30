@@ -13,7 +13,7 @@ function slug(value: string): string {
  * Получает базовый URL API для конструирования публичных или внутренних ссылок.
  */
 function getApiBaseUrl(): string {
-  return process.env.API_BASE_URL || 'http://accruals-accountant:3005';
+  return process.env.API_BASE_URL || 'http://viasrent-accountant:3005';
 }
 
 /**

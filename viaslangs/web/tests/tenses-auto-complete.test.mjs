@@ -4,7 +4,7 @@
  * Логика:
  * Когда пользователь в режиме изучения времени (Pretérito Indefinido / Imperfecto) правильно отвечает
  * на любую из 6 форм глагола (например, 3-е лицо), все остальные 5 форм этого же глагола в данном времени
- * автоматически помечаются как верные в таблице ответов (vy_answers).
+ * автоматически помечаются как верные в таблице ответов (answers).
  * При этом формы этого же глагола в другом времени (например, Pretérito Imperfecto) и формы других глаголов
  * не затрагиваются.
  */
@@ -43,7 +43,7 @@ const pool = new Pool({
 async function simulateCheckAnswer(client, { wordId, answer }) {
   // 1. Получаем слово из БД
   const wordResult = await client.query(
-    `SELECT id, language_id, english, russian, base_word_id FROM vy_words WHERE id = $1`,
+    `SELECT id, language_id, english, russian, base_word_id FROM words WHERE id = $1`,
     [wordId]
   );
   const word = wordResult.rows[0];
@@ -66,7 +66,7 @@ async function simulateCheckAnswer(client, { wordId, answer }) {
 
   // 3. Сохранение ответа пользователя в историю
   await client.query(
-    `INSERT INTO vy_answers (word_id, answer, is_correct, is_synonym)
+    `INSERT INTO answers (word_id, answer, is_correct, is_synonym)
      VALUES ($1, $2, $3, $4)`,
     [wordId, answer.trim().toLowerCase(), isCorrect, false]
   );
@@ -74,21 +74,21 @@ async function simulateCheckAnswer(client, { wordId, answer }) {
   // 4. Логика автозачёта: срабатывает только при верном ответе для связанных форм (base_word_id)
   if (isCorrect && word.base_word_id) {
     await client.query(
-      `INSERT INTO vy_answers (word_id, answer, is_correct)
+      `INSERT INTO answers (word_id, answer, is_correct)
        SELECT DISTINCT w2.id, w2.english, true
-       FROM vy_words w2
-       JOIN vy_word_tags wt2 ON wt2.word_id = w2.id
+       FROM words w2
+       JOIN word_tags wt2 ON wt2.word_id = w2.id
        WHERE w2.base_word_id = $1
          AND w2.id != $2
          AND wt2.tag_id IN (
            SELECT t.id
-           FROM vy_word_tags wt
-           JOIN vy_tags t ON t.id = wt.tag_id
+           FROM word_tags wt
+           JOIN tags t ON t.id = wt.tag_id
            WHERE wt.word_id = $2
              AND t.name IN ('Pretérito Indefinido', 'Pretérito Imperfecto')
          )
          AND NOT EXISTS (
-           SELECT 1 FROM vy_answers a WHERE a.word_id = w2.id AND a.is_correct = true
+           SELECT 1 FROM answers a WHERE a.word_id = w2.id AND a.is_correct = true
          )`,
       [word.base_word_id, wordId]
     );
@@ -136,7 +136,7 @@ describe('Автозачёт форм глагола при изучении в�
     ].filter(Boolean);
 
     if (allWordIds.length > 0) {
-      await pool.query(`DELETE FROM vy_answers WHERE word_id = ANY($1::int[]);`, [allWordIds]);
+      await pool.query(`DELETE FROM answers WHERE word_id = ANY($1::int[]);`, [allWordIds]);
     }
   }
 
@@ -144,7 +144,7 @@ describe('Автозачёт форм глагола при изучении в�
   before(async () => {
     // 1. Получаем ID тегов времён
     const tagsRes = await pool.query(`
-      SELECT id, name FROM vy_tags
+      SELECT id, name FROM tags
       WHERE name IN ('Pretérito Indefinido', 'Pretérito Imperfecto');
     `);
     for (const row of tagsRes.rows) {
@@ -156,7 +156,7 @@ describe('Автозачёт форм глагола при изучении в�
 
     // 2. Получаем базовые глаголы (enviar, pedir, pagar, producir, aceptar)
     const baseWordsRes = await pool.query(`
-      SELECT id, english FROM vy_words
+      SELECT id, english FROM words
       WHERE lower(english) IN ('enviar', 'pedir', 'pagar', 'producir', 'aceptar')
         AND base_word_id IS NULL;
     `);
@@ -176,16 +176,16 @@ describe('Автозачёт форм глагола при изучении в�
 
     // 3. Загружаем формы глагола enviar
     const indefEnviarRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [baseEnviarId, tagIndefinidoId]);
     indefEnviar = indefEnviarRes.rows;
     assert.strictEqual(indefEnviar.length, 6, 'Должно быть ровно 6 форм глагола enviar в Pretérito Indefinido');
 
     const imperfEnviarRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [baseEnviarId, tagImperfectoId]);
     imperfEnviar = imperfEnviarRes.rows;
@@ -193,16 +193,16 @@ describe('Автозачёт форм глагола при изучении в�
 
     // 4. Загружаем формы глагола pedir
     const indefPedirRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [basePedirId, tagIndefinidoId]);
     indefPedir = indefPedirRes.rows;
     assert.strictEqual(indefPedir.length, 6, 'Должно быть ровно 6 форм глагола pedir в Pretérito Indefinido');
 
     const imperfPedirRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [basePedirId, tagImperfectoId]);
     imperfPedir = imperfPedirRes.rows;
@@ -210,8 +210,8 @@ describe('Автозачёт форм глагола при изучении в�
 
     // 5. Загружаем формы глагола pagar (Pretérito Indefinido)
     const indefPagarRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [basePagarId, tagIndefinidoId]);
     indefPagar = indefPagarRes.rows;
@@ -219,8 +219,8 @@ describe('Автозачёт форм глагола при изучении в�
 
     // 6. Загружаем формы глагола producir (Pretérito Indefinido)
     const indefProducirRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [baseProducirId, tagIndefinidoId]);
     indefProducir = indefProducirRes.rows;
@@ -228,8 +228,8 @@ describe('Автозачёт форм глагола при изучении в�
 
     // 7. Загружаем формы глагола aceptar (Pretérito Indefinido)
     const indefAceptarRes = await pool.query(`
-      SELECT w.id, w.english, w.russian FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      SELECT w.id, w.english, w.russian FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE w.base_word_id = $1 AND wt.tag_id = $2 ORDER BY w.id;
     `, [baseAceptarId, tagIndefinidoId]);
     indefAceptar = indefAceptarRes.rows;
@@ -265,7 +265,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем, что все 6 форм глагола enviar в Pretérito Indefinido помечены как верные
     const correctCountRes = await pool.query(`
       SELECT COUNT(DISTINCT a.word_id)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [indefEnviar.map(w => w.id)]);
 
@@ -275,7 +275,7 @@ describe('Автозачёт форм глагола при изучении в�
   it('2. Изоляция времён: формы того же глагола в другом времени (enviar, Imperfecto) остаются неизученными', async () => {
     const imperfAnswersRes = await pool.query(`
       SELECT COUNT(*)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [imperfEnviar.map(w => w.id)]);
 
@@ -290,7 +290,7 @@ describe('Автозачёт форм глагола при изучении в�
     ];
     const otherAnswersRes = await pool.query(`
       SELECT COUNT(*)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [otherWordsIds]);
 
@@ -318,7 +318,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем, что ни одна форма pedir не получила статус правильного ответа
     const checkPedirRes = await pool.query(`
       SELECT COUNT(*)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [indefPedir.map(w => w.id)]);
 
@@ -327,7 +327,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем, что зафиксирована ровно одна ошибка для тестируемого слова
     const falseCountRes = await pool.query(`
       SELECT COUNT(*)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = $1 AND a.is_correct = false;
     `, [targetWord.id]);
 
@@ -354,7 +354,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем автозачёт всех 6 форм (pedí, pediste, pidió, pedimos, pedisteis, pidieron)
     const correctCountRes = await pool.query(`
       SELECT COUNT(DISTINCT a.word_id)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [indefPedir.map(w => w.id)]);
 
@@ -381,7 +381,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем, что все 6 форм pedir в Imperfecto помечены как верные
     const correctCountRes = await pool.query(`
       SELECT COUNT(DISTINCT a.word_id)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [imperfPedir.map(w => w.id)]);
 
@@ -390,7 +390,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем, что формы другого глагола (enviar) в Imperfecto всё ещё не затронуты
     const imperfEnviarRes = await pool.query(`
       SELECT COUNT(*)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [imperfEnviar.map(w => w.id)]);
 
@@ -418,7 +418,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем автозачёт всех 6 форм (produje, produjiste, produjo, produjimos, produjisteis, produjeron)
     const correctCountRes = await pool.query(`
       SELECT COUNT(DISTINCT a.word_id)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [indefProducir.map(w => w.id)]);
 
@@ -445,7 +445,7 @@ describe('Автозачёт форм глагола при изучении в�
     // Проверяем, что все 6 форм pagar в Indefinido помечены как верные
     const correctCountRes = await pool.query(`
       SELECT COUNT(DISTINCT a.word_id)::int as count
-      FROM vy_answers a
+      FROM answers a
       WHERE a.word_id = ANY($1::int[]) AND a.is_correct = true;
     `, [indefPagar.map(w => w.id)]);
 
@@ -474,7 +474,7 @@ describe('Автозачёт форм глагола при изучении в�
     const otherPagarForms = indefPagar.filter(w => w.id !== targetWord.id);
     const answersPerWordRes = await pool.query(`
       SELECT word_id, COUNT(*)::int as count
-      FROM vy_answers
+      FROM answers
       WHERE word_id = ANY($1::int[]) AND is_correct = true
       GROUP BY word_id;
     `, [otherPagarForms.map(w => w.id)]);
@@ -498,10 +498,10 @@ describe('Автозачёт форм глагола при изучении в�
       client.release();
     }
 
-    // Проверяем, что в vy_answers добавлена ровно 1 запись для базового слова
+    // Проверяем, что в answers добавлена ровно 1 запись для базового слова
     const answersRes = await pool.query(`
       SELECT COUNT(*)::int as count
-      FROM vy_answers
+      FROM answers
       WHERE word_id = $1 AND is_correct = true;
     `, [baseEnviarId]);
 
@@ -513,12 +513,12 @@ describe('Автозачёт форм глагола при изучении в�
     const baseIds = [baseEnviarId, basePedirId, basePagarId, baseProducirId];
     const unlearnedRes = await pool.query(`
       SELECT w.id, w.english, w.base_word_id
-      FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
+      FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
       WHERE wt.tag_id = $1
         AND w.base_word_id = ANY($2::int[])
         AND NOT EXISTS (
-          SELECT 1 FROM vy_answers a
+          SELECT 1 FROM answers a
           WHERE a.word_id = w.id AND a.is_correct = true
         );
     `, [tagIndefinidoId, baseIds]);
@@ -549,9 +549,9 @@ describe('Автозачёт форм глагола при изучении в�
       client.release();
     }
 
-    // Проверяем, что в vy_answers зафиксированы все 6 верных форм глагола aceptar
+    // Проверяем, что в answers зафиксированы все 6 верных форм глагола aceptar
     const correctRes = await pool.query(`
-      SELECT word_id FROM vy_answers
+      SELECT word_id FROM answers
       WHERE word_id = ANY($1::int[]) AND is_correct = true;
     `, [indefAceptar.map(w => w.id)]);
 

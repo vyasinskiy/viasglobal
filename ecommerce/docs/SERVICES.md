@@ -15,10 +15,9 @@
 
 Все микросервисы объединены в две основные изолированные bridge-сети Docker на сервере:
 
-1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, AI-агенты, SMS Gateway).
-   - Контейнеры: `accruals-accountant`, `accruals-watcher`, `accruals-telegram-bot`, `accruals-rabbitmq`, `accruals-postgres`, `accruals-admin-ui`, `viasglobal-openclaw`, `sms-gateway`.
-2. **`backend_default`**: Сеть основного бэкенда каталога Wholesale и парсинга Keepa (`backend`, исходный код в `ecommerce/backend`).
-   - Контейнеры: `backend`, `viasglobal-openclaw`, `sms-gateway`.
+1. **`infra_accruals-network`**: Общая сервисная сеть (`rent`, AI-агенты, SMS Gateway, Wholesale Backend, Viaslangs).
+   - Контейнеры: `viasrent-accountant`, `viasrent-watcher`, `viasrent-telegram-bot`, `viasrent-rabbitmq`, `viasglobal-postgres`, `viasrent-admin-ui`, `viasglobal-openclaw`, `sms-gateway`, `viasglobal-backend`, `ecommerce-admin`, `viaslangs-web`.
+2. **`backend_default`**: Сеть взаимодействия бэкенда каталога Wholesale (`viasglobal-backend`, `ecommerce-admin`, `viasglobal-openclaw`, `sms-gateway`).
 
 AI-ассистент `viasglobal-openclaw` подключен к **обеим сетям**, поэтому может обращаться к любому сервису по его прямому Docker DNS-имени без выхода в публичный интернет.
 
@@ -28,23 +27,23 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 
 | Сервис | Docker DNS имя | Внутренний порт | Внешний порт (хост) | Назначение |
 | :--- | :--- | :--- | :--- | :--- |
-| **Accountant Service** | `accruals-accountant` | `3005` | `3005` | Учет аренды, начисления, квитанции, платежи, арендаторы |
-| **Watcher Service** | `accruals-watcher` | `4500` | `4500` | Парсинг коммунальных порталов через Playwright |
-| **Backend API** | `backend` | `3000` | `3000` | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди (`ecommerce/backend`) |
-| **Admin UI (Rent)** | `accruals-admin-ui` | `3000` | `3000` (`https://rent.viasglobal.es`) | Веб-интерфейс панели администратора аренды (Next.js/MUI) |
-| **RabbitMQ** | `accruals-rabbitmq` | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
-| **PostgreSQL (Rent & Viaslangs)** | `accruals-postgres` | `5432` | `5433` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db`, `vy_langs_db` (автобэкап через `pg_dumpall`) |
-| **Telegram Bot Rent** | `accruals-telegram-bot`| - | - | Бот арендаторов и администраторов аренды |
-| **Visual Browser** | `accruals-visual-browser` | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
+| **Accountant Service** | `viasrent-accountant` (алиас `accountant`) | `3005` | `3005` | Учет аренды, начисления, квитанции, платежи, арендаторы |
+| **Watcher Service** | `viasrent-watcher` (алиас `watcher`) | `4500` | `4500` | Парсинг коммунальных порталов через Playwright |
+| **Backend API** | `viasglobal-backend` (алиас `backend`) | `3000` | `3001` (`api.viasglobal.es`) | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди (`ecommerce/backend`) |
+| **Admin UI (Rent)** | `viasrent-admin-ui` (алиас `admin-ui`) | `3000` | `3000` (`https://rent.viasglobal.es`) | Веб-интерфейс панели администратора аренды (Next.js/MUI) |
+| **RabbitMQ** | `viasrent-rabbitmq` (алиас `rabbitmq`) | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
+| **PostgreSQL (Unified Cluster)** | `viasglobal-postgres` (алиасы `postgres`, `db`) | `5432` | `5432`, `5433` | Единый кластер СУБД: `viasglobal_db`, `viasrent_db`, `viaslangs_db` (автобэкап через `pg_dumpall`) |
+| **Telegram Bot Rent** | `viasrent-telegram-bot` (алиас `telegram-bot`)| - | - | Бот арендаторов и администраторов аренды |
+| **Visual Browser** | `viasrent-visual-browser` (алиас `visual-browser`) | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
 | **OpenClaw Agent** | `viasglobal-openclaw` | `18789` | `18789` | Автономный AI-ассистент в Telegram |
 | **Viaslangs Service** | `viaslangs-web` | `3000` | `3007` (`https://langs.viasglobal.es`) | Тренажер испанского/английского, сессии, клики Next, ошибки по тегам и формам (Next.js, сеть `infra_accruals-network`, порт хоста `3007`) |
 | **SMS Gateway** | `sms-gateway` | `3040` | `3040` | Прием SMS с USB-телефона Meizu, Telegram-форвардер, health check, REST API |
 
 ---
 
-## 3. API сервиса Accruals Accountant (`accruals-accountant:3005`)
+## 3. API сервиса Viasrent Accountant (`viasrent-accountant:3005`)
 
-Базовый URL изнутри Docker-сети: `http://accruals-accountant:3005`
+Базовый URL изнутри Docker-сети: `http://viasrent-accountant:3005` (или `http://accountant:3005`)
 
 ### 3.1. Статистика и аналитика
 
@@ -52,7 +51,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Получить сводную статистику платежей, задолженностей и предстоящих событий.
   - **Пример запроса**:
     ```bash
-    curl -s http://accruals-accountant:3005/accountant/stats
+    curl -s http://viasrent-accountant:3005/accountant/stats
     ```
   - **Пример ответа**:
     ```json
@@ -68,14 +67,14 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Query-параметры**: `includeDeleted` (`true` или `false`, по умолчанию `false`).
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/tenants"
+    curl -s "http://viasrent-accountant:3005/accountant/tenants"
     ```
 
 - **`GET /accountant/tenants/:id`**
   - **Описание**: Получить детальные данные арендатора по числовому ID.
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/tenants/1"
+    curl -s "http://viasrent-accountant:3005/accountant/tenants/1"
     ```
 
 - **`POST /accountant/tenants`**
@@ -91,7 +90,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
     ```
   - **Пример**:
     ```bash
-    curl -s -X POST http://accruals-accountant:3005/accountant/tenants \
+    curl -s -X POST http://viasrent-accountant:3005/accountant/tenants \
       -H "Content-Type: application/json" \
       -d '{"name":"Иван Иванов","apartmentId":1,"rentPaymentDay":5,"rentAmount":450}'
     ```
@@ -121,7 +120,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Список всех квартир с привязанными счетами, текущими арендаторами и балансом.
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/apartments"
+    curl -s "http://viasrent-accountant:3005/accountant/apartments"
     ```
 
 - **`GET /accountant/apartments/:id`**
@@ -138,7 +137,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Список коммунальных счетов (электричество, вода, газ, интернет, вывоз мусора).
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/accounts"
+    curl -s "http://viasrent-accountant:3005/accountant/accounts"
     ```
 
 - **`GET /accountant/accounts/:id`**
@@ -165,7 +164,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Генерация URL для загрузки PDF файла квитанции в локальное хранилище микросервиса `accountant` (ссылка на эндпоинт `upload-raw`).
   - **Пример запроса**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/invoices/upload-url?accountExternalId=7751294&periodLabel=202609"
+    curl -s "http://viasrent-accountant:3005/accountant/invoices/upload-url?accountExternalId=7751294&periodLabel=202609"
     ```
 
 - **`PUT /accountant/invoices/upload-raw?key=...[&overwrite=true]`**
@@ -173,7 +172,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Защита от перезаписи**: По умолчанию, если файл с таким именем уже существует, сервер возвращает статус `409 Conflict`. Для принудительной перезаписи необходимо явно передавать query-параметр `overwrite=true`.
   - **Пример запроса**:
     ```bash
-    curl -X PUT "http://accruals-accountant:3005/accountant/invoices/upload-raw?key=586194-202609.pdf" \
+    curl -X PUT "http://viasrent-accountant:3005/accountant/invoices/upload-raw?key=586194-202609.pdf" \
       -H "Content-Type: application/pdf" --data-binary @invoice.pdf
     ```
 
@@ -182,7 +181,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Валидация**: Ключ обязан быть валидным путем. Пустые значения, пробелы или плейсхолдеры (`***`, `...`) отклоняются со статусом `400 Bad Request`.
   - **Пример запроса**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/invoices/download/586194-202609.pdf" -o invoice.pdf
+    curl -s "http://viasrent-accountant:3005/accountant/invoices/download/586194-202609.pdf" -o invoice.pdf
     ```
 
 - **`GET /accountant/invoices/:id`**
@@ -215,14 +214,14 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Query-параметры**: `status` (`pending`, `confirmed`, `rejected`), `userId`, `accountId`, `userName`.
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/payments?status=pending"
+    curl -s "http://viasrent-accountant:3005/accountant/payments?status=pending"
     ```
 
 - **`GET /accountant/payments/:id`**
   - **Описание**: Получить полную информацию по конкретному платежу (включая `receiptPhotoId`, актуальный `receiptUrl` для просмотра/скачивания, данные банка, пользователя и арендатора).
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/payments/5"
+    curl -s "http://viasrent-accountant:3005/accountant/payments/5"
     ```
 
 - **`POST /accountant/payments`**
@@ -280,7 +279,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
     *Для прямой бинарной загрузки без Base64*: доступен эндпоинт `PUT /accountant/invoices/upload-raw?key=payments/{id}/receipts/receipt.pdf` с бинарным телом файла и последующим `PUT /accountant/payments/:id {"receiptPhotoId": "..."}`.
   - **Пример**:
     ```bash
-    curl -s -X POST http://accruals-accountant:3005/accountant/payments/5/receipt \
+    curl -s -X POST http://viasrent-accountant:3005/accountant/payments/5/receipt \
       -H "Content-Type: application/json" \
       -d '{"dataUri":"data:application/pdf;base64,...","fileName":"check.pdf"}'
     ```
@@ -289,7 +288,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Удаление прикрепленного чека у платежа (удаляет файл из локального хранилища при наличии и сбрасывает поле `receipt_photo_id` в `null`).
   - **Пример**:
     ```bash
-    curl -s -X DELETE http://accruals-accountant:3005/accountant/payments/5/receipt
+    curl -s -X DELETE http://viasrent-accountant:3005/accountant/payments/5/receipt
     ```
 
 - **`GET /accountant/payments/:id/receipt`**
@@ -299,9 +298,9 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
     * `download=true`: прямая отдача бинарного содержимого файла чека с корректным заголовком `Content-Type` (`application/pdf` или `image/jpeg`).
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/payments/1/receipt"
+    curl -s "http://viasrent-accountant:3005/accountant/payments/1/receipt"
     # Для мгновенного скачивания файла:
-    curl -s "http://accruals-accountant:3005/accountant/payments/1/receipt?download=true" -o check.pdf
+    curl -s "http://viasrent-accountant:3005/accountant/payments/1/receipt?download=true" -o check.pdf
     ```
 
 - **`GET /accountant/storage/download`**
@@ -310,7 +309,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Валидация**: Ключ обязан быть валидным путем. Пустые значения, пробелы или плейсхолдеры (`***`, `...`) отклоняются со статусом `400 Bad Request`.
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/storage/download?key=payments/1/receipts/check.pdf" -o check.pdf
+    curl -s "http://viasrent-accountant:3005/accountant/storage/download?key=payments/1/receipts/check.pdf" -o check.pdf
     ```
 
 - **`GET /accountant/payments/receipt/signed-url`**
@@ -336,7 +335,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Список зарегистрированных банков и количество платежей по каждому. Используется для сопоставления банка из чека с `bankId`.
   - **Пример**:
     ```bash
-    curl -s "http://accruals-accountant:3005/accountant/banks"
+    curl -s "http://viasrent-accountant:3005/accountant/banks"
     ```
   - **Пример ответа**:
     ```json
@@ -369,29 +368,29 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 
 ---
 
-## 4. API сервиса Accruals Watcher (`accruals-watcher:4500`)
+## 4. API сервиса Viasrent Watcher (`viasrent-watcher:4500`)
 
-Базовый URL изнутри Docker-сети: `http://accruals-watcher:4500`
+Базовый URL изнутри Docker-сети: `http://viasrent-watcher:4500` (или `http://watcher:4500`)
 
 - **`GET /scraping/runs`** (или `GET /api/runs`)
   - **Описание**: Получить историю и статус последних сессий автоматического сбора квитанций с внешних порталов ЖКХ.
   - **Пример**:
     ```bash
-    curl -s http://accruals-watcher:4500/scraping/runs
+    curl -s http://viasrent-watcher:4500/scraping/runs
     ```
 
 - **`GET /scraping/runs/:id`**
   - **Описание**: Получить детальные результаты и полный JSON-диагностики конкретной сессии сканирования по ее ID.
   - **Пример**:
     ```bash
-    curl -s http://accruals-watcher:4500/scraping/runs/16
+    curl -s http://viasrent-watcher:4500/scraping/runs/16
     ```
 
 - **`POST /scraping/scan`**
-  - **Описание**: Ручной запуск Playwright-парсера для сбора свежих начислений и скачивания PDF квитанций. При ошибках возвращает детализированный статус (`needs_login`, `warning`, `error`) с полями `error` и `errors` и фиксирует запуск в базе данных `watcher_db.runs`.
+  - **Описание**: Ручной запуск Playwright-парсера для сбора свежих начислений и скачивания PDF квитанций. При ошибках возвращает детализированный статус (`needs_login`, `warning`, `error`) с полями `error` и `errors` и фиксирует запуск в базе данных `viasrent_db` (схема `watcher.runs`).
   - **Пример запроса**:
     ```bash
-    curl -s -X POST http://accruals-watcher:4500/scraping/scan \
+    curl -s -X POST http://viasrent-watcher:4500/scraping/scan \
       -H "Content-Type: application/json" \
       -d '{}'
     ```
@@ -416,10 +415,10 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
     ```
 
 - **`POST /scraping/browser/start`**
-  - **Описание**: Динамический запуск контейнера удаленного визуального браузера (`accruals-visual-browser`) для прохождения двухфакторной авторизации владельцем в 1 клик. Возвращает публичный URL для перехода.
+  - **Описание**: Динамический запуск контейнера удаленного визуального браузера (`viasrent-visual-browser`) для прохождения двухфакторной авторизации владельцем в 1 клик. Возвращает публичный URL для перехода.
   - **Пример запроса**:
     ```bash
-    curl -s -X POST http://accruals-watcher:4500/scraping/browser/start
+    curl -s -X POST http://viasrent-watcher:4500/scraping/browser/start
     ```
   - **Пример ответа**:
     ```json
@@ -435,7 +434,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Остановка контейнера удаленного браузера после завершения ручного входа для освобождения блокировки профиля сессии Playwright.
   - **Пример запроса**:
     ```bash
-    curl -s -X POST http://accruals-watcher:4500/scraping/browser/stop
+    curl -s -X POST http://viasrent-watcher:4500/scraping/browser/stop
     ```
   - **Пример ответа**:
     ```json
@@ -451,7 +450,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
   - **Описание**: Проверка текущего состояния контейнера удаленного браузера (запущен/остановлен).
   - **Пример запроса**:
     ```bash
-    curl -s http://accruals-watcher:4500/scraping/browser/status
+    curl -s http://viasrent-watcher:4500/scraping/browser/status
     ```
   - **Пример ответа**:
     ```json
@@ -1046,7 +1045,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 - Внутри Docker-сети: `http://viaslangs-web:3000`
 - По Tailscale (хост): `http://100.92.50.18:3007`
 - Внешний публичный URL: `https://langs.viasglobal.es` (через Cloudflare Tunnel)
-- Подключение к БД: `postgresql://postgres:postgres@accruals-postgres:5432/vy_langs_db` (внутри Docker) / `postgresql://postgres:postgres@100.92.50.18:5433/vy_langs_db` (по Tailscale)
+- Подключение к БД: `postgresql://postgres:postgres@viasglobal-postgres:5432/viaslangs_db` (внутри Docker) / `postgresql://postgres:postgres@100.92.50.18:5433/viaslangs_db` (по Tailscale)
 
 Авторизация для AI-агентов: Заголовок `x-app-password: viasglobal` или `Authorization: Bearer viasglobal`.
 
@@ -1452,7 +1451,7 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
      `curl -s -X POST http://sms-gateway:3040/sms/sync`
    - Шаг 2: OpenClaw запрашивает последнее SMS:
      `curl -s http://sms-gateway:3040/sms/latest`
-   - Шаг 3: Агент извлекает сумму операции (например, `450,00 EUR`), код авторизации и время, сверяет с ожидаемой суммой начисления арендатора (`accruals-accountant:3005`) и сообщает владельцу и арендатору результат.
+   - Шаг 3: Агент извлекает сумму операции (например, `450,00 EUR`), код авторизации и время, сверяет с ожидаемой суммой начисления арендатора (`viasrent-accountant:3005`) и сообщает владельцу и арендатору результат.
 2. **Сценарий 2: Вопрос пользователя «Работает ли телефон для SMS?» / «Какой заряд у телефона?»**:
    - OpenClaw вызывает `curl -s http://sms-gateway:3040/health`
    - Анализирует статус:

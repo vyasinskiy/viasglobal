@@ -27,7 +27,7 @@ const schema = z.object({
   BROWSER_PROFILE_PATH: z.string().optional(),
   BROWSER_PUBLIC_URL: z.string().url().default('https://browser.viasglobal.es'),
   DOCKER_SOCKET_PATH: z.string().default('/var/run/docker.sock'),
-  VISUAL_BROWSER_CONTAINER: z.string().default('accruals-visual-browser'),
+  VISUAL_BROWSER_CONTAINER: z.string().default('viasrent-visual-browser'),
   HEADLESS: z.coerce.boolean().default(true),
   WAIT_AFTER_LOGIN_MS: z.coerce.number().default(3000),
   WAIT_AFTER_NAV_MS: z.coerce.number().default(1500),

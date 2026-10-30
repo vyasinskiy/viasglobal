@@ -22,7 +22,7 @@ export async function GET(
         return NextResponse.redirect(data.downloadUrl);
       }
 
-      // Если ссылка локальная или во внутренней сети Docker (accruals-accountant / accountant / localhost)
+      // Если ссылка локальная или во внутренней сети Docker (viasrent-accountant / accountant / localhost)
       // Проксируем файл напрямую клиенту, чтобы браузер не пытался резолвить внутренние хосты Docker
       const fileRes = await fetch(data.downloadUrl);
       if (fileRes.ok) {

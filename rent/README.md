@@ -52,12 +52,12 @@ Here is the network configuration and port assignments for all components of the
 
 | Service | Container Name | Internal Port | Host Port | Public Domain / URL | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Admin UI** | `accruals-admin-ui` | 3000 | `3000` | `https://rent.viasglobal.es` | Web administration dashboard (MUI, закрыта авторизацией по паролю) |
-| **Accountant Service** | `accruals-accountant` | 3005 | `3005` | Внутренний | Core HTTP REST API and microservice logic |
-| **Watcher Service** | `accruals-watcher` | 4500 | `4500` | Внутренний | Playwright scraping control interface |
-| **RabbitMQ** | `accruals-rabbitmq` | 5672, 15672 | `5672`, `15672` | Внутренний | AMQP broker & Management Console UI |
-| **Visual Browser** | `accruals-visual-browser` | 3000 | `3002` | `https://browser.viasglobal.es` | Удаленный Chromium с веб-доступом (KasmVNC) для авторизации в 1 клик |
-| **Telegram Bot** | `accruals-telegram-bot` | None | None | - | Long-running message daemon (no incoming TCP ports mapped) |
+| **Admin UI** | `viasrent-admin-ui` | 3000 | `3000` | `https://rent.viasglobal.es` | Web administration dashboard (MUI, закрыта авторизацией по паролю) |
+| **Accountant Service** | `viasrent-accountant` | 3005 | `3005` | Внутренний | Core HTTP REST API and microservice logic |
+| **Watcher Service** | `viasrent-watcher` | 4500 | `4500` | Внутренний | Playwright scraping control interface |
+| **RabbitMQ** | `viasrent-rabbitmq` | 5672, 15672 | `5672`, `15672` | Внутренний | AMQP broker & Management Console UI |
+| **Visual Browser** | `viasrent-visual-browser` | 3000 | `3002` | `https://browser.viasglobal.es` | Удаленный Chromium с веб-доступом (KasmVNC) для авторизации в 1 клик |
+| **Telegram Bot** | `viasrent-telegram-bot` | None | None | - | Long-running message daemon (no incoming TCP ports mapped) |
 
 ## Getting Started
 

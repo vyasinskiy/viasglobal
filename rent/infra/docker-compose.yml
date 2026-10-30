@@ -1,7 +1,7 @@
 services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: accruals-rabbitmq
+    container_name: viasrent-rabbitmq
     ports:
       - '5672:5672'
       - '15672:15672'
@@ -9,34 +9,45 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - rabbitmq
+          - viasrent-rabbitmq
+          - accruals-rabbitmq
 
   postgres:
     image: postgres:16-alpine
-    container_name: accruals-postgres
+    container_name: viasglobal-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-kvartplata_watcher}
+      POSTGRES_DB: ${POSTGRES_DB:-viasrent_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
+      # Единый инстанс PostgreSQL обслуживает все сервисы на стандартном 5432 и совместимом 5433
+      - '5432:5432'
       - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - db
+          - postgres
+          - accruals-postgres
+          - viasglobal-postgres
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d ${POSTGRES_DB:-kvartplata_watcher}']
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ${POSTGRES_DB:-viasrent_db}']
       interval: 5s
       timeout: 5s
       retries: 10
 
   visual-browser:
-    image: accruals-visual-browser:latest
+    image: viasrent-visual-browser:latest
     build:
       context: ./visual-browser
       dockerfile: Dockerfile
-    container_name: accruals-visual-browser
+    container_name: viasrent-visual-browser
     profiles:
       - manual
     security_opt:
@@ -58,15 +69,19 @@ services:
     ports:
       - '3002:3000'
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - visual-browser
+          - viasrent-visual-browser
+          - accruals-visual-browser
     restart: unless-stopped
 
   watcher:
-    image: accruals-watcher:latest
+    image: viasrent-watcher:latest
     build:
       context: ${WATCHER_PATH:-../apps/watcher}
       dockerfile: Dockerfile
-    container_name: accruals-watcher
+    container_name: viasrent-watcher
     restart: unless-stopped
     ports:
       - '4500:4500'
@@ -78,10 +93,10 @@ services:
       BROWSER_WS_ENDPOINT: ""
       BROWSER_PROFILE_PATH: "/app/data/browser-profile/.config/chromium"
       BROWSER_PUBLIC_URL: ${BROWSER_PUBLIC_URL:-https://browser.viasglobal.es}
-      VISUAL_BROWSER_CONTAINER: accruals-visual-browser
+      VISUAL_BROWSER_CONTAINER: viasrent-visual-browser
       IS_DOCKER: "true"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/watcher_db
-      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/watcher_db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/viasrent_db?schema=watcher
+      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/viasrent_db?schema=watcher
     depends_on:
       rabbitmq:
         condition: service_started
@@ -92,22 +107,26 @@ services:
       - ./logs/watcher:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - watcher
+          - viasrent-watcher
+          - accruals-watcher
 
   accountant:
-    image: accruals-accountant:latest
+    image: viasrent-accountant:latest
     build:
       context: ${ACCOUNTANT_PATH:-../apps/accountant}
       dockerfile: Dockerfile
-    container_name: accruals-accountant
+    container_name: viasrent-accountant
     restart: unless-stopped
     ports:
       - '3005:3005'
     env_file:
       - ${ACCOUNTANT_PATH:-../apps/accountant}/.env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/accountant_db
-      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/accountant_db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/viasrent_db?schema=public
+      DIRECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/viasrent_db?schema=public
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       SUPER_ADMIN_TELEGRAM_ID: ${SUPER_ADMIN_TELEGRAM_ID}
     depends_on:
@@ -119,14 +138,18 @@ services:
       - ${ACCOUNTANT_PATH:-../apps/accountant}/data:/app/data
       - ./logs/accountant:/app/logs
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - accountant
+          - viasrent-accountant
+          - accruals-accountant
 
   admin-ui:
-    image: accruals-admin-ui:latest
+    image: viasrent-admin-ui:latest
     build:
       context: ${ADMIN_UI_PATH:-../apps/admin-ui}
       dockerfile: Dockerfile
-    container_name: accruals-admin-ui
+    container_name: viasrent-admin-ui
     restart: unless-stopped
     ports:
       - '3000:3000'
@@ -144,19 +167,24 @@ services:
       accountant:
         condition: service_started
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - admin-ui
+          - viasrent-admin-ui
+          - accruals-admin-ui
+
   telegram-bot:
-    image: accruals-telegram-bot:latest
+    image: viasrent-telegram-bot:latest
     build:
       context: ${TELEGRAM_BOT_PATH:-../apps/telegram-bot}
       dockerfile: Dockerfile
-    container_name: accruals-telegram-bot
+    container_name: viasrent-telegram-bot
     restart: unless-stopped
     env_file:
       - ${TELEGRAM_BOT_PATH:-../apps/telegram-bot}/.env
     environment:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
-      TELEGRAM_BOT_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/telegram_bot_db
+      TELEGRAM_BOT_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/viasrent_db?schema=telegram_bot
       SUPER_ADMIN_TELEGRAM_ID: ${SUPER_ADMIN_TELEGRAM_ID}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
@@ -170,7 +198,11 @@ services:
     volumes:
       - ./logs/telegram-bot:/app/logs
     networks:
-      - accruals-network
+      accruals-network:
+        aliases:
+          - telegram-bot
+          - viasrent-telegram-bot
+          - accruals-telegram-bot
 
 networks:
   accruals-network:

@@ -26,8 +26,8 @@ export async function GET(req: Request) {
 
     const result = await pool.query(
       `SELECT DISTINCT w.english, w.russian, w.example_en AS "exampleEn", w.example_ru AS "exampleRu"
-       FROM vy_answers a
-       JOIN vy_words w ON w.id = a.word_id
+       FROM answers a
+       JOIN words w ON w.id = a.word_id
        WHERE a.is_correct = true ${langFilter}
          AND a.created_at >= $${params.length - 1}
          AND a.created_at <= $${params.length}`,

@@ -92,17 +92,27 @@ upload_to_s3() {
 }
 
 # ==============================================================================
-# 1. Резервное копирование основной БД: viasglobal_db (backend-db-1)
+# 1. Резервное копирование основной БД: viasglobal_db (единый viasglobal-postgres)
 # ==============================================================================
 echo "📦 [1/3] Создание дампа viasglobal_db..."
 VIAS_FILE="${BACKUP_BASE_DIR}/viasglobal/viasglobal_db_${DATE_STR}.sql.gz"
-if docker ps --format '{{.Names}}' | grep -q '^backend-db-1$'; then
+# Определяем целевой контейнер для viasglobal_db (единый viasglobal-postgres или accruals-postgres)
+PG_CONTAINER=""
+if docker ps --format '{{.Names}}' | grep -q '^viasglobal-postgres$'; then
+  PG_CONTAINER="viasglobal-postgres"
+elif docker ps --format '{{.Names}}' | grep -q '^accruals-postgres$'; then
+  PG_CONTAINER="accruals-postgres"
+elif docker ps --format '{{.Names}}' | grep -q '^backend-db-1$'; then
+  PG_CONTAINER="backend-db-1"
+fi
+
+if [ -n "${PG_CONTAINER}" ]; then
   # Снимаем дамп через pg_dump внутри контейнера и пакуем gzip на лету
-  if docker exec backend-db-1 pg_dump -U viasuser viasglobal_db | gzip > "${VIAS_FILE}"; then
+  if docker exec "${PG_CONTAINER}" pg_dump -U viasuser viasglobal_db | gzip > "${VIAS_FILE}"; then
     # Проверяем целостность полученного архива gzip
     if gzip -t "${VIAS_FILE}"; then
       VIAS_SIZE="$(stat -f%z "${VIAS_FILE}" 2>/dev/null || stat -c%s "${VIAS_FILE}" 2>/dev/null || echo 0)"
-      echo "✅ Дамп viasglobal_db успешно создан и проверен (размер: $((VIAS_SIZE / 1024 / 1024)) МБ)"
+      echo "✅ Дамп viasglobal_db успешно создан и проверен из ${PG_CONTAINER} (размер: $((VIAS_SIZE / 1024 / 1024)) МБ)"
       if upload_to_s3 "${VIAS_FILE}" "viasglobal/$(basename "${VIAS_FILE}")"; then
         STATUS_VIASGLOBAL="success"
       else
@@ -115,27 +125,34 @@ if docker ps --format '{{.Names}}' | grep -q '^backend-db-1$'; then
       ERROR_MESSAGES+=("viasglobal_db: битый gzip архив")
     fi
   else
-    echo "❌ Ошибка при выполнении pg_dump для viasglobal_db"
+    echo "❌ Ошибка при выполнении pg_dump для viasglobal_db в ${PG_CONTAINER}"
     STATUS_VIASGLOBAL="dump_failed"
     ERROR_MESSAGES+=("viasglobal_db: ошибка pg_dump")
   fi
 else
-  echo "⚠️ Контейнер backend-db-1 не запущен, пропуск viasglobal_db!"
+  echo "⚠️ Контейнер PostgreSQL не запущен, пропуск viasglobal_db!"
   STATUS_VIASGLOBAL="container_down"
-  ERROR_MESSAGES+=("viasglobal_db: контейнер backend-db-1 остановлен")
+  ERROR_MESSAGES+=("viasglobal_db: контейнер PostgreSQL остановлен")
 fi
 
 # ==============================================================================
-# 2. Резервное копирование БД аренды: accruals-postgres (accountant, watcher, bot)
+# 2. Резервное копирование БД аренды и кластера: viasglobal-postgres (viasrent_db, viaslangs_db)
 # ==============================================================================
-echo "📦 [2/3] Создание дампа accruals-postgres (rent)..."
+echo "📦 [2/3] Создание дампа viasglobal-postgres (rent)..."
 RENT_FILE="${BACKUP_BASE_DIR}/rent/rent_all_${DATE_STR}.sql.gz"
-if docker ps --format '{{.Names}}' | grep -q '^accruals-postgres$'; then
+RENT_CONTAINER=""
+if docker ps --format '{{.Names}}' | grep -q '^viasglobal-postgres$'; then
+  RENT_CONTAINER="viasglobal-postgres"
+elif docker ps --format '{{.Names}}' | grep -q '^accruals-postgres$'; then
+  RENT_CONTAINER="accruals-postgres"
+fi
+
+if [ -n "${RENT_CONTAINER}" ]; then
   # Снимаем полный кластер баз данных через pg_dumpall
-  if docker exec accruals-postgres pg_dumpall -U postgres | gzip > "${RENT_FILE}"; then
+  if docker exec "${RENT_CONTAINER}" pg_dumpall -U postgres | gzip > "${RENT_FILE}"; then
     if gzip -t "${RENT_FILE}"; then
       RENT_SIZE="$(stat -f%z "${RENT_FILE}" 2>/dev/null || stat -c%s "${RENT_FILE}" 2>/dev/null || echo 0)"
-      echo "✅ Дамп rent_all успешно создан и проверен (размер: $((RENT_SIZE / 1024 / 1024)) МБ)"
+      echo "✅ Дамп rent_all успешно создан и проверен из ${RENT_CONTAINER} (размер: $((RENT_SIZE / 1024 / 1024)) МБ)"
       if upload_to_s3 "${RENT_FILE}" "rent/$(basename "${RENT_FILE}")"; then
         STATUS_RENT="success"
       else
@@ -148,14 +165,14 @@ if docker ps --format '{{.Names}}' | grep -q '^accruals-postgres$'; then
       ERROR_MESSAGES+=("rent: битый gzip архив")
     fi
   else
-    echo "❌ Ошибка при выполнении pg_dumpall для accruals-postgres"
+    echo "❌ Ошибка при выполнении pg_dumpall для ${RENT_CONTAINER}"
     STATUS_RENT="dump_failed"
     ERROR_MESSAGES+=("rent: ошибка pg_dumpall")
   fi
 else
-  echo "⚠️ Контейнер accruals-postgres не запущен, пропуск rent!"
+  echo "⚠️ Контейнер PostgreSQL не запущен, пропуск rent!"
   STATUS_RENT="container_down"
-  ERROR_MESSAGES+=("rent: контейнер accruals-postgres остановлен")
+  ERROR_MESSAGES+=("rent: контейнер PostgreSQL остановлен")
 fi
 
 # ==============================================================================

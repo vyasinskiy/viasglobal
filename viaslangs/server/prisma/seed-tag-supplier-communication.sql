@@ -1,14 +1,14 @@
-INSERT INTO vy_tags (language_id, name)
+INSERT INTO tags (language_id, name)
 SELECT l.id, 'Для общения с поставщиками'
-FROM vy_languages l
+FROM languages l
 WHERE l.code = 'es'
 ON CONFLICT (language_id, name) DO UPDATE SET name = EXCLUDED.name;
 
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT w.id, t.id
-FROM vy_words w
-CROSS JOIN (SELECT id FROM vy_tags WHERE name = 'Для общения с поставщиками') t
-WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
+FROM words w
+CROSS JOIN (SELECT id FROM tags WHERE name = 'Для общения с поставщиками') t
+WHERE w.language_id = (SELECT id FROM languages WHERE code = 'es')
   AND lower(w.english) IN (
     'enviar', 'pedir', 'solicitar', 'necesitar', 'recibir',
     'costar', 'pagar', 'cobrar', 'facturar', 'comprar',

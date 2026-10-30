@@ -1,24 +1,24 @@
 -- Привязка всех испанских глаголов к тегу «Глаголы» для отдельного повторения
 
 -- 1. Создание или обновление тега для испанского языка
-INSERT INTO vy_tags (language_id, name)
+INSERT INTO tags (language_id, name)
 SELECT l.id, 'Глаголы'
-FROM vy_languages l
+FROM languages l
 WHERE l.code = 'es'
 ON CONFLICT (language_id, name) DO UPDATE SET name = EXCLUDED.name;
 
 -- 2. Привязка всех 50 глаголов к тегу «Глаголы»
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT w.id, t.id
-FROM vy_words w
+FROM words w
 CROSS JOIN (
   SELECT t.id
-  FROM vy_tags t
-  JOIN vy_languages l ON l.id = t.language_id
+  FROM tags t
+  JOIN languages l ON l.id = t.language_id
   WHERE t.name = 'Глаголы'
     AND l.code = 'es'
 ) t
-WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
+WHERE w.language_id = (SELECT id FROM languages WHERE code = 'es')
   AND lower(w.english) IN (
     'abonar', 'fabricar', 'solucionar', 'rechazar', 'reembolsar',
     'verificar', 'ofrecer', 'decidir', 'informar', 'transferir',

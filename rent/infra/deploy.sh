@@ -25,15 +25,15 @@ ADMIN_UI_PATH=${ADMIN_UI_PATH:-../apps/admin-ui}
 
 # 2. Build images
 echo "📦 Building Watcher..."
-docker build -t accruals-watcher:latest "${WATCHER_PATH}"
+docker build -t viasrent-watcher:latest "${WATCHER_PATH}"
 echo "📦 Building Accountant..."
-docker build -t accruals-accountant:latest "${ACCOUNTANT_PATH}"
+docker build -t viasrent-accountant:latest "${ACCOUNTANT_PATH}"
 echo "📦 Building Telegram Bot..."
-docker build -t accruals-telegram-bot:latest "${TELEGRAM_BOT_PATH}"
+docker build -t viasrent-telegram-bot:latest "${TELEGRAM_BOT_PATH}"
 echo "📦 Building Admin UI..."
-docker build -t accruals-admin-ui:latest "${ADMIN_UI_PATH}"
+docker build -t viasrent-admin-ui:latest "${ADMIN_UI_PATH}"
 echo "📦 Building Visual Browser..."
-docker build -t accruals-visual-browser:latest ./visual-browser
+docker build -t viasrent-visual-browser:latest ./visual-browser
 
 # 3. Start the infrastructure
 echo "🏗️  Starting infrastructure services (Database, RabbitMQ)..."
@@ -44,7 +44,7 @@ WATCHER_PATH=$WATCHER_PATH ACCOUNTANT_PATH=$ACCOUNTANT_PATH TELEGRAM_BOT_PATH=$T
 echo "⏳ Waiting for PostgreSQL to be ready..."
 MAX_RETRIES=30
 COUNT=0
-until docker exec accruals-postgres pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-kvartplata_watcher} > /dev/null 2>&1 || [ $COUNT -eq $MAX_RETRIES ]; do
+until docker exec viasglobal-postgres pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-viasrent_db} > /dev/null 2>&1 || [ $COUNT -eq $MAX_RETRIES ]; do
     sleep 1
     COUNT=$((COUNT + 1))
     echo -n "."
@@ -62,7 +62,7 @@ TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_FILE="${BACKUP_DIR}/db_backup_${TIMESTAMP}.sql.gz"
 
 echo "💾 Creating database backup (${BACKUP_FILE})..."
-docker exec accruals-postgres pg_dumpall -U ${POSTGRES_USER:-postgres} | gzip > "${BACKUP_FILE}"
+docker exec viasglobal-postgres pg_dumpall -U ${POSTGRES_USER:-postgres} | gzip > "${BACKUP_FILE}"
 echo "✅ Database backup created successfully!"
 
 # 6. Start application services

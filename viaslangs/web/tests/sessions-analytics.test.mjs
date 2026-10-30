@@ -129,25 +129,25 @@ describe('2. Интеграционная логика сессий и анал�
     client = await pool.connect();
 
     // Получаем ID испанского языка
-    const langRes = await client.query("SELECT id FROM vy_languages WHERE code = 'es'");
+    const langRes = await client.query("SELECT id FROM languages WHERE code = 'es'");
     spanishLangId = langRes.rows[0]?.id || 2;
 
     // Гарантируем наличие таблиц для проведения тестов
     await client.query(`
-      CREATE TABLE IF NOT EXISTS vy_study_sessions (
+      CREATE TABLE IF NOT EXISTS study_sessions (
         id SERIAL PRIMARY KEY,
-        language_id INTEGER NOT NULL REFERENCES vy_languages(id) ON DELETE CASCADE,
+        language_id INTEGER NOT NULL REFERENCES languages(id) ON DELETE CASCADE,
         session_date DATE NOT NULL,
         next_clicks INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT uq_vy_study_sessions_lang_date UNIQUE (language_id, session_date)
+        CONSTRAINT uq_study_sessions_lang_date UNIQUE (language_id, session_date)
       );
 
-      CREATE TABLE IF NOT EXISTS vy_session_activities (
+      CREATE TABLE IF NOT EXISTS session_activities (
         id SERIAL PRIMARY KEY,
-        session_id INTEGER NOT NULL REFERENCES vy_study_sessions(id) ON DELETE CASCADE,
-        word_id INTEGER NOT NULL REFERENCES vy_words(id) ON DELETE CASCADE,
+        session_id INTEGER NOT NULL REFERENCES study_sessions(id) ON DELETE CASCADE,
+        word_id INTEGER NOT NULL REFERENCES words(id) ON DELETE CASCADE,
         activity_type VARCHAR(32) NOT NULL,
         user_answer TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -156,7 +156,7 @@ describe('2. Интеграционная логика сессий и анал�
 
     // Создаем тестовую сессию на фиктивную дату '2026-01-01' для чистой изоляции
     const sessionRes = await client.query(
-      `INSERT INTO vy_study_sessions (language_id, session_date, next_clicks)
+      `INSERT INTO study_sessions (language_id, session_date, next_clicks)
        VALUES ($1, '2026-01-01', 0)
        ON CONFLICT (language_id, session_date)
        DO UPDATE SET next_clicks = 0
@@ -166,13 +166,13 @@ describe('2. Интеграционная логика сессий и анал�
     testSessionId = sessionRes.rows[0].id;
 
     // Очищаем тестовые активности перед запуском
-    await client.query(`DELETE FROM vy_session_activities WHERE session_id = $1`, [testSessionId]);
+    await client.query(`DELETE FROM session_activities WHERE session_id = $1`, [testSessionId]);
   });
 
   after(async () => {
     // Удаляем тестовую сессию и все привязанные активности каскадно
     if (testSessionId) {
-      await client.query(`DELETE FROM vy_study_sessions WHERE id = $1`, [testSessionId]);
+      await client.query(`DELETE FROM study_sessions WHERE id = $1`, [testSessionId]);
     }
     client.release();
     await pool.end();
@@ -182,13 +182,13 @@ describe('2. Интеграционная логика сессий и анал�
     // Симулируем 5 нажатий на кнопку Next
     for (let i = 0; i < 5; i++) {
       await client.query(
-        `UPDATE vy_study_sessions SET next_clicks = next_clicks + 1 WHERE id = $1`,
+        `UPDATE study_sessions SET next_clicks = next_clicks + 1 WHERE id = $1`,
         [testSessionId]
       );
     }
 
     const res = await client.query(
-      `SELECT next_clicks FROM vy_study_sessions WHERE id = $1`,
+      `SELECT next_clicks FROM study_sessions WHERE id = $1`,
       [testSessionId]
     );
     assert.strictEqual(res.rows[0].next_clicks, 5);
@@ -201,9 +201,9 @@ describe('2. Интеграционная логика сессий и анал�
     // 3) abonaba (1-е лицо Imperfecto)
     const wordsRes = await client.query(`
       SELECT w.id, w.english, w.russian, array_agg(t.name) as tags
-      FROM vy_words w
-      JOIN vy_word_tags wt ON wt.word_id = w.id
-      JOIN vy_tags t ON t.id = wt.tag_id
+      FROM words w
+      JOIN word_tags wt ON wt.word_id = w.id
+      JOIN tags t ON t.id = wt.tag_id
       WHERE w.english IN ('abonó', 'aboné', 'abonaba')
       GROUP BY w.id, w.english, w.russian
     `);
@@ -219,7 +219,7 @@ describe('2. Интеграционная логика сессий и анал�
     // Симулируем 3 ошибки на abonó (3-е лицо Indefinido)
     for (let i = 0; i < 3; i++) {
       await client.query(
-        `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+        `INSERT INTO session_activities (session_id, word_id, activity_type, user_answer)
          VALUES ($1, $2, 'ANSWER_ERROR', 'abono')`,
         [testSessionId, abonoWord.id]
       );
@@ -227,7 +227,7 @@ describe('2. Интеграционная логика сессий и анал�
 
     // Симулируем 1 ошибку на aboné (1-е лицо Indefinido)
     await client.query(
-      `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+      `INSERT INTO session_activities (session_id, word_id, activity_type, user_answer)
        VALUES ($1, $2, 'ANSWER_ERROR', 'abone')`,
       [testSessionId, aboneWord.id]
     );
@@ -235,7 +235,7 @@ describe('2. Интеграционная логика сессий и анал�
     // Симулируем 2 верных ответа на abonaba (Imperfecto)
     for (let i = 0; i < 2; i++) {
       await client.query(
-        `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+        `INSERT INTO session_activities (session_id, word_id, activity_type, user_answer)
          VALUES ($1, $2, 'ANSWER_CORRECT', 'abonaba')`,
         [testSessionId, abonabaWord.id]
       );
@@ -244,10 +244,10 @@ describe('2. Интеграционная логика сессий и анал�
     // Проверяем распределение ошибок по тегам
     const activitiesRes = await client.query(`
       SELECT act.activity_type, w.english, w.russian, array_agg(t.name) as tags
-      FROM vy_session_activities act
-      JOIN vy_words w ON w.id = act.word_id
-      JOIN vy_word_tags wt ON wt.word_id = w.id
-      JOIN vy_tags t ON t.id = wt.tag_id
+      FROM session_activities act
+      JOIN words w ON w.id = act.word_id
+      JOIN word_tags wt ON wt.word_id = w.id
+      JOIN tags t ON t.id = wt.tag_id
       WHERE act.session_id = $1
       GROUP BY act.id, act.activity_type, w.english, w.russian
     `, [testSessionId]);
@@ -438,7 +438,7 @@ describe('2. Интеграционная логика сессий и анал�
     // 1. Получаем слова abonó, aboné, abonaba
     const wordsRes = await client.query(`
       SELECT w.id, w.english, w.russian
-      FROM vy_words w
+      FROM words w
       WHERE w.english IN ('abonó', 'aboné', 'abonaba')
     `);
     const abonoWord = wordsRes.rows.find(w => w.english === 'abonó');
@@ -448,12 +448,12 @@ describe('2. Интеграционная логика сессий и анал�
     assert.ok(abonoWord && aboneWord && abonabaWord, 'Все 3 тестовых слова найдены в БД');
 
     // Очищаем активности сессии
-    await client.query(`DELETE FROM vy_session_activities WHERE session_id = $1`, [testSessionId]);
+    await client.query(`DELETE FROM session_activities WHERE session_id = $1`, [testSessionId]);
 
     // 2. Добавляем 2 ошибки на abonó (ввод 'abono')
     for (let i = 0; i < 2; i++) {
       await client.query(
-        `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+        `INSERT INTO session_activities (session_id, word_id, activity_type, user_answer)
          VALUES ($1, $2, 'ANSWER_ERROR', 'abono')`,
         [testSessionId, abonoWord.id]
       );
@@ -461,14 +461,14 @@ describe('2. Интеграционная логика сессий и анал�
 
     // 3. Добавляем 1 ошибку на aboné (ввод 'abone')
     await client.query(
-      `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer)
+      `INSERT INTO session_activities (session_id, word_id, activity_type, user_answer)
        VALUES ($1, $2, 'ANSWER_ERROR', 'abone')`,
       [testSessionId, aboneWord.id]
     );
 
     // 4. Добавляем 1 клик NEXT на abonaba
     await client.query(
-      `INSERT INTO vy_session_activities (session_id, word_id, activity_type)
+      `INSERT INTO session_activities (session_id, word_id, activity_type)
        VALUES ($1, $2, 'NEXT')`,
       [testSessionId, abonabaWord.id]
     );

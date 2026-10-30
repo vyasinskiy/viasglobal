@@ -121,18 +121,18 @@ echo "🔍 [$(date '+%Y-%m-%d %H:%M:%S')] Проверка целостност�
 echo "======================================================================"
 
 # Проверяем все 3 базы данных
-# 1. viasglobal_db (ожидаем минимум 50 МБ, текущий размер ~830 МБ)
-check_database_backup "viasglobal_db" "viasglobal" 52428800 "*viasglobal*.sql.gz"
+# 1. viasglobal_db (ожидаем минимум 5 МБ, текущий размер ~10.5 МБ)
+check_database_backup "viasglobal_db" "viasglobal" 5242880 "*viasglobal*.sql.gz"
 if [ ${#DETAILS[@]} -eq 0 ] && [ ${#ERRORS[@]} -gt 0 ]; then
   # Если по новому паттерну не найден, ищем старый формат backup_YYYYMMDD_*.sql.gz
   ERRORS=()
-  check_database_backup "viasglobal_db" "." 52428800 "backup_*.sql.gz"
+  check_database_backup "viasglobal_db" "." 5242880 "backup_*.sql.gz"
 fi
 
-# 2. rent (accruals-postgres, ожидаем минимум 50 КБ)
-check_database_backup "rent (accruals)" "rent" 51200 "*rent*.sql.gz"
+# 2. rent (viasrent, ожидаем минимум 50 КБ)
+check_database_backup "rent (viasrent)" "rent" 51200 "*rent*.sql.gz"
 if [ ${#DETAILS[@]} -lt 2 ]; then
-  check_database_backup "rent (accruals)" "rent" 51200 "db_backup_*.sql.gz"
+  check_database_backup "rent (viasrent)" "rent" 51200 "db_backup_*.sql.gz"
 fi
 
 

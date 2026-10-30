@@ -133,7 +133,7 @@ describe('Модуль сводного финансового учета Viasgl
     // Мокируем метод fetchRentFinancials для изоляции от сети в тестах
     jest.spyOn(financeService, 'fetchRentFinancials').mockResolvedValueOnce({
       available: true,
-      sourceUrl: 'http://accruals-accountant:3005',
+      sourceUrl: 'http://viasrent-accountant:3005',
       apartmentsCount: 3,
       activeTenantsCount: 3,
       expectedMonthlyRentRub: 120000,

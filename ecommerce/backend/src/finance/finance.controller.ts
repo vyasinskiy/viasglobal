@@ -2,7 +2,7 @@
 // REST API контроллер сводного финансового дашборда Viasglobal по всем видам деятельности:
 // 1. IT-разработка (IAE 763 / CNAE 6201 — 4 000 EUR/мес, генерация Word/PDF + электронная фактура в Taxfix)
 // 2. Продажа товаров на Amazon (IAE 665 / CNAE 4791 — закупки партий, продажи, операционные фактуры упаковки/сервисов)
-// 3. Аренда недвижимости (РФ, отдельное юрлицо вне налогового контура Испании — консолидация с accruals-accountant)
+// 3. Аренда недвижимости (РФ, отдельное юрлицо вне налогового контура Испании — консолидация с viasrent-accountant)
 
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
 import { FinanceService } from './finance.service';

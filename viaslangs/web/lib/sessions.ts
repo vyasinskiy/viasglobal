@@ -14,7 +14,7 @@ import type {
 } from "./types.ts";
 
 /**
- * Гарантирует наличие сессионного дня в таблице vy_study_sessions для указанного языка.
+ * Гарантирует наличие сессионного дня в таблице study_sessions для указанного языка.
  * Если сессия на текущую дату уже существует, возвращает ее ID.
  * Если нет - атомарно создает новую запись с датой CURRENT_DATE.
  *
@@ -30,7 +30,7 @@ export async function getOrCreateTodaySession(
   let resolvedLangId: number = languageId || 0;
   if (!resolvedLangId) {
     const langRes = await client.query(
-      `SELECT id FROM vy_languages WHERE code = 'es' LIMIT 1`
+      `SELECT id FROM languages WHERE code = 'es' LIMIT 1`
     );
     resolvedLangId = Number(langRes.rows[0]?.id) || 2;
   }
@@ -40,7 +40,7 @@ export async function getOrCreateTodaySession(
 
   // 3. Атомарный upsert сессионного дня: создаем при отсутствии или возвращаем существующий
   const sessionRes = await client.query(
-    `INSERT INTO vy_study_sessions (language_id, session_date, next_clicks, created_at, updated_at)
+    `INSERT INTO study_sessions (language_id, session_date, next_clicks, created_at, updated_at)
      VALUES ($1, $2::date, 0, NOW(), NOW())
      ON CONFLICT (language_id, session_date)
      DO UPDATE SET updated_at = NOW()
@@ -81,7 +81,7 @@ export async function recordSessionActivity(params: {
   // 2. Если активность типа NEXT, инкрементируем счетчик next_clicks в самой сессии
   if (params.activityType === "NEXT") {
     await db.query(
-      `UPDATE vy_study_sessions
+      `UPDATE study_sessions
        SET next_clicks = next_clicks + 1,
            updated_at = NOW()
        WHERE id = $1`,
@@ -89,10 +89,10 @@ export async function recordSessionActivity(params: {
     );
   }
 
-  // 3. Записываем детальную активность в журнал vy_session_activities
+  // 3. Записываем детальную активность в журнал session_activities
   if (params.wordId) {
     await db.query(
-      `INSERT INTO vy_session_activities (session_id, word_id, activity_type, user_answer, created_at)
+      `INSERT INTO session_activities (session_id, word_id, activity_type, user_answer, created_at)
        VALUES ($1, $2, $3, $4, NOW())`,
       [sessionId, params.wordId, params.activityType, params.userAnswer || null]
     );
@@ -102,9 +102,9 @@ export async function recordSessionActivity(params: {
   const countRes = await db.query(
     `SELECT
        (s.next_clicks +
-        COALESCE((SELECT COUNT(*) FROM vy_session_activities a WHERE a.session_id = s.id AND a.activity_type != 'NEXT'), 0)
+        COALESCE((SELECT COUNT(*) FROM session_activities a WHERE a.session_id = s.id AND a.activity_type != 'NEXT'), 0)
        )::int as total
-     FROM vy_study_sessions s
+     FROM study_sessions s
      WHERE s.id = $1`,
     [sessionId]
   );
@@ -136,20 +136,20 @@ export async function getTodaySessionStats(
 
   // 2. Получаем код языка (например, 'es')
   const langRes = await pool.query(
-    `SELECT code FROM vy_languages WHERE id = $1`,
+    `SELECT code FROM languages WHERE id = $1`,
     [resolvedLanguageId]
   );
   const langCode = langRes.rows[0]?.code || "es";
 
   // 3. Получаем данные сессии
   const sessionRes = await pool.query(
-    `SELECT next_clicks FROM vy_study_sessions WHERE id = $1`,
+    `SELECT next_clicks FROM study_sessions WHERE id = $1`,
     [sessionId]
   );
   const nextClicks = sessionRes.rows[0]?.next_clicks || 0;
 
   // 4. Получаем все действия с ответами за сегодня
-  // Выбираем из vy_session_activities (а если их еще мало, объединяем с vy_answers за сегодняшнюю дату)
+  // Выбираем из session_activities (а если их еще мало, объединяем с answers за сегодняшнюю дату)
   const activitiesRes = await pool.query(
     `SELECT
        w.id as word_id,
@@ -158,13 +158,13 @@ export async function getTodaySessionStats(
        act.activity_type,
        COALESCE(
          (SELECT array_agg(t.name)
-          FROM vy_word_tags wt
-          JOIN vy_tags t ON t.id = wt.tag_id
+          FROM word_tags wt
+          JOIN tags t ON t.id = wt.tag_id
           WHERE wt.word_id = w.id),
          ARRAY[]::text[]
        ) as tags
-     FROM vy_session_activities act
-     JOIN vy_words w ON w.id = act.word_id
+     FROM session_activities act
+     JOIN words w ON w.id = act.word_id
      WHERE act.session_id = $1
        AND act.activity_type IN ('ANSWER_CORRECT', 'ANSWER_ERROR')`,
     [sessionId]
@@ -362,7 +362,7 @@ export async function getSessionsHistory(
   let resolvedLangId: number = languageId || 0;
   if (!resolvedLangId) {
     const langRes = await pool.query(
-      `SELECT id FROM vy_languages WHERE code = 'es' LIMIT 1`
+      `SELECT id FROM languages WHERE code = 'es' LIMIT 1`
     );
     resolvedLangId = Number(langRes.rows[0]?.id) || 2;
   }
@@ -375,8 +375,8 @@ export async function getSessionsHistory(
        s.next_clicks,
        COALESCE(SUM(CASE WHEN act.activity_type = 'ANSWER_CORRECT' THEN 1 ELSE 0 END), 0)::int as correct_answers,
        COALESCE(SUM(CASE WHEN act.activity_type = 'ANSWER_ERROR' THEN 1 ELSE 0 END), 0)::int as error_answers
-     FROM vy_study_sessions s
-     LEFT JOIN vy_session_activities act ON act.session_id = s.id
+     FROM study_sessions s
+     LEFT JOIN session_activities act ON act.session_id = s.id
      WHERE s.language_id = $1
        AND s.session_date >= (CURRENT_DATE - ($2 || ' days')::interval)::date
      GROUP BY s.id, s.session_date, s.next_clicks
@@ -511,7 +511,7 @@ export async function getTodayTrainingPhrases(options?: {
        COUNT(*)::int as error_count,
        (ARRAY_AGG(act.user_answer ORDER BY act.created_at DESC))[1] as last_user_answer,
        MAX(act.created_at) as latest_activity
-     FROM vy_session_activities act
+     FROM session_activities act
      WHERE act.session_id = $1 AND act.activity_type = 'ANSWER_ERROR'
      GROUP BY act.word_id
      ORDER BY error_count DESC, latest_activity DESC
@@ -537,7 +537,7 @@ export async function getTodayTrainingPhrases(options?: {
       `SELECT
          act.word_id,
          MAX(act.created_at) as latest_activity
-       FROM vy_session_activities act
+       FROM session_activities act
        WHERE act.session_id = $1 AND act.activity_type = 'NEXT'
          AND ($2::int[] IS NULL OR NOT (act.word_id = ANY($2::int[])))
        GROUP BY act.word_id
@@ -563,11 +563,11 @@ export async function getTodayTrainingPhrases(options?: {
     const excludedIds = Array.from(selectedWordIdsSet);
     const unlearnedWordsRes = await db.query(
       `SELECT w.id as word_id
-       FROM vy_words w
+       FROM words w
        WHERE w.language_id = $1
          AND ($2::int[] IS NULL OR NOT (w.id = ANY($2::int[])))
          AND NOT EXISTS (
-           SELECT 1 FROM vy_answers a WHERE a.word_id = w.id AND a.is_correct = true
+           SELECT 1 FROM answers a WHERE a.word_id = w.id AND a.is_correct = true
          )
        ORDER BY RANDOM()
        LIMIT $3`,
@@ -610,12 +610,12 @@ export async function getTodayTrainingPhrases(options?: {
        w.example_ru,
        COALESCE(
          (SELECT array_agg(t.name)
-          FROM vy_word_tags wt
-          JOIN vy_tags t ON t.id = wt.tag_id
+          FROM word_tags wt
+          JOIN tags t ON t.id = wt.tag_id
           WHERE wt.word_id = w.id),
          ARRAY[]::text[]
        ) as tags
-     FROM vy_words w
+     FROM words w
      WHERE w.id = ANY($1::int[])`,
     [allWordIds]
   );

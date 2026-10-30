@@ -28,12 +28,12 @@ make deploy-master
 ```
 
 ### Основные команды (на сервере в папке `~/viasglobal/ecommerce/backend`)
-- **Просмотр логов бэкенда (в реальном времени):** `docker logs -f backend-backend-1`
-- **Просмотр логов базы данных:** `docker logs -f backend-db-1`
-- **Перезапуск бэкенда:** `docker restart backend-backend-1`
+- **Просмотр логов бэкенда (в реальном времени):** `docker logs -f viasglobal-backend`
+- **Просмотр логов базы данных:** `docker logs -f viasglobal-postgres`
+- **Перезапуск бэкенда:** `docker restart viasglobal-backend`
 - **Выключить проект:** `docker compose down`
 - **Включить проект:** `docker compose up -d`
-- **Подключиться к PostgreSQL (psql):** `docker exec -it backend-db-1 psql -U viasuser -d viasglobal_db`
+- **Подключиться к PostgreSQL (psql):** `docker exec -it viasglobal-postgres psql -U viasuser -d viasglobal_db`
 
 ## Архитектура и управление через AI-агентов
 

@@ -30,13 +30,16 @@ DOCKER_HOST=ssh://huawei@100.92.50.18 docker compose -f docker-compose.primary.y
 ### Узел 1: Primary (Домашний ПК Huawei MateStation S - Linux)
 **IP:** `100.92.50.18`
 
-*   **Базы данных (Master):** 2 изолированные СУБД:
-    * `backend-db-1` (Postgres 15, порт `5432`) — `viasglobal_db` (Wholesale каталог, 100k+ ASIN, закупки, остатки СВХ/склада, продажи).
-    * `accruals-postgres` (Postgres 16, порт `5433`) — сервис аренды (`accountant_db`, `watcher_db`, `telegram_bot_db`, `kvartplata_watcher`).
+*   **Базы данных (Master):** Единый инстанс СУБД:
+    * `viasglobal-postgres` (Postgres 16, порты `5432` и `5433`) — обслуживает изолированные базы:
+      * `viasglobal_db` (Wholesale каталог, ASIN, закупки, остатки СВХ/склада, продажи).
+      * `viasrent_db` (сервис аренды: схемы `public` для accountant, `watcher`, `telegram_bot`).
+      * `viaslangs_db` (языковой тренажер).
 *   **Микросервисы и веб-интерфейсы:**
-    * `backend-backend-1` (порт `3001`) — API Wholesale каталога, заказов и остатков.
-    * `accruals-admin-ui` (порт `3000`) — веб-панель аренды (`rent.viasglobal.es`).
-    * `accruals-accountant` (порт `3005`), `accruals-watcher` (порт `4500`), `accruals-rabbitmq` (порты `5672`, `15672`).
+    * `viasglobal-backend` (порт `3001`) — API Wholesale каталога, заказов и остатков.
+    * `viasrent-admin-ui` (порт `3000`) — веб-панель аренды (`rent.viasglobal.es`).
+    * `viasrent-accountant` (порт `3005`), `viasrent-watcher` (порт `4500`), `viasrent-rabbitmq` (порты `5672`, `15672`), `viasrent-telegram-bot`.
+    * `viaslangs-web` (порт `3007`) — веб-тренажер (`langs.viasglobal.es`).
     * `sms-gateway` (порт `3040`), `viasglobal-openclaw` (порт `18789`).
 *   **Внешний доступ (Cloudflare Tunnel):** Контейнер `cloudflared` (токен туннеля `fad800a3-f97e-4b41-8f24-df8168b1211b`).
 

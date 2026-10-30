@@ -10,9 +10,9 @@ const WORD_SELECT = `
          w.is_favorite AS "isFavorite",
          COALESCE((
            SELECT array_agg(wt.tag_id ORDER BY wt.tag_id)
-           FROM vy_word_tags wt WHERE wt.word_id = w.id
+           FROM word_tags wt WHERE wt.word_id = w.id
          ), '{}') AS "tagIds"
-  FROM vy_words w
+  FROM words w
 `;
 
 export async function GET(req: Request) {
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     }
     if (tagId) {
       params.push(tagId);
-      query += ` AND w.id IN (SELECT word_id FROM vy_word_tags WHERE tag_id = $${params.length})`;
+      query += ` AND w.id IN (SELECT word_id FROM word_tags WHERE tag_id = $${params.length})`;
     }
 
     query += ` ORDER BY w.created_at DESC`;

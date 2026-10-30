@@ -11,8 +11,8 @@ export async function GET(req: Request) {
     let query = `
       SELECT t.id, t.language_id AS "languageId", t.name, t.created_at AS "createdAt",
              COUNT(wt.word_id)::int AS "wordCount"
-      FROM vy_tags t
-      LEFT JOIN vy_word_tags wt ON wt.tag_id = t.id`;
+      FROM tags t
+      LEFT JOIN word_tags wt ON wt.tag_id = t.id`;
     const params: string[] = [];
 
     if (languageId) {
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const lang = await pool.query("SELECT id FROM vy_languages WHERE id = $1", [languageId]);
+    const lang = await pool.query("SELECT id FROM languages WHERE id = $1", [languageId]);
     if (!lang.rows[0]) {
       return NextResponse.json(
         { success: false, error: "Language not found" },
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     }
 
     const result = await pool.query(
-      `INSERT INTO vy_tags (language_id, name)
+      `INSERT INTO tags (language_id, name)
        VALUES ($1, $2)
        ON CONFLICT (language_id, name) DO UPDATE SET name = EXCLUDED.name
        RETURNING id, language_id AS "languageId", name, created_at AS "createdAt"`,

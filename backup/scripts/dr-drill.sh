@@ -66,7 +66,7 @@ do_failover() {
   # 2. Симуляция отключения сервера Huawei (остановка туннеля и веб-сервисов)
   echo "🔌 [2/6] Симуляция отказа сервера Huawei (остановка туннеля и сервисов)..."
   if ssh -o ConnectTimeout=4 "${HUAWEI_SERVER}" "echo ping" >/dev/null 2>&1; then
-    ssh "${HUAWEI_SERVER}" "docker stop cloudflared backend-backend-1 accruals-admin-ui 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker stop cloudflared viasglobal-backend viasrent-admin-ui accruals-admin-ui 2>/dev/null || true"
     echo "   ✅ Сервисы на Huawei остановлены. Трафик Cloudflare освобожден."
   else
     echo "   ℹ️ Сервер Huawei уже недоступен или выключен физически."
@@ -89,12 +89,7 @@ do_failover() {
   echo "🐳 [3/6] Запуск локальной Docker-инфраструктуры на Mac..."
   docker network create infra_accruals-network 2>/dev/null || true
 
-  # Запуск СУБД для Wholesale (backend-db-1)
-  cd "${PROJECT_ROOT}/ecommerce/backend"
-  docker compose up -d db
-  docker rename backend-db-1 backend-db-1 2>/dev/null || true
-
-  # Запуск инфраструктуры Rent (БД, RabbitMQ, бэкенды accountant, watcher, бот и веб-панель admin-ui)
+  # Запуск инфраструктуры Rent и единой СУБД (БД, RabbitMQ, бэкенды accountant, watcher, бот и веб-панель admin-ui)
   cd "${PROJECT_ROOT}/rent/infra"
   docker compose up -d postgres rabbitmq accountant admin-ui watcher telegram-bot
 
@@ -113,9 +108,9 @@ do_failover() {
 
   # Создаем bridge-сеть failover-net с подсетью 100.92.50.0/24 для перехвата IP 100.92.50.18
   # (так как Cloudflare ingress настроен на http://100.92.50.18:3000, сетевой стек ядра
-  # направит трафик прямо в контейнер accruals-admin-ui с IP 100.92.50.18)
+  # направит трафик прямо в контейнер viasrent-admin-ui с IP 100.92.50.18)
   docker network create --subnet 100.92.50.0/24 failover-net 2>/dev/null || true
-  docker network connect --ip 100.92.50.18 failover-net accruals-admin-ui 2>/dev/null || true
+  docker network connect --ip 100.92.50.18 failover-net viasrent-admin-ui 2>/dev/null || docker network connect --ip 100.92.50.18 failover-net accruals-admin-ui 2>/dev/null || true
 
   docker run -d \
     --name cloudflared-failover \
@@ -192,10 +187,10 @@ do_rollback() {
     mkdir -p "${TMP_DIR}"
 
     echo "   📦 [1/3] Экспорт viasglobal_db с локального Mac..."
-    docker exec backend-db-1 pg_dump -U viasuser -d viasglobal_db --clean --if-exists --no-owner --no-acl | gzip -9 > "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz"
+    docker exec viasglobal-postgres pg_dump -U viasuser -d viasglobal_db --clean --if-exists --no-owner --no-acl | gzip -9 > "${TMP_DIR}/failover_viasglobal_${SYNC_TS}.sql.gz"
 
     echo "   📦 [2/3] Экспорт rent (все БД кластера) с локального Mac..."
-    docker exec accruals-postgres pg_dumpall -U postgres --clean | gzip -9 > "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz"
+    docker exec viasglobal-postgres pg_dumpall -U postgres --clean | gzip -9 > "${TMP_DIR}/failover_rent_${SYNC_TS}.sql.gz"
 
     echo "   🚀 Передача дампов на сервер Huawei по защищенной сети Tailscale..."
     ssh "${HUAWEI_SERVER}" "mkdir -p /home/huawei/viasglobal/ecommerce/backend/backups/viasglobal /home/huawei/viasglobal/ecommerce/backend/backups/rent"
@@ -207,8 +202,8 @@ do_rollback() {
     scp "${SCRIPT_DIR}/restore.sh" "${HUAWEI_SERVER}:/home/huawei/viasglobal/backup/scripts/restore.sh"
 
     # Приостанавливаем прикладные сервисы на Huawei, чтобы избежать параллельной записи во время импорта
-    ssh "${HUAWEI_SERVER}" "docker stop backend-backend-1 accruals-watcher accruals-accountant accruals-telegram-bot accruals-admin-ui 2>/dev/null || true"
-    ssh "${HUAWEI_SERVER}" "docker start backend-db-1 accruals-postgres 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker stop viasglobal-backend viasrent-watcher viasrent-accountant viasrent-telegram-bot viasrent-admin-ui accruals-watcher accruals-accountant accruals-telegram-bot accruals-admin-ui 2>/dev/null || true"
+    ssh "${HUAWEI_SERVER}" "docker start viasglobal-postgres accruals-postgres 2>/dev/null || true"
 
     ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db viasglobal --file /home/huawei/viasglobal/ecommerce/backend/backups/viasglobal/failover_viasglobal_${SYNC_TS}.sql.gz"
     ssh "${HUAWEI_SERVER}" "bash /home/huawei/viasglobal/backup/scripts/restore.sh --db rent --file /home/huawei/viasglobal/ecommerce/backend/backups/rent/failover_rent_${SYNC_TS}.sql.gz"
@@ -221,12 +216,12 @@ do_rollback() {
 
   # 3. Запуск всех сервисов на боевом сервере Huawei
   echo "🚀 [3/5] Запуск всех контейнеров на сервере Huawei..."
-  ssh "${HUAWEI_SERVER}" "docker start backend-db-1 backend-backend-1 accruals-postgres accruals-rabbitmq accruals-accountant accruals-watcher accruals-admin-ui accruals-telegram-bot cloudflared 2>/dev/null || true"
+  ssh "${HUAWEI_SERVER}" "docker start viasglobal-backend viasglobal-postgres viasrent-rabbitmq viasrent-accountant viasrent-watcher viasrent-admin-ui viasrent-telegram-bot cloudflared 2>/dev/null || true"
   echo "   ✅ Контейнеры на Huawei запущены."
 
   # 4. Остановка локальных контейнеров на Mac
   echo "🧹 [4/5] Остановка локальных контейнеров Mac..."
-  cd "${PROJECT_ROOT}/ecommerce/backend" && docker compose stop backend db || true
+  cd "${PROJECT_ROOT}/ecommerce/backend" && docker compose stop backend || true
   cd "${PROJECT_ROOT}/rent/infra" && docker compose stop admin-ui accountant watcher telegram-bot rabbitmq postgres || true
 
   echo "⏳ Ожидание переключения трафика обратно на Huawei (7 сек)..."

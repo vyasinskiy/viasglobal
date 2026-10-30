@@ -1,4 +1,4 @@
-INSERT INTO vy_words (language_id, english, russian, example_en, example_ru)
+INSERT INTO words (language_id, english, russian, example_en, example_ru)
 SELECT l.id, v.english, v.russian, v.example_en, v.example_ru
 FROM (VALUES
     ('enviar', 'отправлять', 'Le enviaré el catálogo actualizado por correo electrónico.', 'Я отправлю вам обновлённый каталог по электронной почте.'),
@@ -52,10 +52,10 @@ FROM (VALUES
     ('esperar', 'ожидать', 'Esperamos su respuesta para continuar con el pedido.', 'Ждём вашего ответа, чтобы продолжить работу над заказом.'),
     ('hablar', 'говорить', 'Me gustaría hablar con el responsable de ventas.', 'Я хотел бы поговорить с ответственным за продажи.')
 ) AS v(english, russian, example_en, example_ru)
-CROSS JOIN vy_languages l
+CROSS JOIN languages l
 WHERE l.code = 'es'
   AND NOT EXISTS (
-    SELECT 1 FROM vy_words w
+    SELECT 1 FROM words w
     WHERE w.language_id = l.id
       AND lower(w.english) = lower(v.english)
       AND lower(w.russian) = lower(v.russian)

@@ -71,7 +71,7 @@ redeploy-rent-bot:
 	@echo "Синхронизация telegram-bot на сервер Huawei..."
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.env' ./rent/apps/telegram-bot/ huawei@100.92.50.18:~/viasglobal/rent/apps/telegram-bot/
 	rsync -avz --exclude 'backups' --exclude '.env' ./rent/infra/ huawei@100.92.50.18:~/viasglobal/rent/infra/
-	@echo "Пересборка и перезапуск контейнера accruals-telegram-bot на сервере Huawei..."
+	@echo "Пересборка и перезапуск контейнера viasrent-telegram-bot на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build telegram-bot"
 
 redeploy-rent-watcher:
@@ -80,7 +80,7 @@ redeploy-rent-watcher:
 	rsync -avz --exclude 'backups' --exclude '.env' ./rent/infra/ huawei@100.92.50.18:~/viasglobal/rent/infra/
 	rsync -avz ./rent/.agents/ huawei@100.92.50.18:~/viasglobal/rent/.agents/
 	rsync -avz ./rent/README.md huawei@100.92.50.18:~/viasglobal/rent/
-	@echo "Пересборка и перезапуск контейнера accruals-watcher на сервере Huawei..."
+	@echo "Пересборка и перезапуск контейнера viasrent-watcher на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose --profile manual create visual-browser || true"
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build watcher"
 
@@ -88,7 +88,7 @@ redeploy-rent-accountant:
 	@echo "Синхронизация accountant на сервер Huawei..."
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.env' ./rent/apps/accountant/ huawei@100.92.50.18:~/viasglobal/rent/apps/accountant/
 	rsync -avz --exclude 'backups' --exclude '.env' ./rent/infra/ huawei@100.92.50.18:~/viasglobal/rent/infra/
-	@echo "Пересборка и перезапуск контейнера accruals-accountant на сервере Huawei..."
+	@echo "Пересборка и перезапуск контейнера viasrent-accountant на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build accountant"
 
 redeploy-rent-admin:
@@ -96,7 +96,7 @@ redeploy-rent-admin:
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.next' --exclude '.env' ./rent/apps/admin-ui/ huawei@100.92.50.18:~/viasglobal/rent/apps/admin-ui/
 	rsync -avz ./rent/.agents/ huawei@100.92.50.18:~/viasglobal/rent/.agents/
 	rsync -avz ./rent/README.md huawei@100.92.50.18:~/viasglobal/rent/
-	@echo "Пересборка и перезапуск контейнера accruals-admin-ui на сервере Huawei..."
+	@echo "Пересборка и перезапуск контейнера viasrent-admin-ui на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/rent/infra && docker compose up -d --build admin-ui"
 
 redeploy-rent-services: redeploy-rent-accountant redeploy-rent-watcher redeploy-rent-admin redeploy-rent-bot
@@ -132,6 +132,13 @@ redeploy-sms:
 	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'data' ./sms-gateway/ huawei@100.92.50.18:~/viasglobal/sms-gateway/
 	@echo "Перезапуск контейнера sms-gateway на сервере Huawei..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/sms-gateway && docker compose up -d --build sms-gateway"
+
+redeploy-viaslangs:
+	@echo "Синхронизация файлов viaslangs на сервер Huawei..."
+	rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.next' ./viaslangs/ huawei@100.92.50.18:~/viasglobal/viaslangs/
+	@echo "Пересборка и перезапуск контейнера viaslangs-web на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/viaslangs && docker compose -f docker-compose.huawei.yml up -d --build web"
+
 
 
 

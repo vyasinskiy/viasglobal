@@ -2,7 +2,7 @@
 // Сервис сводного финансового учета Viasglobal по всем видам деятельности:
 // 1. Autónomo IAE 763 / CNAE 6201 (IT-разработка, инвойсы 4000 EUR/мес, фактуры в гос. системе Испании через Taxfix)
 // 2. Autónomo IAE 665 / CNAE 4791 (E-Commerce Amazon Wholesale, закупки у дистрибьюторов, продажи, упаковка, софт, взносы)
-// 3. Аренда недвижимости (РФ, отдельное юрлицо вне налогового контура Испании, консолидация из accruals-accountant)
+// 3. Аренда недвижимости (РФ, отдельное юрлицо вне налогового контура Испании, консолидация из viasrent-accountant)
 
 import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -302,7 +302,7 @@ export class FinanceService {
   }
 
   /**
-   * Запрос финансовых данных по аренде квартир (РФ, другое юрлицо) из микросервиса accruals-accountant
+   * Запрос финансовых данных по аренде квартир (РФ, другое юрлицо) из микросервиса viasrent-accountant
    */
   public async fetchRentFinancials(): Promise<{
     available: boolean;
@@ -332,7 +332,7 @@ export class FinanceService {
     }>;
   }> {
     const baseUrl = (
-      process.env.ACCOUNTANT_API_URL || 'http://accruals-accountant:3005'
+      process.env.ACCOUNTANT_API_URL || 'http://viasrent-accountant:3005'
     ).replace(/\/+$/, '');
 
     try {
@@ -419,7 +419,7 @@ export class FinanceService {
       return {
         available: false,
         sourceUrl: baseUrl,
-        error: err?.message || 'Сервис accruals-accountant недоступен по сети',
+        error: err?.message || 'Сервис viasrent-accountant недоступен по сети',
         apartmentsCount: 0,
         activeTenantsCount: 0,
         expectedMonthlyRentRub: 0,
@@ -859,7 +859,7 @@ export class FinanceService {
             startDate: '2024-01-01',
             taxRegime: 'Отдельное юридическое лицо за пределами Испании (не входит в декларации AEAT Autónomo)',
             monthlyInvoiceRule:
-              'Приходы арендной платы от жильцов и расходы по квитанциям ЖКУ (микросервис accruals-accountant)',
+              'Приходы арендной платы от жильцов и расходы по квитанциям ЖКУ (микросервис viasrent-accountant)',
           },
         ],
       },

@@ -1,14 +1,14 @@
 -- Добавление нового пакета бизнес-выражений и лексики для общения с поставщиками (испанский язык)
 
 -- 1. Создание или обновление тега для испанского языка
-INSERT INTO vy_tags (language_id, name)
+INSERT INTO tags (language_id, name)
 SELECT l.id, 'Для общения с поставщиками'
-FROM vy_languages l
+FROM languages l
 WHERE l.code = 'es'
 ON CONFLICT (language_id, name) DO UPDATE SET name = EXCLUDED.name;
 
 -- 2. Вставка новых слов и выражений
-INSERT INTO vy_words (language_id, english, russian, example_en, example_ru)
+INSERT INTO words (language_id, english, russian, example_en, example_ru)
 SELECT l.id, v.english, v.russian, v.example_en, v.example_ru
 FROM (VALUES
     ('fecha de entrega', 'дата поставки, срок поставки', 'Por favor, infórmenos sobre la fecha de entrega estimada de este lote.', 'Пожалуйста, сообщите нам ориентировочную дату поставки этой партии.'),
@@ -42,26 +42,26 @@ FROM (VALUES
     ('sellado', 'с печатью, заверенный печатью', 'Es obligatorio adjuntar el albarán sellado para tramitar la garantía.', 'Обязательно приложить накладную с печатью для оформления гарантии.'),
     ('el transporte marítimo', 'морская перевозка, морской транспорт', 'Ayer reclamamos las piezas que sufrieron daños durante el transporte marítimo.', 'Вчера мы предъявили претензию по деталям, пострадавшим во время морской перевозки.')
 ) AS v(english, russian, example_en, example_ru)
-CROSS JOIN vy_languages l
+CROSS JOIN languages l
 WHERE l.code = 'es'
   AND NOT EXISTS (
-    SELECT 1 FROM vy_words w
+    SELECT 1 FROM words w
     WHERE w.language_id = l.id
       AND lower(w.english) = lower(v.english)
   );
 
 -- 3. Привязка слов к тегу «Для общения с поставщиками»
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT w.id, t.id
-FROM vy_words w
+FROM words w
 CROSS JOIN (
   SELECT t.id
-  FROM vy_tags t
-  JOIN vy_languages l ON l.id = t.language_id
+  FROM tags t
+  JOIN languages l ON l.id = t.language_id
   WHERE t.name = 'Для общения с поставщиками'
     AND l.code = 'es'
 ) t
-WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
+WHERE w.language_id = (SELECT id FROM languages WHERE code = 'es')
   AND lower(w.english) IN (
     'fecha de entrega',
     'por escrito',
@@ -97,17 +97,17 @@ WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
 ON CONFLICT DO NOTHING;
 
 -- 4. Привязка слов-глаголов к тегу «Глаголы» согласно правилу множественного тегирования
-INSERT INTO vy_word_tags (word_id, tag_id)
+INSERT INTO word_tags (word_id, tag_id)
 SELECT w.id, t.id
-FROM vy_words w
+FROM words w
 CROSS JOIN (
   SELECT t.id
-  FROM vy_tags t
-  JOIN vy_languages l ON l.id = t.language_id
+  FROM tags t
+  JOIN languages l ON l.id = t.language_id
   WHERE t.name = 'Глаголы'
     AND l.code = 'es'
 ) t
-WHERE w.language_id = (SELECT id FROM vy_languages WHERE code = 'es')
+WHERE w.language_id = (SELECT id FROM languages WHERE code = 'es')
   AND lower(w.english) IN ('respetar', 'retrasar', 'soportar', 'pásenos')
 ON CONFLICT DO NOTHING;
 

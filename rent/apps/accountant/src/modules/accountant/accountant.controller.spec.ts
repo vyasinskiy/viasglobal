@@ -36,7 +36,7 @@ describe('AccountantController (HTTP REST эндпоинты финансово�
     // Мокируем сервис локального файлового хранилища
     storage = {
       buildInvoiceKey: jest.fn().mockReturnValue('invoices/acc-1/202610.pdf'),
-      getUploadUrl: jest.fn().mockReturnValue('http://accruals-accountant:3005/accountant/invoices/upload-raw?key=invoices%2Facc-1%2F202610.pdf'),
+      getUploadUrl: jest.fn().mockReturnValue('http://viasrent-accountant:3005/accountant/invoices/upload-raw?key=invoices%2Facc-1%2F202610.pdf'),
       resolveSafePath: jest.fn().mockImplementation((key: string) => {
         const cleanKey = path.normalize(key).replace(/^(\.\.[\/\\])+/, '');
         return path.resolve(process.cwd(), 'data', 'uploads', cleanKey);

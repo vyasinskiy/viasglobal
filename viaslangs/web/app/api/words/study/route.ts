@@ -12,9 +12,9 @@ const WORD_SELECT = `
          w.is_favorite AS "isFavorite",
          COALESCE((
            SELECT array_agg(wt.tag_id ORDER BY wt.tag_id)
-           FROM vy_word_tags wt WHERE wt.word_id = w.id
+           FROM word_tags wt WHERE wt.word_id = w.id
          ), '{}') AS "tagIds"
-  FROM vy_words w
+  FROM words w
 `;
 
 export async function GET(req: Request) {
@@ -38,14 +38,14 @@ export async function GET(req: Request) {
     if (tagId) {
       params.push(parseInt(tagId));
       conditions.push(
-        `w.id IN (SELECT word_id FROM vy_word_tags WHERE tag_id = $${params.length})`
+        `w.id IN (SELECT word_id FROM word_tags WHERE tag_id = $${params.length})`
       );
     }
 
     const whereComplete = [
       ...conditions,
       `NOT EXISTS (
-        SELECT 1 FROM vy_answers a
+        SELECT 1 FROM answers a
         WHERE a.word_id = w.id AND a.is_correct = true
       )`,
     ];
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     const whereClause = `WHERE ${whereComplete.join(" AND ")}`;
 
     const countResult = await pool.query(
-      `SELECT COUNT(*)::int AS count FROM vy_words w ${whereClause}`,
+      `SELECT COUNT(*)::int AS count FROM words w ${whereClause}`,
       params
     );
     const totalUnlearned = countResult.rows[0].count;

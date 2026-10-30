@@ -13,7 +13,13 @@ GZIP_FILE="${BACKUP_FILE}.gz"
 FILENAME="backup_${DATE_STR}.sql.gz"
 
 echo "Создание бэкапа базы данных..."
-docker exec backend-db-1 pg_dump "$CLEAN_URL" | gzip > "$GZIP_FILE"
+PG_CONTAINER="viasglobal-postgres"
+if ! docker ps --format '{{.Names}}' | grep -q '^viasglobal-postgres$' && docker ps --format '{{.Names}}' | grep -q '^accruals-postgres$'; then
+  PG_CONTAINER="accruals-postgres"
+elif ! docker ps --format '{{.Names}}' | grep -q '^viasglobal-postgres$' && docker ps --format '{{.Names}}' | grep -q '^backend-db-1$'; then
+  PG_CONTAINER="backend-db-1"
+fi
+docker exec "${PG_CONTAINER}" pg_dump "$CLEAN_URL" | gzip > "$GZIP_FILE"
 
 if [ $? -eq 0 ] && [ -f "$GZIP_FILE" ]; then
   echo "Бэкап успешно создан и сжат: $GZIP_FILE"

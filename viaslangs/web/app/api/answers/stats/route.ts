@@ -13,45 +13,45 @@ export async function GET(req: Request) {
 
     const totalAnswersResult = await pool.query(
       langFilter
-        ? `SELECT COUNT(*)::int AS count FROM vy_answers a
-           JOIN vy_words w ON w.id = a.word_id WHERE w.language_id = $1`
-        : `SELECT COUNT(*)::int AS count FROM vy_answers`,
+        ? `SELECT COUNT(*)::int AS count FROM answers a
+           JOIN words w ON w.id = a.word_id WHERE w.language_id = $1`
+        : `SELECT COUNT(*)::int AS count FROM answers`,
       langFilter ? [langFilter] : []
     );
 
     const correctAnswersResult = await pool.query(
       langFilter
-        ? `SELECT COUNT(*)::int AS count FROM vy_answers a
-           JOIN vy_words w ON w.id = a.word_id
+        ? `SELECT COUNT(*)::int AS count FROM answers a
+           JOIN words w ON w.id = a.word_id
            WHERE a.is_correct = true AND w.language_id = $1`
-        : `SELECT COUNT(*)::int AS count FROM vy_answers WHERE is_correct = true`,
+        : `SELECT COUNT(*)::int AS count FROM answers WHERE is_correct = true`,
       langFilter ? [langFilter] : []
     );
 
     const totalWordsResult = await pool.query(
       langFilter
-        ? `SELECT COUNT(*)::int AS count FROM vy_words WHERE language_id = $1`
-        : `SELECT COUNT(*)::int AS count FROM vy_words`,
+        ? `SELECT COUNT(*)::int AS count FROM words WHERE language_id = $1`
+        : `SELECT COUNT(*)::int AS count FROM words`,
       langFilter ? [langFilter] : []
     );
 
     const learnedWordsResult = await pool.query(
       langFilter
-        ? `SELECT COUNT(*)::int AS count FROM vy_words w
+        ? `SELECT COUNT(*)::int AS count FROM words w
            WHERE w.language_id = $1 AND EXISTS (
-             SELECT 1 FROM vy_answers a WHERE a.word_id = w.id AND a.is_correct = true
+             SELECT 1 FROM answers a WHERE a.word_id = w.id AND a.is_correct = true
            )`
-        : `SELECT COUNT(*)::int AS count FROM vy_words w
+        : `SELECT COUNT(*)::int AS count FROM words w
            WHERE EXISTS (
-             SELECT 1 FROM vy_answers a WHERE a.word_id = w.id AND a.is_correct = true
+             SELECT 1 FROM answers a WHERE a.word_id = w.id AND a.is_correct = true
            )`,
       langFilter ? [langFilter] : []
     );
 
     const favoriteWordsResult = await pool.query(
       langFilter
-        ? `SELECT COUNT(*)::int AS count FROM vy_words WHERE language_id = $1 AND is_favorite = true`
-        : `SELECT COUNT(*)::int AS count FROM vy_words WHERE is_favorite = true`,
+        ? `SELECT COUNT(*)::int AS count FROM words WHERE language_id = $1 AND is_favorite = true`
+        : `SELECT COUNT(*)::int AS count FROM words WHERE is_favorite = true`,
       langFilter ? [langFilter] : []
     );
 

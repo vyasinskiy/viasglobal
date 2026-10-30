@@ -12,7 +12,7 @@ export async function PATCH(
     const wordId = parseInt(id);
 
     const current = await pool.query(
-      `SELECT id, is_favorite AS "isFavorite" FROM vy_words WHERE id = $1`,
+      `SELECT id, is_favorite AS "isFavorite" FROM words WHERE id = $1`,
       [wordId]
     );
     if (!current.rows[0]) {
@@ -23,7 +23,7 @@ export async function PATCH(
     }
 
     const result = await pool.query(
-      `UPDATE vy_words SET is_favorite = $1, updated_at = now()
+      `UPDATE words SET is_favorite = $1, updated_at = now()
        WHERE id = $2
        RETURNING id, language_id AS "languageId", english, russian,
                  example_en AS "exampleEn", example_ru AS "exampleRu",
