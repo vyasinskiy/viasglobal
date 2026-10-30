@@ -33,11 +33,11 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 | **Backend API** | `backend` | `3000` | `3000` | Amazon Wholesale, бренды, дистрибьюторы, Keepa очереди (`ecommerce/backend`) |
 | **Admin UI (Rent)** | `accruals-admin-ui` | `3000` | `3000` (`https://rent.viasglobal.es`) | Веб-интерфейс панели администратора аренды (Next.js/MUI) |
 | **RabbitMQ** | `accruals-rabbitmq` | `5672`, `15672` | `5672`, `15672` | Очередь событий и веб-консоль управления (guest/guest) |
-| **PostgreSQL (Rent)** | `accruals-postgres` | `5432` | `5432` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db` |
+| **PostgreSQL (Rent & Viaslangs)** | `accruals-postgres` | `5432` | `5433` | Базы данных `accountant_db`, `watcher_db`, `telegram_bot_db`, `vy_langs_db` (автобэкап через `pg_dumpall`) |
 | **Telegram Bot Rent** | `accruals-telegram-bot`| - | - | Бот арендаторов и администраторов аренды |
 | **Visual Browser** | `accruals-visual-browser` | `3000` | `3002` (`https://browser.viasglobal.es`) | Удаленный визуальный Chromium с веб-доступом (KasmVNC) для авторизации по SMS/паролю |
 | **OpenClaw Agent** | `viasglobal-openclaw` | `18789` | `18789` | Автономный AI-ассистент в Telegram |
-| **Viaslangs Service** | `viaslangs-web` / `localhost` | `3000` | `3000` (`https://langs.viasglobal.es`) | Тренажер испанского/английского, сессии, клики Next, ошибки по тегам и формам |
+| **Viaslangs Service** | `viaslangs-web` | `3000` | `3007` (`https://langs.viasglobal.es`) | Тренажер испанского/английского, сессии, клики Next, ошибки по тегам и формам (Next.js, сеть `infra_accruals-network`, порт хоста `3007`) |
 | **SMS Gateway** | `sms-gateway` | `3040` | `3040` | Прием SMS с USB-телефона Meizu, Telegram-форвардер, health check, REST API |
 
 ---
@@ -1042,7 +1042,12 @@ AI-ассистент `viasglobal-openclaw` подключен к **обеим �
 
 ## 6. API сервиса Viaslangs — Тренажер испанского и аналитика сессий (`viaslangs-web:3000`)
 
-Базовый URL: `http://localhost:3000` (локально) или `https://langs.viasglobal.es`
+Базовый URL:
+- Внутри Docker-сети: `http://viaslangs-web:3000`
+- По Tailscale (хост): `http://100.92.50.18:3007`
+- Внешний публичный URL: `https://langs.viasglobal.es` (через Cloudflare Tunnel)
+- Подключение к БД: `postgresql://postgres:postgres@accruals-postgres:5432/vy_langs_db` (внутри Docker) / `postgresql://postgres:postgres@100.92.50.18:5433/vy_langs_db` (по Tailscale)
+
 Авторизация для AI-агентов: Заголовок `x-app-password: viasglobal` или `Authorization: Bearer viasglobal`.
 
 ### 6.1. Фиксация активности в сессионном дне (`POST /api/sessions/activity`)

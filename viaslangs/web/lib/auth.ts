@@ -84,8 +84,17 @@ export function isAuthenticated(req: NextRequest): boolean {
   return false;
 }
 
+// Определение, защищен ли запрос HTTPS протоколом (с учетом заголовков прокси Cloudflare / Nginx)
+export function isRequestSecure(req: Request | NextRequest): boolean {
+  const proto = req.headers.get("x-forwarded-proto");
+  if (proto) {
+    return proto === "https";
+  }
+  return req.url.startsWith("https://");
+}
+
 // Параметры куки сессии (с поддержкой автоматического продления и обновления токена)
-export function sessionCookieOptions(existingToken?: string): {
+export function sessionCookieOptions(existingToken?: string, isSecure?: boolean): {
   name: string;
   value: string;
   httpOnly: boolean;
@@ -114,7 +123,8 @@ export function sessionCookieOptions(existingToken?: string): {
     value: token,
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    // Флаг secure выставляется только если соединение действительно защищено HTTPS (иначе при прямом доступе по HTTP в Tailscale браузер отбрасывает куку)
+    secure: isSecure !== undefined ? isSecure : false,
     path: "/",
     maxAge: COOKIE_MAX_AGE_SECONDS,
     expires: new Date(Date.now() + COOKIE_MAX_AGE_SECONDS * 1000),

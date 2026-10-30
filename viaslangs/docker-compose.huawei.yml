@@ -1,23 +1,28 @@
+# ==============================================================================
+# Docker Compose конфигурация для сервиса Viaslangs на сервере Huawei
+# ==============================================================================
 name: vy-langs
 
 services:
-  backend:
+  web:
     build:
-      context: .
-      args:
-        REACT_APP_BACKEND_URL: http://100.92.50.18:4000
-    container_name: vy-langs-backend
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: viaslangs-web
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://vyuser:vy-langs-password@backend-db-1:5432/vy_langs_db
-      BACKEND_PORT: 4000
+      # Подключение к PostgreSQL внутри общей Docker-сети infra_accruals-network
+      DATABASE_URL: postgresql://postgres:postgres@accruals-postgres:5432/vy_langs_db
+      PORT: 3000
+      NODE_ENV: production
+      VIASLANGS_APP_SECRET: e4201cba41a7cddd45d1a0e6ffff3b30d610c98a2d4f50c4d24f6d4b9513916c
+      VIASLANGS_APP_PASSWORD: viasglobal
     ports:
-      - "4000:4000"
-    command: >
-      sh -c "cd server && npx prisma db push && cd .. && node server/index.js"
+      # Проброс порта на хост для доступа через Tailscale и Cloudflare Tunnel
+      - "3007:3000"
     networks:
-      - backend_default
+      - infra_accruals-network
 
 networks:
-  backend_default:
+  infra_accruals-network:
     external: true

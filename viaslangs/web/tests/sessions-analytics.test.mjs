@@ -22,9 +22,14 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 const { Pool } = pg;
+// Настройка подключения к PostgreSQL: SSL включается только для облачных инстансов (Supabase) или при явном флаге DATABASE_SSL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl:
+    process.env.DATABASE_SSL === 'true' ||
+    process.env.DATABASE_URL?.includes('supabase.co')
+      ? { rejectUnauthorized: false }
+      : false
 });
 
 // Импорт утилит проекта

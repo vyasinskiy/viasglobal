@@ -6,9 +6,10 @@ export const pool =
   globalForPg.viasLangsPool ??
   new Pool({
     connectionString: process.env.DATABASE_URL,
+    // Включаем SSL только для Supabase или при явной директиве DATABASE_SSL=true (для локальной сети Huawei и Docker SSL не требуется)
     ssl:
-      process.env.NODE_ENV === "production" &&
-      !process.env.DATABASE_URL?.includes("localhost")
+      process.env.DATABASE_SSL === "true" ||
+      process.env.DATABASE_URL?.includes("supabase.co")
         ? { rejectUnauthorized: false }
         : false,
   });

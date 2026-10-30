@@ -136,24 +136,26 @@ npm --prefix viaslangs/web test
 
 ---
 
-## Запуск проекта
+## Запуск и серверная инфраструктура (Huawei + Docker)
 
-### Локальная разработка
+### 1. Архитектура размещения
+- **База данных (`vy_langs_db`)**: развернута в PostgreSQL 16 (контейнер `accruals-postgres`, порт `5433` на хосте Huawei). Автоматически архивируется в ночных бэкапах кластера через `pg_dumpall`.
+- **Веб-сервис (`viaslangs-web`)**: Next.js контейнер в `viaslangs/docker-compose.huawei.yml`, подключенный к сети `infra_accruals-network`. Порт хоста: `3007` (`http://100.92.50.18:3007`).
+- **Публичный доступ**: Cloudflare Tunnel маршрутизирует `https://langs.viasglobal.es` напрямую на контейнер `viaslangs-web`, защищая базу от внешнего интернета.
 
+### 2. Локальная разработка и тесты
 ```bash
-# Установка зависимостей
-npm run install:all
+# Запуск интеграционных автотестов против БД Huawei
+npm --prefix viaslangs/web test
 
-# Запуск бэкенда и фронтенда параллельно
-npm run dev
+# Локальный запуск Next.js в режиме разработки
+cd viaslangs/web && npm run dev
 ```
 
-### Применение SQL-сидов
-
-Для загрузки подготовленных паков слов в базу данных:
-
+### 3. Деплой на сервер Huawei
 ```bash
-psql -h localhost -U <user> -d <database> -f server/prisma/seed-es-supplier-phrases.sql
+# Сборка и перезапуск контейнера на Huawei
+ssh huawei@100.92.50.18 "cd /home/huawei/viasglobal/viaslangs && docker compose -f docker-compose.huawei.yml up -d --build"
 ```
 
 ---

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAuthenticated, SESSION_COOKIE, sessionCookieOptions } from "./lib/auth";
+import { isAuthenticated, isRequestSecure, SESSION_COOKIE, sessionCookieOptions } from "./lib/auth";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -34,7 +34,8 @@ export function proxy(req: NextRequest) {
   const res = NextResponse.next();
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   if (token) {
-    const cookieOpts = sessionCookieOptions(token);
+    const isSecure = isRequestSecure(req);
+    const cookieOpts = sessionCookieOptions(token, isSecure);
     res.cookies.set(cookieOpts);
   }
 

@@ -157,5 +157,17 @@
    - Если активность на уровне или выше нормы (`todayActivities >= medianDailyActivities`): бот обязательно хвалит пользователя за отличную работу и дисциплину. Ответ `NO_REPLY` не используется.
 
 
+## Инфраструктура и серверное окружение (Huawei + Docker)
+
+1. **База данных PostgreSQL (`vy_langs_db`)**:
+   - Развернута на сервере Huawei в контейнере `accruals-postgres` (PostgreSQL 16, порт `5433` на хосте, порт `5432` внутри Docker-сети `infra_accruals-network`).
+   - База автоматически включена в ежедневное резервное копирование (`backup/scripts/backup-all.sh`) благодаря механизму `pg_dumpall`.
+   - Резервные копии и дампы миграции сохраняются в `viaslangs/backups/`.
+2. **Веб-сервис Next.js (`viaslangs-web`)**:
+   - Контейнеризирован в `viaslangs/docker-compose.huawei.yml` на базе `viaslangs/web/Dockerfile`.
+   - Подключен к единой сети `infra_accruals-network` вместе с PostgreSQL и Cloudflare Tunnel.
+   - Внешний порт на хосте: `3007` (`http://100.92.50.18:3007`), внутренний порт в сети: `3000` (`http://viaslangs-web:3000`).
+   - Публичный доступ обеспечивается через Cloudflare Tunnel (`https://langs.viasglobal.es`), без открытых портов в интернет.
+
 ## Запрет на самостоятельный коммит и деплой
 ИИ категорически запрещено самостоятельно делать коммиты (`git commit`), пушить (`git push`) или деплоить в продакшен без явного прямого указания пользователя.

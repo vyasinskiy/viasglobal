@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { passwordValid, sessionCookieOptions } from "@/lib/auth";
+import { isRequestSecure, passwordValid, sessionCookieOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +15,9 @@ export async function POST(req: Request) {
       );
     }
 
+    const isSecure = isRequestSecure(req);
     const response = NextResponse.json({ success: true });
-    response.cookies.set(sessionCookieOptions());
+    response.cookies.set(sessionCookieOptions(undefined, isSecure));
     return response;
   } catch (error) {
     console.error("Error during login:", error);
