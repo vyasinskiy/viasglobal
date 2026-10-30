@@ -6,10 +6,16 @@
 
 ```
 facturas_emitidas/
-└── J2T/                      # клиент J2T Services Ltd (Кипр)
+└── J2T/                                   # клиент J2T Services Ltd (Кипр)
+    ├── template_invoice_en.docx           # шаблон англоязычного инвойса
+    ├── template_acceptance_act_en.docx    # шаблон акта сдачи-приемки с подписью
     └── <год>/
-        ├── F-NNNN-ГГГГ_factura_taxfix_es.pdf   # оригинал из Taxfix (испанский)
-        └── F-NNNN-ГГГГ_invoice_en.docx         # английская версия для клиента
+        └── F-NNNN-ГГГГ/                   # папка отдельной фактуры со всеми документами
+            ├── F-NNNN-ГГГГ_factura_taxfix_es.pdf     # оригинал из Taxfix (испанский)
+            ├── F-NNNN-ГГГГ_invoice_en.docx           # инвойс на английском (docx)
+            ├── F-NNNN-ГГГГ_invoice_en.pdf            # инвойс на английском (pdf)
+            ├── F-NNNN-ГГГГ_acceptance_act_en.docx    # акт сдачи-приемки (docx)
+            └── F-NNNN-ГГГГ_acceptance_act_en.pdf     # акт сдачи-приемки (pdf)
 ```
 
 ## Клиент J2T Services Ltd
@@ -28,8 +34,8 @@ facturas_emitidas/
 
 | Номер | Дата | Период | Сумма | Taxfix (ES, оригинал) | Invoice (EN) | Acceptance Act (EN) | Оплата |
 |---|---|---|---|---|---|---|---|
-| F-0009-2026 | 30/09/2026 | 01.09–30.09.2026 | 4 000,00 € | не загружено в репозиторий | [docx](J2T/2026/F-0009-2026_invoice_en.docx) ⚠️ в docx номер `F-009-2026` | [pdf](J2T/2026/F-0009-2026_acceptance_act_en.pdf) (№ 32) | ? |
-| F-0010-2026 | 30/10/2026 | 01.10–31.10.2026 | 4 000,00 € | [pdf](J2T/2026/F-0010-2026_factura_taxfix_es.pdf) | [pdf](J2T/2026/F-0010-2026_invoice_en.pdf) / [docx](J2T/2026/F-0010-2026_invoice_en.docx) | [pdf](J2T/2026/F-0010-2026_acceptance_act_en.pdf) (№ 33) | ожидается |
+| F-0009-2026 | 30/09/2026 | 01.09–30.09.2026 | 4 000,00 € | не загружено в репозиторий | [docx](J2T/2026/F-0009-2026/F-0009-2026_invoice_en.docx) ⚠️ в docx `F-009-2026` | [pdf](J2T/2026/F-0009-2026/F-0009-2026_acceptance_act_en.pdf) (№ 32) | ? |
+| F-0010-2026 | 30/10/2026 | 01.10–31.10.2026 | 4 000,00 € | [pdf](J2T/2026/F-0010-2026/F-0010-2026_factura_taxfix_es.pdf) | [pdf](J2T/2026/F-0010-2026/F-0010-2026_invoice_en.pdf) / [docx](J2T/2026/F-0010-2026/F-0010-2026_invoice_en.docx) | [pdf](J2T/2026/F-0010-2026/F-0010-2026_acceptance_act_en.pdf) (№ 33) | ожидается |
 
 ---
 

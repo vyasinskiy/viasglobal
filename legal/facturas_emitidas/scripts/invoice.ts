@@ -104,23 +104,43 @@ export function periodForAct(y: number, m: number): string {
   return `01.${mm}.${y} - ${lastDay}.${mm}.${y}`;
 }
 
-/** Порядковые номера фактур за год, найденные по файлам: pdf из Taxfix и docx. */
+/** Порядковые номера фактур за год, найденные по файлам: pdf из Taxfix и docx. Поддерживает как структуру папок F-NNNN-ГГГГ/, так и плоские файлы. */
 export function scanYear(year: number, dir = CLIENT_DIR): Map<number, { pdf: boolean; docx: boolean }> {
   const result = new Map<number, { pdf: boolean; docx: boolean }>();
   const yearDir = path.join(dir, String(year));
   // Если папки года ещё нет, фактур за этот год тоже нет
   if (!fs.existsSync(yearDir)) return result;
-  for (const f of fs.readdirSync(yearDir)) {
-    // Имена файлов: F-NNNN-ГГГГ_factura_taxfix_es.pdf или F-NNNN-ГГГГ_invoice_en.docx
-    const m = /^F-(\d{4})-(\d{4})_(factura_taxfix_es\.pdf|invoice_en\.docx)$/.exec(f);
+
+  for (const item of fs.readdirSync(yearDir)) {
+    const itemPath = path.join(yearDir, item);
+    const stat = fs.statSync(itemPath);
+
+    // 1. Случай подпапки фактуры: F-NNNN-ГГГГ/
+    if (stat.isDirectory()) {
+      const folderMatch = /^F-(\d{4})-(\d{4})$/.exec(item);
+      if (folderMatch && Number(folderMatch[2]) === year) {
+        const seq = Number(folderMatch[1]);
+        const entry = result.get(seq) ?? { pdf: false, docx: false };
+        const subFiles = fs.readdirSync(itemPath);
+        for (const sub of subFiles) {
+          if (sub.endsWith('factura_taxfix_es.pdf')) entry.pdf = true;
+          if (sub.endsWith('invoice_en.docx')) entry.docx = true;
+        }
+        result.set(seq, entry);
+      }
+      continue;
+    }
+
+    // 2. Случай плоских файлов (совместимость): F-NNNN-ГГГГ_factura_taxfix_es.pdf или invoice_en.docx
+    const m = /^F-(\d{4})-(\d{4})_(factura_taxfix_es\.pdf|invoice_en\.docx)$/.exec(item);
     if (!m || Number(m[2]) !== year) continue;
     const seq = Number(m[1]);
     const entry = result.get(seq) ?? { pdf: false, docx: false };
-    // Отмечаем, какой из двух документов найден
     if (m[3].endsWith('.pdf')) entry.pdf = true;
     else entry.docx = true;
     result.set(seq, entry);
   }
+
   return result;
 }
 
@@ -256,9 +276,9 @@ function cmdGenerate(args: Record<string, string | boolean>): void {
   if (already?.docx && !args.force) errors.push(`Английский docx для ${number} уже существует (перезапись: --force)`);
   if (seq !== expected) errors.push(`Ожидался номер ${formatNumber(expected, year)}, получен ${number}`);
 
-  // 3. Оригинал из Taxfix должен уже лежать в реестре
+  // 3. Оригинал из Taxfix должен уже лежать в реестре (в папке J2T/ГГГГ/F-NNNN-ГГГГ/ или J2T/ГГГГ/)
   const pdfName = `${number}_factura_taxfix_es.pdf`;
-  if (!already?.pdf) errors.push(`Нет оригинала из Taxfix: ${path.join('J2T', String(year), pdfName)}`);
+  if (!already?.pdf) errors.push(`Нет оригинала из Taxfix: ${path.join('J2T', String(year), number, pdfName)}`);
 
   // 4. Фактура выставляется в последний день месяца оказания услуг
   const last = lastDayOfMonth(date.y, date.m);
@@ -273,9 +293,13 @@ function cmdGenerate(args: Record<string, string | boolean>): void {
     process.exit(1);
   }
 
+  // Создаем целевую директорию для документов этой фактуры: J2T/ГГГГ/F-NNNN-ГГГГ/
+  const invoiceDir = path.join(CLIENT_DIR, String(year), number);
+  if (!fs.existsSync(invoiceDir)) fs.mkdirSync(invoiceDir, { recursive: true });
+
   // Собираем docx из шаблона
   const period = periodForDate(date.y, date.m);
-  const dst = path.join(CLIENT_DIR, String(year), `${number}_invoice_en.docx`);
+  const dst = path.join(invoiceDir, `${number}_invoice_en.docx`);
   transformDocx(TEMPLATE_PATH, dst, (xml) =>
     replaceInParagraphs(xml, [
       ['{{NUMBER}}', number],
@@ -288,7 +312,7 @@ function cmdGenerate(args: Record<string, string | boolean>): void {
   if (text.includes('{{')) throw new Error('В результате остались незаменённые плейсхолдеры');
 
   // Автоматическая компиляция в PDF через headless LibreOffice
-  const dstDir = path.dirname(dst);
+  const dstDir = invoiceDir;
   const outPdfName = `${number}_invoice_en.pdf`;
   const dstPdf = path.join(dstDir, outPdfName);
   try {
@@ -311,8 +335,8 @@ function cmdGenerate(args: Record<string, string | boolean>): void {
     const actNumber = calculateActNumber(date.y, date.m);
     const actPeriod = periodForAct(date.y, date.m);
     const actDate = `${String(date.d).padStart(2, '0')}.${String(date.m).padStart(2, '0')}.${date.y}`;
-    const actDocxDst = path.join(CLIENT_DIR, String(year), `${number}_acceptance_act_en.docx`);
-    const actPdfDst = path.join(CLIENT_DIR, String(year), `${number}_acceptance_act_en.pdf`);
+    const actDocxDst = path.join(invoiceDir, `${number}_acceptance_act_en.docx`);
+    const actPdfDst = path.join(invoiceDir, `${number}_acceptance_act_en.pdf`);
 
     transformDocx(ACT_TEMPLATE_PATH, actDocxDst, (xml) =>
       xml

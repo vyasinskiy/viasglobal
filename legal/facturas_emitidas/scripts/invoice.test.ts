@@ -96,7 +96,7 @@ test('проверяет расчет номера акта и периода с
 });
 
 test('верифицирует чувствительные реквизиты в сгенерированном инвойсе F-0010-2026', () => {
-  const invoiceDocxPath = path.resolve('legal/facturas_emitidas/J2T/2026/F-0010-2026_invoice_en.docx');
+  const invoiceDocxPath = path.resolve('legal/facturas_emitidas/J2T/2026/F-0010-2026/F-0010-2026_invoice_en.docx');
   assert.ok(fs.existsSync(invoiceDocxPath), 'Файл инвойса F-0010 должен существовать');
   const text = docxText(invoiceDocxPath);
 
@@ -129,7 +129,7 @@ test('верифицирует чувствительные реквизиты �
 });
 
 test('верифицирует чувствительные реквизиты в сгенерированном акте сдачи-приемки F-0010-2026', () => {
-  const actDocxPath = path.resolve('legal/facturas_emitidas/J2T/2026/F-0010-2026_acceptance_act_en.docx');
+  const actDocxPath = path.resolve('legal/facturas_emitidas/J2T/2026/F-0010-2026/F-0010-2026_acceptance_act_en.docx');
   assert.ok(fs.existsSync(actDocxPath), 'Файл акта F-0010 должен существовать');
   const text = docxText(actDocxPath);
 
