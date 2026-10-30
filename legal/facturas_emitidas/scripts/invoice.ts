@@ -24,6 +24,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CLIENT_DIR = path.join(ROOT, 'J2T');
 // Путь к шаблону английского инвойса с плейсхолдерами {{NUMBER}}, {{DATE}}, {{PERIOD}}
 const TEMPLATE_PATH = path.join(CLIENT_DIR, 'template_invoice_en.docx');
+// Путь к шаблону акта сдачи-приемки с плейсхолдерами {{ACT_NUMBER}}, {{ACT_DATE}}, {{ACT_PERIOD}}
+const ACT_TEMPLATE_PATH = path.join(CLIENT_DIR, 'template_acceptance_act_en.docx');
 
 // Правильная налоговая оговорка для услуг B2B клиенту из ЕС (reverse charge)
 export const VAT_NOTE =
@@ -88,6 +90,18 @@ export function periodForDate(y: number, m: number): string {
   // Месяц с ведущим нулём
   const mm = String(m).padStart(2, '0');
   return `01.${mm}.${y}-${lastDayOfMonth(y, m)}.${mm}.${y}`;
+}
+
+/** Расчет номера акта сдачи-приемки (отсчет с февраля 2024 года = № 1). */
+export function calculateActNumber(y: number, m: number): number {
+  return (y - 2024) * 12 + m - 1;
+}
+
+/** Форматирование периода для акта сдачи-приемки: 01.10.2026 - 31.10.2026 (строго в рамках одного месяца). */
+export function periodForAct(y: number, m: number): string {
+  const mm = String(m).padStart(2, '0');
+  const lastDay = lastDayOfMonth(y, m);
+  return `01.${mm}.${y} - ${lastDay}.${mm}.${y}`;
 }
 
 /** Порядковые номера фактур за год, найденные по файлам: pdf из Taxfix и docx. */
@@ -289,6 +303,37 @@ function cmdGenerate(args: Record<string, string | boolean>): void {
     console.log(`✅ Сгенерирован PDF: ${dstPdf}`);
   } catch (err) {
     console.warn(`⚠️  Не удалось автоматически скомпилировать PDF через LibreOffice: ${(err as Error).message}`);
+  }
+
+  // Генерация Акта сдачи-приемки (Acceptance Act), если есть шаблон
+  if (fs.existsSync(ACT_TEMPLATE_PATH)) {
+    // Номер акта = (year - 2024) * 12 + month (старт с февраля 2024 = № 1, октябрь 2026 = № 33)
+    const actNumber = calculateActNumber(date.y, date.m);
+    const actPeriod = periodForAct(date.y, date.m);
+    const actDate = `${String(date.d).padStart(2, '0')}.${String(date.m).padStart(2, '0')}.${date.y}`;
+    const actDocxDst = path.join(CLIENT_DIR, String(year), `${number}_acceptance_act_en.docx`);
+    const actPdfDst = path.join(CLIENT_DIR, String(year), `${number}_acceptance_act_en.pdf`);
+
+    transformDocx(ACT_TEMPLATE_PATH, actDocxDst, (xml) =>
+      xml
+        .replace('{{ACT_NUMBER}}', String(actNumber))
+        .replace('{{ACT_DATE}}', actDate)
+        .replace('{{ACT_PERIOD}}', actPeriod),
+    );
+
+    try {
+      execFileSync('/Applications/LibreOffice.app/Contents/MacOS/soffice', [
+        '--headless',
+        '--convert-to',
+        'pdf',
+        actDocxDst,
+        '--outdir',
+        dstDir,
+      ]);
+      console.log(`✅ Сгенерирован Acceptance Act № ${actNumber}: ${actPdfDst}`);
+    } catch (err) {
+      console.warn(`⚠️  Не удалось скомпилировать PDF акта: ${(err as Error).message}`);
+    }
   }
 
   console.log(`✅ Создан ${dst}\n   Номер: ${number} | Дата: ${dateStr} | Период: ${period}\n---\n${text}`);
