@@ -84,16 +84,25 @@ viasglobal/openclaw/
         └── legal/                  # Монтирование юридических регламентов (ro)
 ```
 
-## Развертывание и обновление
+## Развертывание и регламент обновления
 
-> **Важно**: при любом изменении `ecommerce/docs/SERVICES.md` всегда запускайте `make redeploy-openclaw`, чтобы актуализировать файл `SERVICES.md` в контейнере агента.
+> **Важно**: при любом изменении `ecommerce/docs/SERVICES.md`, регламентов контрагентов в `contractors/` или юридических документов в `legal/` всегда запускайте деплой OpenClaw, чтобы актуализировать знания агента.
 
-### 1. Из корня репозитория:
-- Полное развертывание: `make deploy-openclaw`
-- Быстрое обновление реестра сервисов и кода: `make redeploy-openclaw`
+### 1. Из корня репозитория на Mac:
+- **Полный передеплой с нуля (включая `git pull` на сервере):**
+  ```bash
+  make clean-redeploy-openclaw
+  ```
+  *(Выполняет `git pull origin main` на сервере Huawei, синхронизирует документацию и запускает развертывание с нуля с верификацией монтирования).*
+- **Быстрое обновление реестра сервисов и кода:**
+  ```bash
+  make redeploy-openclaw
+  ```
 
 ### 2. Прямо на сервере Huawei:
 ```bash
-cd ~/viasglobal/openclaw
-make deploy
+cd ~/viasglobal
+git pull origin main
+cd openclaw
+make clean-deploy
 ```

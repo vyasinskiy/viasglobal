@@ -124,6 +124,17 @@ redeploy-openclaw:
 	@echo "Развертывание и перезапуск сервиса viasglobal-openclaw..."
 	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && bash deploy.sh"
 
+clean-redeploy-openclaw:
+	@echo "1. Синхронизация репозитория через git pull на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal && git pull origin main"
+	@echo "2. Синхронизация файлов OpenClaw и базы знаний..."
+	rsync -avz ./ecommerce/docs/ huawei@100.92.50.18:~/viasglobal/ecommerce/docs/
+	rsync -avz ./ecommerce/contractors/ huawei@100.92.50.18:~/viasglobal/ecommerce/contractors/
+	rsync -avz ./legal/ huawei@100.92.50.18:~/viasglobal/legal/
+	rsync -avz --exclude 'data' --exclude 'node_modules' ./openclaw/ huawei@100.92.50.18:~/viasglobal/openclaw/
+	@echo "3. Полный перезапуск и проверка OpenClaw с нуля на сервере Huawei..."
+	ssh huawei@100.92.50.18 "cd ~/viasglobal/openclaw && make clean-deploy"
+
 
 deploy-sms:
 	@echo "Синхронизация файлов SMS Gateway на сервер Huawei..."

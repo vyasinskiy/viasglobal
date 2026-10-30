@@ -14,7 +14,8 @@
 - Конфигурация генерируется скриптом `deploy.sh` из шаблона `config/openclaw.template.json` в `data/openclaw.json`.
 - Токены и секреты хранятся строго в `.env` и никогда не коммитятся в git.
 - Скрипт `deploy.sh` автоматически копирует глобальный реестр сервисов `docs/SERVICES.md` и инструкции `config/workspace/AGENTS.md` в рабочий каталог агента `data/workspace/`. Это позволяет OpenClaw владеть полной информацией обо всех сервисах кластера, их URL и эндпоинтах.
-- При любых изменениях в микросервисах или эндпоинтах необходимо синхронно обновить `docs/SERVICES.md` и **обязательно** выполнить деплой/перезапуск OpenClaw (`make redeploy-openclaw` или `make deploy-openclaw`). Так как OpenClaw является главным связующим звеном между сервисами и опирается на этот файл при вызовах API, без деплоя он не увидит новых эндпоинтов.
+- При любых изменениях в микросервисах или эндпоинтах необходимо синхронно обновить `docs/SERVICES.md` и **обязательно** выполнить деплой/перезапуск OpenClaw (`make clean-redeploy-openclaw` или `make redeploy-openclaw`). Так как OpenClaw является главным связующим звеном между сервисами и опирается на этот файл при вызовах API, без деплоя он не увидит новых эндпоинтов.
+- **Регламент деплоя с нуля (`make clean-redeploy-openclaw`)**: включает выполнение `git pull origin main` на сервере Huawei, генерацию `data/openclaw.json` с пресетом модели, сборку сводной базы знаний `KNOWLEDGE.md`, монтирование томов `contractors/` и `legal/` (Read-Only) и верификацию доступности файлов внутри контейнера.
 - Поддерживать в актуальном состоянии оба файла: [README.md](file:///Users/usuario/code/viasglobal/openclaw/README.md) и [AGENTS.md](file:///Users/usuario/code/viasglobal/openclaw/.agents/AGENTS.md).
 
 ## 3. Выбор LLM модели и контроль стоимости контекста
