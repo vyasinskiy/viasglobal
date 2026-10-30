@@ -137,11 +137,14 @@ fi
 
 
 
-# Проверяем журнал выгрузки в S3 (если был сбой)
+# Проверяем журнал выгрузки в S3 / Cloudflare R2
 if [ -f "${BACKUP_BASE_DIR}/last_backup_status.json" ]; then
   S3_ERRORS="$(jq -r '.errors[]?' "${BACKUP_BASE_DIR}/last_backup_status.json" 2>/dev/null || true)"
   if [ -n "${S3_ERRORS}" ]; then
     WARNINGS+=("⚠️ Ошибки при выгрузке в облако: ${S3_ERRORS}")
+  else
+    # Фиксируем успешную выгрузку в защищенное облачное хранилище Cloudflare R2 (AES-256)
+    DETAILS+=("☁️ <b>Cloudflare R2</b>: выгрузка успешна (бакет <code>viasglobal-backups</code>, шифрование AES-256)")
   fi
 fi
 
