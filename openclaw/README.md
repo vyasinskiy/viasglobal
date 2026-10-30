@@ -67,6 +67,7 @@ viasglobal/openclaw/
 ├── config/
 │   ├── openclaw.template.json      # Базовый шаблон конфигурации OpenClaw
 │   ├── build-config.py             # Скрипт сборки конфига с пресетом модели
+│   ├── build-knowledge.py          # Автосборка сводной базы знаний KNOWLEDGE.md
 │   ├── models/                     # Каталог модульных пресетов моделей
 │   │   ├── gpt-6-luna.json         # Пресет OpenAI GPT-6 Luna (contextTokens: 128k)
 │   │   ├── claude-haiku-5.5.json   # Пресет Anthropic Claude Haiku (contextTokens: 48k)
@@ -77,7 +78,10 @@ viasglobal/openclaw/
 └── data/                           # Смонтированный том данных (~/.openclaw)
     └── workspace/
         ├── SERVICES.md             # Автосинхронизированный реестр API сервисов
-        └── AGENTS.md               # Инструкции агента по вызовам API
+        ├── KNOWLEDGE.md            # Сводная база знаний контрагентов и логистики
+        ├── AGENTS.md               # Системные инструкции агента
+        ├── contractors/            # Монтирование документации поставщиков (ro)
+        └── legal/                  # Монтирование юридических регламентов (ro)
 ```
 
 ## Развертывание и обновление

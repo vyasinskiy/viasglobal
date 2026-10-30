@@ -36,6 +36,13 @@ elif [ -f docs/SERVICES.md ]; then
   cp docs/SERVICES.md data/workspace/SERVICES.md
 fi
 
+# 5.1. Автоматическая сборка сводной базы знаний (KNOWLEDGE.md)
+echo "🧠 Сборка сводной базы знаний (KNOWLEDGE.md)..."
+python3 config/build-knowledge.py --output data/workspace/KNOWLEDGE.md
+
+# 5.2. Создаем точки монтирования томов contractors и legal для Docker
+mkdir -p data/workspace/contractors data/workspace/legal
+
 if [ -d config/workspace ]; then
   cp -rf config/workspace/* data/workspace/
 fi

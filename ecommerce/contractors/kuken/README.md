@@ -40,7 +40,7 @@
 - **Приемка груза и физический замер упаковочных коробок (выполнено 29.10.2026):**
   - Фактические замеры коробок при приемке: фен `34316` — $28 \times 23 \times 10\text{ см}$ (`856 г`), утюг `35536` — $31 \times 16 \times 13\text{ см}$ (`1405 г`).
   - Свободный вход в курьерские пакеты $40 \times 50\text{ см}$ подтвержден; заказ упаковки `#ES127926` у [EMBALAJE24, S.L.](file:///Users/usuario/code/viasglobal/ecommerce/contractors/embalaje24/README.md) на 18,80 € оплачен 29.10.2026 (задача `cVdVNGVtTlFhZkh4bXFrNw` закрыта).
-  - **Активная задача на приемку упаковки в Google Tasks:** [[E-commerce]: Принять доставку курьерских пакетов от Embalaje24 (заказ #ES127926)](https://tasks.google.com/task/T0SD3S0z3r5-3BY2?sa=6) (Дедлайн: `2026-10-31`, ID: `VDBTRDNTMHozcjUtM0JZMg`).
+  - **Задача на приемку упаковки в Google Tasks:** ✅ [[E-commerce]: Принять доставку курьерских пакетов от Embalaje24 (заказ #ES127926)](https://tasks.google.com/task/T0SD3S0z3r5-3BY2?sa=6) (Дедлайн: `2026-10-31`, ID: `VDBTRDNTMHozcjUtM0JZMg`) — выполнено 30.10.2026 (натурная примерка подтвердила свободный вход утюгов и фенов в пакет $40 \times 50\text{ см}$).
 
 ---
 
