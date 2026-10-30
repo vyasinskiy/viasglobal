@@ -22,6 +22,7 @@
 
 ## Файлы
 - `carta_para_gestor.md` — письмо хестору Jorge Dorado Rubio ([Taxfix](https://app.taxfix.es/)) на испанском языке с переводом: просьба выставить в TGSS верную базу и прогноз дохода (*previsión de rendimientos*).
+- `justificante_cambio_base_2026-10-29.pdf` — официальная квитанция TGSS (*Solicitud de modificación de datos declarados en el RETA*), подтверждающая установку новой базы 1 601,31 €/мес от 29.10.2026.
 
 ## Сроки вступления в силу
 - Подача до 31.10.2026 → новая база с 01.11.2026.
@@ -29,7 +30,13 @@
 
 ## Хроника (Audit Log, Append-Only)
 - **29.10.2026** — получен *Informe integral de bases de cotización*: повышения базы нет, с 03.2025 стоит минимальная база 653,59 €. Подготовлено письмо хестору (`carta_para_gestor.md`). Доверенность (*apoderamiento*) в Seguridad Social на Jorge Dorado Rubio уже оформлена 24.10.2026.
-- **Следующий шаг**: отправить письмо в чат [Taxfix](https://app.taxfix.es/), получить квитанцию TGSS с новой базой и сохранить её в эту папку.
 - **29.10.2026** — письмо отредактировано пользователем (убран вариант с 01.01.2027, оставлена просьба подать до 31.10.2026 → с 01.11.2026). Создана контрольная задача.
-- **Активная задача в Google Tasks**: [[Legal]: TGSS — Проконтролировать изменение базы RETA (Taxfix, с 01.11.2026)](https://tasks.google.com/task/zJFjPxwHSrGL6y5c?sa=6) (Дедлайн: `2026-11-03`, ID: `ekpGalB4d0hTckdMNnk1Yw`).
+- **29.10.2026 19:24:34** — хестор Jorge Dorado Rubio подал в TGSS заявку на изменение данных RETA (*Solicitud de modificación de datos declarados en el RETA*, Id. CEA: `24B1UT5E1FKM`, Código CEA: `3OSKM-ZYFVQ-4DKLN-2TT3T-C7SK4-Y3QR6`):
+  - **Задекларированный доход (Declaración de rendimientos)**: 4 000 €/мес.
+  - **Прежняя база (Datos actuales)**: 653,59 €/мес.
+  - **Новая окончательная база (Datos definitivos)**: **1 601,31 €/мес**.
+  - **Дата вступления в силу**: **с 01.11.2026** (заявка подана до 31.10.2026).
+  - **Новая ежемесячная cuota de autónomo**: ≈ **503 €/мес** (31,4% от 1 601,31 €) вместо прежних ≈205 €/мес.
+- **30.10.2026** — получен официальный документ `justificante_cambio_base_2026-10-29.pdf`, подтверждающий успешное изменение базы в TGSS.
+- **30.10.2026** — контрольная задача в Google Tasks [[Legal]: TGSS — Проконтролировать изменение базы RETA (Taxfix, с 01.11.2026)](https://tasks.google.com/task/zJFjPxwHSrGL6y5c?sa=6) (ID: `ekpGalB4d0hTckdMNnk1Yw`) успешно выполнена и вычеркнута.
 

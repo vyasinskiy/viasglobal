@@ -115,9 +115,12 @@
 
 ### 2. Корректировка базы взносов RETA (Октябрь 2026)
 - **Папка кейса**: [base-cotizacion-2026-10-29/README.md](file:///Users/usuario/code/viasglobal/legal/autonomo/base-cotizacion-2026-10-29/README.md)
-- **Проблема**: с 03.2025 стоит минимальная база 653,59 € (cuota ≈200 €), хотя доход ≈4 000 €/мес; есть риск регуляризации.
-- **Статус**: 29.10.2026 подготовлено письмо хестору ([carta_para_gestor.md](file:///Users/usuario/code/viasglobal/legal/autonomo/base-cotizacion-2026-10-29/carta_para_gestor.md)) с просьбой выставить верную базу с 01.11.2026 (или не позднее 01.01.2027).
-- **Активная задача в Google Tasks**: [Проконтролировать изменение базы RETA](https://tasks.google.com/task/zJFjPxwHSrGL6y5c?sa=6) (Дедлайн: `2026-11-03`, ID: `ekpGalB4d0hTckdMNnk1Yw`).
+- **Проблема**: с 03.2025 стояла минимальная база 653,59 € (cuota ≈205 €), хотя доход составляет ≈4 000 €/мес; высокий риск крупной регуляризации со стороны TGSS.
+- **Статус**: **Успешно выполнено**. 29.10.2026 в 19:24:34 хестор Jorge Dorado Rubio подал заявку в TGSS на изменение базы. Получена официальная квитанция (*Solicitud de modificación de datos declarados en el RETA*, Id. CEA: `24B1UT5E1FKM`).
+  - **Новая база (Base de cotización)**: **1 601,31 €/мес** (соответствует диапазону 10 при чистом доходе ≈3 720 €/мес).
+  - **Дата вступления в силу**: **с 01.11.2026** (заявка оформлена до 31.10.2026).
+  - **Новая cuota de autónomo**: ≈ **503 €/мес** (вместо ≈205 €/мес).
+- **Завершенная задача в Google Tasks**: [Проконтролировать изменение базы RETA](https://tasks.google.com/task/zJFjPxwHSrGL6y5c?sa=6) (Дедлайн был: `2026-11-03`, ID: `ekpGalB4d0hTckdMNnk1Yw`) — выполнена и вычеркнута 30.10.2026.
 - **Оценка регуляризации**: ≈3 200 € за 2025 год (счёт ожидается в 2027) + ≈3 000 € за 2026 год (счёт ожидается в 2028). Задачи на подготовку денег: [2025](https://tasks.google.com/task/rzEFao4cAjlE-Muc?sa=6) (`2027-02-01`, ID: `cnpFRmFvNGNBamxFLU11Yw`), [2026](https://tasks.google.com/task/K9CfAilW2O8jmdQa?sa=6) (`2028-02-01`, ID: `SzlDZkFpbFcyTzhqbWRRYQ`).
 
 
