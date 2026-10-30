@@ -37,6 +37,10 @@
 - Официальные сертификаты членства (*Membership Certificate*) по всем 3 категориям ([`certificado_scrap_Procircular_...pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/)).
 - Присвоенный государственный номер **`ENV/2026/000121685`**, официальная квитанция с цифровой подписью министерства MITERD ([`justificante_registro_RPP_2026-10-25.pdf`](file:///Users/usuario/code/viasglobal/legal/envases_rap/certificados/justificante_registro_RPP_2026-10-25.pdf)), годовые декларации по весу упаковки и шаблоны инвойсов.
 
+### [`facturas_emitidas/`](file:///Users/usuario/code/viasglobal/legal/facturas_emitidas/README.md)
+- Реестр и архив выставленных фактур за услуги разработки: клиент J2T Services Ltd (Кипр), 4 000 € в месяц, reverse charge.
+- Оригинал фактуры выставляется в Taxfix на испанском, клиенту отправляется английская версия (перевод). Там же лежит правовая оценка такой схемы.
+
 ### `autonomo/`
 - Официальные налоговые сертификаты и выписки предпринимателя (Agencia Tributaria / AEAT).
 - Регистрационные данные, коды видов экономической деятельности (IAE 665 / 763, NACE 47.91).
