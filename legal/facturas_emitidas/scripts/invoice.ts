@@ -68,6 +68,21 @@ export function lastDayOfMonth(y: number, m: number): number {
   return new Date(Date.UTC(y, m, 0)).getUTCDate();
 }
 
+/**
+ * Последний рабочий день месяца (если последний день месяца выпадает на сб или вс,
+ * берется предшествующая пятница).
+ */
+export function lastBusinessDayOfMonth(y: number, m: number): number {
+  let day = lastDayOfMonth(y, m);
+  let dt = new Date(Date.UTC(y, m - 1, day));
+  // 0 — воскресенье, 6 — суббота
+  while (dt.getUTCDay() === 0 || dt.getUTCDay() === 6) {
+    day--;
+    dt = new Date(Date.UTC(y, m - 1, day));
+  }
+  return day;
+}
+
 /** Период оказания услуг за месяц даты фактуры: 01.10.2026-31.10.2026. */
 export function periodForDate(y: number, m: number): string {
   // Месяц с ведущим нулём
@@ -257,6 +272,25 @@ function cmdGenerate(args: Record<string, string | boolean>): void {
   // Контроль: в результате не должно остаться плейсхолдеров
   const text = docxText(dst);
   if (text.includes('{{')) throw new Error('В результате остались незаменённые плейсхолдеры');
+
+  // Автоматическая компиляция в PDF через headless LibreOffice
+  const dstDir = path.dirname(dst);
+  const outPdfName = `${number}_invoice_en.pdf`;
+  const dstPdf = path.join(dstDir, outPdfName);
+  try {
+    execFileSync('/Applications/LibreOffice.app/Contents/MacOS/soffice', [
+      '--headless',
+      '--convert-to',
+      'pdf',
+      dst,
+      '--outdir',
+      dstDir,
+    ]);
+    console.log(`✅ Сгенерирован PDF: ${dstPdf}`);
+  } catch (err) {
+    console.warn(`⚠️  Не удалось автоматически скомпилировать PDF через LibreOffice: ${(err as Error).message}`);
+  }
+
   console.log(`✅ Создан ${dst}\n   Номер: ${number} | Дата: ${dateStr} | Период: ${period}\n---\n${text}`);
 }
 
