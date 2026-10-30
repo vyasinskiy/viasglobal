@@ -12,6 +12,16 @@ export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}
 
   /**
+   * Получить статус налогового комплаенса и список активных напоминаний для OpenClaw
+   * GET /finance/compliance/status[?date=2026-10-30]
+   */
+  @Get('compliance/status')
+  async getComplianceStatus(@Query('date') date?: string) {
+    this.financeService.validateNoPlaceholders('date', date);
+    return this.financeService.getComplianceStatus(date);
+  }
+
+  /**
    * Получить полный сводный финансовый дашборд за выбранный год (по месяцам и за весь год)
    * GET /finance/dashboard[?year=2026&eurRubRate=105]
    */

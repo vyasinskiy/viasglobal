@@ -21,6 +21,27 @@
         "channel": "telegram",
         "to": "743866013"
       }
+    },
+    {
+      "id": "taxfix-invoices-compliance-reminder",
+      "agentId": "main",
+      "name": "Ежедневный контроль фактур и комплаенса Taxfix",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 10 * * 1-5",
+        "tz": "Europe/Madrid"
+      },
+      "sessionTarget": "isolated",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Сделай HTTP GET запрос к API бэкенда: http://backend:3000/finance/compliance/status (при недоступности проверь http://localhost:3000/finance/compliance/status). Изучи полученные данные: 1) Если allCompliant === true или needsReminder === false (нет просроченных фактур или незавершенных действий в Taxfix): заверши ход без отправки сообщения. 2) Если needsReminder === true или reminders.length > 0: отправь в Telegram пользователю Виталию четкое и структурированное напоминание без длинных тире: начни с «Виталий, напоминание по фактурам и налогам Taxfix:», перечисли пункты из массива reminders (по ежемесячному инвойсу IT-разработки J2T и входящим фактурам поставщиков), укажи прямую ссылку на Taxfix (https://app.taxfix.es/) и реквизиты счета Santander (ES24 0049 6216 3127 1612 2672)."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "telegram",
+        "to": "743866013"
+      }
     }
   ]
 }

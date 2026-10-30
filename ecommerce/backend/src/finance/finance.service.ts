@@ -1352,5 +1352,188 @@ export class FinanceService {
   private round2(val: number): number {
     return Math.round((Number(val) || 0) * 100) / 100;
   }
+
+  /**
+   * Сводный комплаенс-контроль для автономного AI-ассистента (OpenClaw):
+   * 1. Статус ежемесячной IT-фактуры (Кипр, 4 000 EUR): выпуск в Taxfix, генерация EN docx/PDF, факт оплаты на Santander.
+   * 2. Статус входящих фактур от поставщиков: загрузка в Taxfix, линковка с оплатой.
+   * 3. Формирование готовых напоминаний без длинных тире для Telegram-уведомлений.
+   */
+  public async getComplianceStatus(customDate?: string): Promise<{
+    status: 'success';
+    timestamp: string;
+    targetPeriod: string;
+    allCompliant: boolean;
+    needsReminder: boolean;
+    itInvoice: {
+      expectedInvoiceNumber: string;
+      dueDate: string;
+      isDueSoonOrPassed: boolean;
+      createdInTaxfix: boolean;
+      docGenerated: boolean;
+      paymentReceived: boolean;
+      bankAccount: string;
+      pendingSteps: string[];
+    };
+    supplierInvoices: {
+      totalPendingCount: number;
+      pendingTaxfixUploadCount: number;
+      pendingTaxfixLinkCount: number;
+      items: Array<{
+        orderNumber: string;
+        supplier: string;
+        amountEur: number;
+        hasInvoice: boolean;
+        hasPaymentReceipt: boolean;
+        uploadedToTaxfix: boolean;
+        paymentLinkedInTaxfix: boolean;
+        pendingActions: string[];
+      }>;
+    };
+    reminders: string[];
+  }> {
+    const now = customDate ? new Date(customDate) : new Date();
+    const currentYear = now.getUTCFullYear();
+    const currentMonth = now.getUTCMonth() + 1;
+    const period = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
+    // Вычисляем последний день месяца и последний рабочий день
+    const lastDayOfMonth = new Date(Date.UTC(currentYear, currentMonth, 0)).getUTCDate();
+    let lastBizDay = lastDayOfMonth;
+    let checkDate = new Date(Date.UTC(currentYear, currentMonth - 1, lastBizDay));
+    while (checkDate.getUTCDay() === 0 || checkDate.getUTCDay() === 6) {
+      lastBizDay--;
+      checkDate = new Date(Date.UTC(currentYear, currentMonth - 1, lastBizDay));
+    }
+    const currentDay = now.getUTCDate();
+    const dueDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastBizDay).padStart(2, '0')}`;
+    const isDueSoonOrPassed = currentDay >= lastBizDay - 2;
+
+    // 1. Проверяем IT-инвойс за текущий месяц
+    const { allEntries } = this.getMergedLedgerEntries(currentYear);
+    const itEntry = allEntries.find((e) => e.segment === 'IT_DEV' && e.period === period);
+
+    const pendingItSteps: string[] = [];
+    let itCreatedInTaxfix = false;
+    let itDocGenerated = false;
+    let itPaymentReceived = false;
+
+    // Предполагаемый номер фактуры (например, F-0010-2026 для октября 2026)
+    const expectedInvoiceNumber = itEntry?.invoiceNumber || `F-00${currentMonth}-2026`;
+
+    if (!itEntry || !itEntry.createdInTaxfix) {
+      pendingItSteps.push(`Создать оригинальную фактуру ${expectedInvoiceNumber} в Taxfix (https://app.taxfix.es/)`);
+    } else {
+      itCreatedInTaxfix = true;
+    }
+
+    if (!itEntry || !itEntry.wordPdfGenerated) {
+      pendingItSteps.push(`Сгенерировать английскую версию инвойса ${expectedInvoiceNumber} (PDF/Docx) через scripts/invoice.ts`);
+    } else {
+      itDocGenerated = true;
+    }
+
+    if (!itEntry || itEntry.paymentStatus !== 'PAID' || !itEntry.paymentLinkedInTaxfix) {
+      pendingItSteps.push(`Привязать банковскую оплату 4 000 EUR от J2T Services Ltd к фактуре в Taxfix (счет Santander ES2400496216312716122672)`);
+    } else {
+      itPaymentReceived = true;
+    }
+
+    // 2. Проверяем комплаенс заказов поставщиков
+    const purchaseOrders = await this.prisma.purchaseOrder.findMany({
+      where: {
+        orderDate: {
+          gte: new Date(Date.UTC(currentYear, 0, 1)),
+        },
+      },
+      include: {
+        distributor: true,
+      },
+      orderBy: { orderDate: 'desc' },
+    });
+
+    const supplierPendingItems: Array<{
+      orderNumber: string;
+      supplier: string;
+      amountEur: number;
+      hasInvoice: boolean;
+      hasPaymentReceipt: boolean;
+      uploadedToTaxfix: boolean;
+      paymentLinkedInTaxfix: boolean;
+      pendingActions: string[];
+    }> = [];
+
+    for (const po of purchaseOrders) {
+      const compliance = this.ordersService.computeTaxfixCompliance(po);
+      if (!compliance.isCompliant) {
+        supplierPendingItems.push({
+          orderNumber: po.orderNumber,
+          supplier: po.distributor?.name || 'Поставщик',
+          amountEur: po.totalGross,
+          hasInvoice: compliance.hasInvoice,
+          hasPaymentReceipt: compliance.hasPaymentReceipt,
+          uploadedToTaxfix: compliance.uploadedToTaxfix,
+          paymentLinkedInTaxfix: compliance.paymentLinkedInTaxfix,
+          pendingActions: compliance.pendingActions,
+        });
+      }
+    }
+
+    // 3. Формируем список текстовых напоминаний для бота (без длинных тире)
+    const reminders: string[] = [];
+
+    if (isDueSoonOrPassed && (!itCreatedInTaxfix || !itDocGenerated)) {
+      reminders.push(
+        `Ежемесячная фактура за разработку (${period}): до ${dueDateStr} нужно создать фактуру ${expectedInvoiceNumber} в Taxfix (https://app.taxfix.es/) и подготовить английский инвойс для клиента J2T Services Ltd.`
+      );
+    }
+
+    if (itCreatedInTaxfix && !itPaymentReceived) {
+      reminders.push(
+        `Фактура ${expectedInvoiceNumber} (J2T Services Ltd): после поступления 4 000 EUR на счет Santander привяжи оплату в Taxfix (https://app.taxfix.es/).`
+      );
+    }
+
+    if (supplierPendingItems.length > 0) {
+      for (const item of supplierPendingItems.slice(0, 3)) {
+        if (!item.hasInvoice) {
+          reminders.push(`Заказ ${item.orderNumber} (${item.supplier}): ожидается счет-фактура (Factura) от поставщика для загрузки в Taxfix.`);
+        } else if (!item.uploadedToTaxfix) {
+          reminders.push(`Заказ ${item.orderNumber} (${item.supplier}): загрузи полученную фактуру в Taxfix (https://app.taxfix.es/).`);
+        } else if (!item.paymentLinkedInTaxfix) {
+          reminders.push(`Заказ ${item.orderNumber} (${item.supplier}): прикрепи выписку об оплате и свяжи платеж в Taxfix (https://app.taxfix.es/).`);
+        }
+      }
+    }
+
+    const allCompliant = pendingItSteps.length === 0 && supplierPendingItems.length === 0;
+    const needsReminder = reminders.length > 0;
+
+    return {
+      status: 'success',
+      timestamp: now.toISOString(),
+      targetPeriod: period,
+      allCompliant,
+      needsReminder,
+      itInvoice: {
+        expectedInvoiceNumber,
+        dueDate: dueDateStr,
+        isDueSoonOrPassed,
+        createdInTaxfix: itCreatedInTaxfix,
+        docGenerated: itDocGenerated,
+        paymentReceived: itPaymentReceived,
+        bankAccount: 'Santander ES2400496216312716122672',
+        pendingSteps: pendingItSteps,
+      },
+      supplierInvoices: {
+        totalPendingCount: supplierPendingItems.length,
+        pendingTaxfixUploadCount: supplierPendingItems.filter((i) => !i.uploadedToTaxfix).length,
+        pendingTaxfixLinkCount: supplierPendingItems.filter((i) => !i.paymentLinkedInTaxfix).length,
+        items: supplierPendingItems,
+      },
+      reminders,
+    };
+  }
 }
+
 
